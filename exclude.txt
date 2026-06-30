@@ -1,0 +1,8 @@
+mc-backup
+node_modules
+dist
+dist-electron
+.git
+*.log
+.DS_Store
+Thumbs.db

@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/icons/icon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MagicCommander</title>
+    <style>
+      /* 初始加载动画 - 在 React 挂载前/期间显示 */
+      .app-loading {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #f5f7fa 0%, #e4e8ec 100%);
+        z-index: 99999;
+        transition: opacity 0.5s ease-out;
+      }
+      .app-loading.dark {
+        background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+      }
+      .app-loading.fade-out {
+        opacity: 0;
+        pointer-events: none;
+      }
+      .app-loading.hidden {
+        display: none;
+      }
+      .app-loading-logo {
+        width: 72px;
+        height: 72px;
+        border-radius: 16px;
+        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 10px 40px rgba(59, 130, 246, 0.3);
+        margin-bottom: 20px;
+        animation: pulse 2s ease-in-out infinite;
+      }
+      .app-loading-logo span {
+        font-size: 28px;
+        font-weight: bold;
+        color: white;
+      }
+      .app-loading-text {
+        font-size: 18px;
+        font-weight: 600;
+        color: #111827;
+        margin-bottom: 6px;
+      }
+      .app-loading.dark .app-loading-text {
+        color: #f9fafb;
+      }
+      .app-loading-sub {
+        font-size: 13px;
+        color: #6b7280;
+        margin-bottom: 24px;
+      }
+      .app-loading.dark .app-loading-sub {
+        color: #9ca3af;
+      }
+      /* 进度条 */
+      .app-loading-progress {
+        width: 200px;
+        height: 4px;
+        background: #e5e7eb;
+        border-radius: 2px;
+        overflow: hidden;
+        margin-bottom: 20px;
+      }
+      .app-loading.dark .app-loading-progress {
+        background: #374151;
+      }
+      .app-loading-progress-bar {
+        height: 100%;
+        background: linear-gradient(90deg, #3b82f6, #60a5fa);
+        border-radius: 2px;
+        animation: progress 2s ease-in-out infinite;
+      }
+      @keyframes progress {
+        0% { width: 10%; margin-left: 0; }
+        50% { width: 60%; margin-left: 20%; }
+        100% { width: 10%; margin-left: 90%; }
+      }
+      /* 名言区域 */
+      .app-loading-quote {
+        max-width: 280px;
+        text-align: center;
+        padding: 0 16px;
+      }
+      .app-loading-quote-text {
+        font-size: 13px;
+        color: #6b7280;
+        font-style: italic;
+        line-height: 1.5;
+      }
+      .app-loading.dark .app-loading-quote-text {
+        color: #9ca3af;
+      }
+      .app-loading-quote-author {
+        font-size: 11px;
+        color: #9ca3af;
+        margin-top: 8px;
+      }
+      .app-loading.dark .app-loading-quote-author {
+        color: #6b7280;
+      }
+      @keyframes pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.03); }
+      }
+    </style>
+    <script>
+      // 网络工程师名言库
+      var quotes = [
+        '好的网络架构，是让故障发生在测试环境。',
+        '配置一行代码，省去一夜排错。',
+        '备份配置是底线，手动变更要留痕。',
+        '变更之前先沟通，变更之后速验证。',
+        '生产环境动不得，测试环境随便搞。',
+        'Ping一下能通否，初步判断网络通。',
+        '三层架构记心间，接入汇聚核心层。',
+        '防火墙是第一道，也是最后一道。',
+        '日志分析做得好，问题定位快又准。',
+        '协议抓包是个宝，疑难杂症难不倒。',
+        '网络无小事，责任重于山。',
+        '排错要细心，一步一步来。',
+        '经验靠积累，问题促成长。',
+        '世界上最远的距离，不是天涯海角，而是网关不通。',
+        '我以为我的配置没问题，直到ping了一下。',
+        'SDN时代已来临，传统网络要转型。',
+        'IPv6过渡要平滑，双栈部署是方向。',
+        '自动化运维是趋势，Ansible要来助力。'
+      ];
+    </script>
+    <script>
+      // 检测并应用深色模式
+      (function() {
+        var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        var savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+          document.documentElement.classList.add('dark');
+          document.body.classList.add('dark');
+        }
+      })();
+    </script>
+    <script>
+      // 随机选择名言并更新显示
+      (function() {
+        // 等待 DOM 加载完成
+        document.addEventListener('DOMContentLoaded', function() {
+          var quoteText = document.querySelector('.app-loading-quote-text');
+          if (quoteText && typeof quotes !== 'undefined' && quotes.length > 0) {
+            var idx = Math.floor(Math.random() * quotes.length);
+            quoteText.textContent = '"' + quotes[idx] + '"';
+          }
+        });
+      })();
+    </script>
+    <script>
+      // 页面加载完成后隐藏初始动画
+      window.addEventListener('DOMContentLoaded', function() {
+        function hideLoading() {
+          var loading = document.querySelector('.app-loading');
+          if (loading) {
+            loading.classList.add('fade-out');
+            setTimeout(function() { loading.classList.add('hidden'); }, 500);
+          }
+        }
+        // 最多等待 3 秒，然后强制隐藏
+        setTimeout(hideLoading, 3000);
+      });
+    </script>
+  </head>
+  <body>
+    <!-- 初始加载动画 - React 接管前显示 -->
+    <div class="app-loading">
+      <div class="app-loading-logo"><span>M</span></div>
+      <div class="app-loading-text">MagicCommander</div>
+      <div class="app-loading-sub">网络设备配置管理工具</div>
+      <div class="app-loading-progress">
+        <div class="app-loading-progress-bar"></div>
+      </div>
+      <div class="app-loading-quote">
+        <div class="app-loading-quote-text">"好的网络架构，是让故障发生在测试环境。"</div>
+        <div class="app-loading-quote-author">— 网络工程师箴言</div>
+      </div>
+    </div>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

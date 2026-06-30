@@ -1,0 +1,95 @@
+sysname SH-SiteA-10F-A-S5560X-ASW-10
+
+
+interface Ten-GigabitEthernet1/0/49
+ description to_SH-SiteA-1F-A-H6520-DOA-01_Ten-GigabitEthernet1/0/10_LC
+#
+interface Ten-GigabitEthernet1/0/50
+ description to_SH-SiteA-1F-A-H6520-DOA-01_Ten-GigabitEthernet1/0/20_LC
+#
+
+
+interface GigabitEthernet1/0/10
+ description TO-Printer02
+ port link-mode bridge
+ port access vlan 102
+# 
+
+
+interface loopback 1
+ ip address 10.1.1.10 32
+
+
+interface Route-Aggregation 1
+ description SH-SiteA-1F-A-H6520-DOA-01
+ link-aggregation mode dynamic
+#
+interface Ten-GigabitEthernet1/0/49
+  port link-aggregation group 1
+interface Ten-GigabitEthernet1/0/50
+  port link-aggregation group 1
+#
+
+
+interface Vlan-interface 102
+ description gateway_ip_of_vlan_102
+ ip address 10.2.102.1 24
+# 
+
+#
+hwtacacs scheme radius1
+ primary authentication 10.1.1.100
+ primary authorization 10.1.1.100
+ primary accounting 10.1.1.100
+ secondary authentication 10.1.1.101
+ secondary authorization 10.1.1.101
+ secondary accounting 10.1.1.101
+ key authentication simple Abcd$123456
+ key authorization simple Abcd$123456
+ key accounting simple Abcd$123456
+ user-name-format without-domain
+ nas-ip NAS_IP
+#
+domain admin
+ authentication login hwtacacs-scheme radius1 local
+ authorization login hwtacacs-scheme radius1 local
+ accounting login hwtacacs-scheme radius1 local
+ authorization command hwtacacs-scheme radius1 none
+ accounting command hwtacacs-scheme radius1
+#
+ domain default enable admin
+#
+line vty 0 63 
+command authorization
+command accounting
+
+#
+ snmp-agent
+ snmp-agent community read public2088
+ snmp-agent sys-info version v2c
+ snmp-agent trap enable arp
+ snmp-agent trap enable syslog
+ snmp-agent target-host trap address udp-domain 10.1.1.102 params securityname public2088
+
+#
+ntp-service enable
+ntp-service unicast-server 10.1.1.104
+ntp-service unicast-server 10.1.1.105
+
+#
+info-center enable
+info-center loghost 10.1.1.106
+#
+
+line vty 0 63
+ authentication-mode scheme
+ user-role network-admin
+ user-role network-operator
+#
+local-user admin class manage
+ password simple Abcd$123456
+ service-type ssh terminal
+ authorization-attribute user-role network-admin
+#
+ssh server enable
+#

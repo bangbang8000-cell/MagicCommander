@@ -1,0 +1,8 @@
+# Python 依赖（与原始项目一致）
+pandas>=1.5.0
+numpy>=1.23.0
+openpyxl>=3.0.0
+jinja2>=3.1.0
+pyyaml>=6.0
+python-docx>=1.0.0
+xlrd>=2.0.0

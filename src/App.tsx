@@ -1,0 +1,258 @@
+import React, { useEffect, useCallback, useState, useRef } from 'react'
+import clsx from 'clsx'
+import { useProjectStore } from './stores/project.store'
+import { useLogStore } from './stores/log.store'
+import { useRenderStore } from './stores/render.store'
+import { useUIStore } from './stores/ui.store'
+import { useEditorStore, type EditorTab } from './stores/editor.store'
+import { useHotkey } from './hooks/useHotkey'
+import { Header } from './components/layout/Header'
+import { ActivityBar } from './components/layout/ActivityBar'
+import { StatusBar } from './components/layout/StatusBar'
+import { ExplorerPanel } from './components/sidebar/ExplorerPanel'
+import { WorkbenchPanel } from './components/sidebar/WorkbenchPanel'
+import { LabelPanel } from './components/sidebar/LabelPanel'
+import { OutputPanel } from './components/sidebar/OutputPanel'
+import { SearchPanel } from './components/sidebar/SearchPanel'
+import { RenderPanel } from './components/sidebar/RenderPanel'
+import { EditorArea } from './components/editor/EditorArea'
+import { PanelArea } from './components/panel/PanelArea'
+import { ErrorBoundary } from './components/ErrorBoundary'
+import { ToastContainer } from './components/ui/Toast'
+import { Cheatsheet } from './components/ui/Cheatsheet'
+import { LoadingScreen } from './components/common/LoadingScreen'
+import type { EditorTabMeta } from './types/editor'
+
+export default function App() {
+  const fetchProjects = useProjectStore((s) => s.fetchProjects)
+  const selectProject = useProjectStore((s) => s.selectProject)
+  const subscribeProgress = useRenderStore((s) => s.subscribeProgress)
+  const subscribeLog = useLogStore((s) => s.subscribeLog)
+  const panelVisible = useUIStore((s) => s.panelVisible)
+  const toggleSidebar = useUIStore((s) => s.toggleSidebar)
+  const setActiveActivity = useUIStore((s) => s.setActiveActivity)
+  const isDark = useUIStore((s) => s.isDark)
+  const openFile = useEditorStore((s) => s.openFile)
+  const saveActiveTab = useEditorStore((s) => s.saveActiveTab)
+  const closeTab = useEditorStore((s) => s.closeTab)
+  const reopenLastClosed = useEditorStore((s) => s.reopenLastClosed)
+
+  const fetchProjectsRef = useRef(fetchProjects)
+  fetchProjectsRef.current = fetchProjects
+  const selectProjectRef = useRef(selectProject)
+  selectProjectRef.current = selectProject
+  const openFileRef = useRef(openFile)
+  openFileRef.current = openFile
+
+  const progressUnsubRef = useRef<(() => void) | null>(null)
+  const logUnsubRef = useRef<(() => void) | null>(null)
+  const initRef = useRef(false)
+
+  const [cheatsheetOpen, setCheatsheetOpen] = useState(false)
+  const [isInitialized, setIsInitialized] = useState(false)
+  const [loadingStage, setLoadingStage] = useState(0)
+
+  const activeActivity = useUIStore((s) => s.activeActivity)
+  const sidebarVisible = useUIStore((s) => s.sidebarVisible)
+
+  useEffect(() => {
+    const root = document.documentElement
+    if (isDark) root.classList.add('dark')
+    else root.classList.remove('dark')
+  }, [isDark])
+
+  const restoreTabs = useCallback(
+    (metas: EditorTabMeta[]) => {
+      metas.forEach((meta) => {
+        const tab: EditorTab = {
+          id: meta.tabId,
+          title: meta.title,
+          filePath: meta.filePath,
+          fileType: meta.fileType,
+          projectId: meta.projectId,
+          projectName: meta.projectName,
+          isDirty: false,
+        }
+        openFileRef.current(tab)
+      })
+    },
+    [],
+  )
+
+  useEffect(() => {
+    if (initRef.current) return
+    initRef.current = true
+
+    const { subscribeProgress } = useRenderStore.getState()
+    const { subscribeLog, addLog } = useLogStore.getState()
+
+    subscribeProgress && (progressUnsubRef.current = subscribeProgress())
+    subscribeLog && (logUnsubRef.current = subscribeLog())
+
+    addLog('info', '应用启动完成')
+    const safeLogWrite = (level: string, message: string) => {
+      try {
+        if (window.electron && window.electron.log) {
+          window.electron.log.write(level, message)
+        }
+      } catch {
+      }
+    }
+    safeLogWrite('info', '应用启动完成')
+    const versions = window.electron?.versions
+    const nodeVersion = versions?.node || 'N/A'
+    const electronVersion = versions?.electron || 'N/A'
+    const platform = versions?.platform || 'N/A'
+    const arch = versions?.arch || 'N/A'
+    safeLogWrite('info', `Node 版本: ${nodeVersion}`)
+    safeLogWrite('info', `Electron 版本: ${electronVersion}`)
+    safeLogWrite('info', `平台: ${platform} (${arch})`)
+    safeLogWrite('info', 'Python 子进程状态: 等待启动...')
+    addLog('info', `Node 版本: ${nodeVersion}`)
+    addLog('info', `Electron 环境已就绪`)
+    addLog('info', `运行平台: ${platform} (${arch})`)
+
+    const waitForHydration = (store: any): Promise<void> => {
+      return new Promise((resolve) => {
+        if (store.persist.hasHydrated()) {
+          resolve()
+        } else {
+          const unsub = store.persist.onFinishHydration(() => {
+            unsub()
+            resolve()
+          })
+        }
+      })
+    }
+
+    const init = async () => {
+      try {
+        // 阶段1：等待状态恢复
+        setLoadingStage(1)
+        await Promise.all([
+          waitForHydration(useProjectStore),
+          waitForHydration(useEditorStore),
+        ])
+
+        // 阶段2：加载项目列表
+        setLoadingStage(2)
+        await fetchProjectsRef.current()
+        await new Promise(resolve => setTimeout(resolve, 0))
+
+        // 阶段3：恢复项目选择
+        setLoadingStage(3)
+        const projState = useProjectStore.getState()
+        const savedProjectId = projState.selectedProjectId
+        const projectsCount = projState.projects.length
+
+        if (savedProjectId !== null && projectsCount > 0) {
+          const matched = projState.projects.find((p: any) => p.id === savedProjectId)
+          if (matched) {
+            selectProjectRef.current(matched)
+          }
+        }
+
+        // 阶段4：恢复标签页
+        setLoadingStage(4)
+        const editorState = useEditorStore.getState()
+        const savedTabMetas = editorState.tabMetas
+
+        if (savedTabMetas && savedTabMetas.length > 0) {
+          if (savedProjectId !== null) {
+            await new Promise(resolve => setTimeout(resolve, 50))
+          }
+          restoreTabs(savedTabMetas)
+
+          await new Promise(resolve => setTimeout(resolve, 0))
+          const afterRestore = useEditorStore.getState()
+          const openTabsCount = afterRestore.openTabs.length
+          const activeTabId = afterRestore.activeTabId
+
+          if (openTabsCount > 0 && activeTabId === null) {
+            useEditorStore.getState().setActiveTab(afterRestore.openTabs[0].id)
+          }
+        }
+      } catch (err) {
+        console.error('[App] init 错误:', err)
+      } finally {
+        // 无论成功还是失败，都要隐藏加载屏幕
+        // 添加短暂延迟避免闪烁
+        setTimeout(() => {
+          setIsInitialized(true)
+        }, 100)
+      }
+    }
+
+    init()
+
+    return () => {
+      progressUnsubRef.current?.()
+      logUnsubRef.current?.()
+      progressUnsubRef.current = null
+      logUnsubRef.current = null
+    }
+  }, [])
+
+  const [cheatsheetPending, setCheatsheetPending] = useState(false)
+  useHotkey('k', () => setCheatsheetPending(true), [])
+  useHotkey('s', () => { if (cheatsheetPending) { setCheatsheetPending(false); setCheatsheetOpen(true) } }, [cheatsheetPending])
+  useHotkey('ctrl+b', () => toggleSidebar(), [toggleSidebar])
+  useHotkey('ctrl+j', () => { useUIStore.getState().togglePanel() }, [])
+  useHotkey('ctrl+shift+e', () => setActiveActivity('explorer'), [setActiveActivity])
+  useHotkey('ctrl+shift+f', () => setActiveActivity('search'), [setActiveActivity])
+  useHotkey('ctrl+shift+r', () => setActiveActivity('render'), [setActiveActivity])
+  useHotkey('ctrl+shift+l', () => setActiveActivity('label'), [setActiveActivity])
+  useHotkey('ctrl+shift+o', () => setActiveActivity('output'), [setActiveActivity])
+  useHotkey('ctrl+s', () => saveActiveTab(), [saveActiveTab])
+  useHotkey('f5', () => window.location.reload(), [])
+  useHotkey('ctrl+w', () => {
+    const { splitMode, activeTabId, splitTabs, activeSplitTabId } = useEditorStore.getState()
+    const tabId = splitMode !== 'none' && splitTabs.some((t) => t.id === activeSplitTabId) ? activeSplitTabId : activeTabId
+    if (tabId) closeTab(tabId)
+  }, [])
+  useHotkey('ctrl+shift+t', () => reopenLastClosed(), [])
+
+  const renderSidebarContent = () => {
+    switch (activeActivity) {
+      case 'search': return <SearchPanel />
+      case 'explorer': return <ExplorerPanel />
+      case 'render': return <RenderPanel />
+      case 'label': return <LabelPanel />
+      case 'output': return <OutputPanel />
+      case 'workbench': return <WorkbenchPanel />
+      default: return <SearchPanel />
+    }
+  }
+
+  return (
+    <ErrorBoundary>
+      <LoadingScreen isLoading={!isInitialized} stage={loadingStage} />
+      <div className={clsx("h-screen w-screen flex flex-col overflow-hidden", isDark ? "dark bg-gray-900 text-gray-100" : "bg-gray-50 text-gray-900")}>
+        <Header />
+        <div className="flex-1 flex overflow-hidden">
+          <ActivityBar />
+          <div className="flex-1 flex overflow-hidden">
+            {sidebarVisible && (
+              <div className={clsx("w-80 flex-shrink-0 overflow-hidden", isDark ? "bg-gray-800 border-r border-gray-700" : "bg-white border-r border-gray-200")}>
+                {renderSidebarContent()}
+              </div>
+            )}
+            <div className="flex-1 flex flex-col overflow-hidden min-h-0">
+              <div className={clsx("flex-1 overflow-hidden min-h-0", isDark ? "bg-gray-900" : "bg-white")}>
+                <EditorArea />
+              </div>
+              {panelVisible && (
+                <div className={clsx("h-48 overflow-hidden border-t", isDark ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200")}>
+                  <PanelArea />
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+        <StatusBar />
+        <ToastContainer />
+        <Cheatsheet open={cheatsheetOpen} onClose={() => setCheatsheetOpen(false)} />
+      </div>
+    </ErrorBoundary>
+  )
+}
