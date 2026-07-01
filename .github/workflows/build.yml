@@ -56,7 +56,13 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: MagicCommander-${{ matrix.platform }}
-          path: release/*
+          path: |
+            release/*.exe
+            release/*.dmg
+            release/*.AppImage
+            release/*.deb
+            release/*.blockmap
+            release/*.yml
           retention-days: 30
 
   release:
@@ -76,6 +82,12 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          files: release/**/*
-          draft: true
+          files: |
+            release/*/*.exe
+            release/*/*.dmg
+            release/*/*.AppImage
+            release/*/*.deb
+            release/*/*.blockmap
+            release/*/*.yml
+          draft: false
           generate_release_notes: true
