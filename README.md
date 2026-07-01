@@ -2,7 +2,7 @@
 
 **批量生成网络设备配置 | Network Device Configuration Automation**
 
-[![Version](https://img.shields.io/badge/version-2.9.1-blue)](https://github.com/bangbang8000-cell/MagicCommander)
+[![Version](https://img.shields.io/badge/version-2.9.2-blue)](https://github.com/bangbang8000-cell/MagicCommander)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![Windows](https://img.shields.io/badge/Windows-NSIS-blue)](https://github.com/bangbang8000-cell/MagicCommander/releases)
 [![macOS](https://img.shields.io/badge/macOS-DMG-silver)](https://github.com/bangbang8000-cell/MagicCommander/releases)
@@ -15,9 +15,11 @@
 
 | 平台 | 安装包 | 说明 |
 |------|--------|------|
-| Windows | [MagicCommander-Setup-2.9.1.exe](https://github.com/bangbang8000-cell/MagicCommander/releases) | NSIS 安装向导，支持自定义安装路径 |
-| macOS | [MagicCommander-2.9.1-mac.dmg](https://github.com/bangbang8000-cell/MagicCommander/releases) | DMG 安装包，拖拽到 Applications 即可 |
-| Linux | [MagicCommander-2.9.1-linux.AppImage](https://github.com/bangbang8000-cell/MagicCommander/releases) / [.deb](https://github.com/bangbang8000-cell/MagicCommander/releases) | AppImage 双击运行；deb 通过包管理器安装 |
+| 🪟 Windows | [MagicCommander-Setup-2.9.1.exe](https://github.com/bangbang8000-cell/MagicCommander/releases) | NSIS 安装向导，支持自定义安装路径 |
+| 🍎 macOS (Intel) | [MagicCommander-2.9.1-mac-x64.dmg](https://github.com/bangbang8000-cell/MagicCommander/releases) | DMG 安装包，拖拽到 Applications 即可 |
+| 🍎 macOS (Apple Silicon) | [MagicCommander-2.9.1-mac-arm64.dmg](https://github.com/bangbang8000-cell/MagicCommander/releases) | DMG 安装包，Apple M 系列芯片原生支持 |
+| 🐧 Linux (AppImage) | [MagicCommander-2.9.1-linux-x86_64.AppImage](https://github.com/bangbang8000-cell/MagicCommander/releases) | 下载后 `chmod +x` 赋予执行权限，双击运行 |
+| 🐧 Linux (deb) | [MagicCommander-2.9.1-linux-amd64.deb](https://github.com/bangbang8000-cell/MagicCommander/releases) | 通过 `sudo dpkg -i` 或包管理器安装 |
 
 > 所有平台均需安装 Python 3.8+。安装包下载请访问 [GitHub Releases](https://github.com/bangbang8000-cell/MagicCommander/releases) 页面。
 
@@ -164,6 +166,7 @@ Electron 28 · React 18 · TypeScript 5 · Vite 5 · TailwindCSS 3 · Zustand 4 
 
 | 版本 | 日期 | 更新内容 |
 |------|------|---------|
+| 2.9.2 | 2026-07-01 | 跨平台编译支持：Windows (NSIS) / macOS (DMG x64+arm64) / Linux (AppImage+deb) |
 | 2.9.1 | 2026-07-01 | 多语言国际化支持（12 种语言）、RTL 布局支持、UI 优化 |
 | 2.1.0 | 2026-06-22 | 修复文件显示问题，优化布局 |
 | 2.0.0 | - | 重构为 Electron + React 架构 |
