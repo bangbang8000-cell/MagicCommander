@@ -53,7 +53,7 @@ const api = {
   },
   app: {
     getVersion: () => ipcRenderer.invoke('app:getVersion'),
-    getPath: (name: 'home' | 'appData' | 'userData' | 'backend') => ipcRenderer.invoke('app:getPath', name),
+    getPath: (name: 'home' | 'appData' | 'userData' | 'backend' | 'workspace') => ipcRenderer.invoke('app:getPath', name),
     checkUpdate: () => ipcRenderer.invoke('app:check-update'),
     downloadUpdate: () => ipcRenderer.invoke('app:download-update'),
     quitAndInstall: () => ipcRenderer.invoke('app:quit-and-install'),

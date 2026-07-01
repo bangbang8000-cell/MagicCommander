@@ -110,8 +110,8 @@ export function Header() {
 
   const handleOpenProjectDir = async () => {
     if (selectedProject) {
-      const backendPath = await window.electron.app.getPath('backend')
-      window.electron.shell.showItemInFolder(`${backendPath}/${selectedProject.name}`)
+      const workspacePath = await window.electron.app.getPath('workspace')
+      window.electron.shell.showItemInFolder(`${workspacePath}/${selectedProject.name}`)
     }
     setActiveMenu(null)
   }

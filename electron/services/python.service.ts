@@ -36,16 +36,20 @@ export class PythonService extends EventEmitter {
     }
     return new Promise<void>((resolve) => {
       try {
+        const env: NodeJS.ProcessEnv = {
+          ...process.env,
+          PYTHONIOENCODING: 'utf-8',
+          PYTHONUNBUFFERED: '1',
+          MC_WORKSPACE: getWorkspaceDir(),
+        }
+        const sitePackages = getPythonSitePackages()
+        if (sitePackages && fs.existsSync(sitePackages)) {
+          env.PYTHONPATH = sitePackages
+        }
         this.process = spawn(this.pythonCmd, [scriptPath], {
           cwd: this.workingDir,
           stdio: ['pipe', 'pipe', 'pipe'],
-          env: {
-            ...process.env,
-            PYTHONIOENCODING: 'utf-8',
-            PYTHONUNBUFFERED: '1',
-            MC_WORKSPACE: getWorkspaceDir(),
-            PYTHONPATH: getPythonSitePackages(),
-          },
+          env,
         })
 
         this.process.stdout?.on('data', (data: Buffer) => this.handleStdout(data))

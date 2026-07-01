@@ -98,7 +98,7 @@ export function LabelPrintPanel() {
     }
 
     try {
-      const projectPath = await window.electron.app.getPath('backend')
+      const projectPath = await window.electron.app.getPath('workspace')
       const projectDir = selectedProject.name
       const labelsPath = `${projectPath}/${projectDir}/excel/label.xlsx`
       

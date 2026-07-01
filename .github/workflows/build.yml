@@ -64,6 +64,46 @@ jobs:
           Write-Host "验证..."
           & "$targetDir\python.exe" -c "import pandas; import jinja2; import openpyxl; import yaml; print('OK')"
 
+      - name: Embed Python runtime (Linux)
+        if: matrix.platform == 'linux'
+        run: |
+          PYTHON_TAG="20250708"
+          PYTHON_VERSION="3.11.13"
+          URL="https://github.com/astral-sh/python-build-standalone/releases/download/${PYTHON_TAG}/cpython-${PYTHON_VERSION}+${PYTHON_TAG}-x86_64-unknown-linux-gnu-install_only_stripped.tar.gz"
+          echo "下载嵌入式 Python ${PYTHON_VERSION}..."
+          curl -L -o /tmp/python-embed.tar.gz "${URL}"
+          mkdir -p resources/python
+          echo "解压..."
+          tar -xzf /tmp/python-embed.tar.gz -C resources/python --strip-components=1
+          chmod +x resources/python/bin/python3
+          echo "安装 pip..."
+          curl -L -o /tmp/get-pip.py https://bootstrap.pypa.io/get-pip.py
+          ./resources/python/bin/python3 /tmp/get-pip.py --no-warn-script-location
+          echo "安装 Python 依赖..."
+          ./resources/python/bin/python3 -m pip install -r backend/requirements.txt --no-warn-script-location
+          echo "验证..."
+          ./resources/python/bin/python3 -c "import pandas; import jinja2; import openpyxl; import yaml; print('OK')"
+
+      - name: Embed Python runtime (macOS)
+        if: matrix.platform == 'mac'
+        run: |
+          PYTHON_TAG="20250708"
+          PYTHON_VERSION="3.11.13"
+          URL="https://github.com/astral-sh/python-build-standalone/releases/download/${PYTHON_TAG}/cpython-${PYTHON_VERSION}+${PYTHON_TAG}-aarch64-apple-darwin-install_only_stripped.tar.gz"
+          echo "下载嵌入式 Python ${PYTHON_VERSION}..."
+          curl -L -o /tmp/python-embed.tar.gz "${URL}"
+          mkdir -p resources/python
+          echo "解压..."
+          tar -xzf /tmp/python-embed.tar.gz -C resources/python --strip-components=1
+          chmod +x resources/python/bin/python3
+          echo "安装 pip..."
+          curl -L -o /tmp/get-pip.py https://bootstrap.pypa.io/get-pip.py
+          ./resources/python/bin/python3 /tmp/get-pip.py --no-warn-script-location
+          echo "安装 Python 依赖..."
+          ./resources/python/bin/python3 -m pip install -r backend/requirements.txt --no-warn-script-location
+          echo "验证..."
+          ./resources/python/bin/python3 -c "import pandas; import jinja2; import openpyxl; import yaml; print('OK')"
+
       - name: Install npm dependencies
         run: npm ci
 

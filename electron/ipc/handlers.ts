@@ -481,6 +481,9 @@ export function setupIpcHandlers(python: PythonService, window: BrowserWindow): 
     if (name === 'backend') {
       return getBackendDir()
     }
+    if (name === 'workspace') {
+      return getWorkspaceDir()
+    }
     return ''
   })
 

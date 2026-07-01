@@ -15,8 +15,8 @@ interface FileNode {
 
 async function openInExplorer(projectName: string, relativePath: string) {
   try {
-    const backendPath = await window.electron.app.getPath('backend')
-    const fullPath = `${backendPath}/${projectName}/${relativePath}`
+    const workspacePath = await window.electron.app.getPath('workspace')
+    const fullPath = `${workspacePath}/${projectName}/${relativePath}`
     window.electron.shell.showItemInFolder(fullPath)
   } catch (err) {
     console.error('打开资源管理器失败:', err)

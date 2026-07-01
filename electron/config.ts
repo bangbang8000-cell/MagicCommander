@@ -21,11 +21,45 @@ export function getBackendDir(): string {
 
 /**
  * 获取工作区目录路径（项目数据所在目录）
+ * 生产环境使用用户数据目录，避免安装目录无写入权限
  */
 export function getWorkspaceDir(): string {
   const devPath = path.join(process.cwd(), 'workspace')
   if (fs.existsSync(devPath)) return devPath
-  return path.join(process.resourcesPath, 'workspace')
+  return path.join(getUserDataDir(), 'workspace')
+}
+
+/**
+ * 初始化工作区目录
+ * 首次启动时将打包自带的示例项目复制到用户数据目录
+ */
+export function initializeWorkspace(): void {
+  const workspaceDir = getWorkspaceDir()
+  if (fs.existsSync(workspaceDir)) {
+    return
+  }
+
+  fs.mkdirSync(workspaceDir, { recursive: true })
+
+  // 生产环境：从安装目录的 resources/workspace 复制初始示例
+  const bundledWorkspace = path.join(process.resourcesPath, 'workspace')
+  if (fs.existsSync(bundledWorkspace)) {
+    copyDirRecursive(bundledWorkspace, workspaceDir)
+  }
+}
+
+function copyDirRecursive(src: string, dest: string): void {
+  fs.mkdirSync(dest, { recursive: true })
+  const entries = fs.readdirSync(src, { withFileTypes: true })
+  for (const entry of entries) {
+    const srcPath = path.join(src, entry.name)
+    const destPath = path.join(dest, entry.name)
+    if (entry.isDirectory()) {
+      copyDirRecursive(srcPath, destPath)
+    } else {
+      fs.copyFileSync(srcPath, destPath)
+    }
+  }
 }
 
 /**
@@ -33,16 +67,47 @@ export function getWorkspaceDir(): string {
  * 生产环境优先使用打包的嵌入式 Python，开发环境回退到系统 Python
  */
 export function getPythonPath(): string {
-  const embeddedPath = path.join(process.resourcesPath, 'python', 'python.exe')
-  if (fs.existsSync(embeddedPath)) return embeddedPath
+  // Windows 嵌入式 Python
+  const winEmbedded = path.join(process.resourcesPath, 'python', 'python.exe')
+  if (fs.existsSync(winEmbedded)) return winEmbedded
+
+  // Linux/macOS 嵌入式 Python（常见路径）
+  const unixEmbedded = path.join(process.resourcesPath, 'python', 'bin', 'python3')
+  if (fs.existsSync(unixEmbedded)) return unixEmbedded
+
+  const unixEmbedded2 = path.join(process.resourcesPath, 'python', 'bin', 'python')
+  if (fs.existsSync(unixEmbedded2)) return unixEmbedded2
+
+  // 回退到系统 Python
   return process.platform === 'win32' ? 'python' : 'python3'
 }
 
 /**
  * 获取嵌入式 Python 的 site-packages 目录
+ * 支持 Windows / Linux / macOS 的不同目录结构
  */
 export function getPythonSitePackages(): string {
-  return path.join(process.resourcesPath, 'python', 'Lib', 'site-packages')
+  // Windows 嵌入式 Python
+  const winPath = path.join(process.resourcesPath, 'python', 'Lib', 'site-packages')
+  if (fs.existsSync(winPath)) return winPath
+
+  // Linux/macOS：尝试扫描 lib 目录下的 python3.x/site-packages
+  const libDir = path.join(process.resourcesPath, 'python', 'lib')
+  if (fs.existsSync(libDir)) {
+    const entries = fs.readdirSync(libDir)
+    for (const entry of entries) {
+      if (entry.startsWith('python3.')) {
+        const spPath = path.join(libDir, entry, 'site-packages')
+        if (fs.existsSync(spPath)) return spPath
+      }
+    }
+    // 通用 site-packages 路径
+    const genericPath = path.join(libDir, 'site-packages')
+    if (fs.existsSync(genericPath)) return genericPath
+  }
+
+  // 回退到 Windows 默认路径（即使不存在）
+  return winPath
 }
 
 /**

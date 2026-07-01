@@ -3,7 +3,7 @@ import * as path from 'path'
 import * as fs from 'fs'
 import { setupIpcHandlers } from './ipc/handlers'
 import { PythonService } from './services/python.service'
-import { initializeAppDirs, isDev } from './config'
+import { initializeAppDirs, initializeWorkspace, isDev } from './config'
 import { updateService } from './services/update.service'
 import { logger } from './utils/logger'
 import electronI18n from './electron-i18n'
@@ -21,6 +21,7 @@ class MagicCommanderApp {
 
   async initialize(): Promise<void> {
     await app.whenReady()
+    initializeWorkspace()
     this.createMainWindow()
     Menu.setApplicationMenu(null)
     setupIpcHandlers(this.pythonService, this.mainWindow!)
@@ -97,6 +98,29 @@ class MagicCommanderApp {
     this.mainWindow.webContents.setWindowOpenHandler(({ url }) => {
       shell.openExternal(url)
       return { action: 'deny' }
+    })
+
+    this.mainWindow.webContents.on('context-menu', (event, params) => {
+      event.preventDefault()
+      const template: Electron.MenuItemConstructorOptions[] = []
+
+      if (params.isEditable) {
+        template.push(
+          { label: electronI18n.t('common:app.cut', '剪切'), role: 'cut' },
+          { label: electronI18n.t('common:app.copy', '复制'), role: 'copy' },
+          { label: electronI18n.t('common:app.paste', '粘贴'), role: 'paste' },
+          { type: 'separator' },
+          { label: electronI18n.t('common:app.selectAll', '全选'), role: 'selectAll' }
+        )
+      } else if (params.selectionText) {
+        template.push(
+          { label: electronI18n.t('common:app.copy', '复制'), role: 'copy' }
+        )
+      }
+
+      if (template.length > 0) {
+        Menu.buildFromTemplate(template).popup({ window: this.mainWindow! })
+      }
     })
 
     this.mainWindow.on('closed', () => {

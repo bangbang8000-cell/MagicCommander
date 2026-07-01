@@ -132,7 +132,7 @@ export interface DialogIpcApi {
 
 export interface AppIpcApi {
   getVersion: () => Promise<string>
-  getPath: (name: 'home' | 'appData' | 'userData' | 'backend') => Promise<string>
+  getPath: (name: 'home' | 'appData' | 'userData' | 'backend' | 'workspace') => Promise<string>
   getLanguage: () => Promise<string>
   setLanguage: (lang: string) => Promise<void>
   onLanguageChange: (callback: (lang: string) => void) => () => void

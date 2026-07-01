@@ -4,7 +4,7 @@ import * as path from 'path'
 import * as fs from 'fs'
 import { spawn } from 'child_process'
 import { escapePythonArg, validateProjectName, validateFilePath } from '../utils/security'
-import { getBackendDir, APP_CONFIG } from '../config'
+import { getBackendDir, getPythonPath, getWorkspaceDir, APP_CONFIG } from '../config'
 
 const THROTTLE_MS = 100
 
@@ -206,7 +206,7 @@ export class RenderHandler {
       const devPath = path.join(process.cwd(), 'backend')
       const backendPath = fs.existsSync(devPath) ? devPath : path.join(process.resourcesPath, 'backend')
 
-      const pythonCmd = process.platform === 'win32' ? 'python' : 'python3'
+      const pythonCmd = getPythonPath()
       const scriptPath = path.join(backendPath, 'main.py')
 
       if (!fs.existsSync(scriptPath)) {
@@ -224,7 +224,7 @@ export class RenderHandler {
       try {
         const pythonProcess = spawn(pythonCmd, fullCommand, {
           cwd: backendPath,
-          env: { ...process.env, PYTHONIOENCODING: 'utf-8', PYTHONUNBUFFERED: '1' },
+          env: { ...process.env, PYTHONIOENCODING: 'utf-8', PYTHONUNBUFFERED: '1', MC_WORKSPACE: getWorkspaceDir() },
           shell: false,
         })
 
