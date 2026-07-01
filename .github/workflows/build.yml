@@ -40,6 +40,30 @@ jobs:
       - name: Install Python dependencies
         run: pip install -r backend/requirements.txt
 
+      - name: Embed Python runtime (Windows only)
+        if: matrix.platform == 'win'
+        shell: pwsh
+        run: |
+          $pythonUrl = "https://www.python.org/ftp/python/3.11.9/python-3.11.9-embed-amd64.zip"
+          $targetDir = "resources\python"
+          New-Item -ItemType Directory -Force -Path $targetDir | Out-Null
+          Write-Host "下载嵌入式 Python 3.11.9..."
+          Invoke-WebRequest -Uri $pythonUrl -OutFile "$env:TEMP\python-embed.zip" -UseBasicParsing
+          Write-Host "解压..."
+          Expand-Archive -Path "$env:TEMP\python-embed.zip" -DestinationPath $targetDir -Force
+          Write-Host "配置 site-packages..."
+          $pthFile = "$targetDir\python311._pth"
+          (Get-Content $pthFile) -replace '#import site', 'import site' | Set-Content $pthFile -Encoding UTF8
+          Add-Content -Path $pthFile -Value 'Lib\site-packages' -Encoding UTF8
+          Write-Host "安装 pip..."
+          Invoke-WebRequest -Uri "https://bootstrap.pypa.io/get-pip.py" -OutFile "$targetDir\get-pip.py" -UseBasicParsing
+          & "$targetDir\python.exe" "$targetDir\get-pip.py" --no-warn-script-location
+          Write-Host "安装 Python 依赖..."
+          & "$targetDir\python.exe" -m pip install -r backend\requirements.txt --no-warn-script-location
+          Remove-Item "$targetDir\get-pip.py" -Force -ErrorAction SilentlyContinue
+          Write-Host "验证..."
+          & "$targetDir\python.exe" -c "import pandas; import jinja2; import openpyxl; import yaml; print('OK')"
+
       - name: Install npm dependencies
         run: npm ci
 

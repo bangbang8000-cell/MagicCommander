@@ -40,3 +40,6 @@ magiccommander-i18n-plan/
 # Electron cache
 .electron-user-data/
 electron-builder-cache/
+
+# Embedded Python (CI 构建产物，不提交到仓库)
+resources/python/

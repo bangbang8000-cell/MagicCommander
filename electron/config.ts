@@ -29,6 +29,23 @@ export function getWorkspaceDir(): string {
 }
 
 /**
+ * 获取 Python 可执行文件路径
+ * 生产环境优先使用打包的嵌入式 Python，开发环境回退到系统 Python
+ */
+export function getPythonPath(): string {
+  const embeddedPath = path.join(process.resourcesPath, 'python', 'python.exe')
+  if (fs.existsSync(embeddedPath)) return embeddedPath
+  return process.platform === 'win32' ? 'python' : 'python3'
+}
+
+/**
+ * 获取嵌入式 Python 的 site-packages 目录
+ */
+export function getPythonSitePackages(): string {
+  return path.join(process.resourcesPath, 'python', 'Lib', 'site-packages')
+}
+
+/**
  * 获取用户数据目录路径
  */
 export function getUserDataDir(): string {
@@ -130,7 +147,7 @@ export const APP_CONFIG = {
   
   // 版本信息
   VERSION: {
-    CURRENT: '2.9.1',
+    CURRENT: '2.9.3',
     MIN_SUPPORTED_PYTHON: '3.8',
   },
 }

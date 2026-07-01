@@ -1,6 +1,6 @@
 {
   "name": "magiccommander",
-  "version": "2.9.1",
+  "version": "2.9.3",
   "description": "MagicCommander - 网络设备配置管理工具",
   "main": "dist-electron/main.js",
   "author": "Magic Commander Team",
@@ -70,13 +70,20 @@
     },
     "files": [
       "dist/**/*",
-      "dist-electron/**/*",
-      "backend/**/*"
+      "dist-electron/**/*"
     ],
     "extraResources": [
       {
         "from": "backend",
         "to": "backend"
+      },
+      {
+        "from": "workspace",
+        "to": "workspace"
+      },
+      {
+        "from": "resources/python",
+        "to": "python"
       }
     ],
     "win": {

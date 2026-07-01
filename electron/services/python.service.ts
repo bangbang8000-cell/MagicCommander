@@ -2,6 +2,7 @@ import { spawn, ChildProcess } from 'child_process'
 import { EventEmitter } from 'events'
 import * as path from 'path'
 import * as fs from 'fs'
+import { getPythonPath, getWorkspaceDir, getPythonSitePackages } from '../config'
 
 export class PythonService extends EventEmitter {
   private process: ChildProcess | null = null
@@ -15,7 +16,7 @@ export class PythonService extends EventEmitter {
     super()
     const devPath = path.join(process.cwd(), 'backend')
     this.workingDir = fs.existsSync(devPath) ? devPath : path.join(process.resourcesPath, 'backend')
-    this.pythonCmd = process.platform === 'win32' ? 'python' : 'python3'
+    this.pythonCmd = getPythonPath()
   }
 
   private ensureStarted(): Promise<void> {
@@ -38,7 +39,13 @@ export class PythonService extends EventEmitter {
         this.process = spawn(this.pythonCmd, [scriptPath], {
           cwd: this.workingDir,
           stdio: ['pipe', 'pipe', 'pipe'],
-          env: { ...process.env, PYTHONIOENCODING: 'utf-8', PYTHONUNBUFFERED: '1' },
+          env: {
+            ...process.env,
+            PYTHONIOENCODING: 'utf-8',
+            PYTHONUNBUFFERED: '1',
+            MC_WORKSPACE: getWorkspaceDir(),
+            PYTHONPATH: getPythonSitePackages(),
+          },
         })
 
         this.process.stdout?.on('data', (data: Buffer) => this.handleStdout(data))
