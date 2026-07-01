@@ -15,11 +15,11 @@
 
 | 平台 | 安装包 | 说明 |
 |------|--------|------|
-| 🪟 Windows | [MagicCommander-Setup-2.9.1.exe](https://github.com/bangbang8000-cell/MagicCommander/releases) | NSIS 安装向导，支持自定义安装路径 |
-| 🍎 macOS (Intel) | [MagicCommander-2.9.1-mac-x64.dmg](https://github.com/bangbang8000-cell/MagicCommander/releases) | DMG 安装包，拖拽到 Applications 即可 |
-| 🍎 macOS (Apple Silicon) | [MagicCommander-2.9.1-mac-arm64.dmg](https://github.com/bangbang8000-cell/MagicCommander/releases) | DMG 安装包，Apple M 系列芯片原生支持 |
-| 🐧 Linux (AppImage) | [MagicCommander-2.9.1-linux-x86_64.AppImage](https://github.com/bangbang8000-cell/MagicCommander/releases) | 下载后 `chmod +x` 赋予执行权限，双击运行 |
-| 🐧 Linux (deb) | [MagicCommander-2.9.1-linux-amd64.deb](https://github.com/bangbang8000-cell/MagicCommander/releases) | 通过 `sudo dpkg -i` 或包管理器安装 |
+| 🪟 Windows | [MagicCommander-Setup.exe](https://github.com/bangbang8000-cell/MagicCommander/releases) | NSIS 安装向导，支持自定义安装路径 |
+| 🍎 macOS (Intel) | [MagicCommander-mac-x64.dmg](https://github.com/bangbang8000-cell/MagicCommander/releases) | DMG 安装包，拖拽到 Applications 即可 |
+| 🍎 macOS (Apple Silicon) | [MagicCommander-mac-arm64.dmg](https://github.com/bangbang8000-cell/MagicCommander/releases) | DMG 安装包，Apple M 系列芯片原生支持 |
+| 🐧 Linux (AppImage) | [MagicCommander-linux-x86_64.AppImage](https://github.com/bangbang8000-cell/MagicCommander/releases) | 下载后 `chmod +x` 赋予执行权限，双击运行 |
+| 🐧 Linux (deb) | [MagicCommander-linux-amd64.deb](https://github.com/bangbang8000-cell/MagicCommander/releases) | 通过 `sudo dpkg -i` 或包管理器安装 |
 
 > 所有平台均需安装 Python 3.8+。安装包下载请访问 [GitHub Releases](https://github.com/bangbang8000-cell/MagicCommander/releases) 页面。
 
