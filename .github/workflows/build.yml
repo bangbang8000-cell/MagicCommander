@@ -114,6 +114,6 @@ jobs:
             release/*/*.deb \
             release/*/*.blockmap \
             release/*/*.yml \
+            --repo "${{ github.repository }}" \
             --title "${{ github.ref_name }}" \
-            --generate-notes \
-            --verify-tag
+            --generate-notes
