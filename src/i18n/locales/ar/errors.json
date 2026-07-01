@@ -1,0 +1,61 @@
+{
+  "general": {
+    "unknown": "حدث خطأ غير معروف",
+    "retry": "يرجى إعادة المحاولة أو الاتصال بالدعم الفني",
+    "reportBug": "وجدت خطأ؟ يرجى إرسال ملاحظاتك إلينا",
+    "reload": "إعادة التحميل",
+    "reloadApp": "إعادة تحميل التطبيق",
+    "somethingWentWrong": "حدث خطأ ما",
+    "errorBoundaryMessage": "واجه التطبيق خطأ غير متوقع، يرجى محاولة إعادة التحميل."
+  },
+  "project": {
+    "createFailed": "فشل إنشاء المشروع",
+    "deleteFailed": "فشل حذف المشروع",
+    "renameFailed": "فشل إعادة تسمية المشروع",
+    "loadFailed": "فشل تحميل المشروع",
+    "notFound": "لم يتم العثور على المشروع",
+    "invalidName": "اسم المشروع غير صالح",
+    "nameTooLong": "اسم المشروع طويل جداً",
+    "nameTooShort": "اسم المشروع قصير جداً"
+  },
+  "file": {
+    "readFailed": "فشل قراءة الملف",
+    "writeFailed": "فشل كتابة الملف",
+    "deleteFailed": "فشل حذف الملف",
+    "notFound": "لم يتم العثور على الملف",
+    "invalidPath": "مسار الملف غير صالح",
+    "accessDenied": "تم رفض الوصول إلى الملف",
+    "tooLarge": "الملف كبير جداً",
+    "unsupportedFormat": "تنسيق ملف غير مدعوم"
+  },
+  "render": {
+    "failed": "فشل التصيير",
+    "timeout": "انتهت مهلة التصيير",
+    "pythonError": "خطأ في تنفيذ Python",
+    "pythonNotFound": "لم يتم العثور على بيئة Python",
+    "dependencyMissing": "الحزم التابعة مفقودة",
+    "outputNotFound": "لم يتم العثور على ملفات الإخراج",
+    "yamlNotFound": "لم يتم العثور على ملفات YAML",
+    "permissionDenied": "صلاحيات غير كافية، تعذر الكتابة إلى ملفات الإخراج"
+  },
+  "network": {
+    "offline": "تم قطع الاتصال بالشبكة",
+    "timeout": "انتهت مهلة الطلب",
+    "serverError": "خطأ في الخادم",
+    "updateFailed": "فشل التحقق من التحديثات",
+    "downloadFailed": "فشل تنزيل التحديث"
+  },
+  "print": {
+    "failed": "فشلت الطباعة",
+    "noPrinter": "لم يتم العثور على طابعة",
+    "printerError": "خطأ في الطابعة",
+    "paperEmpty": "نفاد الورق",
+    "canceled": "تم إلغاء الطباعة"
+  },
+  "python": {
+    "startFailed": "فشل بدء تشغيل خدمة Python",
+    "stopped": "تم إيقاف خدمة Python",
+    "crash": "خروج غير طبيعي لخدمة Python",
+    "versionMismatch": "إصدار Python غير متوافق، يتطلب Python 3.8+"
+  }
+}

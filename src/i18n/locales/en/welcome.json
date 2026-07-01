@@ -1,0 +1,84 @@
+{
+  "title": "Welcome to MagicCommander",
+  "subtitle": "One-stop Parameter Management & Configuration Generation",
+  "description": "MagicCommander provides network engineers with a complete workflow for parameter table management, template rendering, and label generation, helping you efficiently and accurately complete batch device configuration tasks.",
+  "getStarted": "Get Started",
+  "skip": "Don't show again",
+  "successStart": "Welcome to MagicCommander, start your configuration management journey!",
+  "successDismiss": "Your preference has been saved. The welcome page will not be shown on next launch.",
+  "steps": {
+    "step1": {
+      "title": "Create or Select a Project",
+      "description": "Select an existing project in the Explorer panel, or create a new project to get started."
+    },
+    "step2": {
+      "title": "Edit Parameter Table",
+      "description": "Edit the para.xlsx parameter table in your project, filling in device information, template variables, etc."
+    },
+    "step3": {
+      "title": "Configure and Render",
+      "description": "Select templates and rendering options in the workbench, then click render to generate device configurations."
+    },
+    "step4": {
+      "title": "Adjust Interface Layout",
+      "description": "Use Ctrl+B to toggle the sidebar, Ctrl+J to toggle the bottom panel, and freely organize your workspace."
+    }
+  },
+  "shortcuts": {
+    "title": "Common Shortcuts",
+    "toggleSidebar": "Toggle Sidebar",
+    "togglePanel": "Toggle Bottom Panel",
+    "openExplorer": "Open Explorer",
+    "openSearch": "Open Search",
+    "openWorkbench": "Open Workbench",
+    "openLabelGen": "Open Label Generation",
+    "openRenderResult": "Open Render Results",
+    "saveFile": "Save Current File",
+    "refresh": "Refresh Interface"
+  },
+  "tips": {
+    "title": "Quick Start",
+    "reopenHint": "You can reopen this page at any time by clicking the help button in the top right corner."
+  },
+  "networkQuotes": {
+    "q0": "In the world of networking, no destination is unreachable, only routes not found.",
+    "q1": "One line of config saves a night of troubleshooting.",
+    "q2": "Good network architecture lets failures happen in the test environment.",
+    "q3": "IP fragmentation is not hard, just keep MTU limits in mind.",
+    "q4": "Choose your routing protocol well, and network stability follows.",
+    "q5": "Write your ACLs well, and access control is a breeze.",
+    "q6": "Clear VLAN segmentation brings peace of mind to network isolation.",
+    "q7": "Redundant links are essential for reliable failover.",
+    "q8": "Good log analysis makes problem location fast and accurate.",
+    "q9": "Protocol packet capture is a treasure, no mystery is too hard to solve.",
+    "q10": "Backup config is the baseline, always log manual changes.",
+    "q11": "Communicate before changes, verify quickly after changes.",
+    "q12": "Don't touch production, test environment is your playground.",
+    "q13": "Keep the three-layer architecture in mind: access, distribution, core.",
+    "q14": "The firewall is the first line of defense, and the last.",
+    "q15": "NAT is good but don't abuse it, plan your addressing in advance.",
+    "q16": "DHCP service needs redundancy, address pools need headroom.",
+    "q17": "DNS is the cornerstone of the network, resolution failure brings everything down.",
+    "q18": "Unified timezone is important, it helps with log analysis.",
+    "q19": "Ping to check connectivity, a quick first step to diagnose.",
+    "q20": "Run a traceroute, and the routing path becomes visible.",
+    "q21": "Telnet to test ports, and you'll know if services are reachable.",
+    "q22": "Set up SNMP monitoring, timely alerts are what make it reliable.",
+    "q23": "Run your backup scripts, data security is guaranteed.",
+    "q24": "In networking, no detail is too small, responsibility is heavier than mountains.",
+    "q25": "Troubleshoot carefully, one step at a time.",
+    "q26": "Well-written documentation means no headaches for the next person.",
+    "q27": "Experience comes from accumulation, problems drive growth.",
+    "q28": "Enter the industry, fall into the pit, the more pits, the wider the road.",
+    "q29": "The farthest distance in the world is not miles apart, but a gateway that won't respond.",
+    "q30": "I thought my config was fine, until I pinged it.",
+    "q31": "Why is it offline? Because the server room AC failed.",
+    "q32": "Working overtime until dawn, just because one network cable wasn't plugged in properly.",
+    "q33": "The client said 'just a simple change', and I worked all night.",
+    "q34": "The SDN era has arrived, traditional networks must transform.",
+    "q35": "Understand container networking, Overlay is essential.",
+    "q36": "IPv6 transition must be smooth, dual-stack deployment is the way forward.",
+    "q37": "Zero trust is the new security paradigm, continuous verification is the core.",
+    "q38": "Automation is the trend, Ansible is here to help."
+  }
+}

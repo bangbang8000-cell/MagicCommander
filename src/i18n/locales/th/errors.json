@@ -1,0 +1,61 @@
+{
+  "general": {
+    "unknown": "เกิดข้อผิดพลาดที่ไม่รู้จัก",
+    "retry": "กรุณาลองใหม่หรือติดต่อฝ่ายสนับสนุนเทคนิค",
+    "reportBug": "พบข้อผิดพลาด? กรุณาแจ้งให้เราทราบ",
+    "reload": "โหลดใหม่",
+    "reloadApp": "โหลดแอปใหม่",
+    "somethingWentWrong": "มีบางอย่างผิดพลาด",
+    "errorBoundaryMessage": "แอปพบข้อผิดพลาดที่ไม่คาดคิด กรุณาลองโหลดใหม่"
+  },
+  "project": {
+    "createFailed": "สร้างโครงการไม่สำเร็จ",
+    "deleteFailed": "ลบโครงการไม่สำเร็จ",
+    "renameFailed": "เปลี่ยนชื่อโครงการไม่สำเร็จ",
+    "loadFailed": "โหลดโครงการไม่สำเร็จ",
+    "notFound": "ไม่พบโครงการ",
+    "invalidName": "ชื่อโครงการไม่ถูกต้อง",
+    "nameTooLong": "ชื่อโครงการยาวเกินไป",
+    "nameTooShort": "ชื่อโครงการสั้นเกินไป"
+  },
+  "file": {
+    "readFailed": "อ่านไฟล์ไม่สำเร็จ",
+    "writeFailed": "เขียนไฟล์ไม่สำเร็จ",
+    "deleteFailed": "ลบไฟล์ไม่สำเร็จ",
+    "notFound": "ไม่พบไฟล์",
+    "invalidPath": "เส้นทางไฟล์ไม่ถูกต้อง",
+    "accessDenied": "ถูกปฏิเสธการเข้าถึงไฟล์",
+    "tooLarge": "ไฟล์ใหญ่เกินไป",
+    "unsupportedFormat": "รูปแบบไฟล์ที่ไม่รองรับ"
+  },
+  "render": {
+    "failed": "เรนเดอร์ไม่สำเร็จ",
+    "timeout": "เรนเดอร์หมดเวลา",
+    "pythonError": "ข้อผิดพลาดในการทำงานของ Python",
+    "pythonNotFound": "ไม่พบสภาพแวดล้อม Python",
+    "dependencyMissing": "ขาดแพ็กเกจที่จำเป็น",
+    "outputNotFound": "ไม่พบไฟล์เอาต์พุต",
+    "yamlNotFound": "ไม่พบไฟล์ YAML",
+    "permissionDenied": "สิทธิ์ไม่เพียงพอ ไม่สามารถเขียนไฟล์เอาต์พุต"
+  },
+  "network": {
+    "offline": "การเชื่อมต่อเครือข่ายถูกตัด",
+    "timeout": "คำขอหมดเวลา",
+    "serverError": "ข้อผิดพลาดเซิร์ฟเวอร์",
+    "updateFailed": "ตรวจสอบอัปเดตไม่สำเร็จ",
+    "downloadFailed": "ดาวน์โหลดอัปเดตไม่สำเร็จ"
+  },
+  "print": {
+    "failed": "พิมพ์ไม่สำเร็จ",
+    "noPrinter": "ไม่พบเครื่องพิมพ์",
+    "printerError": "ข้อผิดพลาดเครื่องพิมพ์",
+    "paperEmpty": "กระดาษไม่เพียงพอ",
+    "canceled": "ยกเลิกการพิมพ์แล้ว"
+  },
+  "python": {
+    "startFailed": "เริ่มบริการ Python ไม่สำเร็จ",
+    "stopped": "บริการ Python หยุดทำงานแล้ว",
+    "crash": "บริการ Python หยุดทำงานผิดปกติ",
+    "versionMismatch": "เวอร์ชัน Python ไม่เข้ากัน ต้องการ Python 3.8+"
+  }
+}

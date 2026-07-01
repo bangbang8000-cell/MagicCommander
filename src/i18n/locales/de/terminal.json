@@ -1,0 +1,74 @@
+{
+  "banner": {
+    "welcomeBanner": "╔══════════════════════════════════════════════════════════════╗\n║                   MagicCommander Terminal                   ║\n╠══════════════════════════════════════════════════════════════╣\n║  Willkommen im integrierten MagicCommander-Terminal!       ║\n║  Geben Sie help ein, um alle verfügbaren Befehle zu sehen  ║\n╠══════════════════════════════════════════════════════════════╣\n║  Befehlsübersicht:                                        ║\n║  ┌─────────────────────────────────────────────────────┐ ║\n║  │ help       - Hilfe anzeigen                          │ ║\n║  │ list       - Alle Projekte auflisten                 │ ║\n║  │ select     - Projekt auswählen                       │ ║\n║  │ render     - Rendering ausführen                     │ ║\n║  │ label      - Etiketten drucken                       │ ║\n║  │ clear      - Terminal leeren                         │ ║\n║  └─────────────────────────────────────────────────────┘ ║\n╚══════════════════════════════════════════════════════════════╝"
+  },
+  "messages": {
+    "cleared": "Terminal wurde geleert.",
+    "executing": "Wird ausgeführt...",
+    "execError": "Ausführungsfehler: {{error}}"
+  },
+  "placeholder": "Befehl eingeben, Enter zum Absenden",
+  "placeholderExecuting": "Wird ausgeführt...",
+  "electronRequired": "Bitte führen Sie diese Funktion in der Electron-Desktop-Anwendung aus",
+  "commands": {
+    "help": {
+      "desc": "Alle unterstützten Befehle auflisten",
+      "output": "Unterstützte Befehle:"
+    },
+    "question": {
+      "desc": "Alle unterstützten Befehle auflisten (Alias)"
+    },
+    "version": {
+      "desc": "Aktuelle Anwendungsversion anzeigen"
+    },
+    "ver": {
+      "desc": "Aktuelle Anwendungsversion anzeigen (Alias)"
+    },
+    "list": {
+      "desc": "Projekte auflisten (list projects oder ls)",
+      "projectsFromCache": "Projektliste (Cache, {{count}} insgesamt):",
+      "projectsFromServer": "Projektliste ({{count}} insgesamt):",
+      "noProjects": "Keine Projekte",
+      "unknownParam": "Unbekannter Parameter: {{param}}"
+    },
+    "ls": {
+      "desc": "Projekte auflisten (Alias für list projects)"
+    },
+    "select": {
+      "desc": "Projekt auswählen, Verwendung: select <Projektname>",
+      "usage": "Verwendung: select <Projektname>",
+      "notFound": "Projekt nicht gefunden: {{name}}",
+      "selected": "Projekt ausgewählt: {{name}}"
+    },
+    "render": {
+      "desc": "Projekt rendern, Verwendung: render [project|yaml] [Projektname oder ID]",
+      "noProject": "Kein Projekt angegeben. Verwenden Sie: render project <Projektname oder ID>",
+      "yamlDone": "YAML-Rendering abgeschlossen: {{ids}}",
+      "projectDone": "Projekt-Rendering abgeschlossen: {{ids}}",
+      "unknownSub": "Unbekannter Unterbefehl: {{sub}}",
+      "failed": "Rendering fehlgeschlagen: {{error}}"
+    },
+    "label": {
+      "desc": "Etiketten drucken, Verwendung: label <Projektname oder ID>",
+      "noProject": "Kein Projekt ausgewählt, Verwendung: label <Projektname oder ID>",
+      "submitted": "Etikettendruck-Auftrag eingereicht: {{ids}}",
+      "failed": "Etikettendruck fehlgeschlagen: {{error}}"
+    },
+    "theme": {
+      "desc": "Design umschalten/festlegen, Verwendung: theme [light|dark]",
+      "toggled": "Design umgeschaltet auf: {{theme}}",
+      "set": "Design festgelegt auf: {{theme}}",
+      "unknown": "Unbekanntes Design: {{theme}}. Verfügbar: light / dark"
+    },
+    "clear": {
+      "desc": "Terminalverlauf leeren"
+    },
+    "cls": {
+      "desc": "Terminalverlauf leeren (Alias)"
+    },
+    "echo": {
+      "desc": "Text ausgeben, Verwendung: echo <Text>"
+    },
+    "unknown": "Unbekannter Befehl: {{cmd}}"
+  }
+}

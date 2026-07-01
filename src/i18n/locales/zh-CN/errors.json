@@ -1,0 +1,61 @@
+{
+  "general": {
+    "unknown": "发生未知错误",
+    "retry": "请重试或联系技术支持",
+    "reportBug": "发现错误？请反馈给我们",
+    "reload": "重新加载",
+    "reloadApp": "重新加载应用",
+    "somethingWentWrong": "出了点问题",
+    "errorBoundaryMessage": "应用遇到了意外错误，请尝试重新加载。"
+  },
+  "project": {
+    "createFailed": "创建项目失败",
+    "deleteFailed": "删除项目失败",
+    "renameFailed": "重命名项目失败",
+    "loadFailed": "加载项目失败",
+    "notFound": "未找到项目",
+    "invalidName": "项目名称无效",
+    "nameTooLong": "项目名称过长",
+    "nameTooShort": "项目名称过短"
+  },
+  "file": {
+    "readFailed": "读取文件失败",
+    "writeFailed": "写入文件失败",
+    "deleteFailed": "删除文件失败",
+    "notFound": "未找到文件",
+    "invalidPath": "文件路径无效",
+    "accessDenied": "文件访问被拒绝",
+    "tooLarge": "文件过大",
+    "unsupportedFormat": "不支持的文件格式"
+  },
+  "render": {
+    "failed": "渲染失败",
+    "timeout": "渲染超时",
+    "pythonError": "Python 执行错误",
+    "pythonNotFound": "未找到 Python 环境",
+    "dependencyMissing": "缺少依赖包",
+    "outputNotFound": "未找到输出文件",
+    "yamlNotFound": "未找到 YAML 文件",
+    "permissionDenied": "权限不足，无法写入输出文件"
+  },
+  "network": {
+    "offline": "网络连接已断开",
+    "timeout": "请求超时",
+    "serverError": "服务器错误",
+    "updateFailed": "更新检查失败",
+    "downloadFailed": "下载更新失败"
+  },
+  "print": {
+    "failed": "打印失败",
+    "noPrinter": "未找到打印机",
+    "printerError": "打印机错误",
+    "paperEmpty": "纸张不足",
+    "canceled": "打印已取消"
+  },
+  "python": {
+    "startFailed": "Python 服务启动失败",
+    "stopped": "Python 服务已停止",
+    "crash": "Python 服务异常退出",
+    "versionMismatch": "Python 版本不兼容，需要 Python 3.8+"
+  }
+}

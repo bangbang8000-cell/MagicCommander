@@ -1,0 +1,74 @@
+{
+  "banner": {
+    "welcomeBanner": "╔══════════════════════════════════════════════════════════════╗\n║                   MagicCommander 터미널                    ║\n╠══════════════════════════════════════════════════════════════╣\n║  MagicCommander 내장 터미널에 오신 것을 환영합니다!       ║\n║  help를 입력하여 사용 가능한 모든 명령어를 확인하세요     ║\n╠══════════════════════════════════════════════════════════════╣\n║  자주 사용하는 명령어:                                    ║\n║  ┌─────────────────────────────────────────────────────┐ ║\n║  │ help       - 도움말 정보 표시                       │ ║\n║  │ list       - 모든 프로젝트 나열                     │ ║\n║  │ select     - 프로젝트 선택                          │ ║\n║  │ render     - 렌더링 실행                            │ ║\n║  │ label      - 라벨 인쇄                              │ ║\n║  │ clear      - 터미널 지우기                          │ ║\n║  └─────────────────────────────────────────────────────┘ ║\n╚══════════════════════════════════════════════════════════════╝"
+  },
+  "messages": {
+    "cleared": "터미널이 지워졌습니다.",
+    "executing": "실행 중...",
+    "execError": "실행 오류: {{error}}"
+  },
+  "placeholder": "명령어를 입력하고 Enter로 제출하세요",
+  "placeholderExecuting": "실행 중...",
+  "electronRequired": "Electron 데스크톱 애플리케이션에서 이 기능을 실행하세요",
+  "commands": {
+    "help": {
+      "desc": "지원되는 모든 명령어 나열",
+      "output": "지원되는 명령어:"
+    },
+    "question": {
+      "desc": "지원되는 모든 명령어 나열 (별칭)"
+    },
+    "version": {
+      "desc": "현재 애플리케이션 버전 표시"
+    },
+    "ver": {
+      "desc": "현재 애플리케이션 버전 표시 (별칭)"
+    },
+    "list": {
+      "desc": "프로젝트 나열 (list projects 또는 ls)",
+      "projectsFromCache": "프로젝트 목록 (캐시, 총 {{count}}개):",
+      "projectsFromServer": "프로젝트 목록 (총 {{count}}개):",
+      "noProjects": "프로젝트 없음",
+      "unknownParam": "알 수 없는 매개변수: {{param}}"
+    },
+    "ls": {
+      "desc": "프로젝트 나열 (list projects의 별칭)"
+    },
+    "select": {
+      "desc": "프로젝트 선택, 사용법: select <프로젝트명>",
+      "usage": "사용법: select <프로젝트명>",
+      "notFound": "프로젝트를 찾을 수 없습니다: {{name}}",
+      "selected": "프로젝트 선택됨: {{name}}"
+    },
+    "render": {
+      "desc": "프로젝트 렌더링, 사용법: render [project|yaml] [프로젝트명 또는 id]",
+      "noProject": "프로젝트가 지정되지 않았습니다. 사용법: render project <프로젝트명 또는 id>",
+      "yamlDone": "YAML 렌더링 완료: {{ids}}",
+      "projectDone": "프로젝트 렌더링 완료: {{ids}}",
+      "unknownSub": "알 수 없는 하위 명령어: {{sub}}",
+      "failed": "렌더링 실패: {{error}}"
+    },
+    "label": {
+      "desc": "라벨 인쇄, 사용법: label <프로젝트명 또는 id>",
+      "noProject": "프로젝트가 선택되지 않았습니다. 사용법: label <프로젝트명 또는 id>",
+      "submitted": "라벨 인쇄 작업이 제출되었습니다: {{ids}}",
+      "failed": "라벨 인쇄 실패: {{error}}"
+    },
+    "theme": {
+      "desc": "테마 전환/설정, 사용법: theme [light|dark]",
+      "toggled": "테마가 전환되었습니다: {{theme}}",
+      "set": "테마가 설정되었습니다: {{theme}}",
+      "unknown": "알 수 없는 테마: {{theme}}, 사용 가능: light / dark"
+    },
+    "clear": {
+      "desc": "터미널 기록 지우기"
+    },
+    "cls": {
+      "desc": "터미널 기록 지우기 (별칭)"
+    },
+    "echo": {
+      "desc": "텍스트 출력, 사용법: echo <text>"
+    },
+    "unknown": "알 수 없는 명령어: {{cmd}}"
+  }
+}

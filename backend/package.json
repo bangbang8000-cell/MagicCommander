@@ -1,0 +1,33 @@
+{
+  "name": "magiccommander-backend",
+  "version": "1.0.0",
+  "description": "Magic Commander 2 - Python 后端服务",
+  "main": "main.py",
+  "scripts": {
+    "start": "python main.py",
+    "list": "python main.py list --type projects",
+    "create": "python main.py create",
+    "render": "python main.py render",
+    "yaml": "python main.py render --type yaml",
+    "label-print": "python main.py feature --type label-print",
+    "label-delete": "python main.py feature --type label-delete",
+    "delete": "python main.py delete",
+    "install": "pip install -r requirements.txt"
+  },
+  "keywords": [
+    "network",
+    "config",
+    "rendering",
+    "python"
+  ],
+  "author": "Magic Commander Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-repository/magiccommander.git"
+  },
+  "bugs": {
+    "url": "https://github.com/your-repository/magiccommander/issues"
+  },
+  "homepage": "https://github.com/your-repository/magiccommander#readme"
+}

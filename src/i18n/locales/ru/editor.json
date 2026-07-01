@@ -1,0 +1,90 @@
+{
+  "tabs": {
+    "close": "Закрыть вкладку",
+    "closeOthers": "Закрыть другие",
+    "closeAll": "Закрыть все",
+    "closeRight": "Закрыть справа",
+    "reopen": "Открыть закрытую вкладку",
+    "reopenTooltip": "Открыть последнюю закрытую вкладку (Ctrl+Shift+T)",
+    "noOpenEditors": "Нет открытых редакторов",
+    "unsaved": "Не сохранено",
+    "unsavedChanges": "Есть несохранённые изменения. Сохранить?",
+    "unsavedChangesMessage": "Есть несохранённые изменения.",
+    "saveBeforeClose": "Сохранить и закрыть",
+    "discardChanges": "Отменить изменения",
+    "split": "Разделить",
+    "splitVertical": "Вертикальное разделение",
+    "splitHorizontal": "Горизонтальное разделение",
+    "closeSplit": "Закрыть разделение",
+    "preview": "Режим предпросмотра",
+    "pin": "Закрепить вкладку",
+    "unpin": "Открепить вкладку"
+  },
+  "monaco": {
+    "wordWrap": "Перенос строк",
+    "toggleWordWrap": "Переключить перенос строк",
+    "fontSize": "Размер шрифта",
+    "increaseFontSize": "Увеличить шрифт",
+    "decreaseFontSize": "Уменьшить шрифт",
+    "resetFontSize": "Сбросить размер шрифта",
+    "goToLine": "Перейти к строке",
+    "find": "Найти",
+    "replace": "Заменить",
+    "toggleMinimap": "Переключить миникарту",
+    "formatDocument": "Форматировать документ",
+    "changeLanguage": "Изменить язык"
+  },
+  "excel": {
+    "sheet": "Лист",
+    "addSheet": "Добавить лист",
+    "renameSheet": "Переименовать лист",
+    "deleteSheet": "Удалить лист",
+    "row": "Строка",
+    "column": "Столбец",
+    "cell": "Ячейка",
+    "insertRow": "Вставить строку",
+    "deleteRow": "Удалить строку",
+    "insertColumn": "Вставить столбец",
+    "deleteColumn": "Удалить столбец",
+    "sortAsc": "Сортировка по возрастанию",
+    "sortDesc": "Сортировка по убыванию",
+    "filter": "Фильтр",
+    "freeze": "Закрепить",
+    "unfreeze": "Открепить"
+  },
+  "word": {
+    "page": "стр.",
+    "pages": "стр.",
+    "wordCount": "Кол-во слов",
+    "zoomIn": "Увеличить",
+    "zoomOut": "Уменьшить",
+    "fitToWidth": "По ширине",
+    "fitToPage": "По странице"
+  },
+  "unsupported": {
+    "title": "Неподдерживаемый формат файла",
+    "description": "Предпросмотр этого типа файла не поддерживается",
+    "descriptionWithType": "{{type}} ({{name}}) не может быть открыт в редакторе.",
+    "openExternally": "Открыть во внешней программе",
+    "showInFolder": "Показать в папке"
+  },
+  "empty": {
+    "noFileOpen": "Файл не открыт",
+    "openFileHint": "Выберите файл в обозревателе проектов слева, чтобы начать редактирование",
+    "supportedFormats": "Поддерживаются файлы Excel, YAML, шаблонов и вывода",
+    "selectFile": "Выбрать файл"
+  },
+  "split": {
+    "closeSyncScroll": "Отключить синхронную прокрутку",
+    "openSyncScroll": "Включить синхронную прокрутку",
+    "verticalSplit": "Разделение по вертикали"
+  },
+  "modal": {
+    "unsavedTitle": "Файл не сохранён",
+    "save": "Сохранить",
+    "dontSave": "Не сохранять",
+    "cancel": "Отмена",
+    "unsavedMessage": "{{name}} содержит несохранённые изменения.",
+    "saveBeforeClose": "Сохранить изменения перед закрытием?"
+  }
+}

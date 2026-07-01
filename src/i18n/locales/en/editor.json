@@ -1,0 +1,90 @@
+{
+  "tabs": {
+    "close": "Close Tab",
+    "closeOthers": "Close Others",
+    "closeAll": "Close All",
+    "closeRight": "Close to the Right",
+    "reopen": "Reopen Closed Tab",
+    "reopenTooltip": "Reopen closed tab (Ctrl+Shift+T)",
+    "noOpenEditors": "No open editors",
+    "unsaved": "Unsaved",
+    "unsavedChanges": "You have unsaved changes. Save them?",
+    "unsavedChangesMessage": "has unsaved changes.",
+    "saveBeforeClose": "Save and Close",
+    "discardChanges": "Discard Changes",
+    "split": "Split",
+    "splitVertical": "Split Vertically",
+    "splitHorizontal": "Split Horizontally",
+    "closeSplit": "Close Split",
+    "preview": "Preview Mode",
+    "pin": "Pin Tab",
+    "unpin": "Unpin Tab"
+  },
+  "monaco": {
+    "wordWrap": "Word Wrap",
+    "toggleWordWrap": "Toggle Word Wrap",
+    "fontSize": "Font Size",
+    "increaseFontSize": "Increase Font Size",
+    "decreaseFontSize": "Decrease Font Size",
+    "resetFontSize": "Reset Font Size",
+    "goToLine": "Go to Line",
+    "find": "Find",
+    "replace": "Replace",
+    "toggleMinimap": "Toggle Minimap",
+    "formatDocument": "Format Document",
+    "changeLanguage": "Change Language Mode"
+  },
+  "excel": {
+    "sheet": "Sheet",
+    "addSheet": "Add Sheet",
+    "renameSheet": "Rename Sheet",
+    "deleteSheet": "Delete Sheet",
+    "row": "Row",
+    "column": "Column",
+    "cell": "Cell",
+    "insertRow": "Insert Row",
+    "deleteRow": "Delete Row",
+    "insertColumn": "Insert Column",
+    "deleteColumn": "Delete Column",
+    "sortAsc": "Sort Ascending",
+    "sortDesc": "Sort Descending",
+    "filter": "Filter",
+    "freeze": "Freeze",
+    "unfreeze": "Unfreeze"
+  },
+  "word": {
+    "page": "Page",
+    "pages": "Pages",
+    "wordCount": "Word Count",
+    "zoomIn": "Zoom In",
+    "zoomOut": "Zoom Out",
+    "fitToWidth": "Fit to Width",
+    "fitToPage": "Fit to Page"
+  },
+  "unsupported": {
+    "title": "Unsupported File Format",
+    "description": "This file type is not supported for preview",
+    "descriptionWithType": "{{type}} ({{name}}) cannot be previewed directly in the editor.",
+    "openExternally": "Open with External Program",
+    "showInFolder": "Show in Folder"
+  },
+  "empty": {
+    "noFileOpen": "No file open",
+    "openFileHint": "Select a file from the project explorer to start editing",
+    "supportedFormats": "Supports Excel, YAML, templates, and output files",
+    "selectFile": "Select File"
+  },
+  "split": {
+    "closeSyncScroll": "Disable Sync Scroll",
+    "openSyncScroll": "Enable Sync Scroll",
+    "verticalSplit": "Split Vertically"
+  },
+  "modal": {
+    "unsavedTitle": "File Not Saved",
+    "save": "Save",
+    "dontSave": "Don't Save",
+    "cancel": "Cancel",
+    "unsavedMessage": "{{name}} has unsaved changes.",
+    "saveBeforeClose": "Save changes before closing?"
+  }
+}

@@ -1,0 +1,61 @@
+{
+  "general": {
+    "unknown": "Ein unbekannter Fehler ist aufgetreten",
+    "retry": "Bitte versuchen Sie es erneut oder kontaktieren Sie den technischen Support",
+    "reportBug": "Fehler gefunden? Bitte melden Sie ihn uns",
+    "reload": "Neu laden",
+    "reloadApp": "Anwendung neu laden",
+    "somethingWentWrong": "Etwas ist schief gelaufen",
+    "errorBoundaryMessage": "Die Anwendung hat einen unerwarteten Fehler festgestellt. Bitte versuchen Sie, sie neu zu laden."
+  },
+  "project": {
+    "createFailed": "Projekt konnte nicht erstellt werden",
+    "deleteFailed": "Projekt konnte nicht gelöscht werden",
+    "renameFailed": "Projekt konnte nicht umbenannt werden",
+    "loadFailed": "Projekt konnte nicht geladen werden",
+    "notFound": "Projekt nicht gefunden",
+    "invalidName": "Ungültiger Projektname",
+    "nameTooLong": "Projektname zu lang",
+    "nameTooShort": "Projektname zu kurz"
+  },
+  "file": {
+    "readFailed": "Datei konnte nicht gelesen werden",
+    "writeFailed": "Datei konnte nicht geschrieben werden",
+    "deleteFailed": "Datei konnte nicht gelöscht werden",
+    "notFound": "Datei nicht gefunden",
+    "invalidPath": "Ungültiger Dateipfad",
+    "accessDenied": "Dateizugriff verweigert",
+    "tooLarge": "Datei zu groß",
+    "unsupportedFormat": "Nicht unterstütztes Dateiformat"
+  },
+  "render": {
+    "failed": "Rendering fehlgeschlagen",
+    "timeout": "Render-Zeitüberschreitung",
+    "pythonError": "Python-Ausführungsfehler",
+    "pythonNotFound": "Python-Umgebung nicht gefunden",
+    "dependencyMissing": "Abhängigkeitspaket fehlt",
+    "outputNotFound": "Ausgabedatei nicht gefunden",
+    "yamlNotFound": "YAML-Datei nicht gefunden",
+    "permissionDenied": "Keine Berechtigung zum Schreiben der Ausgabedatei"
+  },
+  "network": {
+    "offline": "Netzwerkverbindung getrennt",
+    "timeout": "Anfrage-Zeitüberschreitung",
+    "serverError": "Serverfehler",
+    "updateFailed": "Update-Prüfung fehlgeschlagen",
+    "downloadFailed": "Update-Download fehlgeschlagen"
+  },
+  "print": {
+    "failed": "Druck fehlgeschlagen",
+    "noPrinter": "Kein Drucker gefunden",
+    "printerError": "Druckerfehler",
+    "paperEmpty": "Papier ist leer",
+    "canceled": "Druck abgebrochen"
+  },
+  "python": {
+    "startFailed": "Python-Dienst konnte nicht gestartet werden",
+    "stopped": "Python-Dienst wurde gestoppt",
+    "crash": "Python-Dienst unerwartet beendet",
+    "versionMismatch": "Python-Version nicht kompatibel, Python 3.8+ erforderlich"
+  }
+}

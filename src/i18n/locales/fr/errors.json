@@ -1,0 +1,61 @@
+{
+  "general": {
+    "unknown": "Une erreur inconnue s'est produite",
+    "retry": "Veuillez réessayer ou contacter le support technique",
+    "reportBug": "Vous avez trouvé une erreur ? Signalez-la nous",
+    "reload": "Recharger",
+    "reloadApp": "Recharger l'application",
+    "somethingWentWrong": "Quelque chose s'est mal passé",
+    "errorBoundaryMessage": "L'application a rencontré une erreur inattendue, veuillez essayer de recharger."
+  },
+  "project": {
+    "createFailed": "Échec de la création du projet",
+    "deleteFailed": "Échec de la suppression du projet",
+    "renameFailed": "Échec du renommage du projet",
+    "loadFailed": "Échec du chargement du projet",
+    "notFound": "Projet introuvable",
+    "invalidName": "Nom de projet invalide",
+    "nameTooLong": "Nom de projet trop long",
+    "nameTooShort": "Nom de projet trop court"
+  },
+  "file": {
+    "readFailed": "Échec de la lecture du fichier",
+    "writeFailed": "Échec de l'écriture du fichier",
+    "deleteFailed": "Échec de la suppression du fichier",
+    "notFound": "Fichier introuvable",
+    "invalidPath": "Chemin de fichier invalide",
+    "accessDenied": "Accès au fichier refusé",
+    "tooLarge": "Fichier trop volumineux",
+    "unsupportedFormat": "Format de fichier non pris en charge"
+  },
+  "render": {
+    "failed": "Échec du rendu",
+    "timeout": "Délai de rendu dépassé",
+    "pythonError": "Erreur d'exécution Python",
+    "pythonNotFound": "Environnement Python introuvable",
+    "dependencyMissing": "Dépendances manquantes",
+    "outputNotFound": "Fichier de sortie introuvable",
+    "yamlNotFound": "Fichier YAML introuvable",
+    "permissionDenied": "Permissions insuffisantes, impossible d'écrire le fichier de sortie"
+  },
+  "network": {
+    "offline": "Connexion réseau perdue",
+    "timeout": "Délai de la requête dépassé",
+    "serverError": "Erreur du serveur",
+    "updateFailed": "Échec de la vérification des mises à jour",
+    "downloadFailed": "Échec du téléchargement de la mise à jour"
+  },
+  "print": {
+    "failed": "Échec de l'impression",
+    "noPrinter": "Imprimante introuvable",
+    "printerError": "Erreur de l'imprimante",
+    "paperEmpty": "Papier insuffisant",
+    "canceled": "Impression annulée"
+  },
+  "python": {
+    "startFailed": "Échec du démarrage du service Python",
+    "stopped": "Le service Python s'est arrêté",
+    "crash": "Le service Python s'est arrêté anormalement",
+    "versionMismatch": "Version Python incompatible, Python 3.8+ requis"
+  }
+}

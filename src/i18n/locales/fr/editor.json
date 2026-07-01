@@ -1,0 +1,90 @@
+{
+  "tabs": {
+    "close": "Fermer l'onglet",
+    "closeOthers": "Fermer les autres",
+    "closeAll": "Tout fermer",
+    "closeRight": "Fermer à droite",
+    "reopen": "Rouvrir l'onglet fermé",
+    "reopenTooltip": "Rouvrir le dernier onglet fermé (Ctrl+Shift+T)",
+    "noOpenEditors": "Aucun éditeur ouvert",
+    "unsaved": "Non enregistré",
+    "unsavedChanges": "Modifications non enregistrées, enregistrer ?",
+    "unsavedChangesMessage": "Modifications non enregistrées.",
+    "saveBeforeClose": "Enregistrer avant de fermer",
+    "discardChanges": "Abandonner les modifications",
+    "split": "Écran partagé",
+    "splitVertical": "Partage vertical",
+    "splitHorizontal": "Partage horizontal",
+    "closeSplit": "Fermer le partage",
+    "preview": "Mode aperçu",
+    "pin": "Épingler l'onglet",
+    "unpin": "Désépingler"
+  },
+  "monaco": {
+    "wordWrap": "Retour à la ligne",
+    "toggleWordWrap": "Activer/désactiver le retour à la ligne",
+    "fontSize": "Taille de police",
+    "increaseFontSize": "Augmenter la taille",
+    "decreaseFontSize": "Diminuer la taille",
+    "resetFontSize": "Réinitialiser la taille",
+    "goToLine": "Aller à la ligne",
+    "find": "Rechercher",
+    "replace": "Remplacer",
+    "toggleMinimap": "Afficher/masquer la minicarte",
+    "formatDocument": "Formater le document",
+    "changeLanguage": "Changer le mode de langage"
+  },
+  "excel": {
+    "sheet": "Feuille",
+    "addSheet": "Ajouter une feuille",
+    "renameSheet": "Renommer la feuille",
+    "deleteSheet": "Supprimer la feuille",
+    "row": "Ligne",
+    "column": "Colonne",
+    "cell": "Cellule",
+    "insertRow": "Insérer une ligne",
+    "deleteRow": "Supprimer la ligne",
+    "insertColumn": "Insérer une colonne",
+    "deleteColumn": "Supprimer la colonne",
+    "sortAsc": "Tri croissant",
+    "sortDesc": "Tri décroissant",
+    "filter": "Filtrer",
+    "freeze": "Figer",
+    "unfreeze": "Libérer"
+  },
+  "word": {
+    "page": "Page",
+    "pages": "Pages",
+    "wordCount": "Nombre de mots",
+    "zoomIn": "Zoom avant",
+    "zoomOut": "Zoom arrière",
+    "fitToWidth": "Ajuster à la largeur",
+    "fitToPage": "Ajuster à la page"
+  },
+  "unsupported": {
+    "title": "Format de fichier non pris en charge",
+    "description": "Ce type de fichier ne peut pas être prévisualisé",
+    "descriptionWithType": "{{type}} ({{name}}) ne peut pas être prévisualisé dans l'éditeur.",
+    "openExternally": "Ouvrir avec un programme externe",
+    "showInFolder": "Afficher dans le dossier"
+  },
+  "empty": {
+    "noFileOpen": "Aucun fichier ouvert",
+    "openFileHint": "Sélectionnez un fichier dans l'explorateur de projet à gauche pour commencer l'édition",
+    "supportedFormats": "Prend en charge Excel, YAML, templates et fichiers de sortie",
+    "selectFile": "Sélectionner un fichier"
+  },
+  "split": {
+    "closeSyncScroll": "Désactiver le défilement synchronisé",
+    "openSyncScroll": "Activer le défilement synchronisé",
+    "verticalSplit": "Partage horizontal"
+  },
+  "modal": {
+    "unsavedTitle": "Fichier non enregistré",
+    "save": "Enregistrer",
+    "dontSave": "Ne pas enregistrer",
+    "cancel": "Annuler",
+    "unsavedMessage": "{{name}} a des modifications non enregistrées.",
+    "saveBeforeClose": "Enregistrer les modifications avant de fermer ?"
+  }
+}

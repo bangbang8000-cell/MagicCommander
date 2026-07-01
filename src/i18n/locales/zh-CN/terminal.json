@@ -1,0 +1,74 @@
+{
+  "banner": {
+    "welcomeBanner": "╔══════════════════════════════════════════════════════════════╗\n║                    MagicCommander 终端                     ║\n╠══════════════════════════════════════════════════════════════╣\n║  欢迎使用 MagicCommander 内置终端！                       ║\n║  输入 help 查看所有可用命令                               ║\n╠══════════════════════════════════════════════════════════════╣\n║  常用命令速览:                                           ║\n║  ┌─────────────────────────────────────────────────────┐ ║\n║  │ help       - 显示帮助信息                            │ ║\n║  │ list       - 列出所有项目                            │ ║\n║  │ select     - 选择项目                               │ ║\n║  │ render     - 执行渲染                               │ ║\n║  │ label      - 标签打印                               │ ║\n║  │ clear      - 清空终端                               │ ║\n║  └─────────────────────────────────────────────────────┘ ║\n╚══════════════════════════════════════════════════════════════╝"
+  },
+  "messages": {
+    "cleared": "终端已清空。",
+    "executing": "执行中...",
+    "execError": "执行错误: {{error}}"
+  },
+  "placeholder": "输入命令，Enter 提交",
+  "placeholderExecuting": "执行中...",
+  "electronRequired": "请在 Electron 桌面应用中运行此功能",
+  "commands": {
+    "help": {
+      "desc": "列出所有支持的命令",
+      "output": "支持的命令:"
+    },
+    "question": {
+      "desc": "列出所有支持的命令（别名）"
+    },
+    "version": {
+      "desc": "显示当前应用版本"
+    },
+    "ver": {
+      "desc": "显示当前应用版本（别名）"
+    },
+    "list": {
+      "desc": "列出项目（list projects 或 ls）",
+      "projectsFromCache": "项目列表（缓存，共 {{count}} 个）:",
+      "projectsFromServer": "项目列表（共 {{count}} 个）:",
+      "noProjects": "暂无项目",
+      "unknownParam": "未知参数: {{param}}"
+    },
+    "ls": {
+      "desc": "列出项目（list projects 的别名）"
+    },
+    "select": {
+      "desc": "选择项目，用法: select <项目名>",
+      "usage": "用法: select <项目名>",
+      "notFound": "未找到项目: {{name}}",
+      "selected": "已选择项目: {{name}}"
+    },
+    "render": {
+      "desc": "渲染项目，用法: render [project|yaml] [项目名或id]",
+      "noProject": "未指定项目，请使用: render project <项目名或id>",
+      "yamlDone": "YAML 渲染完成: {{ids}}",
+      "projectDone": "项目渲染完成: {{ids}}",
+      "unknownSub": "未知子命令: {{sub}}",
+      "failed": "渲染失败: {{error}}"
+    },
+    "label": {
+      "desc": "打印标签，用法: label <项目名或id>",
+      "noProject": "未选中项目，用法: label <项目名或id>",
+      "submitted": "标签打印任务已提交: {{ids}}",
+      "failed": "标签打印失败: {{error}}"
+    },
+    "theme": {
+      "desc": "切换/设置主题，用法: theme [light|dark]",
+      "toggled": "主题已切换为: {{theme}}",
+      "set": "主题已设置为: {{theme}}",
+      "unknown": "未知主题: {{theme}}，可用: light / dark"
+    },
+    "clear": {
+      "desc": "清空终端历史"
+    },
+    "cls": {
+      "desc": "清空终端历史（别名）"
+    },
+    "echo": {
+      "desc": "回显文本，用法: echo <text>"
+    },
+    "unknown": "未知命令: {{cmd}}"
+  }
+}

@@ -1,0 +1,90 @@
+{
+  "tabs": {
+    "close": "إغلاق علامة التبويب",
+    "closeOthers": "إغلاق الأخرى",
+    "closeAll": "إغلاق الكل",
+    "closeRight": "إغلاق التي على اليمين",
+    "reopen": "إعادة فتح علامة التبويب المغلقة",
+    "reopenTooltip": "إعادة فتح آخر علامة تبويب مغلقة (Ctrl+Shift+T)",
+    "noOpenEditors": "لا توجد محررات مفتوحة",
+    "unsaved": "غير محفوظ",
+    "unsavedChanges": "هناك تغييرات غير محفوظة، هل تريد الحفظ؟",
+    "unsavedChangesMessage": "هناك تغييرات غير محفوظة.",
+    "saveBeforeClose": "حفظ ثم إغلاق",
+    "discardChanges": "تجاهل التغييرات",
+    "split": "تقسيم",
+    "splitVertical": "تقسيم عمودي",
+    "splitHorizontal": "تقسيم أفقي",
+    "closeSplit": "إغلاق التقسيم",
+    "preview": "وضع المعاينة",
+    "pin": "تثبيت علامة التبويب",
+    "unpin": "إلغاء التثبيت"
+  },
+  "monaco": {
+    "wordWrap": "التفاف النص تلقائياً",
+    "toggleWordWrap": "تبديل التفاف النص التلقائي",
+    "fontSize": "حجم الخط",
+    "increaseFontSize": "زيادة حجم الخط",
+    "decreaseFontSize": "تصغير حجم الخط",
+    "resetFontSize": "إعادة تعيين حجم الخط",
+    "goToLine": "الانتقال إلى سطر",
+    "find": "بحث",
+    "replace": "استبدال",
+    "toggleMinimap": "تبديل الخريطة المصغرة",
+    "formatDocument": "تنسيق المستند",
+    "changeLanguage": "تغيير وضع اللغة"
+  },
+  "excel": {
+    "sheet": "ورقة العمل",
+    "addSheet": "إضافة ورقة عمل",
+    "renameSheet": "إعادة تسمية ورقة العمل",
+    "deleteSheet": "حذف ورقة العمل",
+    "row": "صف",
+    "column": "عمود",
+    "cell": "خلية",
+    "insertRow": "إدراج صف",
+    "deleteRow": "حذف صف",
+    "insertColumn": "إدراج عمود",
+    "deleteColumn": "حذف عمود",
+    "sortAsc": "ترتيب تصاعدي",
+    "sortDesc": "ترتيب تنازلي",
+    "filter": "تصفية",
+    "freeze": "تجميد",
+    "unfreeze": "إلغاء التجميد"
+  },
+  "word": {
+    "page": "صفحة",
+    "pages": "صفحات",
+    "wordCount": "عدد الكلمات",
+    "zoomIn": "تكبير",
+    "zoomOut": "تصغير",
+    "fitToWidth": "ملاءمة العرض",
+    "fitToPage": "ملاءمة الصفحة"
+  },
+  "unsupported": {
+    "title": "تنسيق ملف غير مدعوم",
+    "description": "لا يمكن معاينة هذا النوع من الملفات حالياً",
+    "descriptionWithType": "{{type}} ({{name}}) لا يمكن معاينته مباشرة في المحرر.",
+    "openExternally": "فتح باستخدام برنامج خارجي",
+    "showInFolder": "إظهار في المجلد"
+  },
+  "empty": {
+    "noFileOpen": "لم يتم فتح أي ملف",
+    "openFileHint": "اختر ملفاً من مستعرض المشاريع على اليسار لبدء التحرير",
+    "supportedFormats": "يدعم ملفات Excel وYAML والقوالب وملفات الإخراج",
+    "selectFile": "اختيار ملف"
+  },
+  "split": {
+    "closeSyncScroll": "إغلاق التمرير المتزامن",
+    "openSyncScroll": "فتح التمرير المتزامن",
+    "verticalSplit": "تقسيم أفقي"
+  },
+  "modal": {
+    "unsavedTitle": "الملف غير محفوظ",
+    "save": "حفظ",
+    "dontSave": "عدم الحفظ",
+    "cancel": "إلغاء",
+    "unsavedMessage": "{{name}} يحتوي على تغييرات غير محفوظة.",
+    "saveBeforeClose": "هل تريد حفظ التغييرات قبل الإغلاق؟"
+  }
+}

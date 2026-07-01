@@ -1,0 +1,90 @@
+{
+  "tabs": {
+    "close": "Cerrar pestaña",
+    "closeOthers": "Cerrar otros",
+    "closeAll": "Cerrar todos",
+    "closeRight": "Cerrar a la derecha",
+    "reopen": "Reabrir pestaña cerrada",
+    "reopenTooltip": "Reabrir la última pestaña cerrada (Ctrl+Shift+T)",
+    "noOpenEditors": "No hay editores abiertos",
+    "unsaved": "Sin guardar",
+    "unsavedChanges": "Hay cambios sin guardar. ¿Desea guardarlos?",
+    "unsavedChangesMessage": "Hay cambios sin guardar.",
+    "saveBeforeClose": "Guardar antes de cerrar",
+    "discardChanges": "Descartar cambios",
+    "split": "Dividir",
+    "splitVertical": "División vertical",
+    "splitHorizontal": "División horizontal",
+    "closeSplit": "Cerrar división",
+    "preview": "Modo vista previa",
+    "pin": "Fijar pestaña",
+    "unpin": "Desfijar pestaña"
+  },
+  "monaco": {
+    "wordWrap": "Ajuste de línea",
+    "toggleWordWrap": "Alternar ajuste de línea",
+    "fontSize": "Tamaño de fuente",
+    "increaseFontSize": "Aumentar tamaño de fuente",
+    "decreaseFontSize": "Disminuir tamaño de fuente",
+    "resetFontSize": "Restablecer tamaño de fuente",
+    "goToLine": "Ir a línea",
+    "find": "Buscar",
+    "replace": "Reemplazar",
+    "toggleMinimap": "Alternar minimapa",
+    "formatDocument": "Formatear documento",
+    "changeLanguage": "Cambiar modo de lenguaje"
+  },
+  "excel": {
+    "sheet": "Hoja",
+    "addSheet": "Agregar hoja",
+    "renameSheet": "Renombrar hoja",
+    "deleteSheet": "Eliminar hoja",
+    "row": "Fila",
+    "column": "Columna",
+    "cell": "Celda",
+    "insertRow": "Insertar fila",
+    "deleteRow": "Eliminar fila",
+    "insertColumn": "Insertar columna",
+    "deleteColumn": "Eliminar columna",
+    "sortAsc": "Orden ascendente",
+    "sortDesc": "Orden descendente",
+    "filter": "Filtrar",
+    "freeze": "Inmovilizar",
+    "unfreeze": "Desinmovilizar"
+  },
+  "word": {
+    "page": "Página",
+    "pages": "Páginas",
+    "wordCount": "Palabras",
+    "zoomIn": "Acercar",
+    "zoomOut": "Alejar",
+    "fitToWidth": "Ajustar al ancho",
+    "fitToPage": "Ajustar a la página"
+  },
+  "unsupported": {
+    "title": "Formato de archivo no compatible",
+    "description": "Este tipo de archivo no admite vista previa",
+    "descriptionWithType": "{{type}} ({{name}}) no se puede previsualizar directamente en el editor.",
+    "openExternally": "Abrir con programa externo",
+    "showInFolder": "Mostrar en carpeta"
+  },
+  "empty": {
+    "noFileOpen": "Sin archivo abierto",
+    "openFileHint": "Seleccione un archivo del explorador de proyectos para comenzar a editar",
+    "supportedFormats": "Compatible con Excel, YAML, plantillas y archivos de salida",
+    "selectFile": "Seleccionar archivo"
+  },
+  "split": {
+    "closeSyncScroll": "Desactivar desplazamiento sincronizado",
+    "openSyncScroll": "Activar desplazamiento sincronizado",
+    "verticalSplit": "División izquierda/derecha"
+  },
+  "modal": {
+    "unsavedTitle": "Archivo no guardado",
+    "save": "Guardar",
+    "dontSave": "No guardar",
+    "cancel": "Cancelar",
+    "unsavedMessage": "{{name}} tiene cambios sin guardar.",
+    "saveBeforeClose": "¿Desea guardar los cambios antes de cerrar?"
+  }
+}

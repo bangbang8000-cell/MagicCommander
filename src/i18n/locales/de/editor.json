@@ -1,0 +1,90 @@
+{
+  "tabs": {
+    "close": "Tab schließen",
+    "closeOthers": "Andere schließen",
+    "closeAll": "Alle schließen",
+    "closeRight": "Rechts schließen",
+    "reopen": "Geschlossenen Tab wieder öffnen",
+    "reopenTooltip": "Zuletzt geschlossenen Tab wieder öffnen (Strg+Umschalt+T)",
+    "noOpenEditors": "Keine geöffneten Editoren",
+    "unsaved": "Nicht gespeichert",
+    "unsavedChanges": "Es gibt nicht gespeicherte Änderungen. Möchten Sie speichern?",
+    "unsavedChangesMessage": "Es gibt nicht gespeicherte Änderungen.",
+    "saveBeforeClose": "Speichern und schließen",
+    "discardChanges": "Änderungen verwerfen",
+    "split": "Teilen",
+    "splitVertical": "Vertikal teilen",
+    "splitHorizontal": "Horizontal teilen",
+    "closeSplit": "Teilung schließen",
+    "preview": "Vorschaumodus",
+    "pin": "Tab anheften",
+    "unpin": "Anheftung aufheben"
+  },
+  "monaco": {
+    "wordWrap": "Zeilenumbruch",
+    "toggleWordWrap": "Zeilenumbruch umschalten",
+    "fontSize": "Schriftgröße",
+    "increaseFontSize": "Schrift vergrößern",
+    "decreaseFontSize": "Schrift verkleinern",
+    "resetFontSize": "Schriftgröße zurücksetzen",
+    "goToLine": "Gehe zu Zeile",
+    "find": "Suchen",
+    "replace": "Ersetzen",
+    "toggleMinimap": "Minimap umschalten",
+    "formatDocument": "Dokument formatieren",
+    "changeLanguage": "Sprachmodus ändern"
+  },
+  "excel": {
+    "sheet": "Tabelle",
+    "addSheet": "Tabelle hinzufügen",
+    "renameSheet": "Tabelle umbenennen",
+    "deleteSheet": "Tabelle löschen",
+    "row": "Zeile",
+    "column": "Spalte",
+    "cell": "Zelle",
+    "insertRow": "Zeile einfügen",
+    "deleteRow": "Zeile löschen",
+    "insertColumn": "Spalte einfügen",
+    "deleteColumn": "Spalte löschen",
+    "sortAsc": "Aufsteigend sortieren",
+    "sortDesc": "Absteigend sortieren",
+    "filter": "Filtern",
+    "freeze": "Einfrieren",
+    "unfreeze": "Einfrieren aufheben"
+  },
+  "word": {
+    "page": "Seite",
+    "pages": "Seiten",
+    "wordCount": "Wörter",
+    "zoomIn": "Vergrößern",
+    "zoomOut": "Verkleinern",
+    "fitToWidth": "An Breite anpassen",
+    "fitToPage": "An Seite anpassen"
+  },
+  "unsupported": {
+    "title": "Nicht unterstütztes Dateiformat",
+    "description": "Dieser Dateityp kann nicht in der Vorschau angezeigt werden",
+    "descriptionWithType": "{{type}} ({{name}}) kann nicht direkt im Editor angezeigt werden.",
+    "openExternally": "Mit externem Programm öffnen",
+    "showInFolder": "Im Ordner anzeigen"
+  },
+  "empty": {
+    "noFileOpen": "Keine Datei geöffnet",
+    "openFileHint": "Wählen Sie eine Datei aus dem Projekt-Explorer links, um mit der Bearbeitung zu beginnen",
+    "supportedFormats": "Unterstützt Excel, YAML, Vorlagen und Ausgabedateien",
+    "selectFile": "Datei auswählen"
+  },
+  "split": {
+    "closeSyncScroll": "Synchrones Scrollen deaktivieren",
+    "openSyncScroll": "Synchrones Scrollen aktivieren",
+    "verticalSplit": "Links-rechts teilen"
+  },
+  "modal": {
+    "unsavedTitle": "Datei nicht gespeichert",
+    "save": "Speichern",
+    "dontSave": "Nicht speichern",
+    "cancel": "Abbrechen",
+    "unsavedMessage": "{{name}} hat nicht gespeicherte Änderungen.",
+    "saveBeforeClose": "Möchten Sie die Änderungen vor dem Schließen speichern?"
+  }
+}

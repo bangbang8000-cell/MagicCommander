@@ -1,0 +1,61 @@
+{
+  "general": {
+    "unknown": "不明なエラーが発生しました",
+    "retry": "再試行するか、テクニカルサポートにお問い合わせください",
+    "reportBug": "エラーを見つけましたか？ご報告ください",
+    "reload": "再読み込み",
+    "reloadApp": "アプリを再読み込み",
+    "somethingWentWrong": "問題が発生しました",
+    "errorBoundaryMessage": "アプリで予期しないエラーが発生しました。再読み込みをお試しください。"
+  },
+  "project": {
+    "createFailed": "プロジェクトの作成に失敗しました",
+    "deleteFailed": "プロジェクトの削除に失敗しました",
+    "renameFailed": "プロジェクトの名前変更に失敗しました",
+    "loadFailed": "プロジェクトの読み込みに失敗しました",
+    "notFound": "プロジェクトが見つかりません",
+    "invalidName": "プロジェクト名が無効です",
+    "nameTooLong": "プロジェクト名が長すぎます",
+    "nameTooShort": "プロジェクト名が短すぎます"
+  },
+  "file": {
+    "readFailed": "ファイルの読み取りに失敗しました",
+    "writeFailed": "ファイルの書き込みに失敗しました",
+    "deleteFailed": "ファイルの削除に失敗しました",
+    "notFound": "ファイルが見つかりません",
+    "invalidPath": "ファイルパスが無効です",
+    "accessDenied": "ファイルへのアクセスが拒否されました",
+    "tooLarge": "ファイルが大きすぎます",
+    "unsupportedFormat": "サポートされていないファイル形式です"
+  },
+  "render": {
+    "failed": "レンダリングに失敗しました",
+    "timeout": "レンダリングがタイムアウトしました",
+    "pythonError": "Python 実行エラー",
+    "pythonNotFound": "Python 環境が見つかりません",
+    "dependencyMissing": "依存パッケージが不足しています",
+    "outputNotFound": "出力ファイルが見つかりません",
+    "yamlNotFound": "YAML ファイルが見つかりません",
+    "permissionDenied": "権限不足のため出力ファイルに書き込めません"
+  },
+  "network": {
+    "offline": "ネットワーク接続が切断されました",
+    "timeout": "リクエストがタイムアウトしました",
+    "serverError": "サーバーエラー",
+    "updateFailed": "更新チェックに失敗しました",
+    "downloadFailed": "更新のダウンロードに失敗しました"
+  },
+  "print": {
+    "failed": "印刷に失敗しました",
+    "noPrinter": "プリンターが見つかりません",
+    "printerError": "プリンターエラー",
+    "paperEmpty": "用紙が不足しています",
+    "canceled": "印刷がキャンセルされました"
+  },
+  "python": {
+    "startFailed": "Python サービスの起動に失敗しました",
+    "stopped": "Python サービスが停止しました",
+    "crash": "Python サービスが異常終了しました",
+    "versionMismatch": "Python バージョンに互換性がありません。Python 3.8+ が必要です"
+  }
+}

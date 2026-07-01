@@ -1,0 +1,74 @@
+{
+  "banner": {
+    "welcomeBanner": "╔══════════════════════════════════════════════════════════════╗\n║                  Terminal MagicCommander                  ║\n╠══════════════════════════════════════════════════════════════╣\n║  Bienvenue dans le terminal intégré MagicCommander !     ║\n║  Tapez help pour voir toutes les commandes disponibles   ║\n╠══════════════════════════════════════════════════════════════╣\n║  Aperçu des commandes :                                  ║\n║  ┌─────────────────────────────────────────────────────┐ ║\n║  │ help       - Afficher l'aide                          │ ║\n║  │ list       - Lister tous les projets                  │ ║\n║  │ select     - Sélectionner un projet                   │ ║\n║  │ render     - Exécuter le rendu                       │ ║\n║  │ label      - Impression d'étiquettes                 │ ║\n║  │ clear      - Effacer le terminal                     │ ║\n║  └─────────────────────────────────────────────────────┘ ║\n╚══════════════════════════════════════════════════════════════╝"
+  },
+  "messages": {
+    "cleared": "Terminal effacé.",
+    "executing": "Exécution en cours...",
+    "execError": "Erreur d'exécution : {{error}}"
+  },
+  "placeholder": "Saisir une commande, Entrée pour exécuter",
+  "placeholderExecuting": "Exécution en cours...",
+  "electronRequired": "Veuillez exécuter cette fonctionnalité dans l'application de bureau Electron",
+  "commands": {
+    "help": {
+      "desc": "Lister toutes les commandes disponibles",
+      "output": "Commandes disponibles :"
+    },
+    "question": {
+      "desc": "Lister toutes les commandes disponibles (alias)"
+    },
+    "version": {
+      "desc": "Afficher la version actuelle de l'application"
+    },
+    "ver": {
+      "desc": "Afficher la version actuelle de l'application (alias)"
+    },
+    "list": {
+      "desc": "Lister les projets (list projects ou ls)",
+      "projectsFromCache": "Liste des projets (cache, {{count}} au total) :",
+      "projectsFromServer": "Liste des projets ({{count}} au total) :",
+      "noProjects": "Aucun projet",
+      "unknownParam": "Paramètre inconnu : {{param}}"
+    },
+    "ls": {
+      "desc": "Lister les projets (alias de list projects)"
+    },
+    "select": {
+      "desc": "Sélectionner un projet, usage : select <nom du projet>",
+      "usage": "Usage : select <nom du projet>",
+      "notFound": "Projet introuvable : {{name}}",
+      "selected": "Projet sélectionné : {{name}}"
+    },
+    "render": {
+      "desc": "Rendre un projet, usage : render [project|yaml] [nom ou id du projet]",
+      "noProject": "Aucun projet spécifié, utilisez : render project <nom ou id du projet>",
+      "yamlDone": "Rendu YAML terminé : {{ids}}",
+      "projectDone": "Rendu du projet terminé : {{ids}}",
+      "unknownSub": "Sous-commande inconnue : {{sub}}",
+      "failed": "Échec du rendu : {{error}}"
+    },
+    "label": {
+      "desc": "Imprimer les étiquettes, usage : label <nom ou id du projet>",
+      "noProject": "Aucun projet sélectionné, usage : label <nom ou id du projet>",
+      "submitted": "Tâche d'impression d'étiquettes soumise : {{ids}}",
+      "failed": "Échec de l'impression d'étiquettes : {{error}}"
+    },
+    "theme": {
+      "desc": "Basculer/définir le thème, usage : theme [light|dark]",
+      "toggled": "Thème basculé vers : {{theme}}",
+      "set": "Thème défini sur : {{theme}}",
+      "unknown": "Thème inconnu : {{theme}}, disponible : light / dark"
+    },
+    "clear": {
+      "desc": "Effacer l'historique du terminal"
+    },
+    "cls": {
+      "desc": "Effacer l'historique du terminal (alias)"
+    },
+    "echo": {
+      "desc": "Afficher du texte, usage : echo <texte>"
+    },
+    "unknown": "Commande inconnue : {{cmd}}"
+  }
+}

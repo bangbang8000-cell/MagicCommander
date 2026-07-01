@@ -1,0 +1,74 @@
+{
+  "banner": {
+    "welcomeBanner": "╔══════════════════════════════════════════════════════════════╗\n║                    Terminal MagicCommander                  ║\n╠══════════════════════════════════════════════════════════════╣\n║  Bem-vindo ao terminal integrado do MagicCommander!        ║\n║  Digite help para ver todos os comandos disponíveis        ║\n╠══════════════════════════════════════════════════════════════╣\n║  Visão geral dos comandos:                                 ║\n║  ┌─────────────────────────────────────────────────────┐ ║\n║  │ help       - Exibir informações de ajuda              │ ║\n║  │ list       - Listar todos os projetos                 │ ║\n║  │ select     - Selecionar projeto                      │ ║\n║  │ render     - Executar renderização                   │ ║\n║  │ label      - Imprimir etiquetas                      │ ║\n║  │ clear      - Limpar terminal                         │ ║\n║  └─────────────────────────────────────────────────────┘ ║\n╚══════════════════════════════════════════════════════════════╝"
+  },
+  "messages": {
+    "cleared": "Terminal limpo.",
+    "executing": "Executando...",
+    "execError": "Erro de execução: {{error}}"
+  },
+  "placeholder": "Digite um comando e pressione Enter",
+  "placeholderExecuting": "Executando...",
+  "electronRequired": "Execute esta função no aplicativo Electron",
+  "commands": {
+    "help": {
+      "desc": "Listar todos os comandos suportados",
+      "output": "Comandos suportados:"
+    },
+    "question": {
+      "desc": "Listar todos os comandos suportados (atalho)"
+    },
+    "version": {
+      "desc": "Exibir a versão atual do aplicativo"
+    },
+    "ver": {
+      "desc": "Exibir a versão atual do aplicativo (atalho)"
+    },
+    "list": {
+      "desc": "Listar projetos (list projects ou ls)",
+      "projectsFromCache": "Lista de projetos (cache, {{count}} no total):",
+      "projectsFromServer": "Lista de projetos ({{count}} no total):",
+      "noProjects": "Nenhum projeto",
+      "unknownParam": "Parâmetro desconhecido: {{param}}"
+    },
+    "ls": {
+      "desc": "Listar projetos (atalho para list projects)"
+    },
+    "select": {
+      "desc": "Selecionar projeto, uso: select <nome do projeto>",
+      "usage": "Uso: select <nome do projeto>",
+      "notFound": "Projeto não encontrado: {{name}}",
+      "selected": "Projeto selecionado: {{name}}"
+    },
+    "render": {
+      "desc": "Renderizar projeto, uso: render [project|yaml] [nome ou id do projeto]",
+      "noProject": "Projeto não especificado, use: render project <nome ou id do projeto>",
+      "yamlDone": "Renderização YAML concluída: {{ids}}",
+      "projectDone": "Renderização do projeto concluída: {{ids}}",
+      "unknownSub": "Subcomando desconhecido: {{sub}}",
+      "failed": "Falha na renderização: {{error}}"
+    },
+    "label": {
+      "desc": "Imprimir etiquetas, uso: label <nome ou id do projeto>",
+      "noProject": "Projeto não selecionado, uso: label <nome ou id do projeto>",
+      "submitted": "Tarefa de impressão de etiquetas enviada: {{ids}}",
+      "failed": "Falha na impressão de etiquetas: {{error}}"
+    },
+    "theme": {
+      "desc": "Alternar/definir tema, uso: theme [light|dark]",
+      "toggled": "Tema alternado para: {{theme}}",
+      "set": "Tema definido como: {{theme}}",
+      "unknown": "Tema desconhecido: {{theme}}, disponíveis: light / dark"
+    },
+    "clear": {
+      "desc": "Limpar histórico do terminal"
+    },
+    "cls": {
+      "desc": "Limpar histórico do terminal (atalho)"
+    },
+    "echo": {
+      "desc": "Exibir texto, uso: echo <texto>"
+    },
+    "unknown": "Comando desconhecido: {{cmd}}"
+  }
+}

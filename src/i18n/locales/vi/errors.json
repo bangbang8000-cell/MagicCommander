@@ -1,0 +1,61 @@
+{
+  "general": {
+    "unknown": "Đã xảy ra lỗi không xác định",
+    "retry": "Vui lòng thử lại hoặc liên hệ hỗ trợ kỹ thuật",
+    "reportBug": "Phát hiện lỗi? Vui lòng phản hồi cho chúng tôi",
+    "reload": "Tải lại",
+    "reloadApp": "Tải lại ứng dụng",
+    "somethingWentWrong": "Đã xảy ra sự cố",
+    "errorBoundaryMessage": "Ứng dụng gặp lỗi không mong muốn, vui lòng thử tải lại."
+  },
+  "project": {
+    "createFailed": "Tạo dự án thất bại",
+    "deleteFailed": "Xóa dự án thất bại",
+    "renameFailed": "Đổi tên dự án thất bại",
+    "loadFailed": "Tải dự án thất bại",
+    "notFound": "Không tìm thấy dự án",
+    "invalidName": "Tên dự án không hợp lệ",
+    "nameTooLong": "Tên dự án quá dài",
+    "nameTooShort": "Tên dự án quá ngắn"
+  },
+  "file": {
+    "readFailed": "Đọc tệp thất bại",
+    "writeFailed": "Ghi tệp thất bại",
+    "deleteFailed": "Xóa tệp thất bại",
+    "notFound": "Không tìm thấy tệp",
+    "invalidPath": "Đường dẫn tệp không hợp lệ",
+    "accessDenied": "Truy cập tệp bị từ chối",
+    "tooLarge": "Tệp quá lớn",
+    "unsupportedFormat": "Định dạng tệp không được hỗ trợ"
+  },
+  "render": {
+    "failed": "Kết xuất thất bại",
+    "timeout": "Kết xuất quá thời gian",
+    "pythonError": "Lỗi thực thi Python",
+    "pythonNotFound": "Không tìm thấy môi trường Python",
+    "dependencyMissing": "Thiếu gói phụ thuộc",
+    "outputNotFound": "Không tìm thấy tệp đầu ra",
+    "yamlNotFound": "Không tìm thấy tệp YAML",
+    "permissionDenied": "Không đủ quyền, không thể ghi tệp đầu ra"
+  },
+  "network": {
+    "offline": "Kết nối mạng đã bị ngắt",
+    "timeout": "Yêu cầu quá thời gian",
+    "serverError": "Lỗi máy chủ",
+    "updateFailed": "Kiểm tra cập nhật thất bại",
+    "downloadFailed": "Tải xuống bản cập nhật thất bại"
+  },
+  "print": {
+    "failed": "In thất bại",
+    "noPrinter": "Không tìm thấy máy in",
+    "printerError": "Lỗi máy in",
+    "paperEmpty": "Hết giấy",
+    "canceled": "In đã bị hủy"
+  },
+  "python": {
+    "startFailed": "Khởi động dịch vụ Python thất bại",
+    "stopped": "Dịch vụ Python đã dừng",
+    "crash": "Dịch vụ Python thoát bất thường",
+    "versionMismatch": "Phiên bản Python không tương thích, cần Python 3.8+"
+  }
+}

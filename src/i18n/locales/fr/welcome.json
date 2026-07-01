@@ -1,0 +1,84 @@
+{
+  "title": "Bienvenue dans MagicCommander",
+  "subtitle": "Gestion des paramètres et génération de configurations tout-en-un",
+  "description": "MagicCommander offre aux ingénieurs réseau un flux de travail complet pour la gestion des tables de paramètres, le rendu de templates et la génération d'étiquettes, vous aidant à réaliser efficacement et précisément la configuration par lots des équipements.",
+  "getStarted": "Commencer",
+  "skip": "Ne plus afficher",
+  "successStart": "Bienvenue dans MagicCommander, commencez votre parcours de gestion de configuration !",
+  "successDismiss": "Votre choix a été enregistré, la page d'accueil ne sera plus affichée au prochain démarrage",
+  "steps": {
+    "step1": {
+      "title": "Créer ou sélectionner un projet",
+      "description": "Sélectionnez un projet existant dans l'Explorateur à gauche, ou créez un nouveau projet pour commencer"
+    },
+    "step2": {
+      "title": "Éditer la table de paramètres",
+      "description": "Modifiez le fichier para.xlsx dans le projet, renseignez les informations d'équipement, les variables de template, etc."
+    },
+    "step3": {
+      "title": "Configurer et rendre",
+      "description": "Sélectionnez le template et les options de rendu dans le Workbench, puis cliquez sur Rendu pour générer la configuration des équipements"
+    },
+    "step4": {
+      "title": "Ajuster la disposition de l'interface",
+      "description": "Utilisez Ctrl+B pour basculer la barre latérale, Ctrl+J pour basculer le panneau inférieur, organisez librement votre espace de travail"
+    }
+  },
+  "shortcuts": {
+    "title": "Raccourcis courants",
+    "toggleSidebar": "Basculer la barre latérale",
+    "togglePanel": "Basculer le panneau inférieur",
+    "openExplorer": "Ouvrir l'Explorateur",
+    "openSearch": "Ouvrir la recherche",
+    "openWorkbench": "Ouvrir le Workbench",
+    "openLabelGen": "Ouvrir la génération d'étiquettes",
+    "openRenderResult": "Ouvrir les résultats de rendu",
+    "saveFile": "Enregistrer le fichier actuel",
+    "refresh": "Actualiser l'interface"
+  },
+  "tips": {
+    "title": "Démarrage rapide",
+    "reopenHint": "Cliquez à tout moment sur le bouton d'aide en haut à droite pour rouvrir cette page."
+  },
+  "networkQuotes": {
+    "q0": "Dans le monde des réseaux, il n'y a pas de distance infranchissable, seulement des routes introuvables.",
+    "q1": "Une ligne de configuration bien écrite vous épargne une nuit de débogage.",
+    "q2": "Une bonne architecture réseau, c'est quand les pannes se produisent en environnement de test.",
+    "q3": "La fragmentation IP n'est pas un problème si vous gardez la MTU en tête.",
+    "q4": "Un bon protocole de routage, et votre réseau reste stable sans souci.",
+    "q5": "Des ACL bien écrites, et le contrôle d'accès est sans souci.",
+    "q6": "Des VLAN bien définis, et l'isolation du réseau est rassurante.",
+    "q7": "Les liens redondants sont indispensables pour un basculement fiable.",
+    "q8": "Une bonne analyse des logs permet un diagnostic rapide et précis.",
+    "q9": "La capture de paquets est un trésor, aucun problème complexe n'y résiste.",
+    "q10": "La sauvegarde de configuration est la base, toute modification manuelle doit être tracée.",
+    "q11": "Communiquez avant de modifier, vérifiez immédiatement après avoir modifié.",
+    "q12": "On ne touche pas à l'environnement de production, on expérimente en environnement de test.",
+    "q13": "Gardez en tête l'architecture trois niveaux : accès, distribution et cœur de réseau.",
+    "q14": "Le pare-feu est la première ligne de défense, et aussi la dernière.",
+    "q15": "Le NAT est utile mais ne l'abusez pas, planifiez vos adresses à l'avance.",
+    "q16": "Le service DHCP doit être redondant, laissez de la marge dans le pool d'adresses.",
+    "q17": "Le DNS est la pierre angulaire du réseau, une panne de résolution paralyse tout.",
+    "q18": "Un fuseau horaire unifié est essentiel pour l'analyse des logs.",
+    "q19": "Un petit ping pour vérifier la connectivité, un premier diagnostic du réseau.",
+    "q20": "Un Tracert pour visualiser le chemin de routage.",
+    "q21": "Un Telnet pour tester le port, la connectivité du service est confirmée.",
+    "q22": "Configurez la supervision SNMP, des alertes rapides sont la clé de la fiabilité.",
+    "q23": "Lancez vos scripts de sauvegarde, la sécurité des données est garantie.",
+    "q24": "Dans le réseau, rien n'est anodin, la responsabilité est primordiale.",
+    "q25": "Le débogage demande de la minutie, procédez étape par étape.",
+    "q26": "Une documentation bien rédigée facilite la prise en main.",
+    "q27": "L'expérience s'accumule, les problèmes font grandir.",
+    "q28": "On commence par tomber dans le trou, mais plus il y a de trous, plus la route s'élargit.",
+    "q29": "La plus grande distance au monde n'est pas le bout du monde, c'est une passerelle qui ne répond pas.",
+    "q30": "Je croyais que ma configuration était parfaite, jusqu'à ce que je fasse un ping.",
+    "q31": "Pourquoi la connexion est tombée ? Parce que la climatisation de la salle serveur est en panne.",
+    "q32": "Heures supplémentaires jusqu'à l'aube, juste parce qu'un câble réseau était mal branché.",
+    "q33": "Le client a dit 'juste une petite modification', j'ai passé toute la nuit dessus.",
+    "q34": "L'ère du SDN est arrivée, les réseaux traditionnels doivent se transformer.",
+    "q35": "Maîtrisez le réseau des conteneurs, l'Overlay est indispensable.",
+    "q36": "La transition IPv6 doit être fluide, le déploiement double pile est la voie à suivre.",
+    "q37": "Le Zero Trust est le nouveau paradigme de sécurité, la vérification continue en est le cœur.",
+    "q38": "L'automatisation des opérations est la tendance, Ansible est là pour vous aider."
+  }
+}

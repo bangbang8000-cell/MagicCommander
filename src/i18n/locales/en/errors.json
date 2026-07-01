@@ -1,0 +1,61 @@
+{
+  "general": {
+    "unknown": "An unknown error occurred",
+    "retry": "Please try again or contact technical support",
+    "reportBug": "Found a bug? Let us know",
+    "reload": "Reload",
+    "reloadApp": "Reload Application",
+    "somethingWentWrong": "Something went wrong",
+    "errorBoundaryMessage": "The application encountered an unexpected error. Please try reloading."
+  },
+  "project": {
+    "createFailed": "Failed to create project",
+    "deleteFailed": "Failed to delete project",
+    "renameFailed": "Failed to rename project",
+    "loadFailed": "Failed to load project",
+    "notFound": "Project not found",
+    "invalidName": "Invalid project name",
+    "nameTooLong": "Project name is too long",
+    "nameTooShort": "Project name is too short"
+  },
+  "file": {
+    "readFailed": "Failed to read file",
+    "writeFailed": "Failed to write file",
+    "deleteFailed": "Failed to delete file",
+    "notFound": "File not found",
+    "invalidPath": "Invalid file path",
+    "accessDenied": "File access denied",
+    "tooLarge": "File is too large",
+    "unsupportedFormat": "Unsupported file format"
+  },
+  "render": {
+    "failed": "Render failed",
+    "timeout": "Render timed out",
+    "pythonError": "Python execution error",
+    "pythonNotFound": "Python environment not found",
+    "dependencyMissing": "Missing dependencies",
+    "outputNotFound": "Output file not found",
+    "yamlNotFound": "YAML file not found",
+    "permissionDenied": "Permission denied, cannot write output file"
+  },
+  "network": {
+    "offline": "Network connection lost",
+    "timeout": "Request timed out",
+    "serverError": "Server error",
+    "updateFailed": "Update check failed",
+    "downloadFailed": "Update download failed"
+  },
+  "print": {
+    "failed": "Print failed",
+    "noPrinter": "No printer found",
+    "printerError": "Printer error",
+    "paperEmpty": "Paper empty",
+    "canceled": "Print canceled"
+  },
+  "python": {
+    "startFailed": "Python service failed to start",
+    "stopped": "Python service stopped",
+    "crash": "Python service crashed unexpectedly",
+    "versionMismatch": "Python version incompatible, requires Python 3.8+"
+  }
+}

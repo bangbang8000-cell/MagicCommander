@@ -1,0 +1,90 @@
+{
+  "tabs": {
+    "close": "ปิดแท็บ",
+    "closeOthers": "ปิดแท็บอื่น",
+    "closeAll": "ปิดทั้งหมด",
+    "closeRight": "ปิดแท็บด้านขวา",
+    "reopen": "เปิดแท็บที่ปิดไปอีกครั้ง",
+    "reopenTooltip": "เปิดแท็บที่ปิดล่าสุดอีกครั้ง (Ctrl+Shift+T)",
+    "noOpenEditors": "ไม่มีตัวแก้ไขที่เปิดอยู่",
+    "unsaved": "ไม่ได้บันทึก",
+    "unsavedChanges": "มีการเปลี่ยนแปลงที่ไม่ได้บันทึก ต้องการบันทึกหรือไม่?",
+    "unsavedChangesMessage": "มีการเปลี่ยนแปลงที่ไม่ได้บันทึก",
+    "saveBeforeClose": "บันทึกก่อนปิด",
+    "discardChanges": "ละทิ้งการเปลี่ยนแปลง",
+    "split": "แยกหน้าจอ",
+    "splitVertical": "แยกแนวตั้ง",
+    "splitHorizontal": "แยกแนวนอน",
+    "closeSplit": "ปิดการแยกหน้าจอ",
+    "preview": "โหมดดูตัวอย่าง",
+    "pin": "ปักหมุดแท็บ",
+    "unpin": "ยกเลิกการปักหมุด"
+  },
+  "monaco": {
+    "wordWrap": "ตัดคำอัตโนมัติ",
+    "toggleWordWrap": "สลับการตัดคำอัตโนมัติ",
+    "fontSize": "ขนาดตัวอักษร",
+    "increaseFontSize": "เพิ่มขนาดตัวอักษร",
+    "decreaseFontSize": "ลดขนาดตัวอักษร",
+    "resetFontSize": "รีเซ็ตขนาดตัวอักษร",
+    "goToLine": "ไปที่บรรทัด",
+    "find": "ค้นหา",
+    "replace": "แทนที่",
+    "toggleMinimap": "สลับแผนที่ย่อ",
+    "formatDocument": "จัดรูปแบบเอกสาร",
+    "changeLanguage": "เปลี่ยนโหมดภาษา"
+  },
+  "excel": {
+    "sheet": "ชีต",
+    "addSheet": "เพิ่มชีต",
+    "renameSheet": "เปลี่ยนชื่อชีต",
+    "deleteSheet": "ลบชีต",
+    "row": "แถว",
+    "column": "คอลัมน์",
+    "cell": "เซลล์",
+    "insertRow": "แทรกแถว",
+    "deleteRow": "ลบแถว",
+    "insertColumn": "แทรกคอลัมน์",
+    "deleteColumn": "ลบคอลัมน์",
+    "sortAsc": "เรียงจากน้อยไปมาก",
+    "sortDesc": "เรียงจากมากไปน้อย",
+    "filter": "กรอง",
+    "freeze": "ตรึง",
+    "unfreeze": "ยกเลิกการตรึง"
+  },
+  "word": {
+    "page": "หน้า",
+    "pages": "หน้า",
+    "wordCount": "จำนวนคำ",
+    "zoomIn": "ขยาย",
+    "zoomOut": "ย่อ",
+    "fitToWidth": "พอดีความกว้าง",
+    "fitToPage": "พอดีหน้า"
+  },
+  "unsupported": {
+    "title": "รูปแบบไฟล์ที่ไม่รองรับ",
+    "description": "ประเภทไฟล์นี้ไม่รองรับการดูตัวอย่างในขณะนี้",
+    "descriptionWithType": "{{type}} ({{name}}) ไม่สามารถดูตัวอย่างในตัวแก้ไขได้โดยตรง",
+    "openExternally": "เปิดด้วยโปรแกรมภายนอก",
+    "showInFolder": "แสดงในโฟลเดอร์"
+  },
+  "empty": {
+    "noFileOpen": "ไม่มีไฟล์ที่เปิดอยู่",
+    "openFileHint": "เลือกไฟล์จากตัวสำรวจโครงการด้านซ้ายเพื่อเริ่มแก้ไข",
+    "supportedFormats": "รองรับไฟล์ Excel, YAML, เทมเพลต และเอาต์พุต",
+    "selectFile": "เลือกไฟล์"
+  },
+  "split": {
+    "closeSyncScroll": "ปิดการเลื่อนแบบซิงค์",
+    "openSyncScroll": "เปิดการเลื่อนแบบซิงค์",
+    "verticalSplit": "แยกหน้าจอซ้ายขวา"
+  },
+  "modal": {
+    "unsavedTitle": "ไฟล์ยังไม่ได้บันทึก",
+    "save": "บันทึก",
+    "dontSave": "ไม่บันทึก",
+    "cancel": "ยกเลิก",
+    "unsavedMessage": "{{name}} มีการเปลี่ยนแปลงที่ไม่ได้บันทึก",
+    "saveBeforeClose": "ต้องการบันทึกการเปลี่ยนแปลงก่อนปิดหรือไม่?"
+  }
+}

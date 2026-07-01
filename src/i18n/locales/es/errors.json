@@ -1,0 +1,61 @@
+{
+  "general": {
+    "unknown": "Se produjo un error desconocido",
+    "retry": "Inténtelo de nuevo o contacte al soporte técnico",
+    "reportBug": "¿Encontró un error? Infórmenos",
+    "reload": "Recargar",
+    "reloadApp": "Recargar aplicación",
+    "somethingWentWrong": "Algo salió mal",
+    "errorBoundaryMessage": "La aplicación encontró un error inesperado. Intente recargar."
+  },
+  "project": {
+    "createFailed": "Error al crear el proyecto",
+    "deleteFailed": "Error al eliminar el proyecto",
+    "renameFailed": "Error al renombrar el proyecto",
+    "loadFailed": "Error al cargar el proyecto",
+    "notFound": "Proyecto no encontrado",
+    "invalidName": "Nombre de proyecto no válido",
+    "nameTooLong": "El nombre del proyecto es demasiado largo",
+    "nameTooShort": "El nombre del proyecto es demasiado corto"
+  },
+  "file": {
+    "readFailed": "Error al leer el archivo",
+    "writeFailed": "Error al escribir el archivo",
+    "deleteFailed": "Error al eliminar el archivo",
+    "notFound": "Archivo no encontrado",
+    "invalidPath": "Ruta de archivo no válida",
+    "accessDenied": "Acceso al archivo denegado",
+    "tooLarge": "Archivo demasiado grande",
+    "unsupportedFormat": "Formato de archivo no compatible"
+  },
+  "render": {
+    "failed": "Error de renderizado",
+    "timeout": "Tiempo de espera de renderizado agotado",
+    "pythonError": "Error de ejecución de Python",
+    "pythonNotFound": "Entorno Python no encontrado",
+    "dependencyMissing": "Faltan paquetes de dependencia",
+    "outputNotFound": "Archivo de salida no encontrado",
+    "yamlNotFound": "Archivo YAML no encontrado",
+    "permissionDenied": "Permisos insuficientes para escribir el archivo de salida"
+  },
+  "network": {
+    "offline": "Conexión de red perdida",
+    "timeout": "Tiempo de espera de solicitud agotado",
+    "serverError": "Error del servidor",
+    "updateFailed": "Error al verificar actualizaciones",
+    "downloadFailed": "Error al descargar la actualización"
+  },
+  "print": {
+    "failed": "Error de impresión",
+    "noPrinter": "Impresora no encontrada",
+    "printerError": "Error de impresora",
+    "paperEmpty": "Papel insuficiente",
+    "canceled": "Impresión cancelada"
+  },
+  "python": {
+    "startFailed": "Error al iniciar el servicio Python",
+    "stopped": "Servicio Python detenido",
+    "crash": "El servicio Python terminó inesperadamente",
+    "versionMismatch": "Versión de Python incompatible, se requiere Python 3.8+"
+  }
+}

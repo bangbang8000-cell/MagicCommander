@@ -1,0 +1,90 @@
+{
+  "tabs": {
+    "close": "タブを閉じる",
+    "closeOthers": "その他を閉じる",
+    "closeAll": "すべて閉じる",
+    "closeRight": "右側を閉じる",
+    "reopen": "閉じたタブを再度開く",
+    "reopenTooltip": "最近閉じたタブを再度開く (Ctrl+Shift+T)",
+    "noOpenEditors": "開いているエディターはありません",
+    "unsaved": "未保存",
+    "unsavedChanges": "未保存の変更があります。保存しますか？",
+    "unsavedChangesMessage": "未保存の変更があります。",
+    "saveBeforeClose": "保存して閉じる",
+    "discardChanges": "変更を破棄",
+    "split": "分割",
+    "splitVertical": "左右分割",
+    "splitHorizontal": "上下分割",
+    "closeSplit": "分割を閉じる",
+    "preview": "プレビューモード",
+    "pin": "タブを固定",
+    "unpin": "固定を解除"
+  },
+  "monaco": {
+    "wordWrap": "折り返し表示",
+    "toggleWordWrap": "折り返し表示を切り替え",
+    "fontSize": "フォントサイズ",
+    "increaseFontSize": "フォントサイズを大きく",
+    "decreaseFontSize": "フォントサイズを小さく",
+    "resetFontSize": "フォントサイズをリセット",
+    "goToLine": "行へ移動",
+    "find": "検索",
+    "replace": "置換",
+    "toggleMinimap": "ミニマップを切り替え",
+    "formatDocument": "ドキュメントをフォーマット",
+    "changeLanguage": "言語モードを変更"
+  },
+  "excel": {
+    "sheet": "シート",
+    "addSheet": "シートを追加",
+    "renameSheet": "シート名を変更",
+    "deleteSheet": "シートを削除",
+    "row": "行",
+    "column": "列",
+    "cell": "セル",
+    "insertRow": "行を挿入",
+    "deleteRow": "行を削除",
+    "insertColumn": "列を挿入",
+    "deleteColumn": "列を削除",
+    "sortAsc": "昇順で並べ替え",
+    "sortDesc": "降順で並べ替え",
+    "filter": "フィルター",
+    "freeze": "固定",
+    "unfreeze": "固定を解除"
+  },
+  "word": {
+    "page": "ページ",
+    "pages": "ページ",
+    "wordCount": "文字数",
+    "zoomIn": "拡大",
+    "zoomOut": "縮小",
+    "fitToWidth": "幅に合わせる",
+    "fitToPage": "ページに合わせる"
+  },
+  "unsupported": {
+    "title": "サポートされていないファイル形式",
+    "description": "このファイル形式はプレビューに対応していません",
+    "descriptionWithType": "{{type}}（{{name}}）はエディターで直接プレビューできません。",
+    "openExternally": "外部プログラムで開く",
+    "showInFolder": "フォルダで表示"
+  },
+  "empty": {
+    "noFileOpen": "ファイルが開かれていません",
+    "openFileHint": "左側のプロジェクトエクスプローラーからファイルを選択して編集を開始してください",
+    "supportedFormats": "Excel、YAML、テンプレート、出力ファイルに対応しています",
+    "selectFile": "ファイルを選択"
+  },
+  "split": {
+    "closeSyncScroll": "同期スクロールをオフ",
+    "openSyncScroll": "同期スクロールをオン",
+    "verticalSplit": "左右分割"
+  },
+  "modal": {
+    "unsavedTitle": "ファイルが保存されていません",
+    "save": "保存",
+    "dontSave": "保存しない",
+    "cancel": "キャンセル",
+    "unsavedMessage": "{{name}} に未保存の変更があります。",
+    "saveBeforeClose": "変更を保存してから閉じますか？"
+  }
+}

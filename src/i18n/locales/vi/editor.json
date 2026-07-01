@@ -1,0 +1,90 @@
+{
+  "tabs": {
+    "close": "Đóng tab",
+    "closeOthers": "Đóng tab khác",
+    "closeAll": "Đóng tất cả",
+    "closeRight": "Đóng tab bên phải",
+    "reopen": "Mở lại tab đã đóng",
+    "reopenTooltip": "Mở lại tab đã đóng gần đây (Ctrl+Shift+T)",
+    "noOpenEditors": "Không có trình soạn thảo nào đang mở",
+    "unsaved": "Chưa lưu",
+    "unsavedChanges": "Có thay đổi chưa lưu, bạn có muốn lưu không?",
+    "unsavedChangesMessage": "Có thay đổi chưa lưu.",
+    "saveBeforeClose": "Lưu trước khi đóng",
+    "discardChanges": "Hủy thay đổi",
+    "split": "Chia màn hình",
+    "splitVertical": "Chia dọc",
+    "splitHorizontal": "Chia ngang",
+    "closeSplit": "Đóng chia màn hình",
+    "preview": "Chế độ xem trước",
+    "pin": "Ghim tab",
+    "unpin": "Bỏ ghim"
+  },
+  "monaco": {
+    "wordWrap": "Tự động xuống dòng",
+    "toggleWordWrap": "Chuyển đổi tự động xuống dòng",
+    "fontSize": "Cỡ chữ",
+    "increaseFontSize": "Tăng cỡ chữ",
+    "decreaseFontSize": "Giảm cỡ chữ",
+    "resetFontSize": "Đặt lại cỡ chữ",
+    "goToLine": "Đi đến dòng",
+    "find": "Tìm kiếm",
+    "replace": "Thay thế",
+    "toggleMinimap": "Chuyển đổi bản đồ thu nhỏ",
+    "formatDocument": "Định dạng tài liệu",
+    "changeLanguage": "Thay đổi chế độ ngôn ngữ"
+  },
+  "excel": {
+    "sheet": "Trang tính",
+    "addSheet": "Thêm trang tính",
+    "renameSheet": "Đổi tên trang tính",
+    "deleteSheet": "Xóa trang tính",
+    "row": "Dòng",
+    "column": "Cột",
+    "cell": "Ô",
+    "insertRow": "Chèn dòng",
+    "deleteRow": "Xóa dòng",
+    "insertColumn": "Chèn cột",
+    "deleteColumn": "Xóa cột",
+    "sortAsc": "Sắp xếp tăng dần",
+    "sortDesc": "Sắp xếp giảm dần",
+    "filter": "Lọc",
+    "freeze": "Cố định",
+    "unfreeze": "Bỏ cố định"
+  },
+  "word": {
+    "page": "Trang",
+    "pages": "Trang",
+    "wordCount": "Số từ",
+    "zoomIn": "Phóng to",
+    "zoomOut": "Thu nhỏ",
+    "fitToWidth": "Vừa chiều rộng",
+    "fitToPage": "Vừa trang"
+  },
+  "unsupported": {
+    "title": "Định dạng tệp không được hỗ trợ",
+    "description": "Loại tệp này hiện không hỗ trợ xem trước",
+    "descriptionWithType": "{{type}}（{{name}}）không thể xem trước trực tiếp trong trình soạn thảo.",
+    "openExternally": "Mở bằng chương trình bên ngoài",
+    "showInFolder": "Hiển thị trong thư mục"
+  },
+  "empty": {
+    "noFileOpen": "Chưa mở tệp",
+    "openFileHint": "Chọn tệp từ trình duyệt dự án bên trái để bắt đầu chỉnh sửa",
+    "supportedFormats": "Hỗ trợ Excel, YAML, mẫu và tệp đầu ra",
+    "selectFile": "Chọn tệp"
+  },
+  "split": {
+    "closeSyncScroll": "Tắt cuộn đồng bộ",
+    "openSyncScroll": "Bật cuộn đồng bộ",
+    "verticalSplit": "Chia màn hình trái phải"
+  },
+  "modal": {
+    "unsavedTitle": "Tệp chưa được lưu",
+    "save": "Lưu",
+    "dontSave": "Không lưu",
+    "cancel": "Hủy",
+    "unsavedMessage": "{{name}} có thay đổi chưa lưu.",
+    "saveBeforeClose": "Bạn có muốn lưu thay đổi trước khi đóng không?"
+  }
+}

@@ -1,0 +1,74 @@
+{
+  "banner": {
+    "welcomeBanner": "╔══════════════════════════════════════════════════════════════╗\n║                    MagicCommander Terminal                 ║\n╠══════════════════════════════════════════════════════════════╣\n║  Chào mừng sử dụng Terminal tích hợp MagicCommander!      ║\n║  Nhập help để xem tất cả lệnh khả dụng                     ║\n╠══════════════════════════════════════════════════════════════╣\n║  Tổng quan lệnh thường dùng:                              ║\n║  ┌─────────────────────────────────────────────────────┐ ║\n║  │ help       - Hiển thị thông tin trợ giúp               │ ║\n║  │ list       - Liệt kê tất cả dự án                    │ ║\n║  │ select     - Chọn dự án                              │ ║\n║  │ render     - Thực hiện kết xuất                      │ ║\n║  │ label      - In nhãn                                 │ ║\n║  │ clear      - Xóa terminal                            │ ║\n║  └─────────────────────────────────────────────────────┘ ║\n╚══════════════════════════════════════════════════════════════╝"
+  },
+  "messages": {
+    "cleared": "Terminal đã được xóa.",
+    "executing": "Đang thực thi...",
+    "execError": "Lỗi thực thi: {{error}}"
+  },
+  "placeholder": "Nhập lệnh, Enter để gửi",
+  "placeholderExecuting": "Đang thực thi...",
+  "electronRequired": "Vui lòng chạy tính năng này trong ứng dụng Electron desktop",
+  "commands": {
+    "help": {
+      "desc": "Liệt kê tất cả lệnh được hỗ trợ",
+      "output": "Các lệnh được hỗ trợ:"
+    },
+    "question": {
+      "desc": "Liệt kê tất cả lệnh được hỗ trợ (bí danh)"
+    },
+    "version": {
+      "desc": "Hiển thị phiên bản ứng dụng hiện tại"
+    },
+    "ver": {
+      "desc": "Hiển thị phiên bản ứng dụng hiện tại (bí danh)"
+    },
+    "list": {
+      "desc": "Liệt kê dự án (list projects hoặc ls)",
+      "projectsFromCache": "Danh sách dự án (bộ nhớ đệm, tổng {{count}}):",
+      "projectsFromServer": "Danh sách dự án (tổng {{count}}):",
+      "noProjects": "Chưa có dự án",
+      "unknownParam": "Tham số không xác định: {{param}}"
+    },
+    "ls": {
+      "desc": "Liệt kê dự án (bí danh của list projects)"
+    },
+    "select": {
+      "desc": "Chọn dự án, cách dùng: select <tên dự án>",
+      "usage": "Cách dùng: select <tên dự án>",
+      "notFound": "Không tìm thấy dự án: {{name}}",
+      "selected": "Đã chọn dự án: {{name}}"
+    },
+    "render": {
+      "desc": "Kết xuất dự án, cách dùng: render [project|yaml] [tên hoặc id dự án]",
+      "noProject": "Chưa chỉ định dự án, vui lòng dùng: render project <tên hoặc id dự án>",
+      "yamlDone": "Kết xuất YAML hoàn thành: {{ids}}",
+      "projectDone": "Kết xuất dự án hoàn thành: {{ids}}",
+      "unknownSub": "Lệnh con không xác định: {{sub}}",
+      "failed": "Kết xuất thất bại: {{error}}"
+    },
+    "label": {
+      "desc": "In nhãn, cách dùng: label <tên hoặc id dự án>",
+      "noProject": "Chưa chọn dự án, cách dùng: label <tên hoặc id dự án>",
+      "submitted": "Tác vụ in nhãn đã được gửi: {{ids}}",
+      "failed": "In nhãn thất bại: {{error}}"
+    },
+    "theme": {
+      "desc": "Chuyển đổi/đặt chủ đề, cách dùng: theme [light|dark]",
+      "toggled": "Chủ đề đã chuyển sang: {{theme}}",
+      "set": "Chủ đề đã đặt thành: {{theme}}",
+      "unknown": "Chủ đề không xác định: {{theme}}，khả dụng: light / dark"
+    },
+    "clear": {
+      "desc": "Xóa lịch sử terminal"
+    },
+    "cls": {
+      "desc": "Xóa lịch sử terminal (bí danh)"
+    },
+    "echo": {
+      "desc": "Hiển thị văn bản, cách dùng: echo <văn bản>"
+    },
+    "unknown": "Lệnh không xác định: {{cmd}}"
+  }
+}

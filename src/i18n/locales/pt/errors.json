@@ -1,0 +1,61 @@
+{
+  "general": {
+    "unknown": "Ocorreu um erro desconhecido",
+    "retry": "Tente novamente ou entre em contato com o suporte técnico",
+    "reportBug": "Encontrou um erro? Envie-nos um feedback",
+    "reload": "Recarregar",
+    "reloadApp": "Recarregar aplicativo",
+    "somethingWentWrong": "Algo deu errado",
+    "errorBoundaryMessage": "O aplicativo encontrou um erro inesperado. Tente recarregar."
+  },
+  "project": {
+    "createFailed": "Falha ao criar projeto",
+    "deleteFailed": "Falha ao excluir projeto",
+    "renameFailed": "Falha ao renomear projeto",
+    "loadFailed": "Falha ao carregar projeto",
+    "notFound": "Projeto não encontrado",
+    "invalidName": "Nome do projeto inválido",
+    "nameTooLong": "Nome do projeto muito longo",
+    "nameTooShort": "Nome do projeto muito curto"
+  },
+  "file": {
+    "readFailed": "Falha ao ler arquivo",
+    "writeFailed": "Falha ao gravar arquivo",
+    "deleteFailed": "Falha ao excluir arquivo",
+    "notFound": "Arquivo não encontrado",
+    "invalidPath": "Caminho do arquivo inválido",
+    "accessDenied": "Acesso ao arquivo negado",
+    "tooLarge": "Arquivo muito grande",
+    "unsupportedFormat": "Formato de arquivo não suportado"
+  },
+  "render": {
+    "failed": "Falha na renderização",
+    "timeout": "Tempo limite de renderização excedido",
+    "pythonError": "Erro de execução do Python",
+    "pythonNotFound": "Ambiente Python não encontrado",
+    "dependencyMissing": "Dependências ausentes",
+    "outputNotFound": "Arquivo de saída não encontrado",
+    "yamlNotFound": "Arquivo YAML não encontrado",
+    "permissionDenied": "Permissão insuficiente para gravar arquivo de saída"
+  },
+  "network": {
+    "offline": "Conexão de rede perdida",
+    "timeout": "Tempo limite da requisição excedido",
+    "serverError": "Erro do servidor",
+    "updateFailed": "Falha na verificação de atualização",
+    "downloadFailed": "Falha ao baixar atualização"
+  },
+  "print": {
+    "failed": "Falha na impressão",
+    "noPrinter": "Impressora não encontrada",
+    "printerError": "Erro da impressora",
+    "paperEmpty": "Papel insuficiente",
+    "canceled": "Impressão cancelada"
+  },
+  "python": {
+    "startFailed": "Falha ao iniciar o serviço Python",
+    "stopped": "Serviço Python parado",
+    "crash": "Serviço Python encerrado inesperadamente",
+    "versionMismatch": "Versão do Python incompatível, é necessário Python 3.8+"
+  }
+}

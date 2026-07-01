@@ -1,0 +1,84 @@
+{
+  "title": "Bem-vindo ao MagicCommander",
+  "subtitle": "Gerenciamento de parâmetros e geração de configurações em um só lugar",
+  "description": "MagicCommander oferece aos engenheiros de rede um fluxo de trabalho completo para gerenciamento de tabelas de parâmetros, renderização de templates e geração de etiquetas, ajudando você a concluir configurações de dispositivos em lote de forma eficiente e precisa.",
+  "getStarted": "Começar",
+  "skip": "Não mostrar novamente",
+  "successStart": "Bem-vindo ao MagicCommander, comece sua jornada de gerenciamento de configurações!",
+  "successDismiss": "Sua preferência foi salva. A página de boas-vindas não será exibida na próxima inicialização.",
+  "steps": {
+    "step1": {
+      "title": "Criar ou selecionar um projeto",
+      "description": "No Explorador à esquerda, selecione um projeto existente ou crie um novo para começar a trabalhar"
+    },
+    "step2": {
+      "title": "Editar tabela de parâmetros",
+      "description": "Edite o arquivo para.xlsx no projeto, preenchendo informações dos dispositivos, variáveis de template, etc."
+    },
+    "step3": {
+      "title": "Configurar e renderizar",
+      "description": "Na bancada de trabalho, selecione o template e as opções de renderização, clique em Renderizar para gerar as configurações dos dispositivos"
+    },
+    "step4": {
+      "title": "Ajustar o layout da interface",
+      "description": "Use Ctrl+B para alternar a barra lateral, Ctrl+J para alternar o painel inferior e organize seu espaço de trabalho livremente"
+    }
+  },
+  "shortcuts": {
+    "title": "Atalhos comuns",
+    "toggleSidebar": "Alternar barra lateral",
+    "togglePanel": "Alternar painel inferior",
+    "openExplorer": "Abrir Explorador",
+    "openSearch": "Abrir Pesquisa",
+    "openWorkbench": "Abrir Bancada de trabalho",
+    "openLabelGen": "Abrir Geração de etiquetas",
+    "openRenderResult": "Abrir Resultados de renderização",
+    "saveFile": "Salvar arquivo atual",
+    "refresh": "Atualizar interface"
+  },
+  "tips": {
+    "title": "Primeiros passos",
+    "reopenHint": "Clique no botão de ajuda no canto superior direito a qualquer momento para reabrir esta página."
+  },
+  "networkQuotes": {
+    "q0": "No mundo das redes, não há destino inalcançável, apenas rotas não encontradas.",
+    "q1": "Uma linha de configuração economiza uma noite de depuração.",
+    "q2": "Uma boa arquitetura de rede faz com que as falhas aconteçam no ambiente de teste.",
+    "q3": "Fragmentação IP não é difícil, basta lembrar do limite de MTU.",
+    "q4": "Escolha bem o protocolo de roteamento e a rede ficará estável sem preocupações.",
+    "q5": "ACL bem escrita, controle de acesso sem problemas.",
+    "q6": "VLAN bem definida, isolamento de rede tranquilo.",
+    "q7": "Links redundantes são essenciais, failover confiável é fundamental.",
+    "q8": "Análise de logs bem feita, localização de problemas rápida e precisa.",
+    "q9": "Captura de pacotes é um tesouro, nenhum problema complexo resiste.",
+    "q10": "Backup de configuração é a linha de defesa, alterações manuais devem ser documentadas.",
+    "q11": "Comunique antes de alterar, valide logo após a alteração.",
+    "q12": "Ambiente de produção não se mexe, ambiente de teste pode testar à vontade.",
+    "q13": "Arquitetura de três camadas na mente: acesso, distribuição e núcleo.",
+    "q14": "O firewall é a primeira e também a última linha de defesa.",
+    "q15": "NAT é bom, mas não abuse; planeje o endereçamento com antecedência.",
+    "q16": "Serviço DHCP deve ser redundante, o pool de endereços precisa ter folga.",
+    "q17": "DNS é a base da rede, falha na resolução derruba tudo.",
+    "q18": "Fuso horário unificado é muito importante, facilita a análise de logs.",
+    "q19": "Um ping pode confirmar se a conectividade básica está funcionando.",
+    "q20": "Um traceroute mostra o caminho da rota claramente.",
+    "q21": "Telnet testa a porta, você sabe se o serviço está acessível.",
+    "q22": "Configure monitoramento SNMP, alertas em tempo hábil são a chave da confiabilidade.",
+    "q23": "Scripts de backup em execução, segurança dos dados garantida.",
+    "q24": "Em redes, não há assunto pequeno; a responsabilidade é imensa.",
+    "q25": "Depuração requer paciência, vá passo a passo.",
+    "q26": "Documentação bem escrita, sucessão sem preocupações.",
+    "q27": "Experiência se acumula, problemas impulsionam o crescimento.",
+    "q28": "Entrar na área é cair no buraco, mas quanto mais buracos, mais largo o caminho.",
+    "q29": "A maior distância do mundo não é entre o céu e o mar, mas sim quando o gateway não responde.",
+    "q30": "Achei que minha configuração estava perfeita, até dar um ping.",
+    "q31": "Por que caiu? Porque o ar-condicionado do datacenter quebrou.",
+    "q32": "Hora extra até de madrugada, só porque um cabo de rede estava mal conectado.",
+    "q33": "O cliente disse 'só uma pequena alteração', e eu passei a noite inteira.",
+    "q34": "A era do SDN chegou, as redes tradicionais precisam se transformar.",
+    "q35": "É preciso entender redes de contêineres, Overlay é indispensável.",
+    "q36": "A transição para IPv6 deve ser suave, o dual stack é o caminho.",
+    "q37": "Zero Trust é o novo paradigma de segurança, verificação contínua é o núcleo.",
+    "q38": "Automação de operações é a tendência, Ansible vem para ajudar."
+  }
+}

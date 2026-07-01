@@ -1,0 +1,84 @@
+{
+  "title": "Chào mừng đến với MagicCommander",
+  "subtitle": "Quản lý tham số và tạo cấu hình tất cả trong một",
+  "description": "MagicCommander cung cấp cho kỹ sư mạng quy trình làm việc hoàn chỉnh từ quản lý bảng tham số, kết xuất mẫu đến tạo nhãn, giúp bạn hoàn thành công việc cấu hình thiết bị hàng loạt một cách hiệu quả và chính xác.",
+  "getStarted": "Bắt đầu sử dụng",
+  "skip": "Không hiển thị lại",
+  "successStart": "Chào mừng sử dụng MagicCommander, bắt đầu hành trình quản lý cấu hình của bạn!",
+  "successDismiss": "Đã ghi nhớ lựa chọn của bạn, lần khởi động sau sẽ không hiển thị trang chào mừng",
+  "steps": {
+    "step1": {
+      "title": "Tạo hoặc chọn dự án",
+      "description": "Chọn dự án có sẵn trong Explorer bên trái, hoặc tạo dự án mới để bắt đầu làm việc"
+    },
+    "step2": {
+      "title": "Chỉnh sửa bảng tham số",
+      "description": "Chỉnh sửa tệp para.xlsx trong dự án, điền thông tin thiết bị, biến mẫu v.v."
+    },
+    "step3": {
+      "title": "Cấu hình và kết xuất",
+      "description": "Chọn mẫu và tùy chọn kết xuất trong bàn làm việc, nhấn kết xuất để tạo cấu hình thiết bị"
+    },
+    "step4": {
+      "title": "Điều chỉnh bố cục giao diện",
+      "description": "Sử dụng Ctrl+B để chuyển đổi thanh bên, Ctrl+J để chuyển đổi bảng dưới, tự do tổ chức không gian làm việc"
+    }
+  },
+  "shortcuts": {
+    "title": "Phím tắt thường dùng",
+    "toggleSidebar": "Chuyển đổi thanh bên",
+    "togglePanel": "Chuyển đổi bảng dưới",
+    "openExplorer": "Mở Explorer",
+    "openSearch": "Mở tìm kiếm",
+    "openWorkbench": "Mở bàn làm việc",
+    "openLabelGen": "Mở tạo nhãn",
+    "openRenderResult": "Mở kết quả kết xuất",
+    "saveFile": "Lưu tệp hiện tại",
+    "refresh": "Làm mới giao diện"
+  },
+  "tips": {
+    "title": "Bắt đầu nhanh",
+    "reopenHint": "Bạn có thể nhấn nút trợ giúp ở góc trên bên phải bất cứ lúc nào để mở lại trang này."
+  },
+  "networkQuotes": {
+    "q0": "Trong thế giới mạng, không có nơi nào là không thể đến được, chỉ có tuyến đường không tìm thấy.",
+    "q1": "Cấu hình một dòng lệnh, tiết kiệm một đêm gỡ lỗi.",
+    "q2": "Kiến trúc mạng tốt là để lỗi xảy ra trong môi trường kiểm thử.",
+    "q3": "Phân mảnh IP không khó, giới hạn MTU luôn ghi nhớ.",
+    "q4": "Giao thức định tuyến chọn đúng, mạng ổn định không lo lắng.",
+    "q5": "ACL viết tốt, kiểm soát truy cập không phiền.",
+    "q6": "VLAN phân chia rõ ràng, cách ly mạng mới yên tâm.",
+    "q7": "Đường dự phòng không thể thiếu, chuyển đổi khi lỗi mới đáng tin.",
+    "q8": "Phân tích nhật ký làm tốt, định vị sự cố nhanh và chính xác.",
+    "q9": "Bắt gói tin là báu vật, vấn đề hóc búa cũng không làm khó.",
+    "q10": "Sao lưu cấu hình là giới hạn cuối, thay đổi thủ công phải ghi lại.",
+    "q11": "Trước khi thay đổi phải trao đổi, sau khi thay đổi phải kiểm tra nhanh.",
+    "q12": "Môi trường sản xuất không được động, môi trường kiểm thử thoải mái thử.",
+    "q13": "Kiến trúc ba lớp ghi nhớ, truy cập - phân phối - lõi.",
+    "q14": "Tường lửa là tuyến đầu, cũng là tuyến cuối.",
+    "q15": "NAT tuy tốt đừng lạm dụng, quy hoạch địa chỉ phải lên trước.",
+    "q16": "Dịch vụ DHCP cần dự phòng, pool địa chỉ phải dư dả.",
+    "q17": "DNS là nền tảng mạng, lỗi phân giải toàn mạng sập.",
+    "q18": "Thống nhất múi giờ rất quan trọng, phân tích nhật ký dùng đến.",
+    "q19": "Ping thử xem có thông không, phán đoán sơ bộ mạng có thông.",
+    "q20": "Tracert đi một vòng, đường đi định tuyến nhìn thấy rõ.",
+    "q21": "Telnet kiểm tra cổng, kết nối dịch vụ rõ trong lòng.",
+    "q22": "SNMP giám sát cài một bộ, cảnh báo kịp thời mới đáng tin.",
+    "q23": "Script sao lưu chạy lên, an toàn dữ liệu có bảo đảm.",
+    "q24": "Mạng không việc nhỏ, trách nhiệm nặng hơn núi.",
+    "q25": "Gỡ lỗi phải tỉ mỉ, từng bước từng bước.",
+    "q26": "Tài liệu viết tốt, người kế nhiệm không phiền.",
+    "q27": "Kinh nghiệm nhờ tích lũy, vấn đề thúc đẩy trưởng thành.",
+    "q28": "Vào nghề là vào hố, hố nhiều đường càng rộng.",
+    "q29": "Khoảng cách xa nhất trên thế giới, không phải chân trời góc biển, mà là gateway không thông.",
+    "q30": "Tôi tưởng cấu hình của tôi không vấn đề, cho đến khi ping thử một cái.",
+    "q31": "Tại sao mất kết nối? Vì điều hòa phòng máy hỏng rồi.",
+    "q32": "Tăng ca đến tận sáng sớm, chỉ vì một sợi cáp mạng chưa cắm chặt.",
+    "q33": "Bên A nói sửa đơn giản một chút, tôi đã sửa suốt cả đêm.",
+    "q34": "Thời đại SDN đã đến, mạng truyền thống phải chuyển đổi.",
+    "q35": "Mạng container phải hiểu rõ, Overlay không thể thiếu.",
+    "q36": "Chuyển đổi IPv6 phải mượt mà, triển khai dual-stack là hướng đi.",
+    "q37": "Zero Trust là khái niệm bảo mật mới, xác thực liên tục là cốt lõi.",
+    "q38": "Tự động hóa vận hành là xu hướng, Ansible sẽ trợ giúp."
+  }
+}

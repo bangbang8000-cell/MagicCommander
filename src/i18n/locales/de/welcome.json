@@ -1,0 +1,84 @@
+{
+  "title": "Willkommen bei MagicCommander",
+  "subtitle": "All-in-One Parameterverwaltung und Konfigurationsgenerierung",
+  "description": "MagicCommander bietet Netzwerkingenieuren einen vollständigen Workflow für Parametertabellenverwaltung, Vorlagen-Rendering und Etikettengenerierung und hilft Ihnen, Batch-Gerätekonfigurationen effizient und präzise abzuschließen.",
+  "getStarted": "Loslegen",
+  "skip": "Nicht mehr anzeigen",
+  "successStart": "Willkommen bei MagicCommander – beginnen Sie Ihre Konfigurationsverwaltungsreise!",
+  "successDismiss": "Ihre Auswahl wurde gespeichert. Die Willkommensseite wird beim nächsten Start nicht mehr angezeigt.",
+  "steps": {
+    "step1": {
+      "title": "Projekt erstellen oder auswählen",
+      "description": "Wählen Sie im linken Explorer ein vorhandenes Projekt aus oder erstellen Sie ein neues Projekt, um loszulegen"
+    },
+    "step2": {
+      "title": "Parametertabelle bearbeiten",
+      "description": "Bearbeiten Sie die para.xlsx-Parametertabelle im Projekt und geben Sie Geräteinformationen und Vorlagenvariablen ein"
+    },
+    "step3": {
+      "title": "Konfigurieren und rendern",
+      "description": "Wählen Sie in der Workbench Vorlagen und Render-Optionen aus und klicken Sie auf Rendern, um Gerätekonfigurationen zu generieren"
+    },
+    "step4": {
+      "title": "Oberflächenlayout anpassen",
+      "description": "Verwenden Sie Strg+B zum Umschalten der Seitenleiste und Strg+J zum Umschalten des unteren Panels, um Ihren Arbeitsbereich frei zu organisieren"
+    }
+  },
+  "shortcuts": {
+    "title": "Häufige Tastenkürzel",
+    "toggleSidebar": "Seitenleiste umschalten",
+    "togglePanel": "Unteres Panel umschalten",
+    "openExplorer": "Explorer öffnen",
+    "openSearch": "Suche öffnen",
+    "openWorkbench": "Workbench öffnen",
+    "openLabelGen": "Etikettengenerierung öffnen",
+    "openRenderResult": "Render-Ergebnis öffnen",
+    "saveFile": "Aktuelle Datei speichern",
+    "refresh": "Ansicht aktualisieren"
+  },
+  "tips": {
+    "title": "Schnellstart",
+    "reopenHint": "Klicken Sie jederzeit auf die Hilfe-Schaltfläche oben rechts, um diese Seite erneut zu öffnen."
+  },
+  "networkQuotes": {
+    "q0": "In der Welt der Netzwerke gibt es kein unerreichbares Ziel, nur fehlende Routen.",
+    "q1": "Eine Zeile Konfiguration spart eine Nacht Fehlersuche.",
+    "q2": "Gute Netzwerkarchitektur lässt Fehler in der Testumgebung auftreten.",
+    "q3": "IP-Fragmentierung ist kein Problem, wenn man die MTU-Grenzen im Kopf behält.",
+    "q4": "Das richtige Routing-Protokoll gewählt – Netzwerkstabilität garantiert.",
+    "q5": "Gut geschriebene ACLs, keine Sorgen bei der Zugriffskontrolle.",
+    "q6": "VLANs sauber getrennt, Netzwerkisolation gibt Sicherheit.",
+    "q7": "Redundante Links sind unverzichtbar für zuverlässiges Failover.",
+    "q8": "Gute Protokollanalyse macht die Fehlersuche schnell und präzise.",
+    "q9": "Paketanalyse ist ein Schatz, vor dem kaum ein Problem bestehen kann.",
+    "q10": "Konfigurations-Backup ist die Basis, manuelle Änderungen müssen dokumentiert werden.",
+    "q11": "Vor Änderungen kommunizieren, nach Änderungen sofort verifizieren.",
+    "q12": "Die Produktionsumgebung ist tabu, die Testumgebung ist zum Experimentieren da.",
+    "q13": "Drei-Schichten-Architektur im Kopf: Access, Distribution und Core.",
+    "q14": "Die Firewall ist die erste und zugleich die letzte Verteidigungslinie.",
+    "q15": "NAT ist hilfreich, aber nicht übertreiben – Adressplanung kommt zuerst.",
+    "q16": "DHCP-Dienste brauchen Redundanz, Adresspools brauchen Reserve.",
+    "q17": "DNS ist das Fundament des Netzwerks – ein Ausfall lähmt alles.",
+    "q18": "Einheitliche Zeitzonen sind wichtig für die Protokollanalyse.",
+    "q19": "Ein Ping sagt, ob es geht – erste Einschätzung der Erreichbarkeit.",
+    "q20": "Ein Traceroute zeigt den Weg – der Routing-Pfad wird sichtbar.",
+    "q21": "Telnet testet den Port – die Dienstverbindung ist im Blick.",
+    "q22": "SNMP-Überwachung einrichten, rechtzeitige Alarme machen es zuverlässig.",
+    "q23": "Backup-Skripte laufen lassen, Datensicherheit ist gewährleistet.",
+    "q24": "Im Netzwerk gibt es keine Kleinigkeiten, Verantwortung wiegt schwer.",
+    "q25": "Fehlersuche braucht Sorgfalt, Schritt für Schritt vorgehen.",
+    "q26": "Gut geschriebene Dokumentation erspart dem Nachfolger Kopfzerbrechen.",
+    "q27": "Erfahrung wächst durch Sammeln, Probleme fördern das Wachstum.",
+    "q28": "Wer einsteigt, fällt in die Grube – je mehr Gruben, desto breiter der Weg.",
+    "q29": "Die weiteste Entfernung der Welt ist nicht das Ende der Welt, sondern ein nicht erreichbares Gateway.",
+    "q30": "Ich dachte, meine Konfiguration sei fehlerfrei – bis ich einen Ping machte.",
+    "q31": "Warum ist die Verbindung weg? Weil die Klimaanlage im Serverraum ausgefallen ist.",
+    "q32": "Überstunden bis zum Morgengrauen, nur weil ein Netzwerkkabel nicht richtig eingesteckt war.",
+    "q33": "Der Kunde sagte 'nur eine kleine Änderung' – ich habe die ganze Nacht daran gearbeitet.",
+    "q34": "Das SDN-Zeitalter ist angebrochen, traditionelle Netzwerke müssen sich wandeln.",
+    "q35": "Container-Netzwerke muss man verstehen, Overlay ist unverzichtbar.",
+    "q36": "IPv6-Übergang muss reibungslos sein, Dual-Stack-Bereitstellung ist der Weg.",
+    "q37": "Zero-Trust-Sicherheit ist das neue Konzept, kontinuierliche Verifizierung ist der Kern.",
+    "q38": "Automatisierte Betriebsführung ist der Trend, Ansible kommt zur Hilfe."
+  }
+}

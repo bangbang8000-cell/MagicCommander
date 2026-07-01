@@ -1,0 +1,61 @@
+{
+  "general": {
+    "unknown": "알 수 없는 오류가 발생했습니다",
+    "retry": "다시 시도하거나 기술 지원에 문의하십시오",
+    "reportBug": "오류를 발견하셨나요? 피드백을 보내주십시오",
+    "reload": "다시 로딩",
+    "reloadApp": "앱 다시 로딩",
+    "somethingWentWrong": "문제가 발생했습니다",
+    "errorBoundaryMessage": "앱에서 예기치 않은 오류가 발생했습니다. 다시 로딩해 보십시오."
+  },
+  "project": {
+    "createFailed": "프로젝트 생성 실패",
+    "deleteFailed": "프로젝트 삭제 실패",
+    "renameFailed": "프로젝트 이름 변경 실패",
+    "loadFailed": "프로젝트 로딩 실패",
+    "notFound": "프로젝트를 찾을 수 없습니다",
+    "invalidName": "프로젝트 이름이 유효하지 않습니다",
+    "nameTooLong": "프로젝트 이름이 너무 깁니다",
+    "nameTooShort": "프로젝트 이름이 너무 짧습니다"
+  },
+  "file": {
+    "readFailed": "파일 읽기 실패",
+    "writeFailed": "파일 쓰기 실패",
+    "deleteFailed": "파일 삭제 실패",
+    "notFound": "파일을 찾을 수 없습니다",
+    "invalidPath": "파일 경로가 유효하지 않습니다",
+    "accessDenied": "파일 접근이 거부되었습니다",
+    "tooLarge": "파일이 너무 큽니다",
+    "unsupportedFormat": "지원되지 않는 파일 형식입니다"
+  },
+  "render": {
+    "failed": "렌더링 실패",
+    "timeout": "렌더링 시간 초과",
+    "pythonError": "Python 실행 오류",
+    "pythonNotFound": "Python 환경을 찾을 수 없습니다",
+    "dependencyMissing": "필수 패키지가 누락되었습니다",
+    "outputNotFound": "출력 파일을 찾을 수 없습니다",
+    "yamlNotFound": "YAML 파일을 찾을 수 없습니다",
+    "permissionDenied": "권한이 부족하여 출력 파일을 쓸 수 없습니다"
+  },
+  "network": {
+    "offline": "네트워크 연결이 끊어졌습니다",
+    "timeout": "요청 시간이 초과되었습니다",
+    "serverError": "서버 오류",
+    "updateFailed": "업데이트 확인 실패",
+    "downloadFailed": "업데이트 다운로드 실패"
+  },
+  "print": {
+    "failed": "인쇄 실패",
+    "noPrinter": "프린터를 찾을 수 없습니다",
+    "printerError": "프린터 오류",
+    "paperEmpty": "용지 부족",
+    "canceled": "인쇄가 취소되었습니다"
+  },
+  "python": {
+    "startFailed": "Python 서비스 시작 실패",
+    "stopped": "Python 서비스가 중지되었습니다",
+    "crash": "Python 서비스가 비정상 종료되었습니다",
+    "versionMismatch": "Python 버전이 호환되지 않습니다. Python 3.8 이상이 필요합니다"
+  }
+}
