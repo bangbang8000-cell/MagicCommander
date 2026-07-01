@@ -212,7 +212,7 @@ export const APP_CONFIG = {
   
   // 版本信息
   VERSION: {
-    CURRENT: '2.9.3',
+    CURRENT: '2.9.4',
     MIN_SUPPORTED_PYTHON: '3.8',
   },
 }
