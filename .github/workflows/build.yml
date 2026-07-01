@@ -61,6 +61,8 @@ jobs:
           Write-Host "安装 Python 依赖..."
           & "$targetDir\python.exe" -m pip install -r backend\requirements.txt --no-warn-script-location
           Remove-Item "$targetDir\get-pip.py" -Force -ErrorAction SilentlyContinue
+          Write-Host "删除 ._pth 文件以启用标准 sys.path 初始化（使 PYTHONPATH 环境变量生效）..."
+          Remove-Item "$pthFile" -Force
           Write-Host "验证..."
           & "$targetDir\python.exe" -c "import pandas; import jinja2; import openpyxl; import yaml; print('OK')"
 
