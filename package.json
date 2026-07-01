@@ -109,7 +109,7 @@
     "mac": {
       "target": [
         {
-          "target": "dmg",
+          "target": "zip",
           "arch": [
             "x64",
             "arm64"
@@ -119,22 +119,6 @@
       "icon": "public/icons/icon.icns",
       "artifactName": "${productName}-${version}-mac-${arch}.${ext}",
       "category": "public.app-category.utilities"
-    },
-    "dmg": {
-      "background": null,
-      "title": "MagicCommander ${version}",
-      "contents": [
-        {
-          "x": 130,
-          "y": 220
-        },
-        {
-          "x": 410,
-          "y": 220,
-          "type": "link",
-          "path": "/Applications"
-        }
-      ]
     },
     "linux": {
       "target": [

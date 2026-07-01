@@ -122,7 +122,7 @@ jobs:
           name: MagicCommander-${{ matrix.platform }}
           path: |
             release/*.exe
-            release/*.dmg
+            release/*.zip
             release/*.AppImage
             release/*.deb
             release/*.blockmap
@@ -155,7 +155,7 @@ jobs:
           find release -name "builder-debug.yml" -delete
           gh release create "${{ github.ref_name }}" \
             release/*/*.exe \
-            release/*/*.dmg \
+            release/*/*.zip \
             release/*/*.AppImage \
             release/*/*.deb \
             release/*/*.blockmap \
