@@ -121,6 +121,7 @@
       "category": "public.app-category.utilities"
     },
     "dmg": {
+      "background": null,
       "title": "MagicCommander ${version}",
       "contents": [
         {
