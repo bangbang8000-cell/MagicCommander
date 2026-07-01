@@ -4,7 +4,7 @@ import * as path from 'path'
 import * as fs from 'fs'
 import { spawn } from 'child_process'
 import { escapePythonArg, validateProjectName, validateFilePath } from '../utils/security'
-import { getBackendDir, getPythonPath, getWorkspaceDir, APP_CONFIG } from '../config'
+import { getBackendDir, getPythonPath, getWorkspaceDir, APP_CONFIG, getPythonSitePackages } from '../config'
 
 const THROTTLE_MS = 100
 
@@ -222,9 +222,14 @@ export class RenderHandler {
       this.queueProgress({ status: 'start', message: `开始执行命令: ${command}` })
 
       try {
+        const pythonPaths: string[] = [backendPath]
+        const sitePackages = getPythonSitePackages()
+        if (sitePackages && fs.existsSync(sitePackages)) {
+          pythonPaths.push(sitePackages)
+        }
         const pythonProcess = spawn(pythonCmd, fullCommand, {
           cwd: backendPath,
-          env: { ...process.env, PYTHONIOENCODING: 'utf-8', PYTHONUNBUFFERED: '1', MC_WORKSPACE: getWorkspaceDir() },
+          env: { ...process.env, PYTHONIOENCODING: 'utf-8', PYTHONUNBUFFERED: '1', MC_WORKSPACE: getWorkspaceDir(), PYTHONPATH: pythonPaths.join(path.delimiter) },
           shell: false,
         })
 

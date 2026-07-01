@@ -42,10 +42,12 @@ export class PythonService extends EventEmitter {
           PYTHONUNBUFFERED: '1',
           MC_WORKSPACE: getWorkspaceDir(),
         }
+        const pythonPaths: string[] = [this.workingDir]
         const sitePackages = getPythonSitePackages()
         if (sitePackages && fs.existsSync(sitePackages)) {
-          env.PYTHONPATH = sitePackages
+          pythonPaths.push(sitePackages)
         }
+        env.PYTHONPATH = pythonPaths.join(path.delimiter)
         this.process = spawn(this.pythonCmd, [scriptPath], {
           cwd: this.workingDir,
           stdio: ['pipe', 'pipe', 'pipe'],
