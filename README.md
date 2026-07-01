@@ -4,8 +4,22 @@
 
 [![Version](https://img.shields.io/badge/version-2.9.1-blue)](https://github.com/bangbang8000-cell/MagicCommander)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
-[![Platform](https://img.shields.io/badge/platform-Windows-lightgrey)](https://github.com/bangbang8000-cell/MagicCommander)
+[![Windows](https://img.shields.io/badge/Windows-NSIS-blue)](https://github.com/bangbang8000-cell/MagicCommander/releases)
+[![macOS](https://img.shields.io/badge/macOS-DMG-silver)](https://github.com/bangbang8000-cell/MagicCommander/releases)
+[![Linux](https://img.shields.io/badge/Linux-AppImage%20%7C%20deb-orange)](https://github.com/bangbang8000-cell/MagicCommander/releases)
 [![Languages](https://img.shields.io/badge/languages-12-orange)](https://github.com/bangbang8000-cell/MagicCommander)
+
+---
+
+## 下载
+
+| 平台 | 安装包 | 说明 |
+|------|--------|------|
+| Windows | [MagicCommander-Setup-2.9.1.exe](https://github.com/bangbang8000-cell/MagicCommander/releases) | NSIS 安装向导，支持自定义安装路径 |
+| macOS | [MagicCommander-2.9.1-mac.dmg](https://github.com/bangbang8000-cell/MagicCommander/releases) | DMG 安装包，拖拽到 Applications 即可 |
+| Linux | [MagicCommander-2.9.1-linux.AppImage](https://github.com/bangbang8000-cell/MagicCommander/releases) / [.deb](https://github.com/bangbang8000-cell/MagicCommander/releases) | AppImage 双击运行；deb 通过包管理器安装 |
+
+> 所有平台均需安装 Python 3.8+。安装包下载请访问 [GitHub Releases](https://github.com/bangbang8000-cell/MagicCommander/releases) 页面。
 
 ---
 
@@ -75,14 +89,11 @@ MagicCommander 是本地桌面软件（Electron + React + TypeScript），所有
 
 ### 1. 安装
 
-MagicCommander 目前提供 Windows 桌面版本。请确保你的电脑已安装 Python 3.8+。
+从 [GitHub Releases](https://github.com/bangbang8000-cell/MagicCommander/releases) 下载对应平台的安装包，双击运行安装向导即可。请确保你的电脑已安装 Python 3.8+。
+
+如果想从源码运行：
 
 ```bash
-# 下载安装包
-# 从 Release 页面下载最新版 MagicCommander-Setup-x.x.x.exe
-# 双击安装即可
-
-# 或从源码运行
 git clone https://github.com/bangbang8000-cell/MagicCommander.git
 cd MagicCommander
 npm install
