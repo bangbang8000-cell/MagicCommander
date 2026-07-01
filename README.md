@@ -151,10 +151,32 @@ Electron 28 · React 18 · TypeScript 5 · Vite 5 · TailwindCSS 3 · Zustand 4 
 
 | 版本 | 日期 | 更新内容 |
 |------|------|---------|
+| **V3.0 规划中** | 2026-07 | AI 驱动的网络配置工程平台升级（详见 [V3.0 PRD](docs/v3-prd/)） |
 | 2.9.2 | 2026-07-01 | 跨平台编译支持：Windows (NSIS) / macOS (DMG x64+arm64) / Linux (AppImage+deb) |
 | 2.9.1 | 2026-07-01 | 多语言国际化支持（12 种语言）、RTL 布局支持、UI 优化 |
 | 2.1.0 | 2026-06-22 | 修复文件显示问题，优化布局 |
 | 2.0.0 | - | 重构为 Electron + React 架构 |
+
+---
+
+## V3.0 路线图
+
+MagicCommander V3.0 将从"配置批量生成工具"升级为 **AI 驱动的网络配置工程平台**，分四个阶段推进：
+
+| 阶段 | 时间 | 核心交付 |
+|------|------|---------|
+| [Alpha](https://github.com/bangbang8000-cell/MagicCommander/milestone/1) | 2026.07 - 2026.09 | AI Hub 框架 + 智能项目初始化 + 配置反向生成 + 模板调试沙盒 |
+| [Beta](https://github.com/bangbang8000-cell/MagicCommander/milestone/2) | 2026.10 - 2026.12 | 智能校对 + AI 对话助手 + Excel/Jinja2 增强 + 模板资产中心 |
+| [GA](https://github.com/bangbang8000-cell/MagicCommander/milestone/3) | 2027.01 - 2027.03 | 社区分享中心 + 协作审阅 + 项目生命周期 + 权限体系 + 多 LLM Provider |
+| [Scale](https://github.com/bangbang8000-cell/MagicCommander/milestone/4) | 2027.04 - 2027.06 | Git 集成 + Ansible/Nornir 推送 + 多租户 + 监控告警 |
+
+**核心新增能力**：
+- AI 智能中心：借助大模型 API 实现配置生成、校对、优化建议、对话助手
+- 模板资产中心：结构化模板库 + 版本管理 + 质量评级 + 调试沙盒
+- 社区分享中心：模板/项目一键分享 + 公共社区广场 + 创作者体系
+- 技术栈扩展：FastAPI (AI Hub) + LangChain/LiteLLM (LLM 统一调度) + Ollama (本地模型)
+
+**产品需求文档**：[PRD v1.0](docs/v3-prd/) | **开发计划与规范**：[Dev Plan & Spec](docs/v3-dev-plan/)
 
 ---
 
