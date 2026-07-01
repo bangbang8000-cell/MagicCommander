@@ -1,186 +1,41 @@
 # MagicCommander
 
-> 网络设备配置管理工具 - 基于模板和参数批量生成网络设备配置
+**批量生成网络设备配置 | Network Device Configuration Automation**
 
-MagicCommander 是一款桌面应用程序，用于管理网络设备配置模板和参数，支持通过 Excel 参数表和 Jinja2 模板批量生成网络设备配置文件。
-
-![软件说明0](snapshot/软件说明0.png)
-
-![软件说明1](snapshot/软件说明1.png)
-
----
-
-## 功能特性
-
-### 📁 项目管理
-- 创建、删除、切换项目
-- 项目目录结构自动生成（templates / excel / output / yaml）
-- 项目状态持久化保存
-
-### 📝 模板编辑器
-- 支持 Jinja2 模板语法（`.j2` 文件）
-- 语法高亮和智能提示
-- 代码编辑与实时预览
-
-### 📊 Excel 管理
-- Excel 文件查看和编辑
-- 支持 `.xlsx`、`.xls` 格式
-- 参数表管理（connection、hostname、ipaddress、parameter）
-
-### 📄 文件查看器
-- **文本编辑器**：支持 `.txt`、`.yaml`、`.yml`、`.md` 等格式
-- **Word 查看器**：支持 `.docx` 文件只读查看
-- **Excel 查看器**：支持表格数据查看和单元格编辑
-
-### 🔧 配置渲染
-- 基于 Jinja2 模板和 Excel 参数批量生成配置
-- 生成 YAML 中间文件和 TXT 配置文件
-- 支持渲染进度跟踪和日志查看
-
-### 🖨️ 标签生成
-- 从配置生成设备标签文档（Word 格式）
-- 支持批量打印标签
-
-### ⌨️ 快捷键支持
-- `Ctrl+B` - 切换侧边栏
-- `Ctrl+J` - 切换面板
-- `Ctrl+S` - 保存文件
-- `Ctrl+W` - 关闭标签
-- `Ctrl+Shift+T` - 重新打开最近关闭的标签
+[![Version](https://img.shields.io/badge/version-2.9.1-blue)](https://github.com/bangbang8000-cell/MagicCommander)
+[![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+[![Platform](https://img.shields.io/badge/platform-Windows-lightgrey)](https://github.com/bangbang8000-cell/MagicCommander)
+[![Languages](https://img.shields.io/badge/languages-12-orange)](https://github.com/bangbang8000-cell/MagicCommander)
 
 ---
 
-## 技术栈
+## 你还在手动配置每一台交换机吗？
 
-| 分类 | 技术 | 版本 |
-|------|------|------|
-| 框架 | Electron | 28.x |
-| 前端 | React | 18.x |
-| 前端 | TypeScript | 5.x |
-| 构建工具 | Vite | 5.x |
-| 样式 | TailwindCSS | 3.x |
-| 状态管理 | Zustand | 4.x |
-| 代码编辑器 | Monaco Editor | 4.x |
-| Excel 处理 | xlsx | 0.18.x |
-| Word 解析 | mammoth | 1.x |
-| 后端 | Python | 3.x |
-| 模板引擎 | Jinja2 | - |
+运维团队管理着 50 台、200 台甚至 500 台网络设备。每次上新设备、变更 VLAN、调整接口描述，都要逐台登录、逐行敲命令。配置格式不统一，参数容易写错，一个项目下来，光配置交换机就要花掉一整天。
+
+设备标签呢？手写、贴纸、Excel 打印……标签丢失、信息不全、格式混乱，运维交接时面对一堆"无名设备"无从下手。
+
+**MagicCommander 就是为解决这个问题而生的。**
 
 ---
 
-## 快速开始
+## 三步完成批量配置，从一天到一分钟
 
-### 环境要求
+MagicCommander 将你的网络设备参数（Excel 表格）和设备配置模板（Jinja2 语法）结合起来，一键生成所有设备的标准化配置文件，同时自动生成可打印的设备标签。
 
-- Node.js >= 18.0.0
-- Python >= 3.8
-- npm >= 9.0.0
+![MagicCommander 主界面](snapshot/软件说明0.png)
 
-### 安装依赖
+**工作原理**：你在 Excel 里维护设备参数（主机名、IP 地址、VLAN ID、接口描述等），用 Jinja2 模板定义配置格式，MagicCommander 自动完成拼接和渲染，输出可直接使用的设备配置文件。
 
-```bash
-# 安装前端依赖
-npm install
-
-# 安装 Python 依赖（可选，用于渲染功能）
-cd backend
-pip install -r requirements.txt
-```
-
-### 开发模式
-
-```bash
-# 方式一：同时启动前端和 Electron
-npm run dev:all
-
-# 方式二：分别启动
-# 终端 1：启动 Vite 开发服务器
-npm run dev
-
-# 终端 2：启动 Electron
-npm run dev:electron
-```
-
-### 构建生产版本
-
-```bash
-# 构建渲染器和主进程
-npm run build
-
-# 打包为安装包（Windows）
-npm run dist:win
-
-# 打包为安装包（通用）
-npm run dist
-```
+![MagicCommander 标签生成](snapshot/软件说明1.png)
 
 ---
 
-## 项目结构
+## 为什么选择 MagicCommander
 
-```
-MagicCommander/
-├── src/                    # React 前端源码
-│   ├── components/         # 组件目录
-│   │   ├── common/         # 通用组件
-│   │   ├── editor/         # 编辑器组件（MonacoEditor、ExcelViewer、WordViewer）
-│   │   ├── layout/         # 布局组件（Header、ActivityBar、Sidebar、StatusBar）
-│   │   ├── panel/          # 面板组件
-│   │   ├── sidebar/        # 侧边栏面板（Explorer、Search、Workbench 等）
-│   │   ├── terminal/       # 终端组件
-│   │   └── ui/             # UI 组件（Button、Modal、Toast 等）
-│   ├── hooks/              # 自定义 Hooks
-│   ├── services/           # 业务服务层
-│   ├── stores/             # Zustand 状态管理
-│   ├── styles/             # 全局样式
-│   ├── types/              # TypeScript 类型定义
-│   ├── App.tsx             # 应用主组件
-│   └── main.tsx            # 入口文件
-├── electron/               # Electron 主进程
-│   ├── ipc/                # IPC 处理器
-│   ├── services/           # 主进程服务
-│   ├── utils/              # 工具函数
-│   ├── main.ts             # 主进程入口
-│   └── preload.ts          # 预加载脚本
-├── backend/                # Python 后端脚本
-│   ├── main.py             # 渲染主脚本
-│   ├── ExcelToLabel.py     # Excel 转标签
-│   ├── pre_processing.py   # 预处理脚本
-│   └── requirements.txt    # Python 依赖
-├── public/                 # 静态资源
-├── dist/                   # 前端构建产物
-├── dist-electron/          # Electron 构建产物
-└── release/                # 安装包输出目录
-```
+### 模板一次编写，永久复用
 
----
-
-## 使用指南
-
-### 创建项目
-
-1. 点击左侧活动栏的「项目浏览器」图标
-2. 点击「新建项目」按钮
-3. 输入项目名称并确认
-
-项目创建后会自动生成以下目录结构：
-
-```
-backend/项目名/
-├── templates/              # Jinja2 模板文件
-├── excel/                  # Excel 参数文件
-├── output/                 # 生成的配置文件
-├── yaml/                   # 生成的 YAML 文件
-└── output-label/           # 生成的标签文档
-```
-
-### 编辑模板
-
-1. 在项目浏览器中展开 `templates` 目录
-2. 点击 `.j2` 文件打开编辑器
-3. 使用 Jinja2 语法编写模板
-
-**模板示例（ASW.j2）**：
+用 Jinja2 语法编写一次配置模板，后续所有项目、所有设备都基于同一套模板生成配置。模板改了，重新渲染即可，不必逐台修改。
 
 ```jinja2
 interface {{ interface_name }}
@@ -190,24 +45,76 @@ interface {{ interface_name }}
  no shutdown
 ```
 
-### 管理参数
+### Excel 管理参数，所见即所得
 
-1. 在项目浏览器中展开 `excel` 目录
-2. 点击 `.xlsx` 文件打开 Excel 查看器
-3. 点击单元格进行编辑
-4. 编辑完成后会自动标记为未保存状态
+设备参数天然适合用表格管理。MagicCommander 内建 Excel 编辑器，直接在软件里编辑 connection、hostname、ipaddress、parameter 等参数表，无需来回切换工具。
 
-### 渲染配置
+### 一键批量渲染，可追踪进度
 
-1. 点击左侧活动栏的「工作台」图标
-2. 选择要渲染的模板和参数文件
-3. 点击「开始渲染」按钮
-4. 查看渲染进度和日志
+选好模板和参数，点击渲染，MagicCommander 逐项目生成配置文件和 YAML 中间文件。渲染进度实时可见，日志清晰记录每一步处理结果。
 
-渲染完成后，配置文件会输出到：
-- `output/` - TXT 格式配置文件
-- `yaml/` - YAML 格式中间文件
-- `output-label/` - Word 格式标签文档
+### 设备标签自动生成，直接打印
+
+从 hostname 表格自动提取设备名、SN、型号、机柜位置、管理 IP 等信息，生成 Word 格式的标签文档，支持 A4/A5 纸张、横纵向打印、自定义每页标签数量。
+
+### 12 种语言，全球团队可用
+
+MagicCommander 支持简体中文、English、日本語、한국어、Français、Deutsch、Español、Português、Русский、العربية（含从右到左布局）、Tiếng Việt、ไทย 共 12 种语言，多语言运维团队无缝协作。
+
+### 离线桌面应用，数据安全可控
+
+MagicCommander 是本地桌面软件（Electron + React + TypeScript），所有数据存放在你的电脑上，无需联网，不上传云端，企业数据安全有保障。
+
+### 专业 Jinja2 编辑器
+
+内建 Monaco Editor（VS Code 同款编辑器），支持 Jinja2 语法高亮、代码补全、多标签页管理，模板编写体验不输专业 IDE。
+
+---
+
+## 三分钟上手
+
+### 1. 安装
+
+MagicCommander 目前提供 Windows 桌面版本。请确保你的电脑已安装 Python 3.8+。
+
+```bash
+# 下载安装包
+# 从 Release 页面下载最新版 MagicCommander-Setup-x.x.x.exe
+# 双击安装即可
+
+# 或从源码运行
+git clone https://github.com/bangbang8000-cell/MagicCommander.git
+cd MagicCommander
+npm install
+npm run dev:all
+```
+
+### 2. 创建项目
+
+打开 MagicCommander，点击左侧活动栏的项目浏览器图标，新建一个项目。项目会自动生成 `templates / excel / output / yaml` 四个目录。
+
+### 3. 编写模板 + 填写参数 + 一键渲染
+
+在 `templates` 目录下创建 `.j2` 模板文件，在 `excel` 目录下填写设备参数，切换到工作台面板，点击"开始渲染"——配置文件即刻生成到 `output` 目录。
+
+---
+
+## 项目结构
+
+```
+项目名称/
+├── templates/       # Jinja2 模板 (.j2)
+├── excel/           # 设备参数表 (.xlsx)
+├── output/          # 生成的配置文件 (.txt)
+├── yaml/            # 生成的 YAML 中间文件
+└── output-label/    # 生成的设备标签文档 (.docx)
+```
+
+---
+
+## 技术栈
+
+Electron 28 · React 18 · TypeScript 5 · Vite 5 · TailwindCSS 3 · Zustand 4 · Monaco Editor 4 · Python 3 · Jinja2
 
 ---
 
@@ -215,111 +122,51 @@ interface {{ interface_name }}
 
 | 快捷键 | 功能 |
 |--------|------|
-| `Ctrl+B` | 切换侧边栏显示 |
-| `Ctrl+J` | 切换底部面板显示 |
+| `Ctrl+B` | 切换侧边栏 |
+| `Ctrl+J` | 切换底部面板 |
 | `Ctrl+S` | 保存当前文件 |
-| `Ctrl+W` | 关闭当前标签 |
+| `Ctrl+W` | 关闭当前标签页 |
 | `Ctrl+Shift+T` | 重新打开最近关闭的标签 |
 | `Ctrl+Shift+E` | 切换到项目浏览器 |
 | `Ctrl+Shift+F` | 切换到搜索面板 |
-| `Ctrl+Shift+P` | 切换到配置面板 |
-| `Ctrl+Shift+L` | 切换到标签面板 |
 | `Ctrl+Shift+R` | 切换到工作台 |
-| `Ctrl+Shift+O` | 切换到输出面板 |
-| `F5` | 刷新应用 |
-
----
-
-## 配置文件
-
-### 应用配置
-
-应用配置文件存储在用户数据目录下，包含：
-- 项目状态（已打开项目、最近项目）
-- 编辑器状态（打开的标签、活动标签）
-- UI 状态（主题、侧边栏显示、面板显示）
-
-### 项目配置
-
-每个项目包含以下配置文件：
-- `excel/connection.xlsx` - 设备连接参数
-- `excel/hostname.xlsx` - 主机名参数
-- `excel/ipaddress.xlsx` - IP 地址参数
-- `excel/parameter.xlsx` - 自定义参数
 
 ---
 
 ## 常见问题
 
-### Q: 应用启动后无法加载项目？
+**Q: 渲染失败怎么办？**
 
-A: 请确保 `backend` 目录存在且包含项目文件夹。首次启动时需要至少创建一个项目。
+检查 Python 是否已安装（`python --version`），确认已执行 `pip install -r backend/requirements.txt` 安装依赖，再检查 Excel 参数表格式和模板语法是否正确。
 
-### Q: Excel 文件无法打开？
+**Q: Excel 文件打不开？**
 
-A: 请确保文件格式为 `.xlsx` 或 `.xls`，且文件未被其他程序占用。
+确认文件格式为 `.xlsx` 或 `.xls`，且未被其他程序（如 Microsoft Excel）占用。
 
-### Q: 渲染失败？
+**Q: 如何恢复项目数据？**
 
-A: 请检查：
-1. Python 是否已安装且配置正确
-2. Python 依赖是否已安装（`pip install -r requirements.txt`）
-3. Excel 参数文件格式是否正确
-4. 模板语法是否有误
-
-### Q: 如何恢复备份？
-
-A: 将 `backup-xxx` 目录下的内容复制回项目根目录，并执行 `npm install` 安装依赖。
-
----
-
-## 开发指南
-
-### 目录规范
-
-```
-src/
-├── components/             # 组件（首字母大写的 PascalCase）
-├── hooks/                  # 自定义 Hooks（use 前缀）
-├── services/               # 服务层（业务逻辑）
-├── stores/                 # 状态管理（Zustand stores）
-├── types/                  # 类型定义（TypeScript interfaces）
-└── styles/                 # 全局样式
-```
-
-### 编码规范
-
-- 使用 TypeScript，所有组件和函数必须有类型定义
-- 组件使用函数式组件和 React Hooks
-- 状态管理使用 Zustand，避免全局状态滥用
-- 样式使用 TailwindCSS，优先使用 utility classes
-- 代码格式化使用 Prettier
-
-### 测试
-
-```bash
-# 运行所有测试
-npm run test
-
-# 运行测试并监听变化
-npm run test:watch
-
-# 生成测试覆盖率报告
-npm run test:coverage
-```
-
----
-
-## 许可证
-
-MIT License - 详见 [LICENSE](LICENSE) 文件
+所有项目数据存储在本地 `backend/` 目录下，备份该目录即可。删除项目前会有二次确认弹窗，避免误操作。
 
 ---
 
 ## 版本历史
 
-| 版本 | 日期 | 描述 |
-|------|------|------|
-| 2.9.1 | 2026-07-01 | 多语言国际化支持（12种语言）、RTL布局支持、UI优化 |
+| 版本 | 日期 | 更新内容 |
+|------|------|---------|
+| 2.9.1 | 2026-07-01 | 多语言国际化支持（12 种语言）、RTL 布局支持、UI 优化 |
 | 2.1.0 | 2026-06-22 | 修复文件显示问题，优化布局 |
 | 2.0.0 | - | 重构为 Electron + React 架构 |
+
+---
+
+## 参与贡献
+
+欢迎提交 Issue 和 Pull Request。如有功能建议或问题反馈，请在 GitHub Issues 中提出。
+
+**搜索引擎关键词**：网络设备配置批量生成、交换机配置自动生成、Jinja2 网络配置工具、网络运维自动化、设备标签打印、批量生成设备配置
+
+---
+
+## 许可证
+
+[MIT License](LICENSE)
