@@ -32,6 +32,7 @@ export interface ElectronAPI {
   render: RenderIpcApi
   delete: DeleteIpcApi
   feature: FeatureIpcApi
+  guide: GuideIpcApi
   file: FileIpcApi
   dialog: DialogIpcApi
   app: AppIpcApi
@@ -101,6 +102,14 @@ export interface DeleteIpcApi {
 export interface FeatureIpcApi {
   labelPrint: (ids: string[], config?: unknown) => Promise<void>
   labelDelete: (ids: string[]) => Promise<void>
+}
+
+// ============================================================
+// Guide API
+// ============================================================
+
+export interface GuideIpcApi {
+  getContent: (lang: string) => Promise<string>
 }
 
 // ============================================================

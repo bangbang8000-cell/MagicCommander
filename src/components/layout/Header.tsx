@@ -82,16 +82,13 @@ export function Header() {
 
   const handleHelp = async () => {
     setActiveMenu(null)
-    // 加载使用指南
-    if (!guideContent) {
-      try {
-        const response = await fetch('/docs/user-guide.md')
-        const text = await response.text()
-        setGuideContent(text)
-      } catch (err) {
-        console.error('加载使用指南失败:', err)
-        setGuideContent(t('menu.guideLoadFailed'))
-      }
+    // 加载使用指南（通过 IPC 根据当前语言读取）
+    try {
+      const text = await window.electron.guide.getContent(i18n.language)
+      setGuideContent(text)
+    } catch (err) {
+      console.error('加载使用指南失败:', err)
+      setGuideContent(t('menu.guideLoadFailed'))
     }
     setGuideOpen(true)
   }

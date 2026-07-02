@@ -37,6 +37,9 @@ const api = {
     labelPrint: (ids: string[], config?: unknown) => ipcRenderer.invoke('feature:label-print', ids, config),
     labelDelete: (ids: string[]) => ipcRenderer.invoke('feature:label-delete', ids),
   },
+  guide: {
+    getContent: (lang: string) => ipcRenderer.invoke('guide:getContent', lang),
+  },
   file: {
     read: (filePath: string) => ipcRenderer.invoke('file:read', filePath),
     write: (filePath: string, content: string) => ipcRenderer.invoke('file:write', filePath, content),
