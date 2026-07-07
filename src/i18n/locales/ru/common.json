@@ -206,7 +206,38 @@
     "cleanupOperations": "Операции очистки",
     "deleteOutput": "Удалить вывод",
     "deleteYaml": "Удалить YAML",
-    "processing": "Обработка..."
+    "processing": "Обработка...",
+    "outputYaml": "Вывод YAML",
+    "deleteSelected": "Удалить выбранные",
+    "outputFormat": "Формат вывода",
+    "renderType": "Тип рендеринга",
+    "projectCount": "{{total}} проектов, {{selected}} выбрано",
+    "noProjectsHint": "Нет проектов. Нажмите \"Новый проект\", чтобы начать.",
+    "errorMessage": "Сообщение об ошибке",
+    "config": "Настройки",
+    "switchToMode": "Переключить в режим {{mode}}",
+    "projectMode": "Проект",
+    "validation": {
+      "emptyName": "Пожалуйста, введите название проекта",
+      "nameTooLong": "Название проекта не может превышать 50 символов",
+      "invalidChars": "Название проекта не может содержать символы: \\ / : * ? \" < > |",
+      "reservedName": "Название проекта не может быть системным зарезервированным именем",
+      "leadingDotOrSpace": "Название проекта не может начинаться с точки или пробела"
+    },
+    "dialog": {
+      "deleteTitle": "Удалить проект",
+      "deleteConfirm": "Вы уверены, что хотите удалить выбранные {{count}} проект(ов)? Это действие необратимо.",
+      "hintTitle": "Внимание",
+      "selectAtLeastOneRender": "Пожалуйста, выберите хотя бы один проект для рендеринга",
+      "selectAtLeastOneLabelPrint": "Пожалуйста, выберите хотя бы один проект для печати этикеток",
+      "selectAtLeastOneLabelDelete": "Пожалуйста, выберите хотя бы один проект для удаления этикеток",
+      "selectAtLeastOne": "Пожалуйста, выберите хотя бы один проект для этой операции",
+      "renderFailed": "Ошибка рендеринга",
+      "create": "Создать",
+      "projectName": "Название проекта",
+      "projectNamePlaceholder": "напр.: test1",
+      "projectDirHint": "Каталог проекта будет создан в корне приложения, включая excel/, templates/, para.xlsx"
+    }
   },
   "panel": {
     "log": "Журнал",
@@ -248,5 +279,16 @@
     "file": "Файл",
     "view": "Вид",
     "panel": "Панель"
+  },
+  "explorer": {
+    "title": "Проводник",
+    "selectProjectToView": "Выберите проект выше для просмотра структуры файлов",
+    "loading": "Загрузка...",
+    "loadFailed": "Ошибка загрузки",
+    "retry": "Повторить",
+    "emptyProject": "Проект пуст, нет файлов",
+    "openProjectRoot": "Открыть корень проекта в проводнике",
+    "refresh": "Обновить",
+    "openInExplorer": "Открыть в проводнике"
   }
 }

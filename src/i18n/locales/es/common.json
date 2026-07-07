@@ -206,7 +206,38 @@
     "cleanupOperations": "Operaciones de limpieza",
     "deleteOutput": "Eliminar salida",
     "deleteYaml": "Eliminar YAML",
-    "processing": "Procesando..."
+    "processing": "Procesando...",
+    "outputYaml": "Salida YAML",
+    "deleteSelected": "Eliminar selección",
+    "outputFormat": "Formato de salida",
+    "renderType": "Tipo de renderizado",
+    "projectCount": "{{total}} proyectos, {{selected}} seleccionados",
+    "noProjectsHint": "Sin proyectos. Haga clic en \"Nuevo proyecto\" para comenzar.",
+    "errorMessage": "Mensaje de error",
+    "config": "Configuración",
+    "switchToMode": "Cambiar al modo {{mode}}",
+    "projectMode": "Proyecto",
+    "validation": {
+      "emptyName": "Por favor, ingrese un nombre de proyecto",
+      "nameTooLong": "El nombre del proyecto no puede superar los 50 caracteres",
+      "invalidChars": "El nombre del proyecto no puede contener los siguientes caracteres: \\ / : * ? \" < > |",
+      "reservedName": "El nombre del proyecto no puede ser un nombre reservado del sistema",
+      "leadingDotOrSpace": "El nombre del proyecto no puede empezar con un punto o un espacio"
+    },
+    "dialog": {
+      "deleteTitle": "Eliminar proyecto",
+      "deleteConfirm": "¿Está seguro de que desea eliminar los {{count}} proyecto(s) seleccionados? Esta acción no se puede deshacer.",
+      "hintTitle": "Aviso",
+      "selectAtLeastOneRender": "Seleccione al menos un proyecto para renderizar",
+      "selectAtLeastOneLabelPrint": "Seleccione al menos un proyecto para la impresión de etiquetas",
+      "selectAtLeastOneLabelDelete": "Seleccione al menos un proyecto para eliminar etiquetas",
+      "selectAtLeastOne": "Seleccione al menos un proyecto para esta operación",
+      "renderFailed": "Renderizado fallido",
+      "create": "Crear",
+      "projectName": "Nombre del proyecto",
+      "projectNamePlaceholder": "ej.: test1",
+      "projectDirHint": "El directorio del proyecto se creará en la raíz de la aplicación, conteniendo excel/, templates/, para.xlsx"
+    }
   },
   "panel": {
     "log": "Registro",
@@ -248,5 +279,16 @@
     "file": "Archivo",
     "view": "Ver",
     "panel": "Panel"
+  },
+  "explorer": {
+    "title": "Explorador",
+    "selectProjectToView": "Seleccione un proyecto arriba para ver la estructura de archivos",
+    "loading": "Cargando...",
+    "loadFailed": "Error al cargar",
+    "retry": "Reintentar",
+    "emptyProject": "El proyecto está vacío, no hay archivos",
+    "openProjectRoot": "Abrir raíz del proyecto en el explorador",
+    "refresh": "Actualizar",
+    "openInExplorer": "Abrir en el explorador"
   }
 }

@@ -206,7 +206,38 @@
     "cleanupOperations": "Nettoyage",
     "deleteOutput": "Supprimer la sortie",
     "deleteYaml": "Supprimer YAML",
-    "processing": "Traitement en cours..."
+    "processing": "Traitement en cours...",
+    "outputYaml": "Sortie YAML",
+    "deleteSelected": "Supprimer la sélection",
+    "outputFormat": "Format de sortie",
+    "renderType": "Type de rendu",
+    "projectCount": "{{total}} projets, {{selected}} sélectionné(s)",
+    "noProjectsHint": "Aucun projet. Cliquez sur \"Nouveau projet\" pour commencer.",
+    "errorMessage": "Message d'erreur",
+    "config": "Configuration",
+    "switchToMode": "Passer au mode {{mode}}",
+    "projectMode": "Projet",
+    "validation": {
+      "emptyName": "Veuillez entrer un nom de projet",
+      "nameTooLong": "Le nom du projet ne peut pas dépasser 50 caractères",
+      "invalidChars": "Le nom du projet ne peut pas contenir les caractères : \\ / : * ? \" < > |",
+      "reservedName": "Le nom du projet ne peut pas être un nom réservé du système",
+      "leadingDotOrSpace": "Le nom du projet ne peut pas commencer par un point ou un espace"
+    },
+    "dialog": {
+      "deleteTitle": "Supprimer le projet",
+      "deleteConfirm": "Êtes-vous sûr de vouloir supprimer les {{count}} projet(s) sélectionné(s) ? Cette action est irréversible.",
+      "hintTitle": "Avis",
+      "selectAtLeastOneRender": "Veuillez sélectionner au moins un projet à rendre",
+      "selectAtLeastOneLabelPrint": "Veuillez sélectionner au moins un projet pour l'impression d'étiquettes",
+      "selectAtLeastOneLabelDelete": "Veuillez sélectionner au moins un projet pour la suppression d'étiquettes",
+      "selectAtLeastOne": "Veuillez sélectionner au moins un projet pour cette opération",
+      "renderFailed": "Échec du rendu",
+      "create": "Créer",
+      "projectName": "Nom du projet",
+      "projectNamePlaceholder": "ex. : test1",
+      "projectDirHint": "Le répertoire du projet sera créé à la racine de l'application, contenant excel/, templates/, para.xlsx"
+    }
   },
   "panel": {
     "log": "Journal",
@@ -248,5 +279,16 @@
     "file": "Fichier",
     "view": "Affichage",
     "panel": "Panneau"
+  },
+  "explorer": {
+    "title": "Explorateur",
+    "selectProjectToView": "Sélectionnez un projet ci-dessus pour voir la structure des fichiers",
+    "loading": "Chargement...",
+    "loadFailed": "Échec du chargement",
+    "retry": "Réessayer",
+    "emptyProject": "Le projet est vide, aucun fichier",
+    "openProjectRoot": "Ouvrir la racine du projet dans l'explorateur",
+    "refresh": "Actualiser",
+    "openInExplorer": "Ouvrir dans l'explorateur"
   }
 }

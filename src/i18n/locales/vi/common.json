@@ -206,7 +206,38 @@
     "cleanupOperations": "Thao tác dọn dẹp",
     "deleteOutput": "Xóa đầu ra",
     "deleteYaml": "Xóa YAML",
-    "processing": "Đang xử lý..."
+    "processing": "Đang xử lý...",
+    "outputYaml": "Xuất YAML",
+    "deleteSelected": "Xóa đã chọn",
+    "outputFormat": "Định dạng đầu ra",
+    "renderType": "Loại kết xuất",
+    "projectCount": "{{total}} dự án, đã chọn {{selected}}",
+    "noProjectsHint": "Chưa có dự án. Nhấn \"Dự án mới\" để bắt đầu.",
+    "errorMessage": "Thông báo lỗi",
+    "config": "Cấu hình",
+    "switchToMode": "Chuyển sang chế độ {{mode}}",
+    "projectMode": "Dự án",
+    "validation": {
+      "emptyName": "Vui lòng nhập tên dự án",
+      "nameTooLong": "Tên dự án không được vượt quá 50 ký tự",
+      "invalidChars": "Tên dự án không được chứa các ký tự: \\ / : * ? \" < > |",
+      "reservedName": "Tên dự án không thể là tên dành riêng của hệ thống",
+      "leadingDotOrSpace": "Tên dự án không thể bắt đầu bằng dấu chấm hoặc khoảng trắng"
+    },
+    "dialog": {
+      "deleteTitle": "Xóa dự án",
+      "deleteConfirm": "Bạn có chắc chắn muốn xóa {{count}} dự án đã chọn? Thao tác này không thể hoàn tác.",
+      "hintTitle": "Thông báo",
+      "selectAtLeastOneRender": "Vui lòng chọn ít nhất một dự án để kết xuất",
+      "selectAtLeastOneLabelPrint": "Vui lòng chọn ít nhất một dự án để in nhãn",
+      "selectAtLeastOneLabelDelete": "Vui lòng chọn ít nhất một dự án để xóa nhãn",
+      "selectAtLeastOne": "Vui lòng chọn ít nhất một dự án cho thao tác này",
+      "renderFailed": "Kết xuất thất bại",
+      "create": "Tạo",
+      "projectName": "Tên dự án",
+      "projectNamePlaceholder": "vd: test1",
+      "projectDirHint": "Thư mục dự án sẽ được tạo trong thư mục gốc của ứng dụng, bao gồm excel/, templates/, para.xlsx"
+    }
   },
   "panel": {
     "log": "Nhật ký",
@@ -248,5 +279,16 @@
     "file": "Tệp",
     "view": "Xem",
     "panel": "Bảng"
+  },
+  "explorer": {
+    "title": "Trình khám phá",
+    "selectProjectToView": "Chọn dự án ở trên để xem cấu trúc tệp",
+    "loading": "Đang tải...",
+    "loadFailed": "Tải thất bại",
+    "retry": "Thử lại",
+    "emptyProject": "Dự án trống, không có tệp",
+    "openProjectRoot": "Mở thư mục gốc dự án trong trình khám phá",
+    "refresh": "Làm mới",
+    "openInExplorer": "Mở trong trình khám phá"
   }
 }

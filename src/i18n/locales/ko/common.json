@@ -206,7 +206,38 @@
     "cleanupOperations": "정리 작업",
     "deleteOutput": "출력 삭제",
     "deleteYaml": "YAML 삭제",
-    "processing": "처리 중..."
+    "processing": "처리 중...",
+    "outputYaml": "YAML 출력",
+    "deleteSelected": "선택 삭제",
+    "outputFormat": "출력 형식",
+    "renderType": "렌더링 유형",
+    "projectCount": "총 {{total}}개 프로젝트, {{selected}}개 선택됨",
+    "noProjectsHint": "프로젝트가 없습니다. \"새 프로젝트\"를 클릭하세요.",
+    "errorMessage": "오류 메시지",
+    "config": "설정",
+    "switchToMode": "{{mode}} 모드로 전환",
+    "projectMode": "프로젝트",
+    "validation": {
+      "emptyName": "프로젝트 이름을 입력하세요",
+      "nameTooLong": "프로젝트 이름은 50자를 초과할 수 없습니다",
+      "invalidChars": "프로젝트 이름에 다음 문자를 포함할 수 없습니다: \\ / : * ? \" < > |",
+      "reservedName": "시스템 예약 이름을 프로젝트 이름으로 사용할 수 없습니다",
+      "leadingDotOrSpace": "프로젝트 이름을 마침표나 공백으로 시작할 수 없습니다"
+    },
+    "dialog": {
+      "deleteTitle": "프로젝트 삭제",
+      "deleteConfirm": "선택한 {{count}}개 프로젝트를 정말 삭제하시겠습니까? 이 작업은 취소할 수 없습니다.",
+      "hintTitle": "알림",
+      "selectAtLeastOneRender": "렌더링할 프로젝트를 최소 1개 선택하세요",
+      "selectAtLeastOneLabelPrint": "라벨 인쇄할 프로젝트를 최소 1개 선택하세요",
+      "selectAtLeastOneLabelDelete": "라벨 삭제할 프로젝트를 최소 1개 선택하세요",
+      "selectAtLeastOne": "이 작업을 수행할 프로젝트를 최소 1개 선택하세요",
+      "renderFailed": "렌더링 실패",
+      "create": "생성",
+      "projectName": "프로젝트 이름",
+      "projectNamePlaceholder": "예: test1",
+      "projectDirHint": "프로젝트 디렉터리는 앱 루트에 생성되며, excel/, templates/, para.xlsx가 포함됩니다"
+    }
   },
   "panel": {
     "log": "로그",
@@ -248,5 +279,16 @@
     "file": "파일",
     "view": "보기",
     "panel": "패널"
+  },
+  "explorer": {
+    "title": "탐색기",
+    "selectProjectToView": "위에서 프로젝트를 선택하여 파일 구조를 봅니다",
+    "loading": "로딩 중...",
+    "loadFailed": "로딩 실패",
+    "retry": "재시도",
+    "emptyProject": "프로젝트가 비어 있습니다. 파일이 없습니다",
+    "openProjectRoot": "탐색기에서 프로젝트 루트 열기",
+    "refresh": "새로 고침",
+    "openInExplorer": "탐색기에서 열기"
   }
 }

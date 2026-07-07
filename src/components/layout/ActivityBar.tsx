@@ -19,19 +19,19 @@ interface ActivityItem {
 }
 
 const ACTIVITY_LABEL_KEYS: Record<string, string> = {
-  search: 'menu:projectExplorer',
-  explorer: 'menu:projectExplorer',
-  render: 'menu:renderOperations',
-  label: 'menu:labelPrint',
-  output: 'menu:outputResults',
+  search: 'menu.projectExplorer',
+  explorer: 'menu.projectExplorer',
+  render: 'menu.renderOperations',
+  label: 'menu.labelPrint',
+  output: 'menu.outputResults',
 }
 
 const activities: ActivityItem[] = [
   { id: 'search', icon: <Search size={20} />, labelKey: 'common:sidebar.search', shortcut: 'Ctrl+Shift+F' },
-  { id: 'explorer', icon: <FolderOpen size={20} />, labelKey: 'menu:projectExplorer', shortcut: 'Ctrl+Shift+E' },
-  { id: 'render', icon: <PlayCircle size={20} />, labelKey: 'menu:renderOperations', shortcut: 'Ctrl+Shift+R' },
-  { id: 'label', icon: <Tag size={20} />, labelKey: 'menu:labelPrint', shortcut: 'Ctrl+Shift+L' },
-  { id: 'output', icon: <FileOutput size={20} />, labelKey: 'menu:outputResults', shortcut: 'Ctrl+Shift+O' },
+  { id: 'explorer', icon: <FolderOpen size={20} />, labelKey: 'menu.projectExplorer', shortcut: 'Ctrl+Shift+E' },
+  { id: 'render', icon: <PlayCircle size={20} />, labelKey: 'menu.renderOperations', shortcut: 'Ctrl+Shift+R' },
+  { id: 'label', icon: <Tag size={20} />, labelKey: 'menu.labelPrint', shortcut: 'Ctrl+Shift+L' },
+  { id: 'output', icon: <FileOutput size={20} />, labelKey: 'menu.outputResults', shortcut: 'Ctrl+Shift+O' },
 ]
 
 export function ActivityBar() {
@@ -70,7 +70,7 @@ export function ActivityBar() {
 
       <button
         onClick={toggleSidebar}
-        title={sidebarVisible ? t('menu:hideSidebar') : t('menu:showSidebar')}
+        title={sidebarVisible ? t('menu.hideSidebar') : t('menu.showSidebar')}
         className="w-12 h-10 flex items-center justify-center text-gray-500 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
       >
         {sidebarVisible ? <PanelLeftClose size={18} /> : <PanelLeft size={18} />}

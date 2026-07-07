@@ -1,0 +1,61 @@
+{
+  "general": {
+    "unknown": "發生未知錯誤",
+    "retry": "請重試或聯絡技術支援",
+    "reportBug": "發現錯誤？請回報給我們",
+    "reload": "重新載入",
+    "reloadApp": "重新載入應用程式",
+    "somethingWentWrong": "出了點問題",
+    "errorBoundaryMessage": "應用程式遇到了意外錯誤，請嘗試重新載入。"
+  },
+  "project": {
+    "createFailed": "建立專案失敗",
+    "deleteFailed": "刪除專案失敗",
+    "renameFailed": "重新命名專案失敗",
+    "loadFailed": "載入專案失敗",
+    "notFound": "未找到專案",
+    "invalidName": "專案名稱無效",
+    "nameTooLong": "專案名稱過長",
+    "nameTooShort": "專案名稱過短"
+  },
+  "file": {
+    "readFailed": "讀取檔案失敗",
+    "writeFailed": "寫入檔案失敗",
+    "deleteFailed": "刪除檔案失敗",
+    "notFound": "未找到檔案",
+    "invalidPath": "檔案路徑無效",
+    "accessDenied": "檔案存取被拒絕",
+    "tooLarge": "檔案過大",
+    "unsupportedFormat": "不支援的檔案格式"
+  },
+  "render": {
+    "failed": "渲染失敗",
+    "timeout": "渲染逾時",
+    "pythonError": "Python 執行錯誤",
+    "pythonNotFound": "未找到 Python 環境",
+    "dependencyMissing": "缺少相依套件",
+    "outputNotFound": "未找到輸出檔案",
+    "yamlNotFound": "未找到 YAML 檔案",
+    "permissionDenied": "權限不足，無法寫入輸出檔案"
+  },
+  "network": {
+    "offline": "網路連線已中斷",
+    "timeout": "請求逾時",
+    "serverError": "伺服器錯誤",
+    "updateFailed": "更新檢查失敗",
+    "downloadFailed": "下載更新失敗"
+  },
+  "print": {
+    "failed": "列印失敗",
+    "noPrinter": "未找到印表機",
+    "printerError": "印表機錯誤",
+    "paperEmpty": "紙張不足",
+    "canceled": "列印已取消"
+  },
+  "python": {
+    "startFailed": "Python 服務啟動失敗",
+    "stopped": "Python 服務已停止",
+    "crash": "Python 服務異常結束",
+    "versionMismatch": "Python 版本不相容，需要 Python 3.8+"
+  }
+}

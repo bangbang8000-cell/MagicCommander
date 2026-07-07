@@ -206,7 +206,38 @@
     "cleanupOperations": "Cleanup Operations",
     "deleteOutput": "Delete Output",
     "deleteYaml": "Delete YAML",
-    "processing": "Processing..."
+    "processing": "Processing...",
+    "outputYaml": "Output YAML",
+    "deleteSelected": "Delete Selected",
+    "outputFormat": "Output Format",
+    "renderType": "Render Type",
+    "projectCount": "{{total}} projects, {{selected}} selected",
+    "noProjectsHint": "No projects. Click \"New Project\" to get started.",
+    "errorMessage": "Error Message",
+    "config": "Config",
+    "switchToMode": "Switch to {{mode}} Mode",
+    "projectMode": "Project",
+    "validation": {
+      "emptyName": "Please enter a project name",
+      "nameTooLong": "Project name cannot exceed 50 characters",
+      "invalidChars": "Project name cannot contain the following characters: \\ / : * ? \" < > |",
+      "reservedName": "Project name cannot be a system reserved name",
+      "leadingDotOrSpace": "Project name cannot start with a dot or space"
+    },
+    "dialog": {
+      "deleteTitle": "Delete Project",
+      "deleteConfirm": "Are you sure you want to delete the selected {{count}} project(s)? This action cannot be undone.",
+      "hintTitle": "Notice",
+      "selectAtLeastOneRender": "Please select at least one project to render",
+      "selectAtLeastOneLabelPrint": "Please select at least one project for label printing",
+      "selectAtLeastOneLabelDelete": "Please select at least one project for label deletion",
+      "selectAtLeastOne": "Please select at least one project for this operation",
+      "renderFailed": "Render Failed",
+      "create": "Create",
+      "projectName": "Project Name",
+      "projectNamePlaceholder": "e.g.: test1",
+      "projectDirHint": "Project directory will be created in the app root, containing excel/, templates/, para.xlsx"
+    }
   },
   "panel": {
     "log": "Log",
@@ -248,5 +279,16 @@
     "file": "File",
     "view": "View",
     "panel": "Panel"
+  },
+  "explorer": {
+    "title": "Explorer",
+    "selectProjectToView": "Select a project above to view file structure",
+    "loading": "Loading...",
+    "loadFailed": "Load failed",
+    "retry": "Retry",
+    "emptyProject": "Project is empty, no files",
+    "openProjectRoot": "Open project root in explorer",
+    "refresh": "Refresh",
+    "openInExplorer": "Open in explorer"
   }
 }

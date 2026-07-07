@@ -217,7 +217,7 @@ export function ExplorerPanel() {
               className="px-1.5 py-0.5 rounded border text-[10px] font-normal flex items-center gap-0.5 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-red-50 dark:hover:bg-red-900/30 disabled:opacity-50"
             >
               <Trash2 size={10} />
-              {t('app.delete')}
+              {t('common:app.delete')}
             </button>
           </div>
         </div>
@@ -261,7 +261,7 @@ export function ExplorerPanel() {
               disabled={createLoading}
               className="px-4 py-1.5 text-sm rounded-md border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50"
             >
-              {t('app.cancel')}
+              {t('common:app.cancel')}
             </button>
             <button
               onClick={handleCreateProject}
@@ -353,13 +353,13 @@ export function ExplorerPanel() {
               onClick={() => setDeleteOpen(false)}
               className="px-4 py-1.5 text-sm rounded-md border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700"
             >
-              {t('app.cancel')}
+              {t('common:app.cancel')}
             </button>
             <button
               onClick={handleDeleteProject}
               className="px-4 py-1.5 text-sm rounded-md bg-red-600 text-white hover:bg-red-700"
             >
-              {t('app.delete')}
+              {t('common:app.delete')}
             </button>
           </>
         }

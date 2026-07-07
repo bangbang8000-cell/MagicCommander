@@ -5,6 +5,7 @@ import { useUIStore } from '@/stores/ui.store'
 import { ChevronRight, ChevronDown, Folder, FileText, RefreshCw, FolderOpen, Loader2, AlertCircle } from 'lucide-react'
 import clsx from 'clsx'
 import { getFileTypeFromPath } from '@/types/editor'
+import { useTranslation } from 'react-i18next'
 
 interface FileNode {
   name: string
@@ -19,11 +20,12 @@ async function openInExplorer(projectName: string, relativePath: string) {
     const fullPath = `${workspacePath}/${projectName}/${relativePath}`
     window.electron.shell.showItemInFolder(fullPath)
   } catch (err) {
-    console.error('打开资源管理器失败:', err)
+    console.error('Failed to open in explorer:', err)
   }
 }
 
 export function ProjectExplorer() {
+  const { t } = useTranslation(['common', 'project'])
   const selectedProject = useProjectStore((s) => s.selectedProject)
   const selectedProjectId = useProjectStore((s) => s.selectedProjectId)
   const projectStructure = useProjectStore((s) => s.projectStructure)
@@ -87,14 +89,14 @@ export function ProjectExplorer() {
             isDark ? 'text-gray-300' : 'text-gray-600',
           )}
         >
-          资源管理器
+          {t('common:explorer.title')}
         </h3>
         <div className="flex items-center gap-0.5">
           {selectedProject && (
             <button
               onClick={() => openInExplorer(selectedProject.name, '')}
               className={clsx('p-1 rounded', isDark ? 'hover:bg-gray-700 text-gray-400' : 'hover:bg-gray-100 text-gray-500')}
-              title="在资源管理器中打开项目根目录"
+              title={t('common:explorer.openProjectRoot')}
             >
               <FolderOpen size={12} />
             </button>
@@ -102,7 +104,7 @@ export function ProjectExplorer() {
           <button
             onClick={() => fetchProjects()}
             className={clsx('p-1 rounded', isDark ? 'hover:bg-gray-700 text-gray-400' : 'hover:bg-gray-100 text-gray-500')}
-            title="刷新"
+            title={t('common:explorer.refresh')}
           >
             <RefreshCw size={12} />
           </button>
@@ -116,22 +118,22 @@ export function ProjectExplorer() {
             isDark ? 'text-gray-500' : 'text-gray-400',
           )}
         >
-          从上方选择项目以查看文件结构
+          {t('common:explorer.selectProjectToView')}
         </div>
       ) : isLoading ? (
         <div className={clsx('flex-1 flex items-center justify-center gap-2 text-xs', isDark ? 'text-gray-400' : 'text-gray-500')}>
           <Loader2 size={14} className="animate-spin" />
-          加载中...
+          {t('common:explorer.loading')}
         </div>
       ) : error ? (
         <div className={clsx('flex-1 flex flex-col items-center justify-center gap-1 text-xs p-4 text-center', isDark ? 'text-red-400' : 'text-red-500')}>
           <AlertCircle size={16} />
-          <span>加载失败: {error}</span>
+          <span>{t('common:explorer.loadFailed')}: {error}</span>
           <button
             onClick={() => selectedProject && loadStructure(selectedProject.name)}
             className={clsx('mt-2 px-2 py-0.5 rounded text-xs', isDark ? 'bg-gray-700 hover:bg-gray-600 text-gray-200' : 'bg-gray-100 hover:bg-gray-200 text-gray-700')}
           >
-            重试
+            {t('common:explorer.retry')}
           </button>
         </div>
       ) : projectStructure.length === 0 ? (
@@ -141,7 +143,7 @@ export function ProjectExplorer() {
             isDark ? 'text-gray-500' : 'text-gray-400',
           )}
         >
-          项目为空，暂无文件
+          {t('common:explorer.emptyProject')}
         </div>
       ) : (
         <div className="flex-1 overflow-auto py-1">
@@ -180,6 +182,7 @@ function TreeItem({
   isDark: boolean
   projectName: string
 }) {
+  const { t } = useTranslation(['common', 'project'])
   const isOpen = expanded.has(node.path)
 
   if (!node.isDirectory) {
@@ -203,7 +206,7 @@ function TreeItem({
             'p-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity',
             isDark ? 'hover:bg-gray-600 text-gray-400' : 'hover:bg-gray-200 text-gray-500',
           )}
-          title="在资源管理器中打开"
+          title={t('common:explorer.openInExplorer')}
         >
           <FolderOpen size={11} />
         </button>
@@ -237,7 +240,7 @@ function TreeItem({
             'p-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity',
             isDark ? 'hover:bg-gray-600 text-gray-400' : 'hover:bg-gray-200 text-gray-500',
           )}
-          title="在资源管理器中打开"
+          title={t('common:explorer.openInExplorer')}
         >
           <FolderOpen size={11} />
         </button>

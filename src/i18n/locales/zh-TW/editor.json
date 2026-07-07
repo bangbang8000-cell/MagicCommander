@@ -1,0 +1,90 @@
+{
+  "tabs": {
+    "close": "關閉分頁",
+    "closeOthers": "關閉其他",
+    "closeAll": "關閉所有",
+    "closeRight": "關閉右側",
+    "reopen": "重新開啟已關閉的分頁",
+    "reopenTooltip": "重新開啟最近關閉的分頁 (Ctrl+Shift+T)",
+    "noOpenEditors": "沒有開啟的編輯器",
+    "unsaved": "未儲存",
+    "unsavedChanges": "有未儲存的變更，是否儲存？",
+    "unsavedChangesMessage": "有未儲存的變更。",
+    "saveBeforeClose": "儲存後關閉",
+    "discardChanges": "放棄變更",
+    "split": "分屏",
+    "splitVertical": "垂直分屏",
+    "splitHorizontal": "水平分屏",
+    "closeSplit": "關閉分屏",
+    "preview": "預覽模式",
+    "pin": "固定分頁",
+    "unpin": "取消固定"
+  },
+  "monaco": {
+    "wordWrap": "自動換行",
+    "toggleWordWrap": "切換自動換行",
+    "fontSize": "字號",
+    "increaseFontSize": "增大字號",
+    "decreaseFontSize": "減小字號",
+    "resetFontSize": "重置字號",
+    "goToLine": "前往行",
+    "find": "尋找",
+    "replace": "取代",
+    "toggleMinimap": "切換縮圖",
+    "formatDocument": "格式化文件",
+    "changeLanguage": "變更語言模式"
+  },
+  "excel": {
+    "sheet": "工作表",
+    "addSheet": "新增工作表",
+    "renameSheet": "重新命名工作表",
+    "deleteSheet": "刪除工作表",
+    "row": "行",
+    "column": "列",
+    "cell": "儲存格",
+    "insertRow": "插入行",
+    "deleteRow": "刪除行",
+    "insertColumn": "插入列",
+    "deleteColumn": "刪除列",
+    "sortAsc": "遞增排序",
+    "sortDesc": "遞減排序",
+    "filter": "篩選",
+    "freeze": "凍結",
+    "unfreeze": "取消凍結"
+  },
+  "word": {
+    "page": "頁",
+    "pages": "頁",
+    "wordCount": "字數",
+    "zoomIn": "放大",
+    "zoomOut": "縮小",
+    "fitToWidth": "適應寬度",
+    "fitToPage": "適應頁面"
+  },
+  "unsupported": {
+    "title": "不支援的檔案格式",
+    "description": "此檔案類型暫不支援預覽",
+    "descriptionWithType": "{{type}}（{{name}}）無法在編輯器中直接預覽。",
+    "openExternally": "使用外部程式開啟",
+    "showInFolder": "在資料夾中顯示"
+  },
+  "empty": {
+    "noFileOpen": "未開啟檔案",
+    "openFileHint": "從左側專案瀏覽器中選擇檔案以開始編輯",
+    "supportedFormats": "支援 Excel、YAML、模板和輸出檔案",
+    "selectFile": "選擇檔案"
+  },
+  "split": {
+    "closeSyncScroll": "關閉同步捲動",
+    "openSyncScroll": "開啟同步捲動",
+    "verticalSplit": "左右分屏"
+  },
+  "modal": {
+    "unsavedTitle": "檔案尚未儲存",
+    "save": "儲存",
+    "dontSave": "不儲存",
+    "cancel": "取消",
+    "unsavedMessage": "{{name}} 有未儲存的變更。",
+    "saveBeforeClose": "是否儲存變更後再關閉？"
+  }
+}

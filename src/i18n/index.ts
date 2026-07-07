@@ -13,6 +13,13 @@ import errorsZh from './locales/zh-CN/errors.json'
 import welcomeZh from './locales/zh-CN/welcome.json'
 import terminalZh from './locales/zh-CN/terminal.json'
 
+import commonZhTw from './locales/zh-TW/common.json'
+import editorZhTw from './locales/zh-TW/editor.json'
+import projectZhTw from './locales/zh-TW/project.json'
+import errorsZhTw from './locales/zh-TW/errors.json'
+import welcomeZhTw from './locales/zh-TW/welcome.json'
+import terminalZhTw from './locales/zh-TW/terminal.json'
+
 import commonEn from './locales/en/common.json'
 import editorEn from './locales/en/editor.json'
 import projectEn from './locales/en/project.json'
@@ -99,6 +106,14 @@ i18n.use(initReactI18next).init({
       errors: errorsZh,
       welcome: welcomeZh,
       terminal: terminalZh,
+    },
+    'zh-TW': {
+      common: commonZhTw,
+      editor: editorZhTw,
+      project: projectZhTw,
+      errors: errorsZhTw,
+      welcome: welcomeZhTw,
+      terminal: terminalZhTw,
     },
     en: {
       common: commonEn,

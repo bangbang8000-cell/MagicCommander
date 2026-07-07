@@ -206,7 +206,38 @@
     "cleanupOperations": "การดำเนินการล้างข้อมูล",
     "deleteOutput": "ลบเอาต์พุต",
     "deleteYaml": "ลบ YAML",
-    "processing": "กำลังดำเนินการ..."
+    "processing": "กำลังดำเนินการ...",
+    "outputYaml": "เอาต์พุต YAML",
+    "deleteSelected": "ลบที่เลือก",
+    "outputFormat": "รูปแบบเอาต์พุต",
+    "renderType": "ประเภทเรนเดอร์",
+    "projectCount": "ทั้งหมด {{total}} โครงการ, เลือกแล้ว {{selected}} โครงการ",
+    "noProjectsHint": "ไม่มีโครงการ คลิก \"สร้างโครงการใหม่\" เพื่อเริ่มต้น",
+    "errorMessage": "ข้อความผิดพลาด",
+    "config": "ตั้งค่า",
+    "switchToMode": "สลับไปโหมด {{mode}}",
+    "projectMode": "โครงการ",
+    "validation": {
+      "emptyName": "กรุณาใส่ชื่อโครงการ",
+      "nameTooLong": "ชื่อโครงการไม่เกิน 50 ตัวอักษร",
+      "invalidChars": "ชื่อโครงการไม่สามารถมีอักขระเหล่านี้: \\ / : * ? \" < > |",
+      "reservedName": "ชื่อโครงการไม่สามารถเป็นชื่อสงวนของระบบ",
+      "leadingDotOrSpace": "ชื่อโครงการไม่สามารถเริ่มด้วยจุดหรือช่องว่าง"
+    },
+    "dialog": {
+      "deleteTitle": "ลบโครงการ",
+      "deleteConfirm": "คุณแน่ใจหรือไม่ที่จะลบ {{count}} โครงการที่เลือก? การดำเนินการนี้ไม่สามารถยกเลิกได้",
+      "hintTitle": "แจ้งเตือน",
+      "selectAtLeastOneRender": "กรุณาเลือกโครงการอย่างน้อย 1 โครงการเพื่อเรนเดอร์",
+      "selectAtLeastOneLabelPrint": "กรุณาเลือกโครงการอย่างน้อย 1 โครงการเพื่อพิมพ์ฉลาก",
+      "selectAtLeastOneLabelDelete": "กรุณาเลือกโครงการอย่างน้อย 1 โครงการเพื่อลบฉลาก",
+      "selectAtLeastOne": "กรุณาเลือกโครงการอย่างน้อย 1 โครงการสำหรับการดำเนินการนี้",
+      "renderFailed": "เรนเดอร์ล้มเหลว",
+      "create": "สร้าง",
+      "projectName": "ชื่อโครงการ",
+      "projectNamePlaceholder": "เช่น: test1",
+      "projectDirHint": "โฟลเดอร์โครงการจะถูกสร้างในรูทของแอป ประกอบด้วย excel/, templates/, para.xlsx"
+    }
   },
   "panel": {
     "log": "บันทึก",
@@ -248,5 +279,16 @@
     "file": "ไฟล์",
     "view": "มุมมอง",
     "panel": "แผง"
+  },
+  "explorer": {
+    "title": "ตัวสำรวจ",
+    "selectProjectToView": "เลือกโปรเจกต์ด้านบนเพื่อดูโครงสร้างไฟล์",
+    "loading": "กำลังโหลด...",
+    "loadFailed": "โหลดล้มเหลว",
+    "retry": "ลองอีกครั้ง",
+    "emptyProject": "โปรเจกต์ว่าง ไม่มีไฟล์",
+    "openProjectRoot": "เปิดรากโปรเจกต์ในตัวสำรวจ",
+    "refresh": "รีเฟรช",
+    "openInExplorer": "เปิดในตัวสำรวจ"
   }
 }

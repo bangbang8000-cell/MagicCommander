@@ -473,17 +473,22 @@ export function setupIpcHandlers(window: BrowserWindow): void {
 
   // 应用API
   ipcMain.handle('guide:getContent', async (_e, lang: string): Promise<string> => {
-    // 使用 __dirname 相对路径，兼容开发环境（源码目录）和生产环境（asar 打包）
-    const guideDir = path.join(__dirname, '..', '..', 'dist', 'docs')
+    // 同时尝试 public/docs（开发环境，Vite 直接服务）和 dist/docs（生产环境，构建产物）
+    const possibleDirs = [
+      path.join(process.cwd(), 'public', 'docs'),
+      path.join(__dirname, '..', '..', 'dist', 'docs'),
+    ]
     const supportedLangs = ['zh-CN', 'en', 'ja', 'ko', 'fr', 'de', 'es', 'pt', 'ru', 'ar', 'vi', 'th']
     const targetLang = supportedLangs.includes(lang) ? lang : 'zh-CN'
-    const filePath = path.join(guideDir, `user-guide.${targetLang}.md`)
-    const fallbackPath = path.join(guideDir, 'user-guide.zh-CN.md')
-    if (fs.existsSync(filePath)) {
-      return fs.readFileSync(filePath, 'utf-8')
-    }
-    if (fs.existsSync(fallbackPath)) {
-      return fs.readFileSync(fallbackPath, 'utf-8')
+    for (const guideDir of possibleDirs) {
+      const filePath = path.join(guideDir, `user-guide.${targetLang}.md`)
+      const fallbackPath = path.join(guideDir, 'user-guide.zh-CN.md')
+      if (fs.existsSync(filePath)) {
+        return fs.readFileSync(filePath, 'utf-8')
+      }
+      if (fs.existsSync(fallbackPath)) {
+        return fs.readFileSync(fallbackPath, 'utf-8')
+      }
     }
     throw new Error('Guide file not found')
   })

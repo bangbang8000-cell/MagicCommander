@@ -206,7 +206,38 @@
     "cleanupOperations": "清理操作",
     "deleteOutput": "删除输出",
     "deleteYaml": "删除YAML",
-    "processing": "处理中..."
+    "processing": "处理中...",
+    "outputYaml": "输出YAML",
+    "deleteSelected": "删除选中",
+    "outputFormat": "输出格式",
+    "renderType": "渲染类型",
+    "projectCount": "共 {{total}} 个项目，已选 {{selected}} 个",
+    "noProjectsHint": "暂无项目，点击\"新建项目\"开始",
+    "errorMessage": "错误信息",
+    "config": "配置",
+    "switchToMode": "切换到{{mode}}模式",
+    "projectMode": "项目",
+    "validation": {
+      "emptyName": "请输入项目名",
+      "nameTooLong": "项目名不能超过50个字符",
+      "invalidChars": "项目名不能包含以下字符: \\ / : * ? \" < > |",
+      "reservedName": "项目名不能使用系统保留名称",
+      "leadingDotOrSpace": "项目名不能以点号或空格开头"
+    },
+    "dialog": {
+      "deleteTitle": "删除项目",
+      "deleteConfirm": "确定要删除选中的 {{count}} 个项目吗？此操作不可恢复。",
+      "hintTitle": "提示",
+      "selectAtLeastOneRender": "请至少选择一个项目进行渲染",
+      "selectAtLeastOneLabelPrint": "请至少选择一个项目进行标签打印",
+      "selectAtLeastOneLabelDelete": "请至少选择一个项目进行标签删除",
+      "selectAtLeastOne": "请至少选择一个项目进行操作",
+      "renderFailed": "渲染失败",
+      "create": "创建",
+      "projectName": "项目名称",
+      "projectNamePlaceholder": "例如：test1",
+      "projectDirHint": "项目目录将创建在应用根目录，包含 excel/、templates/、para.xlsx"
+    }
   },
   "panel": {
     "log": "日志",
@@ -248,5 +279,16 @@
     "file": "文件",
     "view": "视图",
     "panel": "面板"
+  },
+  "explorer": {
+    "title": "资源管理器",
+    "selectProjectToView": "从上方选择项目以查看文件结构",
+    "loading": "加载中...",
+    "loadFailed": "加载失败",
+    "retry": "重试",
+    "emptyProject": "项目为空，暂无文件",
+    "openProjectRoot": "在资源管理器中打开项目根目录",
+    "refresh": "刷新",
+    "openInExplorer": "在资源管理器中打开"
   }
 }

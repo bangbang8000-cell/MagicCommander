@@ -13,33 +13,37 @@ export interface CommandContext {
 }
 
 interface CommandEntry {
-  desc: string
+  desc: string | (() => string)
   fn: (args: string[], ctx: CommandContext) => Promise<void> | void
+}
+
+function getDesc(entry: CommandEntry): string {
+  return typeof entry.desc === 'function' ? entry.desc() : entry.desc
 }
 
 export const commands: { [name: string]: CommandEntry } = {
   help: {
-    desc: i18n.t('terminal.commands.help.desc'),
+    desc: () => i18n.t('terminal.commands.help.desc'),
     fn: (_, ctx) => {
-      const lines = Object.entries(commands).map(([name, entry]) => `  ${name.padEnd(16)} ${entry.desc}`)
+      const lines = Object.entries(commands).map(([name, entry]) => `  ${name.padEnd(16)} ${getDesc(entry)}`)
       ctx.addLog('info', i18n.t('terminal.commands.help.output'))
       lines.forEach((l) => ctx.addLog('info', l))
     },
   },
   '?': {
-    desc: i18n.t('terminal.commands.question.desc'),
+    desc: () => i18n.t('terminal.commands.question.desc'),
     fn: (args, ctx) => commands.help.fn(args, ctx),
   },
   version: {
-    desc: i18n.t('terminal.commands.version.desc'),
+    desc: () => i18n.t('terminal.commands.version.desc'),
     fn: (_, ctx) => ctx.addLog('success', 'MagicCommander v2.1.0'),
   },
   ver: {
-    desc: i18n.t('terminal.commands.ver.desc'),
+    desc: () => i18n.t('terminal.commands.ver.desc'),
     fn: (args, ctx) => commands.version.fn(args, ctx),
   },
   list: {
-    desc: i18n.t('terminal.commands.list.desc'),
+    desc: () => i18n.t('terminal.commands.list.desc'),
     fn: async (args, ctx) => {
       if (args.length === 0 || args[0] === 'projects' || args[0] === '-a') {
         const stored = useProjectStore.getState().projects
@@ -68,11 +72,11 @@ export const commands: { [name: string]: CommandEntry } = {
     },
   },
   ls: {
-    desc: i18n.t('terminal.commands.ls.desc'),
+    desc: () => i18n.t('terminal.commands.ls.desc'),
     fn: (_, ctx) => commands.list.fn(['projects'], ctx),
   },
   select: {
-    desc: i18n.t('terminal.commands.select.desc'),
+    desc: () => i18n.t('terminal.commands.select.desc'),
     fn: async (args, ctx) => {
       if (args.length === 0) {
         ctx.addLog('error', i18n.t('terminal.commands.select.usage'))
@@ -97,7 +101,7 @@ export const commands: { [name: string]: CommandEntry } = {
     },
   },
   render: {
-    desc: i18n.t('terminal.commands.render.desc'),
+    desc: () => i18n.t('terminal.commands.render.desc'),
     fn: async (args, ctx) => {
       if (!window.electron || !window.electron.render) {
         ctx.addLog('error', i18n.t('terminal.electronRequired'))
@@ -134,7 +138,7 @@ export const commands: { [name: string]: CommandEntry } = {
     },
   },
   label: {
-    desc: i18n.t('terminal.commands.label.desc'),
+    desc: () => i18n.t('terminal.commands.label.desc'),
     fn: async (args, ctx) => {
       if (!window.electron || !window.electron.feature) {
         ctx.addLog('error', i18n.t('terminal.electronRequired'))
@@ -157,7 +161,7 @@ export const commands: { [name: string]: CommandEntry } = {
     },
   },
   theme: {
-    desc: i18n.t('terminal.commands.theme.desc'),
+    desc: () => i18n.t('terminal.commands.theme.desc'),
     fn: (args, ctx) => {
       if (args.length === 0) {
         ctx.toggleDark()
@@ -175,15 +179,15 @@ export const commands: { [name: string]: CommandEntry } = {
     },
   },
   clear: {
-    desc: i18n.t('terminal.commands.clear.desc'),
+    desc: () => i18n.t('terminal.commands.clear.desc'),
     fn: (_, ctx) => ctx.clearTerminal(),
   },
   cls: {
-    desc: i18n.t('terminal.commands.cls.desc'),
+    desc: () => i18n.t('terminal.commands.cls.desc'),
     fn: (_, ctx) => ctx.clearTerminal(),
   },
   echo: {
-    desc: i18n.t('terminal.commands.echo.desc'),
+    desc: () => i18n.t('terminal.commands.echo.desc'),
     fn: (args, ctx) => {
       ctx.addLog('info', args.join(' '))
     },

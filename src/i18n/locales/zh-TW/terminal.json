@@ -1,0 +1,74 @@
+{
+  "banner": {
+    "welcomeBanner": "╔══════════════════════════════════════════════════════════════╗\n║                    MagicCommander 終端                     ║\n╠══════════════════════════════════════════════════════════════╣\n║  歡迎使用 MagicCommander 內建終端！                       ║\n║  輸入 help 查看所有可用命令                               ║\n╠══════════════════════════════════════════════════════════════╣\n║  常用命令速覽:                                           ║\n║  ┌─────────────────────────────────────────────────────┐ ║\n║  │ help       - 顯示說明資訊                            │ ║\n║  │ list       - 列出所有專案                            │ ║\n║  │ select     - 選擇專案                               ║\n║  │ render     - 執行渲染                               ║\n║  │ label      - 標籤列印                               ║\n║  │ clear      - 清空終端                               ║\n║  └─────────────────────────────────────────────────────┘ ║\n╚══════════════════════════════════════════════════════════════╝"
+  },
+  "messages": {
+    "cleared": "終端已清空。",
+    "executing": "執行中...",
+    "execError": "執行錯誤: {{error}}"
+  },
+  "placeholder": "輸入命令，Enter 提交",
+  "placeholderExecuting": "執行中...",
+  "electronRequired": "請在 Electron 桌面應用程式中執行此功能",
+  "commands": {
+    "help": {
+      "desc": "列出所有支援的命令",
+      "output": "支援的命令:"
+    },
+    "question": {
+      "desc": "列出所有支援的命令（別名）"
+    },
+    "version": {
+      "desc": "顯示目前應用程式版本"
+    },
+    "ver": {
+      "desc": "顯示目前應用程式版本（別名）"
+    },
+    "list": {
+      "desc": "列出專案（list projects 或 ls）",
+      "projectsFromCache": "專案清單（快取，共 {{count}} 個）:",
+      "projectsFromServer": "專案清單（共 {{count}} 個）:",
+      "noProjects": "暫無專案",
+      "unknownParam": "未知參數: {{param}}"
+    },
+    "ls": {
+      "desc": "列出專案（list projects 的別名）"
+    },
+    "select": {
+      "desc": "選擇專案，用法: select <專案名稱>",
+      "usage": "用法: select <專案名稱>",
+      "notFound": "未找到專案: {{name}}",
+      "selected": "已選擇專案: {{name}}"
+    },
+    "render": {
+      "desc": "渲染專案，用法: render [project|yaml] [專案名稱或id]",
+      "noProject": "未指定專案，請使用: render project <專案名稱或id>",
+      "yamlDone": "YAML 渲染完成: {{ids}}",
+      "projectDone": "專案渲染完成: {{ids}}",
+      "unknownSub": "未知子命令: {{sub}}",
+      "failed": "渲染失敗: {{error}}"
+    },
+    "label": {
+      "desc": "列印標籤，用法: label <專案名稱或id>",
+      "noProject": "未選取專案，用法: label <專案名稱或id>",
+      "submitted": "標籤列印任務已提交: {{ids}}",
+      "failed": "標籤列印失敗: {{error}}"
+    },
+    "theme": {
+      "desc": "切換/設定主題，用法: theme [light|dark]",
+      "toggled": "主題已切換為: {{theme}}",
+      "set": "主題已設定為: {{theme}}",
+      "unknown": "未知主題: {{theme}}，可用: light / dark"
+    },
+    "clear": {
+      "desc": "清空終端歷史"
+    },
+    "cls": {
+      "desc": "清空終端歷史（別名）"
+    },
+    "echo": {
+      "desc": "回顯文字，用法: echo <text>"
+    },
+    "unknown": "未知命令: {{cmd}}"
+  }
+}

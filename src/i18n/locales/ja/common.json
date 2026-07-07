@@ -206,7 +206,38 @@
     "cleanupOperations": "クリーンアップ操作",
     "deleteOutput": "出力を削除",
     "deleteYaml": "YAMLを削除",
-    "processing": "処理中..."
+    "processing": "処理中...",
+    "outputYaml": "YAML出力",
+    "deleteSelected": "選択を削除",
+    "outputFormat": "出力形式",
+    "renderType": "レンダリングタイプ",
+    "projectCount": "{{total}} プロジェクト、{{selected}} 件選択中",
+    "noProjectsHint": "プロジェクトがありません。「新規プロジェクト」をクリックしてください",
+    "errorMessage": "エラーメッセージ",
+    "config": "設定",
+    "switchToMode": "{{mode}}モードに切り替え",
+    "projectMode": "プロジェクト",
+    "validation": {
+      "emptyName": "プロジェクト名を入力してください",
+      "nameTooLong": "プロジェクト名は50文字以内にしてください",
+      "invalidChars": "プロジェクト名に次の文字は使用できません: \\ / : * ? \" < > |",
+      "reservedName": "プロジェクト名にシステム予約名は使用できません",
+      "leadingDotOrSpace": "プロジェクト名をドットまたはスペースで始めることはできません"
+    },
+    "dialog": {
+      "deleteTitle": "プロジェクトの削除",
+      "deleteConfirm": "選択した {{count}} 件のプロジェクトを本当に削除しますか？この操作は元に戻せません。",
+      "hintTitle": "注意",
+      "selectAtLeastOneRender": "レンダリングするプロジェクトを少なくとも1つ選択してください",
+      "selectAtLeastOneLabelPrint": "ラベル印刷するプロジェクトを少なくとも1つ選択してください",
+      "selectAtLeastOneLabelDelete": "ラベル削除するプロジェクトを少なくとも1つ選択してください",
+      "selectAtLeastOne": "この操作を行うプロジェクトを少なくとも1つ選択してください",
+      "renderFailed": "レンダリングに失敗しました",
+      "create": "作成",
+      "projectName": "プロジェクト名",
+      "projectNamePlaceholder": "例：test1",
+      "projectDirHint": "プロジェクトディレクトリはアプリのルートに作成され、excel/、templates/、para.xlsx が含まれます"
+    }
   },
   "panel": {
     "log": "ログ",
@@ -248,5 +279,16 @@
     "file": "ファイル",
     "view": "表示",
     "panel": "パネル"
+  },
+  "explorer": {
+    "title": "エクスプローラー",
+    "selectProjectToView": "上のプロジェクトを選択してファイル構造を表示",
+    "loading": "読み込み中...",
+    "loadFailed": "読み込みに失敗しました",
+    "retry": "再試行",
+    "emptyProject": "プロジェクトは空です。ファイルはありません",
+    "openProjectRoot": "エクスプローラーでプロジェクトルートを開く",
+    "refresh": "更新",
+    "openInExplorer": "エクスプローラーで開く"
   }
 }

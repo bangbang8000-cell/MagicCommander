@@ -6,10 +6,10 @@ import type { ReactNode } from 'react'
 
 const PANEL_TITLE_KEYS: Record<ActivityType, string> = {
   search: 'common:sidebar.search',
-  explorer: 'menu:projectExplorer',
-  render: 'menu:renderOperations',
-  label: 'menu:labelPrint',
-  output: 'menu:outputResults',
+  explorer: 'menu.projectExplorer',
+  render: 'menu.renderOperations',
+  label: 'menu.labelPrint',
+  output: 'menu.outputResults',
   workbench: 'common:sidebar.workbench',
 }
 
@@ -56,7 +56,7 @@ export function Sidebar({ panels }: SidebarProps) {
             'p-0.5 rounded transition-colors',
             isDark ? 'text-gray-400 hover:text-gray-100 hover:bg-gray-700' : 'text-gray-400 hover:text-gray-700 hover:bg-gray-200',
           )}
-          title={t('sidebar:collapse')}
+          title={t('sidebar.collapse')}
         >
           <X size={14} />
         </button>

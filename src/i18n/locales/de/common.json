@@ -206,7 +206,38 @@
     "cleanupOperations": "Bereinigungsoperationen",
     "deleteOutput": "Ausgabe löschen",
     "deleteYaml": "YAML löschen",
-    "processing": "Wird verarbeitet..."
+    "processing": "Wird verarbeitet...",
+    "outputYaml": "YAML-Ausgabe",
+    "deleteSelected": "Auswahl löschen",
+    "outputFormat": "Ausgabeformat",
+    "renderType": "Render-Typ",
+    "projectCount": "{{total}} Projekte, {{selected}} ausgewählt",
+    "noProjectsHint": "Keine Projekte. Klicken Sie auf \"Neues Projekt\", um zu beginnen.",
+    "errorMessage": "Fehlermeldung",
+    "config": "Konfiguration",
+    "switchToMode": "Zu {{mode}}-Modus wechseln",
+    "projectMode": "Projekt",
+    "validation": {
+      "emptyName": "Bitte geben Sie einen Projektnamen ein",
+      "nameTooLong": "Der Projektname darf 50 Zeichen nicht überschreiten",
+      "invalidChars": "Der Projektname darf folgende Zeichen nicht enthalten: \\ / : * ? \" < > |",
+      "reservedName": "Der Projektname darf kein reservierter Systemname sein",
+      "leadingDotOrSpace": "Der Projektname darf nicht mit einem Punkt oder Leerzeichen beginnen"
+    },
+    "dialog": {
+      "deleteTitle": "Projekt löschen",
+      "deleteConfirm": "Möchten Sie die ausgewählten {{count}} Projekt(e) wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.",
+      "hintTitle": "Hinweis",
+      "selectAtLeastOneRender": "Bitte wählen Sie mindestens ein Projekt zum Rendern aus",
+      "selectAtLeastOneLabelPrint": "Bitte wählen Sie mindestens ein Projekt für den Etikettendruck aus",
+      "selectAtLeastOneLabelDelete": "Bitte wählen Sie mindestens ein Projekt zum Löschen von Etiketten aus",
+      "selectAtLeastOne": "Bitte wählen Sie mindestens ein Projekt für diesen Vorgang aus",
+      "renderFailed": "Rendern fehlgeschlagen",
+      "create": "Erstellen",
+      "projectName": "Projektname",
+      "projectNamePlaceholder": "z.B.: test1",
+      "projectDirHint": "Das Projektverzeichnis wird im App-Root erstellt und enthält excel/, templates/, para.xlsx"
+    }
   },
   "panel": {
     "log": "Protokoll",
@@ -248,5 +279,16 @@
     "file": "Datei",
     "view": "Ansicht",
     "panel": "Panel"
+  },
+  "explorer": {
+    "title": "Explorer",
+    "selectProjectToView": "Wählen Sie oben ein Projekt, um die Dateistruktur anzuzeigen",
+    "loading": "Laden...",
+    "loadFailed": "Laden fehlgeschlagen",
+    "retry": "Erneut versuchen",
+    "emptyProject": "Projekt ist leer, keine Dateien",
+    "openProjectRoot": "Projektstamm im Explorer öffnen",
+    "refresh": "Aktualisieren",
+    "openInExplorer": "Im Explorer öffnen"
   }
 }

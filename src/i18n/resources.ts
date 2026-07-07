@@ -16,11 +16,12 @@ type NestedKeyOf<TObj extends Record<string, unknown>> = {
 export type TranslationKey = NestedKeyOf<typeof commonZh>
 
 /** 支持的语言代码 */
-export type SupportedLocale = 'zh-CN' | 'en' | 'ja' | 'ko' | 'fr' | 'de' | 'es' | 'pt' | 'ru' | 'ar' | 'vi' | 'th'
+export type SupportedLocale = 'zh-CN' | 'zh-TW' | 'en' | 'ja' | 'ko' | 'fr' | 'de' | 'es' | 'pt' | 'ru' | 'ar' | 'vi' | 'th'
 
 /** 语言名称映射 */
 export const LOCALE_NAMES: Record<SupportedLocale, string> = {
   'zh-CN': '简体中文',
+  'zh-TW': '繁體中文',
   en: 'English',
   ja: '日本語',
   ko: '한국어',

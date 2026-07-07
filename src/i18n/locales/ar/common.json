@@ -206,7 +206,38 @@
     "cleanupOperations": "عمليات التنظيف",
     "deleteOutput": "حذف الإخراج",
     "deleteYaml": "حذف YAML",
-    "processing": "جار المعالجة..."
+    "processing": "جار المعالجة...",
+    "outputYaml": "إخراج YAML",
+    "deleteSelected": "حذف المحدد",
+    "outputFormat": "تنسيق الإخراج",
+    "renderType": "نوع التصيير",
+    "projectCount": "{{total}} مشروع، تم تحديد {{selected}}",
+    "noProjectsHint": "لا توجد مشاريع. انقر على \"مشروع جديد\" للبدء.",
+    "errorMessage": "رسالة خطأ",
+    "config": "التكوين",
+    "switchToMode": "التبديل إلى وضع {{mode}}",
+    "projectMode": "المشروع",
+    "validation": {
+      "emptyName": "يرجى إدخال اسم المشروع",
+      "nameTooLong": "لا يمكن أن يتجاوز اسم المشروع 50 حرفًا",
+      "invalidChars": "لا يمكن أن يحتوي اسم المشروع على الأحرف التالية: \\ / : * ? \" < > |",
+      "reservedName": "لا يمكن أن يكون اسم المشروع اسمًا محجوزًا من النظام",
+      "leadingDotOrSpace": "لا يمكن أن يبدأ اسم المشروع بنقطة أو مسافة"
+    },
+    "dialog": {
+      "deleteTitle": "حذف المشروع",
+      "deleteConfirm": "هل أنت متأكد من حذف {{count}} مشروع محدد؟ لا يمكن التراجع عن هذا الإجراء.",
+      "hintTitle": "تنبيه",
+      "selectAtLeastOneRender": "يرجى تحديد مشروع واحد على الأقل للتصيير",
+      "selectAtLeastOneLabelPrint": "يرجى تحديد مشروع واحد على الأقل لطباعة الملصقات",
+      "selectAtLeastOneLabelDelete": "يرجى تحديد مشروع واحد على الأقل لحذف الملصقات",
+      "selectAtLeastOne": "يرجى تحديد مشروع واحد على الأقل لهذه العملية",
+      "renderFailed": "فشل التصيير",
+      "create": "إنشاء",
+      "projectName": "اسم المشروع",
+      "projectNamePlaceholder": "مثال: test1",
+      "projectDirHint": "سيتم إنشاء مجلد المشروع في جذر التطبيق، يحتوي على excel/ و templates/ و para.xlsx"
+    }
   },
   "panel": {
     "log": "السجل",
@@ -248,5 +279,16 @@
     "file": "ملف",
     "view": "عرض",
     "panel": "لوحة"
+  },
+  "explorer": {
+    "title": "المستكشف",
+    "selectProjectToView": "اختر مشروعًا من الأعلى لعرض هيكل الملفات",
+    "loading": "جار التحميل...",
+    "loadFailed": "فشل التحميل",
+    "retry": "إعادة المحاولة",
+    "emptyProject": "المشروع فارغ، لا توجد ملفات",
+    "openProjectRoot": "فتح جذر المشروع في المستكشف",
+    "refresh": "تحديث",
+    "openInExplorer": "فتح في مستكشف الملفات"
   }
 }

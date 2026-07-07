@@ -270,7 +270,7 @@ export function RenderPanel() {
               loading={isLabelPrinting}
               className="w-full justify-start"
             >
-              {t('menu:labelPrint')}
+              {t('menu.labelPrint')}
             </Button>
             <Button
               variant="secondary"

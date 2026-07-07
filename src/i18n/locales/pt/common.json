@@ -206,7 +206,38 @@
     "cleanupOperations": "Operações de limpeza",
     "deleteOutput": "Excluir saída",
     "deleteYaml": "Excluir YAML",
-    "processing": "Processando..."
+    "processing": "Processando...",
+    "outputYaml": "Saída YAML",
+    "deleteSelected": "Excluir seleção",
+    "outputFormat": "Formato de saída",
+    "renderType": "Tipo de renderização",
+    "projectCount": "{{total}} projetos, {{selected}} selecionados",
+    "noProjectsHint": "Nenhum projeto. Clique em \"Novo projeto\" para começar.",
+    "errorMessage": "Mensagem de erro",
+    "config": "Configuração",
+    "switchToMode": "Alternar para modo {{mode}}",
+    "projectMode": "Projeto",
+    "validation": {
+      "emptyName": "Por favor, insira um nome de projeto",
+      "nameTooLong": "O nome do projeto não pode exceder 50 caracteres",
+      "invalidChars": "O nome do projeto não pode conter os seguintes caracteres: \\ / : * ? \" < > |",
+      "reservedName": "O nome do projeto não pode ser um nome reservado do sistema",
+      "leadingDotOrSpace": "O nome do projeto não pode começar com ponto ou espaço"
+    },
+    "dialog": {
+      "deleteTitle": "Excluir projeto",
+      "deleteConfirm": "Tem certeza de que deseja excluir os {{count}} projeto(s) selecionados? Esta ação não pode ser desfeita.",
+      "hintTitle": "Aviso",
+      "selectAtLeastOneRender": "Selecione pelo menos um projeto para renderizar",
+      "selectAtLeastOneLabelPrint": "Selecione pelo menos um projeto para impressão de etiquetas",
+      "selectAtLeastOneLabelDelete": "Selecione pelo menos um projeto para exclusão de etiquetas",
+      "selectAtLeastOne": "Selecione pelo menos um projeto para esta operação",
+      "renderFailed": "Renderização falhou",
+      "create": "Criar",
+      "projectName": "Nome do projeto",
+      "projectNamePlaceholder": "ex.: test1",
+      "projectDirHint": "O diretório do projeto será criado na raiz do aplicativo, contendo excel/, templates/, para.xlsx"
+    }
   },
   "panel": {
     "log": "Log",
@@ -248,5 +279,16 @@
     "file": "Arquivo",
     "view": "Visualizar",
     "panel": "Painel"
+  },
+  "explorer": {
+    "title": "Explorador",
+    "selectProjectToView": "Selecione um projeto acima para ver a estrutura de arquivos",
+    "loading": "Carregando...",
+    "loadFailed": "Falha ao carregar",
+    "retry": "Tentar novamente",
+    "emptyProject": "O projeto está vazio, sem arquivos",
+    "openProjectRoot": "Abrir raiz do projeto no explorador",
+    "refresh": "Atualizar",
+    "openInExplorer": "Abrir no explorador"
   }
 }
