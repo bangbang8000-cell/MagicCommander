@@ -473,8 +473,8 @@ export function setupIpcHandlers(window: BrowserWindow): void {
 
   // 应用API
   ipcMain.handle('guide:getContent', async (_e, lang: string): Promise<string> => {
-    const appPath = require('electron').app.getAppPath()
-    const guideDir = path.join(appPath, 'dist', 'docs')
+    // 使用 __dirname 相对路径，兼容开发环境（源码目录）和生产环境（asar 打包）
+    const guideDir = path.join(__dirname, '..', '..', 'dist', 'docs')
     const supportedLangs = ['zh-CN', 'en', 'ja', 'ko', 'fr', 'de', 'es', 'pt', 'ru', 'ar', 'vi', 'th']
     const targetLang = supportedLangs.includes(lang) ? lang : 'zh-CN'
     const filePath = path.join(guideDir, `user-guide.${targetLang}.md`)
