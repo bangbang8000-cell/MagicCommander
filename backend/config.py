@@ -1,4 +1,6 @@
 import os
+import logging
+import sys
 
 # 代码所在目录
 CODE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -15,3 +17,11 @@ elif os.path.exists(DEFAULT_WORKSPACE):
     WORKSPACE_DIR = DEFAULT_WORKSPACE
 else:
     WORKSPACE_DIR = CODE_DIR
+
+# 统一日志配置
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s [%(levelname)s] %(name)s: %(message)s',
+    handlers=[logging.StreamHandler(sys.stdout)]
+)
+logger = logging.getLogger('magiccommander')

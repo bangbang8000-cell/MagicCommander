@@ -1,3 +1,8 @@
+/**
+ * @deprecated v2.9.6+ — 不再使用 persist Python 进程模式。
+ * 每次命令直接通过 RenderHandler.runPythonCommand() spawn 独立进程。
+ * 保留此文件供将来参考（V3.0 可能重新引入长进程模式）。
+ */
 import { spawn, ChildProcess } from 'child_process'
 import { EventEmitter } from 'events'
 import * as path from 'path'

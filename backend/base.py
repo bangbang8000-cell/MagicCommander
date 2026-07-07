@@ -23,10 +23,10 @@ def remove_empty_pair(a_dict: dict):
 
 def json_safe_val(val):
     """numpy_int64转化为int类型"""
-    if type(val) is numpy_int64:
+    if isinstance(val, numpy_int64):
         val = val.item()
-    elif type(val) is list:
-        val = list(map(lambda x: x.item() if type(x) is numpy_int64 else x, val))
+    elif isinstance(val, list):
+        val = [x.item() if isinstance(x, numpy_int64) else x for x in val]
     return val
 
 
@@ -34,7 +34,7 @@ def deep_dict(a_dict: dict, key_list: list, values: list, now=0):
     """将设备信息以yaml格式保存到字典中（多层嵌套）"""
     if now == len(key_list) - 1:
         keys = key_list[now]
-        if type(values) == list and type(keys) == list:
+        if isinstance(values, list) and isinstance(keys, list):
             t_dict = dict(zip(keys, [json_safe_val(v) for v in values]))
             remove_empty_pair(t_dict)
             a_dict.update(t_dict)
@@ -79,7 +79,8 @@ def string_split(target_str: str, sheet: str):
 
 def error_output(err_str):
     """错误日志输出"""
-    print(err_str)
+    from config import logger
+    logger.error(err_str)
 
 
 class Base:

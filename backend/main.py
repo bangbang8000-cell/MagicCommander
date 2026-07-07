@@ -472,8 +472,12 @@ def handle_project_command(processor, args):
                                 'path': rel,
                                 'isDirectory': False
                             })
-                except PermissionError:
-                    pass
+                except PermissionError as e:
+                    print(json.dumps({
+                        'status': 'warning',
+                        'message': f'跳过不可访问的目录: {e}',
+                        'data': None
+                    }, ensure_ascii=False))
                 return entries
             
             files = build_tree(project_dir)

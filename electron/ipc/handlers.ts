@@ -1,5 +1,4 @@
 import { ipcMain, BrowserWindow, shell } from 'electron'
-import { PythonService } from '../services/python.service'
 import { RenderHandler } from './render.handler'
 import * as fs from 'fs'
 import * as path from 'path'
@@ -44,12 +43,12 @@ function readExcelByPath(filePath: string): { name: string; headers: string[]; r
   })
 }
 
-export function setupIpcHandlers(python: PythonService, window: BrowserWindow): void {
-  const renderHandler = new RenderHandler(python, window)
+export function setupIpcHandlers(window: BrowserWindow): void {
+  const renderHandler = new RenderHandler(window)
 
   // 项目管理 API — 直接操作文件系统，不依赖 Python
   ipcMain.handle('project:list', async (): Promise<{ id: number; name: string; index: number }[]> => {
-    return scanProjects()
+    return await renderHandler.listProjects()
   })
 
   ipcMain.handle('project:create', async (_e, name: string): Promise<void> => {

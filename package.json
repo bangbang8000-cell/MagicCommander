@@ -1,6 +1,6 @@
 {
   "name": "magiccommander",
-  "version": "2.9.6",
+  "version": "2.9.7",
   "description": "MagicCommander - 网络设备配置管理工具",
   "main": "dist-electron/main.js",
   "author": "Magic Commander Team",
@@ -51,7 +51,7 @@
     "@vitejs/plugin-react": "^4.2.1",
     "autoprefixer": "^10.4.17",
     "concurrently": "^8.2.2",
-    "electron": "^28.2.0",
+    "electron": "^28.3.3",
     "electron-builder": "^24.9.1",
     "jsdom": "^24.0.0",
     "postcss": "^8.4.35",

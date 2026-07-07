@@ -87,13 +87,8 @@ export const useRenderStore = create<RenderState>((set, get) => ({
       await window.electron.render.project(ids)
       set({ isRendering: false, isProjectRendering: false, progress: 100, currentMessage: '渲染完成' })
     } catch (err) {
-      set({ 
-        isRendering: false, 
-        isProjectRendering: false, 
-        progress: 0, 
-        currentMessage: `渲染失败: ${(err as Error).message}`,
-        errors: [(err as Error).message],
-      })
+      set({ isRendering: false, isProjectRendering: false, progress: 0,
+        currentMessage: `渲染失败: ${(err as Error).message}`, errors: [(err as Error).message] })
     }
   },
 
@@ -104,13 +99,8 @@ export const useRenderStore = create<RenderState>((set, get) => ({
       await window.electron.render.yaml(ids)
       set({ isRendering: false, isYamlRendering: false, progress: 100, currentMessage: 'YAML输出完成' })
     } catch (err) {
-      set({ 
-        isRendering: false, 
-        isYamlRendering: false, 
-        progress: 0, 
-        currentMessage: `YAML输出失败: ${(err as Error).message}`,
-        errors: [(err as Error).message],
-      })
+      set({ isRendering: false, isYamlRendering: false, progress: 0,
+        currentMessage: `YAML输出失败: ${(err as Error).message}`, errors: [(err as Error).message] })
     }
   },
 
@@ -121,13 +111,8 @@ export const useRenderStore = create<RenderState>((set, get) => ({
       await window.electron.render.projectSn(ids)
       set({ isRendering: false, isProjectRendering: false, progress: 100, currentMessage: 'SN模式渲染完成' })
     } catch (err) {
-      set({ 
-        isRendering: false, 
-        isProjectRendering: false, 
-        progress: 0, 
-        currentMessage: `SN模式渲染失败: ${(err as Error).message}`,
-        errors: [(err as Error).message],
-      })
+      set({ isRendering: false, isProjectRendering: false, progress: 0,
+        currentMessage: `SN模式渲染失败: ${(err as Error).message}`, errors: [(err as Error).message] })
     }
   },
 
@@ -138,13 +123,8 @@ export const useRenderStore = create<RenderState>((set, get) => ({
       await window.electron.render.yamlSn(ids)
       set({ isRendering: false, isYamlRendering: false, progress: 100, currentMessage: 'SN模式YAML输出完成' })
     } catch (err) {
-      set({ 
-        isRendering: false, 
-        isYamlRendering: false, 
-        progress: 0, 
-        currentMessage: `SN模式YAML输出失败: ${(err as Error).message}`,
-        errors: [(err as Error).message],
-      })
+      set({ isRendering: false, isYamlRendering: false, progress: 0,
+        currentMessage: `SN模式YAML输出失败: ${(err as Error).message}`, errors: [(err as Error).message] })
     }
   },
 
@@ -152,17 +132,11 @@ export const useRenderStore = create<RenderState>((set, get) => ({
     if (ids.length === 0) return
     set({ isRendering: true, isLabelPrinting: true, progress: 0, currentMessage: '准备中...', errors: [] })
     try {
-      // M4: 将 printConfig 透传给后端
       await window.electron.feature.labelPrint(ids, config)
       set({ isRendering: false, isLabelPrinting: false, progress: 100, currentMessage: '标签打印完成' })
     } catch (err) {
-      set({ 
-        isRendering: false, 
-        isLabelPrinting: false, 
-        progress: 0, 
-        currentMessage: `标签打印失败: ${(err as Error).message}`,
-        errors: [(err as Error).message],
-      })
+      set({ isRendering: false, isLabelPrinting: false, progress: 0,
+        currentMessage: `标签打印失败: ${(err as Error).message}`, errors: [(err as Error).message] })
     }
   },
 
@@ -173,13 +147,8 @@ export const useRenderStore = create<RenderState>((set, get) => ({
       await window.electron.feature.labelDelete(ids)
       set({ isRendering: false, isLabelPrinting: false, progress: 100, currentMessage: '标签删除完成' })
     } catch (err) {
-      set({ 
-        isRendering: false, 
-        isLabelPrinting: false, 
-        progress: 0, 
-        currentMessage: `标签删除失败: ${(err as Error).message}`,
-        errors: [(err as Error).message],
-      })
+      set({ isRendering: false, isLabelPrinting: false, progress: 0,
+        currentMessage: `标签删除失败: ${(err as Error).message}`, errors: [(err as Error).message] })
     }
   },
 
@@ -190,12 +159,8 @@ export const useRenderStore = create<RenderState>((set, get) => ({
       await window.electron.delete.output(ids)
       set({ isRendering: false, progress: 100, currentMessage: '删除完成' })
     } catch (err) {
-      set({ 
-        isRendering: false, 
-        progress: 0, 
-        currentMessage: `删除输出失败: ${(err as Error).message}`,
-        errors: [(err as Error).message],
-      })
+      set({ isRendering: false, progress: 0,
+        currentMessage: `删除输出失败: ${(err as Error).message}`, errors: [(err as Error).message] })
     }
   },
 
@@ -206,12 +171,8 @@ export const useRenderStore = create<RenderState>((set, get) => ({
       await window.electron.delete.outputSn(ids)
       set({ isRendering: false, progress: 100, currentMessage: '删除完成' })
     } catch (err) {
-      set({ 
-        isRendering: false, 
-        progress: 0, 
-        currentMessage: `删除SN输出失败: ${(err as Error).message}`,
-        errors: [(err as Error).message],
-      })
+      set({ isRendering: false, progress: 0,
+        currentMessage: `删除SN输出失败: ${(err as Error).message}`, errors: [(err as Error).message] })
     }
   },
 
@@ -222,12 +183,8 @@ export const useRenderStore = create<RenderState>((set, get) => ({
       await window.electron.delete.yaml(ids)
       set({ isRendering: false, progress: 100, currentMessage: '删除完成' })
     } catch (err) {
-      set({ 
-        isRendering: false, 
-        progress: 0, 
-        currentMessage: `删除YAML失败: ${(err as Error).message}`,
-        errors: [(err as Error).message],
-      })
+      set({ isRendering: false, progress: 0,
+        currentMessage: `删除YAML失败: ${(err as Error).message}`, errors: [(err as Error).message] })
     }
   },
 
@@ -238,12 +195,8 @@ export const useRenderStore = create<RenderState>((set, get) => ({
       await window.electron.delete.yamlSn(ids)
       set({ isRendering: false, progress: 100, currentMessage: '删除完成' })
     } catch (err) {
-      set({ 
-        isRendering: false, 
-        progress: 0, 
-        currentMessage: `删除SN YAML失败: ${(err as Error).message}`,
-        errors: [(err as Error).message],
-      })
+      set({ isRendering: false, progress: 0,
+        currentMessage: `删除SN YAML失败: ${(err as Error).message}`, errors: [(err as Error).message] })
     }
   },
 
@@ -271,7 +224,7 @@ export const useRenderStore = create<RenderState>((set, get) => ({
       } else if (data.status === 'info') {
         set({ 
           currentMessage: data.message,
-          progress: Math.min(get().progress + 1, 99),
+          progress: data.data?.progress ?? Math.min(get().progress + 5, 90),
         })
       } else if (data.status === 'error') {
         set((state) => ({

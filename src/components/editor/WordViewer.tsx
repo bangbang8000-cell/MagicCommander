@@ -3,6 +3,7 @@ import { useUIStore } from '@/stores/ui.store'
 import type { EditorTab } from '@/stores/editor.store'
 import { RefreshCw, AlertCircle, FileText } from 'lucide-react'
 import clsx from 'clsx'
+import { escapeHtml } from '@/utils/escapeHtml'
 
 export function WordViewer({ tab }: { tab: EditorTab }) {
   const isDark = useUIStore((s) => s.isDark)
@@ -80,13 +81,6 @@ export function WordViewer({ tab }: { tab: EditorTab }) {
       }
     }
   }, [tab.filePath, tab.projectId])
-
-  // HTML 转义函数
-  const escapeHtml = (text: string): string => {
-    const div = document.createElement('div')
-    div.textContent = text
-    return div.innerHTML
-  }
 
   useEffect(() => {
     isMountedRef.current = true

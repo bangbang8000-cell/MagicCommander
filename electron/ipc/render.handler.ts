@@ -1,5 +1,4 @@
 import { BrowserWindow } from 'electron'
-import { PythonService } from '../services/python.service'
 import * as path from 'path'
 import * as fs from 'fs'
 import { spawn } from 'child_process'
@@ -8,30 +7,32 @@ import { getBackendDir, getPythonPath, getWorkspaceDir, APP_CONFIG, getPythonSit
 
 const THROTTLE_MS = 100
 
+/** 解析命令行参数，正确处理双引号包裹的参数 */
+function parseCommandArgs(command: string): string[] {
+  const args: string[] = []
+  let current = ''
+  let inQuote = false
+  for (const ch of command) {
+    if (ch === '"') { inQuote = !inQuote; continue }
+    if (ch === ' ' && !inQuote) {
+      if (current) { args.push(current); current = '' }
+      continue
+    }
+    current += ch
+  }
+  if (current) args.push(current)
+  return args
+}
+
 export class RenderHandler {
   private progressBuffer: any[] = []
   private progressTimer: NodeJS.Timeout | null = null
   private logBuffer: { level: string; message: string }[] = []
   private logTimer: NodeJS.Timeout | null = null
-
   constructor(
-    private python: PythonService,
     private window: BrowserWindow,
   ) {
-    python.on('output', (line: string) => {
-      try {
-        const parsed = JSON.parse(line)
-        this.queueProgress(parsed)
-      } catch {
-        this.queueProgress({ status: 'log', message: line })
-      }
-    })
-    python.on('progress', (data: { status: string; message: string }) => {
-      this.queueProgress(data)
-    })
-    python.on('log', (data: { level: string; message: string }) => {
-      this.queueLog(data)
-    })
+    // Python output is now handled via per-command spawn in runPythonCommand()
   }
 
   private queueProgress(item: any): void {
@@ -216,7 +217,7 @@ export class RenderHandler {
         return
       }
 
-      const args = command.split(' ').filter((arg) => arg.trim() !== '')
+      const args = parseCommandArgs(command)
       const fullCommand = [scriptPath, ...args]
 
       this.queueProgress({ status: 'start', message: `开始执行命令: ${command}` })

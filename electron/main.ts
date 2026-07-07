@@ -2,7 +2,6 @@ import { app, BrowserWindow, ipcMain, Menu, shell } from 'electron'
 import * as path from 'path'
 import * as fs from 'fs'
 import { setupIpcHandlers } from './ipc/handlers'
-import { PythonService } from './services/python.service'
 import { initializeAppDirs, initializeWorkspace, isDev } from './config'
 import { updateService } from './services/update.service'
 import { logger } from './utils/logger'
@@ -13,18 +12,13 @@ initializeAppDirs()
 
 class MagicCommanderApp {
   private mainWindow: BrowserWindow | null = null
-  private pythonService: PythonService
-
-  constructor() {
-    this.pythonService = new PythonService()
-  }
 
   async initialize(): Promise<void> {
     await app.whenReady()
     initializeWorkspace()
     this.createMainWindow()
     Menu.setApplicationMenu(null)
-    setupIpcHandlers(this.pythonService, this.mainWindow!)
+    setupIpcHandlers(this.mainWindow!)
     this.setupUpdateService()
     this.registerAppEvents()
   }
@@ -130,7 +124,6 @@ class MagicCommanderApp {
 
   private registerAppEvents(): void {
     app.on('window-all-closed', () => {
-      this.pythonService.destroy()
       if (process.platform !== 'darwin') {
         app.quit()
       }
@@ -140,10 +133,6 @@ class MagicCommanderApp {
       if (BrowserWindow.getAllWindows().length === 0) {
         this.createMainWindow()
       }
-    })
-
-    app.on('before-quit', () => {
-      this.pythonService.destroy()
     })
   }
 }
