@@ -146,7 +146,22 @@
   "logViewer": {
     "executionLog": "Journal d'exécution",
     "noLogs": "Aucun journal",
-    "clear": "Effacer"
+    "clear": "Effacer",
+    "noMatchedLogs": "No matching logs",
+    "searchPlaceholder": "Search logs...",
+    "levels": {
+      "info": "Info",
+      "success": "Success",
+      "warn": "Warning",
+      "error": "Error",
+      "debug": "Debug"
+    },
+    "sources": {
+      "app": "App",
+      "electron": "Main",
+      "backend": "Backend",
+      "terminal": "Terminal"
+    }
   },
   "noContent": "Aucun contenu",
   "emptyState": {

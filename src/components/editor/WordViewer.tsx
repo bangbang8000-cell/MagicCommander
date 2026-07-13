@@ -26,7 +26,7 @@ export function WordViewer({ tab }: { tab: EditorTab }) {
       // 尝试使用 docx-preview（需要主进程支持 readDocxBuffer）
       if (window.electron?.project?.readDocxBuffer) {
         try {
-          const arrayBuffer = await window.electron.project.readDocxBuffer(Number(tab.projectId), tab.filePath)
+          const arrayBuffer = await window.electron.project.readDocxBuffer(Number(tab.projectId), tab.filePath, tab.projectName)
           if (!isMountedRef.current) return
 
           // 动态导入 docx-preview
@@ -60,7 +60,7 @@ export function WordViewer({ tab }: { tab: EditorTab }) {
 
       // Fallback: 使用 mammoth 转纯文本
       console.log('[WordViewer] 使用 mammoth 纯文本模式')
-      const text = await window.electron.project.readDocx(Number(tab.projectId), tab.filePath)
+      const text = await window.electron.project.readDocx(Number(tab.projectId), tab.filePath, tab.projectName)
       if (!isMountedRef.current) return
 
       if (containerRef.current) {

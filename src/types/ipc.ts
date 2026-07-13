@@ -59,16 +59,18 @@ declare global {
 
 export interface ProjectIpcApi {
   list: () => Promise<unknown[]>
-  create: (name: string) => Promise<void>
+  listExamples: () => Promise<string[]>
+  create: (name: string, options?: { template?: string; empty?: boolean }) => Promise<void>
+  saveAsExample: (projectName: string, exampleName: string) => Promise<void>
   delete: (ids: string[]) => Promise<void>
   getStructure: (name: string) => Promise<unknown[]>
   parameters: (id: string) => Promise<unknown>
-  readExcel: (id: number, filePath: string) => Promise<{ name: string; headers: string[]; rows: Record<string, any>[] }[]>
-  writeExcel: (id: number, filePath: string, sheets: { name: string; headers: string[]; rows: Record<string, any>[] }[]) => Promise<void>
-  readFile: (id: number, filePath: string) => Promise<string>
-  writeFile: (id: number, filePath: string, content: string) => Promise<void>
-  readDocx: (id: number, filePath: string) => Promise<string>
-  readDocxBuffer: (id: number, filePath: string) => Promise<ArrayBuffer>
+  readExcel: (id: number, filePath: string, projectName?: string) => Promise<{ name: string; headers: string[]; rows: Record<string, any>[] }[]>
+  writeExcel: (id: number, filePath: string, sheets: { name: string; headers: string[]; rows: Record<string, any>[] }[], projectName?: string) => Promise<void>
+  readFile: (id: number, filePath: string, projectName?: string) => Promise<string>
+  writeFile: (id: number, filePath: string, content: string, projectName?: string) => Promise<void>
+  readDocx: (id: number, filePath: string, projectName?: string) => Promise<string>
+  readDocxBuffer: (id: number, filePath: string, projectName?: string) => Promise<ArrayBuffer>
   listFiles: (id: string, fileType?: string) => Promise<unknown>
 }
 
@@ -152,6 +154,6 @@ export interface AppIpcApi {
 // ============================================================
 
 export interface LogIpcApi {
-  onOutput: (callback: (data: { level: string; message: string }) => void) => () => void
+  onOutput: (callback: (data: { level: string; message: string; source?: string }) => void) => () => void
   write: (level: string, message: string) => Promise<void>
 }

@@ -3,30 +3,13 @@ import { RenderHandler } from './render.handler'
 import * as fs from 'fs'
 import * as path from 'path'
 import {
-  validateProjectName,
   validateFilePath,
   validateFileContent,
   buildSafePath,
   isFileTypeAllowed,
   isFileAccessible,
-  escapePythonArg,
 } from '../utils/security'
-import { getBackendDir, getProjectDir, getWorkspaceDir } from '../config'
-import { logDebug, logError } from '../utils/logger'
-
-function scanProjects(): { id: number; name: string; index: number }[] {
-  const workspaceDir = getWorkspaceDir()
-  logDebug('[scanProjects] workspaceDir:', workspaceDir)
-  if (!fs.existsSync(workspaceDir)) {
-    logDebug('[scanProjects] workspaceDir 不存在')
-    return []
-  }
-  const entries = fs.readdirSync(workspaceDir, { withFileTypes: true })
-  const dirs = entries.filter((e) => e.isDirectory() && !e.name.startsWith('.') && e.name !== '__pycache__').map((e) => e.name)
-  const sorted = dirs.sort((a, b) => a.localeCompare(b))
-  logDebug('[scanProjects] 扫描到的项目:', sorted)
-  return sorted.map((name, index) => ({ id: index + 1, name, index: index + 1 }))
-}
+import { getBackendDir, getExampleDir, getWorkspaceDir } from '../config'
 
 function readExcelByPath(filePath: string): { name: string; headers: string[]; rows: Record<string, any>[] }[] {
   if (!fs.existsSync(filePath)) {
@@ -43,64 +26,129 @@ function readExcelByPath(filePath: string): { name: string; headers: string[]; r
   })
 }
 
+function isProjectLikeDir(dirPath: string): boolean {
+  return ['para.xlsx', 'excel', 'templates', 'output', 'yaml'].some((name) => fs.existsSync(path.join(dirPath, name)))
+}
+
+function copyDirRecursive(src: string, dest: string, options?: { skipRuntimeDirs?: boolean }): void {
+  fs.mkdirSync(dest, { recursive: true })
+  const entries = fs.readdirSync(src, { withFileTypes: true })
+  for (const entry of entries) {
+    if (entry.name.startsWith('.') || entry.name === '__pycache__') continue
+    if (options?.skipRuntimeDirs && ['output', 'yaml', 'output-label'].includes(entry.name)) continue
+    const srcPath = path.join(src, entry.name)
+    const destPath = path.join(dest, entry.name)
+    if (entry.isDirectory()) copyDirRecursive(srcPath, destPath, options)
+    else fs.copyFileSync(srcPath, destPath)
+  }
+}
+
+function listExampleProjects(): string[] {
+  const exampleDir = getExampleDir()
+  if (!fs.existsSync(exampleDir)) return []
+  return fs.readdirSync(exampleDir, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory() && !entry.name.startsWith('.'))
+    .map((entry) => entry.name)
+    .filter((name) => isProjectLikeDir(path.join(exampleDir, name)))
+    .sort((a, b) => a.localeCompare(b))
+}
+
+function syncMcParaProject(projectName: string, action: 'add' | 'remove' = 'add'): void {
+  const XLSX = require('xlsx')
+  const mcParaPath = path.join(getWorkspaceDir(), 'MC_Para.xlsx')
+  let names: string[] = []
+  if (fs.existsSync(mcParaPath)) {
+    const wb = XLSX.readFile(mcParaPath)
+    const ws = wb.Sheets['项目名称'] || wb.Sheets[wb.SheetNames[0]]
+    const rows = ws ? XLSX.utils.sheet_to_json(ws, { defval: '' }) : []
+    names = rows.map((row: any) => String(row['项目名称'] ?? '').trim()).filter(Boolean)
+  }
+  names = names.filter((name) => name !== projectName)
+  if (action === 'add') names.push(projectName)
+  const wb = XLSX.utils.book_new()
+  const ws = XLSX.utils.json_to_sheet(names.map((name) => ({ 项目名称: name })))
+  XLSX.utils.book_append_sheet(wb, ws, '项目名称')
+  fs.mkdirSync(path.dirname(mcParaPath), { recursive: true })
+  XLSX.writeFile(wb, mcParaPath)
+}
+
 export function setupIpcHandlers(window: BrowserWindow): void {
   const renderHandler = new RenderHandler(window)
 
-  // 项目管理 API — 直接操作文件系统，不依赖 Python
+  const resolveProjectById = async (id: string | number): Promise<{ id: number; name: string; index: number }> => {
+    const projects = await renderHandler.listProjects()
+    const project = projects.find((p: any) => String(p.id) === String(id))
+    if (!project) throw new Error(`未找到项目: ${id}`)
+    return project
+  }
+
+  const getProjectPathById = async (id: string | number): Promise<string> => {
+    const project = await resolveProjectById(id)
+    return path.join(getWorkspaceDir(), project.name)
+  }
+
+  const getProjectPath = async (id: string | number, projectName?: string): Promise<string> => {
+    if (projectName) {
+      const projects = await renderHandler.listProjects()
+      const project = projects.find((p: any) => p.name === projectName)
+      if (project) return path.join(getWorkspaceDir(), project.name)
+    }
+    return getProjectPathById(id)
+  }
+
+  // 项目管理 API — 统一走 Python 后端，保证目录、MC_Para.xlsx、para.xlsx 同步
   ipcMain.handle('project:list', async (): Promise<{ id: number; name: string; index: number }[]> => {
     return await renderHandler.listProjects()
   })
 
-  ipcMain.handle('project:create', async (_e, name: string): Promise<void> => {
-    // 安全校验：项目名
-    const validation = validateProjectName(name)
-    if (!validation.valid) {
-      throw new Error(validation.error || '项目名无效')
+  ipcMain.handle('project:listExamples', async (): Promise<string[]> => {
+    const examples = listExampleProjects()
+    console.log('[project:listExamples]', getExampleDir(), examples)
+    return examples
+  })
+
+  ipcMain.handle('project:create', async (_e, name: string, options?: { template?: string; empty?: boolean }): Promise<void> => {
+    const validation = validateFilePath(name)
+    if (!validation.valid || name.includes('/') || name.includes('\\')) {
+      throw new Error('项目名无效')
     }
-    
-    const trimmed = validation.valid ? name.trim() : ''
-    const backendDir = getBackendDir()
-    const projectDir = getProjectDir(trimmed)
-    
-    if (fs.existsSync(projectDir)) {
-      throw new Error(`项目已存在: ${trimmed}`)
+    const workspaceDir = getWorkspaceDir()
+    const targetPath = path.join(workspaceDir, name)
+    if (fs.existsSync(targetPath)) throw new Error(`项目已存在: ${name}`)
+
+    if (options?.empty) {
+      fs.mkdirSync(path.join(targetPath, 'excel'), { recursive: true })
+      fs.mkdirSync(path.join(targetPath, 'templates'), { recursive: true })
+      fs.mkdirSync(path.join(targetPath, 'output'), { recursive: true })
+      fs.mkdirSync(path.join(targetPath, 'yaml'), { recursive: true })
+    } else {
+      const examples = listExampleProjects()
+      const template = options?.template || examples[0]
+      if (!template) throw new Error('没有可用的示例模板')
+      if (!examples.includes(template)) throw new Error(`示例模板不存在: ${template}`)
+      copyDirRecursive(path.join(getExampleDir(), template), targetPath)
     }
-    
-    // 创建基础目录结构: project/ templates/ excel/ output/
-    fs.mkdirSync(path.join(projectDir, 'templates'), { recursive: true })
-    fs.mkdirSync(path.join(projectDir, 'excel'), { recursive: true })
-    fs.mkdirSync(path.join(projectDir, 'output'), { recursive: true })
-    
-    // 创建空白的模板文件示例
-    fs.writeFileSync(
-      path.join(projectDir, 'templates', 'main.j2'),
-      '{% for item in items %}\n{{ item.name }}\n{% endfor %}\n',
-      'utf-8',
-    )
-    
-    // 创建示例 Excel 文件
-    try {
-      const XLSX = require('xlsx')
-      const wb = XLSX.utils.book_new()
-      const ws = XLSX.utils.aoa_to_sheet([['name', 'value'], ['sample', '1']])
-      XLSX.utils.book_append_sheet(wb, ws, 'Sheet1')
-      XLSX.writeFile(wb, path.join(projectDir, 'excel', 'parameters.xlsx'))
-    } catch {
-      // ignore — xlsx writing is optional
+
+    syncMcParaProject(name, 'add')
+  })
+
+  ipcMain.handle('project:saveAsExample', async (_e, projectName: string, exampleName: string): Promise<void> => {
+    const projectPath = path.join(getWorkspaceDir(), projectName)
+    if (!fs.existsSync(projectPath) || !isProjectLikeDir(projectPath)) {
+      throw new Error(`项目不存在或结构无效: ${projectName}`)
     }
+    const nameValidation = validateFilePath(exampleName)
+    if (!nameValidation.valid || exampleName.includes('/') || exampleName.includes('\\')) {
+      throw new Error('示例名称无效')
+    }
+    const exampleDir = getExampleDir()
+    const targetPath = path.join(exampleDir, exampleName)
+    if (fs.existsSync(targetPath)) throw new Error(`示例已存在: ${exampleName}`)
+    copyDirRecursive(projectPath, targetPath, { skipRuntimeDirs: true })
   })
 
   ipcMain.handle('project:delete', async (_e, ids: string[]): Promise<void> => {
-    const allProjects = scanProjects()
-    for (const idStr of ids) {
-      const id = Number(idStr)
-      const project = allProjects.find((p) => p.id === id)
-      if (!project) continue
-      const projectDir = getProjectDir(project.name)
-      if (fs.existsSync(projectDir)) {
-        fs.rmSync(projectDir, { recursive: true, force: true })
-      }
-    }
+    await renderHandler.deleteProject(ids)
   })
 
   ipcMain.handle('project:structure', async (_e, name: string): Promise<any[]> => {
@@ -139,19 +187,17 @@ export function setupIpcHandlers(window: BrowserWindow): void {
     return tree
   })
 
-  // 项目参数查询 API — 回退到 fs 扫描（若无法扫描则返回空）
+  // 项目参数查询 API — 按 Python 项目列表解析 ID，避免与界面列表不一致
   ipcMain.handle('project:parameters', async (_e, id: string): Promise<any[]> => {
-    const allProjects = scanProjects()
-    const project = allProjects.find((p) => String(p.id) === String(id))
-    if (!project) return []
-    const excelDir = path.join(getWorkspaceDir(), project.name, 'excel')
+    const projectDir = await getProjectPathById(id)
+    const excelDir = path.join(projectDir, 'excel')
     if (!fs.existsSync(excelDir)) return []
     const files = fs.readdirSync(excelDir).filter((f) => f.endsWith('.xlsx') || f.endsWith('.xls'))
     return files.map((f) => ({ file: f, path: `excel/${f}` }))
   })
 
   // 项目文件读写 API（走文件系统，替代 Python 回退）
-  ipcMain.handle('project:readFile', async (_e, id: number, filePath: string): Promise<string> => {
+  ipcMain.handle('project:readFile', async (_e, id: number, filePath: string, projectName?: string): Promise<string> => {
     // 安全校验：文件路径
     const pathValidation = validateFilePath(filePath)
     if (!pathValidation.valid) {
@@ -163,12 +209,9 @@ export function setupIpcHandlers(window: BrowserWindow): void {
       throw new Error('不支持该文件类型')
     }
     
-    const allProjects = scanProjects()
-    const project = allProjects.find((p) => Number(p.id) === Number(id))
-    if (!project) throw new Error(`未找到项目: ${id}`)
+    const projectDir = await getProjectPath(id, projectName)
     
     // 构建安全路径
-    const projectDir = getProjectDir(project.name)
     const fullPath = buildSafePath(projectDir, filePath)
     if (!fullPath) {
       throw new Error('文件路径不安全')
@@ -181,7 +224,7 @@ export function setupIpcHandlers(window: BrowserWindow): void {
     return fs.readFileSync(fullPath, 'utf-8')
   })
 
-  ipcMain.handle('project:writeFile', async (_e, id: number, filePath: string, content: string): Promise<void> => {
+  ipcMain.handle('project:writeFile', async (_e, id: number, filePath: string, content: string, projectName?: string): Promise<void> => {
     // 安全校验：文件路径
     const pathValidation = validateFilePath(filePath)
     if (!pathValidation.valid) {
@@ -199,12 +242,9 @@ export function setupIpcHandlers(window: BrowserWindow): void {
       throw new Error(contentValidation.error || '文件内容过大')
     }
     
-    const allProjects = scanProjects()
-    const project = allProjects.find((p) => Number(p.id) === Number(id))
-    if (!project) throw new Error(`未找到项目: ${id}`)
+    const projectDir = await getProjectPath(id, projectName)
     
     // 构建安全路径
-    const projectDir = getProjectDir(project.name)
     const fullPath = buildSafePath(projectDir, filePath)
     if (!fullPath) {
       throw new Error('文件路径不安全')
@@ -216,10 +256,7 @@ export function setupIpcHandlers(window: BrowserWindow): void {
   })
 
   ipcMain.handle('project:listFiles', async (_e, id: string, fileType?: string): Promise<any[]> => {
-    const allProjects = scanProjects()
-    const project = allProjects.find((p) => String(p.id) === String(id))
-    if (!project) return []
-    const projectDir = path.join(getWorkspaceDir(), project.name)
+    const projectDir = await getProjectPathById(id)
     if (!fs.existsSync(projectDir)) return []
     const files: string[] = []
     function walk(dir: string) {
@@ -244,7 +281,7 @@ export function setupIpcHandlers(window: BrowserWindow): void {
   })
 
   // 项目 Excel 读写（已使用文件系统直接读写）
-  ipcMain.handle('project:readExcel', async (_e, projectId: number, filePath: string): Promise<{ name: string; headers: string[]; rows: Record<string, any>[] }[]> => {
+  ipcMain.handle('project:readExcel', async (_e, projectId: number, filePath: string, projectName?: string): Promise<{ name: string; headers: string[]; rows: Record<string, any>[] }[]> => {
     // 安全校验：文件路径
     const pathValidation = validateFilePath(filePath)
     if (!pathValidation.valid) {
@@ -257,14 +294,9 @@ export function setupIpcHandlers(window: BrowserWindow): void {
       throw new Error('仅支持 Excel 文件 (.xlsx, .xls)')
     }
     
-    const allProjects = scanProjects()
-    const project = allProjects.find((p) => Number(p.id) === Number(projectId))
-    if (!project) {
-      throw new Error(`未找到项目: ${projectId}`)
-    }
+    const projectDir = await getProjectPath(projectId, projectName)
     
     // 构建安全路径
-    const projectDir = getProjectDir(project.name)
     const fullPath = buildSafePath(projectDir, filePath)
     if (!fullPath) {
       throw new Error('文件路径不安全')
@@ -277,7 +309,7 @@ export function setupIpcHandlers(window: BrowserWindow): void {
     return readExcelByPath(fullPath)
   })
 
-  ipcMain.handle('project:writeExcel', async (_e, projectId: number, filePath: string, sheets: { name: string; headers: string[]; rows: Record<string, any>[] }[]): Promise<void> => {
+  ipcMain.handle('project:writeExcel', async (_e, projectId: number, filePath: string, sheets: { name: string; headers: string[]; rows: Record<string, any>[] }[], projectName?: string): Promise<void> => {
     // 安全校验：文件路径
     const pathValidation = validateFilePath(filePath)
     if (!pathValidation.valid) {
@@ -290,12 +322,9 @@ export function setupIpcHandlers(window: BrowserWindow): void {
       throw new Error('仅支持 Excel 文件 (.xlsx, .xls)')
     }
     
-    const allProjects = scanProjects()
-    const project = allProjects.find((p) => Number(p.id) === Number(projectId))
-    if (!project) throw new Error(`未找到项目: ${projectId}`)
+    const projectDir = await getProjectPath(projectId, projectName)
     
     // 构建安全路径
-    const projectDir = getProjectDir(project.name)
     const fullPath = buildSafePath(projectDir, filePath)
     if (!fullPath) {
       throw new Error('文件路径不安全')
@@ -422,12 +451,10 @@ export function setupIpcHandlers(window: BrowserWindow): void {
   })
 
   // 项目文件读取 API —— Word 文档（通过 projectId + 相对路径）
-  ipcMain.handle('project:readDocx', async (_e, projectId: number, filePath: string): Promise<string> => {
-    console.log('[project:readDocx] 请求 projectId:', projectId, 'filePath:', filePath)
-    const allProjects = scanProjects()
-    const project = allProjects.find((p) => Number(p.id) === Number(projectId))
-    if (!project) throw new Error(`未找到项目: ${projectId}`)
-    const fullPath = path.join(getWorkspaceDir(), project.name, String(filePath))
+  ipcMain.handle('project:readDocx', async (_e, projectId: number, filePath: string, projectName?: string): Promise<string> => {
+    console.log('[project:readDocx] 请求 projectId:', projectId, 'projectName:', projectName, 'filePath:', filePath)
+    const projectDir = await getProjectPath(projectId, projectName)
+    const fullPath = path.join(projectDir, String(filePath))
     console.log('[project:readDocx] 完整路径:', fullPath)
     if (!fs.existsSync(fullPath)) throw new Error(`文件不存在: ${fullPath}`)
 
@@ -447,12 +474,10 @@ export function setupIpcHandlers(window: BrowserWindow): void {
   })
 
   // 项目文件读取 API —— Word 文档（返回 ArrayBuffer 用于 docx-preview）
-  ipcMain.handle('project:readDocxBuffer', async (_e, projectId: number, filePath: string): Promise<ArrayBuffer> => {
-    console.log('[project:readDocxBuffer] 请求 projectId:', projectId, 'filePath:', filePath)
-    const allProjects = scanProjects()
-    const project = allProjects.find((p) => Number(p.id) === Number(projectId))
-    if (!project) throw new Error(`未找到项目: ${projectId}`)
-    const fullPath = path.join(getWorkspaceDir(), project.name, String(filePath))
+  ipcMain.handle('project:readDocxBuffer', async (_e, projectId: number, filePath: string, projectName?: string): Promise<ArrayBuffer> => {
+    console.log('[project:readDocxBuffer] 请求 projectId:', projectId, 'projectName:', projectName, 'filePath:', filePath)
+    const projectDir = await getProjectPath(projectId, projectName)
+    const fullPath = path.join(projectDir, String(filePath))
     console.log('[project:readDocxBuffer] 完整路径:', fullPath)
     if (!fs.existsSync(fullPath)) throw new Error(`文件不存在: ${fullPath}`)
 

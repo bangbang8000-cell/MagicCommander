@@ -2,26 +2,15 @@ import { BrowserWindow } from 'electron'
 import * as path from 'path'
 import * as fs from 'fs'
 import { spawn } from 'child_process'
-import { escapePythonArg, validateProjectName, validateFilePath } from '../utils/security'
-import { getBackendDir, getPythonPath, getWorkspaceDir, APP_CONFIG, getPythonSitePackages } from '../config'
+import { escapePythonArg, validateProjectName } from '../utils/security'
+import { getPythonPath, getWorkspaceDir, getPythonSitePackages } from '../config'
 
 const THROTTLE_MS = 100
 
-/** 解析命令行参数，正确处理双引号包裹的参数 */
-function parseCommandArgs(command: string): string[] {
-  const args: string[] = []
-  let current = ''
-  let inQuote = false
-  for (const ch of command) {
-    if (ch === '"') { inQuote = !inQuote; continue }
-    if (ch === ' ' && !inQuote) {
-      if (current) { args.push(current); current = '' }
-      continue
-    }
-    current += ch
-  }
-  if (current) args.push(current)
+export function formatCommandForLog(args: string[]): string {
   return args
+    .map((arg) => /\s|"/.test(arg) ? `"${arg.replace(/"/g, '\\"')}"` : arg)
+    .join(' ')
 }
 
 export class RenderHandler {
@@ -81,128 +70,112 @@ export class RenderHandler {
   }
 
   async renderProject(ids: string[]): Promise<void> {
-    // 安全校验：转义项目 ID
     const safeIds = ids.map(id => escapePythonArg(id)).filter(id => id)
     if (safeIds.length === 0) throw new Error('无效的项目 ID')
-    const target = safeIds.join(',')
-    await this.runPythonCommand(`render project ${target}`)
+    await this.runPythonCommand(['render', 'project', safeIds.join(',')])
   }
 
   async renderYaml(ids: string[]): Promise<void> {
     const safeIds = ids.map(id => escapePythonArg(id)).filter(id => id)
     if (safeIds.length === 0) throw new Error('无效的项目 ID')
-    const target = safeIds.join(',')
-    await this.runPythonCommand(`render yaml ${target}`)
+    await this.runPythonCommand(['render', 'yaml', safeIds.join(',')])
   }
 
   async renderProjectSn(ids: string[]): Promise<void> {
     const safeIds = ids.map(id => escapePythonArg(id)).filter(id => id)
     if (safeIds.length === 0) throw new Error('无效的项目 ID')
-    const target = safeIds.join(',')
-    await this.runPythonCommand(`render project ${target} --format device_sn`)
+    await this.runPythonCommand(['render', 'project', safeIds.join(','), '--format', 'device_sn'])
   }
 
   async renderYamlSn(ids: string[]): Promise<void> {
     const safeIds = ids.map(id => escapePythonArg(id)).filter(id => id)
     if (safeIds.length === 0) throw new Error('无效的项目 ID')
-    const target = safeIds.join(',')
-    await this.runPythonCommand(`render yaml ${target} --format device_sn`)
+    await this.runPythonCommand(['render', 'yaml', safeIds.join(','), '--format', 'device_sn'])
   }
 
   async createProject(name: string): Promise<void> {
-    // 安全校验：项目名
     const validation = validateProjectName(name)
     if (!validation.valid) throw new Error(validation.error || '项目名无效')
-    const safeName = escapePythonArg(name)
-    await this.runPythonCommand(`project create "${safeName}"`)
+    await this.runPythonCommand(['project', 'create', name])
   }
 
   async deleteProject(ids: string[]): Promise<void> {
     const safeIds = ids.map(id => escapePythonArg(id)).filter(id => id)
     if (safeIds.length === 0) throw new Error('无效的项目 ID')
-    const target = safeIds.join(',')
-    await this.runPythonCommand(`project delete ${target} --force`)
+    await this.runPythonCommand(['project', 'delete', safeIds.join(','), '--force'])
   }
 
   async deleteOutput(ids: string[]): Promise<void> {
     const safeIds = ids.map(id => escapePythonArg(id)).filter(id => id)
     if (safeIds.length === 0) throw new Error('无效的项目 ID')
-    const target = safeIds.join(',')
-    await this.runPythonCommand(`file delete output ${target} --force`)
+    await this.runPythonCommand(['file', 'delete', 'output', safeIds.join(','), '--force'])
   }
 
   async deleteOutputSn(ids: string[]): Promise<void> {
     const safeIds = ids.map(id => escapePythonArg(id)).filter(id => id)
     if (safeIds.length === 0) throw new Error('无效的项目 ID')
-    const target = safeIds.join(',')
-    await this.runPythonCommand(`file delete output-sn ${target} --force`)
+    await this.runPythonCommand(['file', 'delete', 'output-sn', safeIds.join(','), '--force'])
   }
 
   async deleteYaml(ids: string[]): Promise<void> {
     const safeIds = ids.map(id => escapePythonArg(id)).filter(id => id)
     if (safeIds.length === 0) throw new Error('无效的项目 ID')
-    const target = safeIds.join(',')
-    await this.runPythonCommand(`file delete yaml ${target} --force`)
+    await this.runPythonCommand(['file', 'delete', 'yaml', safeIds.join(','), '--force'])
   }
 
   async deleteYamlSn(ids: string[]): Promise<void> {
     const safeIds = ids.map(id => escapePythonArg(id)).filter(id => id)
     if (safeIds.length === 0) throw new Error('无效的项目 ID')
-    const target = safeIds.join(',')
-    await this.runPythonCommand(`file delete yaml-sn ${target} --force`)
+    await this.runPythonCommand(['file', 'delete', 'yaml-sn', safeIds.join(','), '--force'])
   }
 
   async listProjects(): Promise<any[]> {
-    return await this.runPythonCommand('project list', true)
+    return await this.runPythonCommand(['project', 'list'], true)
   }
 
   async listProjectParameters(id: string): Promise<any[]> {
-    return await this.runPythonCommand(`project info ${id}`, true)
+    return await this.runPythonCommand(['project', 'info', id], true)
   }
 
   async labelPrint(ids: string[], config?: unknown): Promise<void> {
     const target = ids.join(',')
-    let command = `label print ${target}`
+    const args: string[] = ['label', 'print', target]
     if (config) {
-      const configStr = JSON.stringify(config).replace(/"/g, '\\"')
-      command += ` --config "${configStr}"`
+      args.push('--config', JSON.stringify(config))
     }
-    await this.runPythonCommand(command)
+    await this.runPythonCommand(args)
   }
 
   async labelDelete(ids: string[]): Promise<void> {
     const target = ids.join(',')
-    await this.runPythonCommand(`label delete ${target}`)
+    await this.runPythonCommand(['label', 'delete', target])
   }
 
   async readProjectExcel(id: string, file: string, sheet?: string): Promise<any> {
-    let command = `project read-excel ${id} "${file}"`
-    if (sheet) command += ` --sheet "${sheet}"`
-    return await this.runPythonCommand(command, true)
+    const args = ['project', 'read-excel', id, file]
+    if (sheet) args.push('--sheet', sheet)
+    return await this.runPythonCommand(args, true)
   }
 
   async writeProjectExcel(id: string, file: string, data: any): Promise<void> {
-    const dataStr = JSON.stringify(data)
-    const command = `project write-excel ${id} "${file}" '${dataStr.replace(/'/g, "\\'")}'`
-    await this.runPythonCommand(command)
+    await this.runPythonCommand(['project', 'write-excel', id, file, JSON.stringify(data)])
   }
 
   async readProjectFile(id: string, filePath: string): Promise<string> {
-    return await this.runPythonCommand(`project read-file ${id} "${filePath}"`, true)
+    return await this.runPythonCommand(['project', 'read-file', id, filePath], true)
   }
 
   async writeProjectFile(id: string, filePath: string, content: string): Promise<void> {
-    const escaped = content.replace(/"/g, '\\"').replace(/\n/g, '\\n')
-    await this.runPythonCommand(`project write-file ${id} "${filePath}" "${escaped}"`)
+    await this.runPythonCommand(['project', 'write-file', id, filePath, content])
   }
 
   async listProjectFiles(id: string, fileType?: string): Promise<any> {
-    let command = `project list-files ${id}`
-    if (fileType) command += ` --type ${fileType}`
-    return await this.runPythonCommand(command, true)
+    const args = ['project', 'list-files', id]
+    if (fileType) args.push('--type', fileType)
+    return await this.runPythonCommand(args, true)
   }
 
-  private async runPythonCommand(command: string, returnData: boolean = false): Promise<any> {
+  private async runPythonCommand(args: string[], returnData: boolean = false): Promise<any> {
     return new Promise((resolve, reject) => {
       const devPath = path.join(process.cwd(), 'backend')
       const backendPath = fs.existsSync(devPath) ? devPath : path.join(process.resourcesPath, 'backend')
@@ -217,10 +190,10 @@ export class RenderHandler {
         return
       }
 
-      const args = parseCommandArgs(command)
       const fullCommand = [scriptPath, ...args]
+      const commandText = formatCommandForLog(args)
 
-      this.queueProgress({ status: 'start', message: `开始执行命令: ${command}` })
+      this.queueProgress({ status: 'start', message: `开始执行命令: ${commandText}` })
 
       try {
         const pythonPaths: string[] = [backendPath]

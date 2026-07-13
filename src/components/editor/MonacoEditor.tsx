@@ -104,7 +104,7 @@ export function MonacoEditor({ tab }: MonacoEditorProps) {
     const loadContent = async () => {
       if (tab.filePath) {
         try {
-          const text = await window.electron.project.readFile(tab.projectId, tab.filePath)
+          const text = await window.electron.project.readFile(tab.projectId, tab.filePath, tab.projectName)
           if (!cancelled && isMountedRef.current) {
             setContent(text)
             updateContent(tab.id, text)
@@ -141,7 +141,7 @@ export function MonacoEditor({ tab }: MonacoEditorProps) {
 
   const handleSave = useCallback(async () => {
     try {
-      await window.electron.project.writeFile(Number(tab.projectId), tab.filePath, content)
+      await window.electron.project.writeFile(Number(tab.projectId), tab.filePath, content, tab.projectName)
       markDirty(tab.id, false)
       showSuccess(`已保存: ${tab.title}`)
     } catch (err) {

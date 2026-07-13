@@ -1,6 +1,7 @@
 import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
 import type { LabelPrintConfig, RenderConfig } from '@/types/render'
+
+type RenderTaskType = 'project' | 'yaml' | 'label' | 'general'
 
 interface RenderState {
   isRendering: boolean
@@ -33,44 +34,62 @@ interface RenderState {
   subscribeProgress: () => () => void
 }
 
-export const useRenderStore = create<RenderState>((set, get) => ({
+const taskFlags = (type: RenderTaskType, rendering: boolean) => ({
+  isRendering: rendering,
+  ...(type === 'project' && { isProjectRendering: rendering }),
+  ...(type === 'yaml' && { isYamlRendering: rendering }),
+  ...(type === 'label' && { isLabelPrinting: rendering }),
+})
+
+const clearTaskFlags = () => ({
   isRendering: false,
   isProjectRendering: false,
   isYamlRendering: false,
   isLabelPrinting: false,
-  progress: 0,
-  currentMessage: '',
-  errors: [],
-  selectedProjectIds: [],
-  config: {
-    outputFormat: 'device_name',
-    renderType: 'project',
-  },
+})
 
-  setConfig: (newConfig) => set((state) => ({
-    config: { ...state.config, ...newConfig },
-  })),
+const errorMessage = (err: unknown) => (err instanceof Error ? err.message : String(err))
 
-  setSelectedIds: (ids) => set({ selectedProjectIds: ids }),
+export const useRenderStore = create<RenderState>((set, get) => {
+  const runTask = async (
+    ids: string[],
+    options: {
+      type: RenderTaskType
+      startMessage?: string
+      successMessage: string
+      failurePrefix: string
+      action: () => Promise<void>
+    },
+  ) => {
+    if (ids.length === 0) return
 
-  setRendering: (rendering, type = 'project') => set((state) => ({
-    isRendering: rendering,
-    ...(type === 'project' && { isProjectRendering: rendering }),
-    ...(type === 'yaml' && { isYamlRendering: rendering }),
-    ...(type === 'label' && { isLabelPrinting: rendering }),
-  })),
+    set({
+      ...taskFlags(options.type, true),
+      progress: 0,
+      currentMessage: options.startMessage ?? '准备中...',
+      errors: [],
+    })
 
-  setProgress: (progress, message) => set({ 
-    progress, 
-    currentMessage: message,
-    errors: progress === 100 ? [] : get().errors,
-  }),
+    try {
+      await options.action()
+      set({
+        ...taskFlags(options.type, false),
+        progress: 100,
+        currentMessage: options.successMessage,
+      })
 
-  addError: (error) => set((state) => ({
-    errors: [...state.errors, error],
-  })),
+    } catch (err) {
+      const message = errorMessage(err)
+      set({
+        ...taskFlags(options.type, false),
+        progress: 0,
+        currentMessage: `${options.failurePrefix}: ${message}`,
+        errors: [message],
+      })
+    }
+  }
 
-  resetProgress: () => set({
+  return {
     isRendering: false,
     isProjectRendering: false,
     isYamlRendering: false,
@@ -78,177 +97,151 @@ export const useRenderStore = create<RenderState>((set, get) => ({
     progress: 0,
     currentMessage: '',
     errors: [],
-  }),
+    selectedProjectIds: [],
+    config: {
+      outputFormat: 'device_name',
+      renderType: 'project',
+    },
 
-  renderProject: async (ids) => {
-    if (ids.length === 0) return
-    set({ isRendering: true, isProjectRendering: true, progress: 0, currentMessage: '准备中...', errors: [] })
-    try {
-      await window.electron.render.project(ids)
-      set({ isRendering: false, isProjectRendering: false, progress: 100, currentMessage: '渲染完成' })
-    } catch (err) {
-      set({ isRendering: false, isProjectRendering: false, progress: 0,
-        currentMessage: `渲染失败: ${(err as Error).message}`, errors: [(err as Error).message] })
-    }
-  },
+    setConfig: (newConfig) => set((state) => ({
+      config: { ...state.config, ...newConfig },
+    })),
 
-  renderYaml: async (ids) => {
-    if (ids.length === 0) return
-    set({ isRendering: true, isYamlRendering: true, progress: 0, currentMessage: '准备中...', errors: [] })
-    try {
-      await window.electron.render.yaml(ids)
-      set({ isRendering: false, isYamlRendering: false, progress: 100, currentMessage: 'YAML输出完成' })
-    } catch (err) {
-      set({ isRendering: false, isYamlRendering: false, progress: 0,
-        currentMessage: `YAML输出失败: ${(err as Error).message}`, errors: [(err as Error).message] })
-    }
-  },
+    setSelectedIds: (ids) => set({ selectedProjectIds: ids }),
 
-  renderProjectSn: async (ids) => {
-    if (ids.length === 0) return
-    set({ isRendering: true, isProjectRendering: true, progress: 0, currentMessage: '准备中...', errors: [] })
-    try {
-      await window.electron.render.projectSn(ids)
-      set({ isRendering: false, isProjectRendering: false, progress: 100, currentMessage: 'SN模式渲染完成' })
-    } catch (err) {
-      set({ isRendering: false, isProjectRendering: false, progress: 0,
-        currentMessage: `SN模式渲染失败: ${(err as Error).message}`, errors: [(err as Error).message] })
-    }
-  },
+    setRendering: (rendering, type = 'project') => set(taskFlags(type, rendering)),
 
-  renderYamlSn: async (ids) => {
-    if (ids.length === 0) return
-    set({ isRendering: true, isYamlRendering: true, progress: 0, currentMessage: '准备中...', errors: [] })
-    try {
-      await window.electron.render.yamlSn(ids)
-      set({ isRendering: false, isYamlRendering: false, progress: 100, currentMessage: 'SN模式YAML输出完成' })
-    } catch (err) {
-      set({ isRendering: false, isYamlRendering: false, progress: 0,
-        currentMessage: `SN模式YAML输出失败: ${(err as Error).message}`, errors: [(err as Error).message] })
-    }
-  },
+    setProgress: (progress, message) => set({
+      progress,
+      currentMessage: message,
+      errors: progress === 100 ? [] : get().errors,
+    }),
 
-  labelPrint: async (ids, config) => {
-    if (ids.length === 0) return
-    set({ isRendering: true, isLabelPrinting: true, progress: 0, currentMessage: '准备中...', errors: [] })
-    try {
-      await window.electron.feature.labelPrint(ids, config)
-      set({ isRendering: false, isLabelPrinting: false, progress: 100, currentMessage: '标签打印完成' })
-    } catch (err) {
-      set({ isRendering: false, isLabelPrinting: false, progress: 0,
-        currentMessage: `标签打印失败: ${(err as Error).message}`, errors: [(err as Error).message] })
-    }
-  },
+    addError: (error) => set((state) => ({
+      errors: [...state.errors, error],
+    })),
 
-  labelDelete: async (ids) => {
-    if (ids.length === 0) return
-    set({ isRendering: true, isLabelPrinting: true, progress: 0, currentMessage: '准备中...', errors: [] })
-    try {
-      await window.electron.feature.labelDelete(ids)
-      set({ isRendering: false, isLabelPrinting: false, progress: 100, currentMessage: '标签删除完成' })
-    } catch (err) {
-      set({ isRendering: false, isLabelPrinting: false, progress: 0,
-        currentMessage: `标签删除失败: ${(err as Error).message}`, errors: [(err as Error).message] })
-    }
-  },
+    resetProgress: () => set({
+      ...clearTaskFlags(),
+      progress: 0,
+      currentMessage: '',
+      errors: [],
+    }),
 
-  deleteOutput: async (ids) => {
-    if (ids.length === 0) return
-    set({ isRendering: true, progress: 0, currentMessage: '准备中...', errors: [] })
-    try {
-      await window.electron.delete.output(ids)
-      set({ isRendering: false, progress: 100, currentMessage: '删除完成' })
-    } catch (err) {
-      set({ isRendering: false, progress: 0,
-        currentMessage: `删除输出失败: ${(err as Error).message}`, errors: [(err as Error).message] })
-    }
-  },
+    renderProject: (ids) => runTask(ids, {
+      type: 'project',
+      successMessage: '渲染完成',
+      failurePrefix: '渲染失败',
+      action: () => window.electron.render.project(ids),
+    }),
 
-  deleteOutputSn: async (ids) => {
-    if (ids.length === 0) return
-    set({ isRendering: true, progress: 0, currentMessage: '准备中...', errors: [] })
-    try {
-      await window.electron.delete.outputSn(ids)
-      set({ isRendering: false, progress: 100, currentMessage: '删除完成' })
-    } catch (err) {
-      set({ isRendering: false, progress: 0,
-        currentMessage: `删除SN输出失败: ${(err as Error).message}`, errors: [(err as Error).message] })
-    }
-  },
+    renderYaml: (ids) => runTask(ids, {
+      type: 'yaml',
+      successMessage: 'YAML输出完成',
+      failurePrefix: 'YAML输出失败',
+      action: () => window.electron.render.yaml(ids),
+    }),
 
-  deleteYaml: async (ids) => {
-    if (ids.length === 0) return
-    set({ isRendering: true, progress: 0, currentMessage: '准备中...', errors: [] })
-    try {
-      await window.electron.delete.yaml(ids)
-      set({ isRendering: false, progress: 100, currentMessage: '删除完成' })
-    } catch (err) {
-      set({ isRendering: false, progress: 0,
-        currentMessage: `删除YAML失败: ${(err as Error).message}`, errors: [(err as Error).message] })
-    }
-  },
+    renderProjectSn: (ids) => runTask(ids, {
+      type: 'project',
+      successMessage: 'SN模式渲染完成',
+      failurePrefix: 'SN模式渲染失败',
+      action: () => window.electron.render.projectSn(ids),
+    }),
 
-  deleteYamlSn: async (ids) => {
-    if (ids.length === 0) return
-    set({ isRendering: true, progress: 0, currentMessage: '准备中...', errors: [] })
-    try {
-      await window.electron.delete.yamlSn(ids)
-      set({ isRendering: false, progress: 100, currentMessage: '删除完成' })
-    } catch (err) {
-      set({ isRendering: false, progress: 0,
-        currentMessage: `删除SN YAML失败: ${(err as Error).message}`, errors: [(err as Error).message] })
-    }
-  },
+    renderYamlSn: (ids) => runTask(ids, {
+      type: 'yaml',
+      successMessage: 'SN模式YAML输出完成',
+      failurePrefix: 'SN模式YAML输出失败',
+      action: () => window.electron.render.yamlSn(ids),
+    }),
 
-  subscribeProgress: () => {
-    if (!window.electron || !window.electron.render) {
-      console.warn('Electron API not available')
-      return () => {}
-    }
-    
-    const handler = (data: any) => {
-      if (data.status === 'progress') {
-        set({ 
-          progress: data.data?.progress || 0, 
-          currentMessage: data.message,
-        })
-      } else if (data.status === 'complete') {
-        set({ 
-          isRendering: false,
-          isProjectRendering: false,
-          isYamlRendering: false,
-          isLabelPrinting: false,
-          progress: 100, 
-          currentMessage: data.message || '完成',
-        })
-      } else if (data.status === 'info') {
-        set({ 
-          currentMessage: data.message,
-          progress: data.data?.progress ?? Math.min(get().progress + 5, 90),
-        })
-      } else if (data.status === 'error') {
-        set((state) => ({
-          isRendering: false,
-          isProjectRendering: false,
-          isYamlRendering: false,
-          isLabelPrinting: false,
-          errors: [...state.errors, data.message],
-        }))
-      } else if (data.status === 'start') {
-        set({ 
-          currentMessage: data.message,
-        })
-      } else if (data.status === 'log') {
-        set({ 
-          currentMessage: data.message,
-        })
-      } else if (data.status === 'success') {
-        set({ 
-          currentMessage: data.message || '操作成功',
-        })
+    labelPrint: (ids, config) => runTask(ids, {
+      type: 'label',
+      successMessage: '标签打印完成',
+      failurePrefix: '标签打印失败',
+      action: () => window.electron.feature.labelPrint(ids, config),
+    }),
+
+    labelDelete: (ids) => runTask(ids, {
+      type: 'label',
+      successMessage: '标签删除完成',
+      failurePrefix: '标签删除失败',
+      action: () => window.electron.feature.labelDelete(ids),
+    }),
+
+    deleteOutput: (ids) => runTask(ids, {
+      type: 'general',
+      successMessage: '删除完成',
+      failurePrefix: '删除输出失败',
+      action: () => window.electron.delete.output(ids),
+    }),
+
+    deleteOutputSn: (ids) => runTask(ids, {
+      type: 'general',
+      successMessage: '删除完成',
+      failurePrefix: '删除SN输出失败',
+      action: () => window.electron.delete.outputSn(ids),
+    }),
+
+    deleteYaml: (ids) => runTask(ids, {
+      type: 'general',
+      successMessage: '删除完成',
+      failurePrefix: '删除YAML失败',
+      action: () => window.electron.delete.yaml(ids),
+    }),
+
+    deleteYamlSn: (ids) => runTask(ids, {
+      type: 'general',
+      successMessage: '删除完成',
+      failurePrefix: '删除SN YAML失败',
+      action: () => window.electron.delete.yamlSn(ids),
+    }),
+
+    subscribeProgress: () => {
+      if (!window.electron || !window.electron.render) {
+        console.warn('Electron API not available')
+        return () => {}
       }
-    }
 
-    return window.electron.render.onProgress(handler)
-  },
-}))
+      const handler = (data: any) => {
+        if (data.status === 'progress') {
+          set({
+            progress: data.data?.progress || 0,
+            currentMessage: data.message,
+          })
+        } else if (data.status === 'complete') {
+          set({
+            ...clearTaskFlags(),
+            progress: 100,
+            currentMessage: data.message || '完成',
+          })
+        } else if (data.status === 'info') {
+          set({
+            currentMessage: data.message,
+            progress: data.data?.progress ?? Math.min(get().progress + 5, 90),
+          })
+        } else if (data.status === 'error') {
+          set((state) => ({
+            ...clearTaskFlags(),
+            errors: [...state.errors, data.message],
+          }))
+        } else if (data.status === 'start') {
+          set({
+            currentMessage: data.message,
+          })
+        } else if (data.status === 'log') {
+          set({
+            currentMessage: data.message,
+          })
+        } else if (data.status === 'success') {
+          set({
+            currentMessage: data.message || '操作成功',
+          })
+        }
+      }
+
+      return window.electron.render.onProgress(handler)
+    },
+  }
+})

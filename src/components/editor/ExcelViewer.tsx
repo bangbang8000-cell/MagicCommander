@@ -42,7 +42,7 @@ export function ExcelViewer({ tab }: { tab: EditorTab }) {
 
     try {
       const result = await Promise.race([
-        window.electron.project.readExcel(tab.projectId, tab.filePath),
+        window.electron.project.readExcel(tab.projectId, tab.filePath, tab.projectName),
         new Promise<never>((_, reject) =>
           setTimeout(() => reject(new Error('读取 Excel 超时（10秒）')), 10000),
         ),
@@ -76,7 +76,7 @@ export function ExcelViewer({ tab }: { tab: EditorTab }) {
 
   const handleSave = useCallback(async () => {
     try {
-      await window.electron.project.writeExcel(tab.projectId, tab.filePath, sheets as { name: string; headers: string[]; rows: Record<string, unknown>[] }[])
+      await window.electron.project.writeExcel(tab.projectId, tab.filePath, sheets as { name: string; headers: string[]; rows: Record<string, unknown>[] }[], tab.projectName)
       markDirty(tab.id, false)
       showSuccess(`已保存: ${tab.title}`)
     } catch (err) {

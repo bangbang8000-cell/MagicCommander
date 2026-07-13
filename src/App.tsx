@@ -48,6 +48,7 @@ export default function App() {
 
   const progressUnsubRef = useRef<(() => void) | null>(null)
   const logUnsubRef = useRef<(() => void) | null>(null)
+  const renderLogUnsubRef = useRef<(() => void) | null>(null)
   const initRef = useRef(false)
 
   const [cheatsheetOpen, setCheatsheetOpen] = useState(false)
@@ -98,10 +99,11 @@ export default function App() {
     initRef.current = true
 
     const { subscribeProgress } = useRenderStore.getState()
-    const { subscribeLog, addLog } = useLogStore.getState()
+    const { subscribeLog, subscribeRenderProgressLog, addLog } = useLogStore.getState()
 
     subscribeProgress && (progressUnsubRef.current = subscribeProgress())
     subscribeLog && (logUnsubRef.current = subscribeLog())
+    subscribeRenderProgressLog && (renderLogUnsubRef.current = subscribeRenderProgressLog())
 
     addLog('info', '应用启动完成')
     const safeLogWrite = (level: string, message: string) => {
@@ -156,11 +158,11 @@ export default function App() {
         // 阶段3：恢复项目选择
         setLoadingStage(3)
         const projState = useProjectStore.getState()
-        const savedProjectId = projState.selectedProjectId
+        const savedProjectName = projState.selectedProjectName
         const projectsCount = projState.projects.length
 
-        if (savedProjectId !== null && projectsCount > 0) {
-          const matched = projState.projects.find((p: any) => p.id === savedProjectId)
+        if (savedProjectName !== null && projectsCount > 0) {
+          const matched = projState.projects.find((p: any) => p.name === savedProjectName)
           if (matched) {
             selectProjectRef.current(matched)
           }
@@ -172,7 +174,7 @@ export default function App() {
         const savedTabMetas = editorState.tabMetas
 
         if (savedTabMetas && savedTabMetas.length > 0) {
-          if (savedProjectId !== null) {
+          if (savedProjectName !== null) {
             await new Promise(resolve => setTimeout(resolve, 50))
           }
           restoreTabs(savedTabMetas)
@@ -202,8 +204,10 @@ export default function App() {
     return () => {
       progressUnsubRef.current?.()
       logUnsubRef.current?.()
+      renderLogUnsubRef.current?.()
       progressUnsubRef.current = null
       logUnsubRef.current = null
+      renderLogUnsubRef.current = null
     }
   }, [])
 

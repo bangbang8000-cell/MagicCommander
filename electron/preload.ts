@@ -4,16 +4,18 @@ import { contextBridge, ipcRenderer } from 'electron'
 const api = {
   project: {
     list: () => ipcRenderer.invoke('project:list'),
-    create: (name: string) => ipcRenderer.invoke('project:create', name),
+    listExamples: () => ipcRenderer.invoke('project:listExamples'),
+    create: (name: string, options?: { template?: string; empty?: boolean }) => ipcRenderer.invoke('project:create', name, options),
+    saveAsExample: (projectName: string, exampleName: string) => ipcRenderer.invoke('project:saveAsExample', projectName, exampleName),
     delete: (ids: string[]) => ipcRenderer.invoke('project:delete', ids),
     getStructure: (name: string) => ipcRenderer.invoke('project:structure', name),
     parameters: (name: string) => ipcRenderer.invoke('project:parameters', name),
-    readExcel: (id: number, filePath: string) => ipcRenderer.invoke('project:readExcel', id, filePath),
-    writeExcel: (id: number, filePath: string, sheets: { name: string; headers: string[]; rows: Record<string, any>[] }[]) => ipcRenderer.invoke('project:writeExcel', id, filePath, sheets),
-    readFile: (id: number, filePath: string) => ipcRenderer.invoke('project:readFile', id, filePath),
-    writeFile: (id: number, filePath: string, content: string) => ipcRenderer.invoke('project:writeFile', id, filePath, content),
-    readDocx: (id: number, filePath: string) => ipcRenderer.invoke('project:readDocx', id, filePath),
-    readDocxBuffer: (id: number, filePath: string) => ipcRenderer.invoke('project:readDocxBuffer', id, filePath),
+    readExcel: (id: number, filePath: string, projectName?: string) => ipcRenderer.invoke('project:readExcel', id, filePath, projectName),
+    writeExcel: (id: number, filePath: string, sheets: { name: string; headers: string[]; rows: Record<string, any>[] }[], projectName?: string) => ipcRenderer.invoke('project:writeExcel', id, filePath, sheets, projectName),
+    readFile: (id: number, filePath: string, projectName?: string) => ipcRenderer.invoke('project:readFile', id, filePath, projectName),
+    writeFile: (id: number, filePath: string, content: string, projectName?: string) => ipcRenderer.invoke('project:writeFile', id, filePath, content, projectName),
+    readDocx: (id: number, filePath: string, projectName?: string) => ipcRenderer.invoke('project:readDocx', id, filePath, projectName),
+    readDocxBuffer: (id: number, filePath: string, projectName?: string) => ipcRenderer.invoke('project:readDocxBuffer', id, filePath, projectName),
     listFiles: (id: string, fileType?: string) => ipcRenderer.invoke('project:listFiles', id, fileType),
   },
   render: {
@@ -74,8 +76,8 @@ const api = {
     },
   },
   log: {
-    onOutput: (callback: (data: { level: string; message: string }) => void) => {
-      const handler = (_e: unknown, data: { level: string; message: string }) => callback(data)
+    onOutput: (callback: (data: { level: string; message: string; source?: string }) => void) => {
+      const handler = (_e: unknown, data: { level: string; message: string; source?: string }) => callback(data)
       ipcRenderer.on('log:output', handler)
       return () => ipcRenderer.removeListener('log:output', handler)
     },

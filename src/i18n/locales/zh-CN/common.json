@@ -146,7 +146,22 @@
   "logViewer": {
     "executionLog": "执行日志",
     "noLogs": "暂无日志",
-    "clear": "清空"
+    "noMatchedLogs": "没有匹配的日志",
+    "clear": "清空",
+    "searchPlaceholder": "搜索日志...",
+    "levels": {
+      "info": "信息",
+      "success": "成功",
+      "warn": "警告",
+      "error": "错误",
+      "debug": "调试"
+    },
+    "sources": {
+      "app": "应用",
+      "electron": "主进程",
+      "backend": "后台",
+      "terminal": "终端"
+    }
   },
   "noContent": "暂无内容",
   "emptyState": {

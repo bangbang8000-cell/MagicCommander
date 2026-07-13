@@ -17,69 +17,106 @@ interface CommandEntry {
   fn: (args: string[], ctx: CommandContext) => Promise<void> | void
 }
 
-function getDesc(entry: CommandEntry): string {
-  return typeof entry.desc === 'function' ? entry.desc() : entry.desc
+function tt(key: string, options?: Record<string, unknown>): string {
+  const normalizedKey = key.startsWith('terminal:') ? key : `terminal:${key.replace(/^terminal\./, '')}`
+  return i18n.t(normalizedKey, options)
+}
+
+function tLines(key: string): string[] {
+  const value = i18n.t(key, { returnObjects: true })
+  return Array.isArray(value) ? value.map(String) : String(value).split('\n')
+}
+
+function printLines(ctx: CommandContext, lines: string[]) {
+  lines.forEach((line) => ctx.addLog('info', line))
+}
+
+export function terminalHelpLines(): string[] {
+  return tLines('terminal:help.terminal')
+}
+
+export function cliHelpLines(): string[] {
+  return tLines('terminal:help.cli')
+}
+
+function parseFormatOption(args: string[]): { args: string[]; format: 'device_name' | 'device_sn' } {
+  const nextArgs: string[] = []
+  let format: 'device_name' | 'device_sn' = 'device_name'
+
+  for (let i = 0; i < args.length; i += 1) {
+    const arg = args[i]
+    if (arg === '--format' || arg === '-f') {
+      const value = args[i + 1]
+      if (value === 'device_name' || value === 'device_sn') {
+        format = value
+        i += 1
+      }
+      continue
+    }
+    nextArgs.push(arg)
+  }
+
+  return { args: nextArgs, format }
 }
 
 export const commands: { [name: string]: CommandEntry } = {
   help: {
-    desc: () => i18n.t('terminal.commands.help.desc'),
-    fn: (_, ctx) => {
-      const lines = Object.entries(commands).map(([name, entry]) => `  ${name.padEnd(16)} ${getDesc(entry)}`)
-      ctx.addLog('info', i18n.t('terminal.commands.help.output'))
-      lines.forEach((l) => ctx.addLog('info', l))
+    desc: () => tt('terminal.commands.help.desc'),
+    fn: (args, ctx) => {
+      const topic = (args[0] ?? '').toLowerCase()
+      printLines(ctx, topic === 'cli' || topic === 'cmd' || topic === 'command' ? cliHelpLines() : terminalHelpLines())
     },
   },
   '?': {
-    desc: () => i18n.t('terminal.commands.question.desc'),
+    desc: () => tt('terminal.commands.question.desc'),
     fn: (args, ctx) => commands.help.fn(args, ctx),
   },
   version: {
-    desc: () => i18n.t('terminal.commands.version.desc'),
+    desc: () => tt('terminal.commands.version.desc'),
     fn: (_, ctx) => ctx.addLog('success', 'MagicCommander v2.1.0'),
   },
   ver: {
-    desc: () => i18n.t('terminal.commands.ver.desc'),
+    desc: () => tt('terminal.commands.ver.desc'),
     fn: (args, ctx) => commands.version.fn(args, ctx),
   },
   list: {
-    desc: () => i18n.t('terminal.commands.list.desc'),
+    desc: () => tt('terminal.commands.list.desc'),
     fn: async (args, ctx) => {
       if (args.length === 0 || args[0] === 'projects' || args[0] === '-a') {
         const stored = useProjectStore.getState().projects
         if (stored && stored.length > 0) {
-          ctx.addLog('info', i18n.t('terminal.commands.list.projectsFromCache', { count: stored.length }))
+          ctx.addLog('info', tt('terminal.commands.list.projectsFromCache', { count: stored.length }))
           stored.forEach((p) => ctx.addLog('info', `  #${p.id} ${p.name}`))
           return
         }
         if (!window.electron || !window.electron.project) {
-          ctx.addLog('error', i18n.t('terminal.electronRequired'))
+          ctx.addLog('error', tt('terminal.electronRequired'))
           return
         }
         const raw = await window.electron.project.list()
         const projects = Array.isArray(raw) ? raw : []
         if (projects.length === 0) {
-          ctx.addLog('warn', i18n.t('terminal.commands.list.noProjects'))
+          ctx.addLog('warn', tt('terminal.commands.list.noProjects'))
           return
         }
-        ctx.addLog('info', i18n.t('terminal.commands.list.projectsFromServer', { count: projects.length }))
+        ctx.addLog('info', tt('terminal.commands.list.projectsFromServer', { count: projects.length }))
         projects.forEach((p: any) => {
           ctx.addLog('info', `  #${p.id ?? '?'} ${String(p.name ?? '')}`)
         })
       } else {
-        ctx.addLog('error', i18n.t('terminal.commands.list.unknownParam', { param: args.join(' ') }))
+        ctx.addLog('error', tt('terminal.commands.list.unknownParam', { param: args.join(' ') }))
       }
     },
   },
   ls: {
-    desc: () => i18n.t('terminal.commands.ls.desc'),
+    desc: () => tt('terminal.commands.ls.desc'),
     fn: (_, ctx) => commands.list.fn(['projects'], ctx),
   },
   select: {
-    desc: () => i18n.t('terminal.commands.select.desc'),
+    desc: () => tt('terminal.commands.select.desc'),
     fn: async (args, ctx) => {
       if (args.length === 0) {
-        ctx.addLog('error', i18n.t('terminal.commands.select.usage'))
+        ctx.addLog('error', tt('terminal.commands.select.usage'))
         return
       }
       const target = args.join(' ')
@@ -93,25 +130,27 @@ export const commands: { [name: string]: CommandEntry } = {
         }
       }
       if (!project) {
-        ctx.addLog('error', i18n.t('terminal.commands.select.notFound', { name: target }))
+        ctx.addLog('error', tt('terminal.commands.select.notFound', { name: target }))
         return
       }
       ctx.selectProject(project.name)
-      ctx.addLog('success', i18n.t('terminal.commands.select.selected', { name: project.name }))
+      ctx.addLog('success', tt('terminal.commands.select.selected', { name: project.name }))
     },
   },
   render: {
-    desc: () => i18n.t('terminal.commands.render.desc'),
+    desc: () => tt('terminal.commands.render.desc'),
     fn: async (args, ctx) => {
       if (!window.electron || !window.electron.render) {
-        ctx.addLog('error', i18n.t('terminal.electronRequired'))
+        ctx.addLog('error', tt('terminal.electronRequired'))
         return
       }
-      const sub = args[0] ?? 'project'
-      const target = args.slice(1).join(' ')
+
+      const parsed = parseFormatOption(args)
+      const sub = parsed.args[0] ?? 'project'
+      const target = parsed.args.slice(1).join(' ')
       let ids: string[] = []
       if (target) {
-        ids = [target]
+        ids = target.split(',').map((id) => id.trim()).filter(Boolean)
       } else {
         const selected = useProjectStore.getState().selectedProject
         if (selected) {
@@ -119,75 +158,83 @@ export const commands: { [name: string]: CommandEntry } = {
         }
       }
       if (ids.length === 0) {
-        ctx.addLog('error', i18n.t('terminal.commands.render.noProject'))
+        ctx.addLog('error', tt('terminal.commands.render.noProject'))
         return
       }
       try {
         if (sub === 'yaml') {
-          await window.electron.render.yaml(ids)
-          ctx.addLog('success', i18n.t('terminal.commands.render.yamlDone', { ids: ids.join(', ') }))
+          if (parsed.format === 'device_sn') {
+            await window.electron.render.yamlSn(ids)
+          } else {
+            await window.electron.render.yaml(ids)
+          }
+          ctx.addLog('success', tt('terminal.commands.render.yamlDone', { ids: ids.join(', ') }))
         } else if (sub === 'project' || sub === 'projects') {
-          await window.electron.render.project(ids)
-          ctx.addLog('success', i18n.t('terminal.commands.render.projectDone', { ids: ids.join(', ') }))
+          if (parsed.format === 'device_sn') {
+            await window.electron.render.projectSn(ids)
+          } else {
+            await window.electron.render.project(ids)
+          }
+          ctx.addLog('success', tt('terminal.commands.render.projectDone', { ids: ids.join(', ') }))
         } else {
-          ctx.addLog('error', i18n.t('terminal.commands.render.unknownSub', { sub }))
+          ctx.addLog('error', tt('terminal.commands.render.unknownSub', { sub }))
         }
       } catch (err) {
-        ctx.addLog('error', i18n.t('terminal.commands.render.failed', { error: (err as Error).message }))
+        ctx.addLog('error', tt('terminal.commands.render.failed', { error: (err as Error).message }))
       }
     },
   },
   label: {
-    desc: () => i18n.t('terminal.commands.label.desc'),
+    desc: () => tt('terminal.commands.label.desc'),
     fn: async (args, ctx) => {
       if (!window.electron || !window.electron.feature) {
-        ctx.addLog('error', i18n.t('terminal.electronRequired'))
+        ctx.addLog('error', tt('terminal.electronRequired'))
         return
       }
       if (args.length === 0) {
         const selected = useProjectStore.getState().selectedProject
         if (!selected) {
-          ctx.addLog('error', i18n.t('terminal.commands.label.noProject'))
+          ctx.addLog('error', tt('terminal.commands.label.noProject'))
           return
         }
         args.push(String(selected.id))
       }
       try {
         await window.electron.feature.labelPrint(args)
-        ctx.addLog('success', i18n.t('terminal.commands.label.submitted', { ids: args.join(', ') }))
+        ctx.addLog('success', tt('terminal.commands.label.submitted', { ids: args.join(', ') }))
       } catch (err) {
-        ctx.addLog('error', i18n.t('terminal.commands.label.failed', { error: (err as Error).message }))
+        ctx.addLog('error', tt('terminal.commands.label.failed', { error: (err as Error).message }))
       }
     },
   },
   theme: {
-    desc: () => i18n.t('terminal.commands.theme.desc'),
+    desc: () => tt('terminal.commands.theme.desc'),
     fn: (args, ctx) => {
       if (args.length === 0) {
         ctx.toggleDark()
         const next = useUIStore.getState().isDark ? 'dark' : 'light'
-        ctx.addLog('success', i18n.t('terminal.commands.theme.toggled', { theme: next }))
+        ctx.addLog('success', tt('terminal.commands.theme.toggled', { theme: next }))
         return
       }
       const value = args[0].toLowerCase()
       if (value === 'light' || value === 'dark') {
         ctx.setTheme(value)
-        ctx.addLog('success', i18n.t('terminal.commands.theme.set', { theme: value }))
+        ctx.addLog('success', tt('terminal.commands.theme.set', { theme: value }))
       } else {
-        ctx.addLog('error', i18n.t('terminal.commands.theme.unknown', { theme: args[0] }))
+        ctx.addLog('error', tt('terminal.commands.theme.unknown', { theme: args[0] }))
       }
     },
   },
   clear: {
-    desc: () => i18n.t('terminal.commands.clear.desc'),
+    desc: () => tt('terminal.commands.clear.desc'),
     fn: (_, ctx) => ctx.clearTerminal(),
   },
   cls: {
-    desc: () => i18n.t('terminal.commands.cls.desc'),
+    desc: () => tt('terminal.commands.cls.desc'),
     fn: (_, ctx) => ctx.clearTerminal(),
   },
   echo: {
-    desc: () => i18n.t('terminal.commands.echo.desc'),
+    desc: () => tt('terminal.commands.echo.desc'),
     fn: (args, ctx) => {
       ctx.addLog('info', args.join(' '))
     },
@@ -216,7 +263,7 @@ export async function executeCommand(
   if (!cmd) return
   const found = findCommand(cmd)
   if (!found) {
-    ctx.addLog('error', i18n.t('terminal.commands.unknown', { cmd }))
+    ctx.addLog('error', tt('terminal.commands.unknown', { cmd }))
     return
   }
   await Promise.resolve(found.entry.fn(args, ctx))

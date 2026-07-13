@@ -6,20 +6,33 @@ interface ProjectState {
   projects: ProjectInfo[]
   selectedProject: ProjectInfo | null
   selectedProjectId: number | null
+  selectedProjectName: string | null
   projectStructure: FileNode[]
   isLoading: boolean
   error: string | null
-  favoriteProjects: number[]
-  recentProjects: number[]
+  favoriteProjects: string[]
+  recentProjects: string[]
 
   fetchProjects: () => Promise<void>
-  createProject: (name: string) => Promise<void>
+  listExamples: () => Promise<string[]>
+  createProject: (name: string, options?: { template?: string; empty?: boolean }) => Promise<void>
+  saveAsExample: (projectName: string, exampleName: string) => Promise<void>
   deleteProjects: (ids: string[]) => Promise<void>
   selectProject: (project: ProjectInfo | null) => void
   loadStructure: (name: string) => Promise<void>
-  toggleFavorite: (id: number) => void
-  trackRecent: (id: number) => void
+  toggleFavorite: (name: string) => void
+  trackRecent: (name: string) => void
 }
+
+const normalizeProjects = (rawProjects: any[]): ProjectInfo[] => (
+  Array.isArray(rawProjects)
+    ? rawProjects.map((p: any) => ({
+        id: p.id ?? 0,
+        name: String(p.name ?? ''),
+        index: p.index ?? 0,
+      }))
+    : []
+)
 
 export const useProjectStore = create<ProjectState>()(
   persist(
@@ -27,6 +40,7 @@ export const useProjectStore = create<ProjectState>()(
       projects: [],
       selectedProject: null,
       selectedProjectId: null,
+      selectedProjectName: null,
       projectStructure: [],
       isLoading: false,
       error: null,
@@ -40,44 +54,75 @@ export const useProjectStore = create<ProjectState>()(
             set({ error: '请在 Electron 桌面应用中运行此功能', isLoading: false })
             return
           }
-          const rawProjects = await window.electron.project.list()
-          const projects: ProjectInfo[] = Array.isArray(rawProjects)
-            ? rawProjects.map((p: any) => ({
-                id: p.id ?? 0,
-                name: String(p.name ?? ''),
-                index: p.index ?? 0,
-              }))
-            : []
-          set({ projects, isLoading: false })
+          const projects = normalizeProjects(await window.electron.project.list())
+          const validNames = new Set(projects.map((p) => p.name))
+          const selectedProjectName = get().selectedProjectName
+          const selectedProject = selectedProjectName
+            ? projects.find((p) => p.name === selectedProjectName) ?? null
+            : null
+          set((state) => ({
+            projects,
+            selectedProject,
+            selectedProjectId: selectedProject?.id ?? null,
+            selectedProjectName: selectedProject?.name ?? null,
+            projectStructure: selectedProject ? state.projectStructure : [],
+            favoriteProjects: state.favoriteProjects.filter((name) => validNames.has(name)),
+            recentProjects: state.recentProjects.filter((name) => validNames.has(name)),
+            isLoading: false,
+            error: null,
+          }))
         } catch (err) {
           console.error('[fetchProjects] 错误:', (err as Error).message)
           set({ error: (err as Error).message, isLoading: false })
         }
       },
 
-      createProject: async (name: string) => {
-        await window.electron.project.create(name)
+      listExamples: async () => {
+        return await window.electron.project.listExamples()
+      },
+
+      createProject: async (name: string, options?: { template?: string; empty?: boolean }) => {
+        await window.electron.project.create(name, options)
         await get().fetchProjects()
+      },
+
+      saveAsExample: async (projectName: string, exampleName: string) => {
+        await window.electron.project.saveAsExample(projectName, exampleName)
       },
 
       deleteProjects: async (ids: string[]) => {
+        const deletingNames = new Set(
+          ids
+            .map((id) => get().projects.find((project) => String(project.id) === String(id))?.name)
+            .filter((name): name is string => Boolean(name)),
+        )
         await window.electron.project.delete(ids)
-        const { selectedProject } = get()
-        if (selectedProject) {
-          const rawProjects = await window.electron.project.list()
-          const projectNames = Array.isArray(rawProjects)
-            ? rawProjects.map((p: any) => String(p.name ?? ''))
-            : []
-          if (!projectNames.includes(selectedProject.name)) {
-            set({ selectedProject: null, projectStructure: [] })
-          }
-        }
-        await get().fetchProjects()
+        const projects = normalizeProjects(await window.electron.project.list())
+        const validNames = new Set(projects.map((p) => p.name))
+        const selectedProjectName = get().selectedProjectName
+        const selectedProject = selectedProjectName && !deletingNames.has(selectedProjectName)
+          ? projects.find((p) => p.name === selectedProjectName) ?? null
+          : null
+        set((state) => ({
+          projects,
+          isLoading: false,
+          error: null,
+          favoriteProjects: state.favoriteProjects.filter((name) => validNames.has(name)),
+          recentProjects: state.recentProjects.filter((name) => validNames.has(name)),
+          selectedProject,
+          selectedProjectId: selectedProject?.id ?? null,
+          selectedProjectName: selectedProject?.name ?? null,
+          projectStructure: selectedProject ? state.projectStructure : [],
+        }))
       },
 
       selectProject: (project: ProjectInfo | null) => {
-        set({ selectedProject: project, selectedProjectId: project?.id ?? null })
-        if (project) get().trackRecent(project.id)
+        set({
+          selectedProject: project,
+          selectedProjectId: project?.id ?? null,
+          selectedProjectName: project?.name ?? null,
+        })
+        if (project) get().trackRecent(project.name)
       },
 
       loadStructure: async (name: string) => {
@@ -90,22 +135,22 @@ export const useProjectStore = create<ProjectState>()(
         }
       },
 
-      toggleFavorite: (id: number) => {
+      toggleFavorite: (name: string) => {
         const list = get().favoriteProjects
-        const next = list.includes(id) ? list.filter((x) => x !== id) : [...list, id]
+        const next = list.includes(name) ? list.filter((x) => x !== name) : [...list, name]
         set({ favoriteProjects: next })
       },
 
-      trackRecent: (id: number) => {
-        const list = get().recentProjects.filter((x) => x !== id)
-        const next = [id, ...list].slice(0, 5)
+      trackRecent: (name: string) => {
+        const list = get().recentProjects.filter((x) => x !== name)
+        const next = [name, ...list].slice(0, 5)
         set({ recentProjects: next })
       },
     }),
     {
       name: 'mc-project-state',
       partialize: (state) => ({
-        selectedProjectId: state.selectedProjectId,
+        selectedProjectName: state.selectedProjectName,
         favoriteProjects: state.favoriteProjects,
         recentProjects: state.recentProjects,
       }),
@@ -113,6 +158,7 @@ export const useProjectStore = create<ProjectState>()(
         return (state) => {
           if (state) {
             state.selectedProject = null
+            state.selectedProjectId = null
           }
         }
       },

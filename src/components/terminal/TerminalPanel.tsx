@@ -4,7 +4,7 @@ import clsx from 'clsx'
 import { useUIStore } from '@/stores/ui.store'
 import { useLogStore } from '@/stores/log.store'
 import { useProjectStore } from '@/stores/project.store'
-import { executeCommand, CommandContext, LogLevel } from './commandRegistry'
+import { executeCommand, CommandContext, LogLevel, terminalHelpLines } from './commandRegistry'
 
 interface HistoryEntry {
   input: string
@@ -23,12 +23,17 @@ export function TerminalPanel() {
   const selectProject = useProjectStore((s) => s.selectProject)
   const addGlobalLog = useLogStore((s) => s.addLog)
 
-  const [history, setHistory] = useState<HistoryEntry[]>([
+  const [history, setHistory] = useState<HistoryEntry[]>(() => [
     {
       input: '',
-      output: t('terminal.banner.welcomeBanner'),
+      output: t('banner.welcomeBanner'),
       level: 'info'
     },
+    ...terminalHelpLines().map((line) => ({
+      input: '',
+      output: line,
+      level: 'info' as LogLevel,
+    })),
   ])
   const [commandHistory, setCommandHistory] = useState<string[]>([])
   const [historyIndex, setHistoryIndex] = useState<number>(-1)
@@ -53,7 +58,7 @@ export function TerminalPanel() {
       return next
     })
     if (message) {
-      addGlobalLog(level, message)
+      addGlobalLog(level, message, 'terminal')
     }
   }
 
@@ -77,7 +82,10 @@ export function TerminalPanel() {
       setTheme(t)
     },
     clearTerminal: () => {
-      setHistory([{ input: '', output: t('terminal.messages.cleared'), level: 'info' }])
+      setHistory([
+        { input: '', output: t('messages.cleared'), level: 'info' },
+        { input: '', output: t('messages.helpHint'), level: 'info' },
+      ])
     },
     selectProject: (name) => {
       const project = useProjectStore.getState().projects.find((p) => p.name === name)
@@ -106,11 +114,11 @@ export function TerminalPanel() {
     try {
       const hasAsync = lower.startsWith('list') || lower === 'ls' || lower.startsWith('select') || lower.startsWith('render') || lower.startsWith('label')
       if (hasAsync) {
-        appendOutput('info', t('terminal.messages.executing'))
+        appendOutput('info', t('messages.executing'))
       }
       await executeCommand(trimmed, ctx)
     } catch (err) {
-      appendOutput('error', t('terminal.messages.execError', { error: (err as Error).message }))
+      appendOutput('error', t('messages.execError', { error: (err as Error).message }))
     } finally {
       setIsExecuting(false)
     }
@@ -194,7 +202,7 @@ export function TerminalPanel() {
           spellCheck={false}
           autoCapitalize="off"
           autoComplete="off"
-          placeholder={isExecuting ? t('terminal.placeholderExecuting') : t('terminal.placeholder')}
+          placeholder={isExecuting ? t('placeholderExecuting') : t('placeholder')}
           className={clsx(
             'flex-1 bg-transparent outline-none font-mono text-[11px] py-0.5',
             isDark ? 'text-gray-100 placeholder:text-gray-500' : 'text-gray-900 placeholder:text-gray-400',

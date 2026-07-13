@@ -1,0 +1,42 @@
+# MagicCommander 示例：接入交换机开局配置
+# 模板文件 ASW.j2 与 hostname.xlsx 中的 角色=ASW 对应
+sysname {{ info['设备名'] }}
+#
+vlan {{ info['管理VLAN'] }}
+ description MGMT
+#
+vlan {{ info['接入VLAN'] }}
+ description OFFICE_ACCESS
+#
+interface {{ info['网关接口'] }}
+ description {{ info['备注'] }}
+ ip address {{ info['网关IP'] }} {{ info['网关掩码'] }}
+#
+interface {{ info['己端接口'] }}
+ description TO-{{ info['终端名称'] }}
+ port link-mode bridge
+ port access vlan {{ info['接入VLAN'] }}
+#
+local-user {{ info['本地用户名'] }} class manage
+ password simple {{ info['本地用户密钥'] }}
+ service-type ssh terminal
+ authorization-attribute user-role network-admin
+#
+{% if info['SSH使能'] == 'yes' %}
+ssh server enable
+ssh server port {{ info['SSH端口'] }}
+{% endif %}
+#
+{% if info['NTP地址'][0] == 'list' %}
+{% for ntp in info['NTP地址'][1:] %}
+ntp-service unicast-server {{ ntp }}
+{% endfor %}
+{% endif %}
+#
+info-center loghost {{ info['LOGHOST地址'] }}
+snmp-agent community read {{ info['SNMP团体名'] }}
+snmp-agent target-host trap address udp-domain {{ info['SNMP地址'] }} params securityname {{ info['SNMP团体名'] }}
+#
+ip route-static 0.0.0.0 0.0.0.0 {{ info['默认路由下一跳'] }}
+#
+return

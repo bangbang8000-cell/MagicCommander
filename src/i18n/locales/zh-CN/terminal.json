@@ -1,18 +1,76 @@
 {
   "banner": {
-    "welcomeBanner": "╔══════════════════════════════════════════════════════════════╗\n║                    MagicCommander 终端                     ║\n╠══════════════════════════════════════════════════════════════╣\n║  欢迎使用 MagicCommander 内置终端！                       ║\n║  输入 help 查看所有可用命令                               ║\n╠══════════════════════════════════════════════════════════════╣\n║  常用命令速览:                                           ║\n║  ┌─────────────────────────────────────────────────────┐ ║\n║  │ help       - 显示帮助信息                            │ ║\n║  │ list       - 列出所有项目                            │ ║\n║  │ select     - 选择项目                               │ ║\n║  │ render     - 执行渲染                               │ ║\n║  │ label      - 标签打印                               │ ║\n║  │ clear      - 清空终端                               │ ║\n║  └─────────────────────────────────────────────────────┘ ║\n╚══════════════════════════════════════════════════════════════╝"
+    "welcomeBanner": "╔══════════════════════════════════════════════════════════════╗\n║                    MagicCommander 终端                     ║\n╠══════════════════════════════════════════════════════════════╣\n║  欢迎使用 MagicCommander 内置终端！                       ║\n║  输入 help 查看界面终端命令                               ║\n║  输入 help cli 查看命令行版本用法                         ║\n╠══════════════════════════════════════════════════════════════╣\n║  常用命令速览:                                           ║\n║  ┌─────────────────────────────────────────────────────┐ ║\n║  │ help       - 显示界面终端帮助                        │ ║\n║  │ help cli   - 显示命令行版本用法                      │ ║\n║  │ list / ls  - 列出所有项目                            │ ║\n║  │ select     - 选择项目                               │ ║\n║  │ render     - 执行渲染                               │ ║\n║  │ label      - 标签打印                               │ ║\n║  │ clear      - 清空终端                               │ ║\n║  └─────────────────────────────────────────────────────┘ ║\n╚══════════════════════════════════════════════════════════════╝"
   },
   "messages": {
     "cleared": "终端已清空。",
+    "helpHint": "输入 help 可重新查看命令帮助。",
     "executing": "执行中...",
     "execError": "执行错误: {{error}}"
   },
   "placeholder": "输入命令，Enter 提交",
   "placeholderExecuting": "执行中...",
   "electronRequired": "请在 Electron 桌面应用中运行此功能",
+  "help": {
+    "terminal": [
+      "MagicCommander 界面终端帮助",
+      "",
+      "说明：这里是应用内快捷终端，不是系统 Shell。它封装了常用项目、渲染和标签操作。",
+      "如需使用完整命令行版，请在系统终端进入 backend 目录后运行：python main.py <命令>。",
+      "",
+      "常用界面终端命令：",
+      "  help                         显示本帮助",
+      "  help cli                     显示命令行版 main.py 用法",
+      "  list / ls                    列出项目",
+      "  select <项目名或ID>          选择项目",
+      "  render project <ID|all>      渲染配置，示例：render project 1",
+      "  render yaml <ID|all>         生成 YAML，示例：render yaml 1,2",
+      "  render project <ID> --format device_sn  按 SN 命名输出配置",
+      "  render yaml <ID> --format device_sn     按 SN 命名输出 YAML",
+      "  label <ID|all>               生成标签文档",
+      "  theme [light|dark]           切换或设置主题",
+      "  clear / cls                  清空终端",
+      "",
+      "ID 写法：1 表示单个项目，1,2,3 表示多个项目，all 表示全部项目。",
+      "更多命令行版示例请输入：help cli"
+    ],
+    "cli": [
+      "MagicCommander 命令行版用法",
+      "",
+      "运行位置：系统终端 / PowerShell 中进入 backend 目录，执行：",
+      "  python main.py <命令>",
+      "",
+      "项目管理：",
+      "  python main.py project list",
+      "  python main.py project create <项目名>",
+      "  python main.py project delete <ID或1,2,3> --force",
+      "  python main.py project info <ID>",
+      "",
+      "配置渲染：",
+      "  python main.py render project <ID|1,2,3|all>",
+      "  python main.py render project <ID> --format device_sn",
+      "  python main.py render yaml <ID|1,2,3|all>",
+      "  python main.py render yaml <ID> --format device_sn",
+      "",
+      "标签功能：",
+      "  python main.py label print <ID|1,2,3|all>",
+      "  python main.py label delete <ID|1,2,3|all>",
+      "",
+      "文件清理：",
+      "  python main.py file delete output <ID|all> --force",
+      "  python main.py file delete output-sn <ID|all> --force",
+      "  python main.py file delete yaml <ID|all> --force",
+      "  python main.py file delete yaml-sn <ID|all> --force",
+      "",
+      "查看原生 argparse 帮助：",
+      "  python main.py --help",
+      "  python main.py project --help",
+      "  python main.py render --help"
+    ]
+  },
   "commands": {
     "help": {
-      "desc": "列出所有支持的命令",
+      "desc": "显示界面终端帮助；help cli 显示命令行版本用法",
       "output": "支持的命令:"
     },
     "question": {

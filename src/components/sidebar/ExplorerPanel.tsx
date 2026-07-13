@@ -1,7 +1,7 @@
 import { useProjectStore } from '@/stores/project.store'
 import { useRenderStore } from '@/stores/render.store'
 import { ProjectExplorer } from '@/components/common/ProjectExplorer'
-import { Search, Plus, Trash2, FolderOpen, Star, Clock, Folder } from 'lucide-react'
+import { Search, Plus, Trash2, FolderOpen, Star, Clock, Folder, Save } from 'lucide-react'
 import clsx from 'clsx'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -16,6 +16,8 @@ export function ExplorerPanel() {
   const selectedProject = useProjectStore((s) => s.selectedProject)
   const selectProject = useProjectStore((s) => s.selectProject)
   const createProject = useProjectStore((s) => s.createProject)
+  const listExamples = useProjectStore((s) => s.listExamples)
+  const saveAsExample = useProjectStore((s) => s.saveAsExample)
   const fetchProjects = useProjectStore((s) => s.fetchProjects)
   const deleteProjects = useProjectStore((s) => s.deleteProjects)
   const projectError = useProjectStore((s) => s.error)
@@ -27,9 +29,14 @@ export function ExplorerPanel() {
   const [createOpen, setCreateOpen] = useState(false)
   const [newProjectName, setNewProjectName] = useState('')
   const [templateOption, setTemplateOption] = useState<TemplateOption>('example')
+  const [exampleTemplates, setExampleTemplates] = useState<string[]>([])
+  const [selectedExampleTemplate, setSelectedExampleTemplate] = useState('')
   const [createLoading, setCreateLoading] = useState(false)
   const [createError, setCreateError] = useState('')
   const [deleteOpen, setDeleteOpen] = useState(false)
+  const [saveExampleOpen, setSaveExampleOpen] = useState(false)
+  const [newExampleName, setNewExampleName] = useState('')
+  const [saveExampleLoading, setSaveExampleLoading] = useState(false)
 
   const { t } = useTranslation(['project', 'common'])
 
@@ -43,6 +50,24 @@ export function ExplorerPanel() {
     return ''
   }
 
+  const openCreateDialog = async () => {
+    setNewProjectName('')
+    setTemplateOption('example')
+    setCreateError('')
+    try {
+      const templates = await listExamples()
+      setExampleTemplates(templates)
+      setSelectedExampleTemplate(templates[0] ?? '')
+      if (templates.length === 0) setTemplateOption('empty')
+    } catch (err) {
+      setExampleTemplates([])
+      setSelectedExampleTemplate('')
+      setTemplateOption('empty')
+      showError(`读取示例模板失败: ${(err as Error).message}`)
+    }
+    setCreateOpen(true)
+  }
+
   const handleCreateProject = async () => {
     const trimmed = newProjectName.trim()
     const error = validateName(trimmed)
@@ -53,21 +78,40 @@ export function ExplorerPanel() {
     setCreateLoading(true)
     setCreateError('')
     try {
-      await createProject(trimmed)
+      await createProject(trimmed, templateOption === 'empty'
+        ? { empty: true }
+        : { template: selectedExampleTemplate })
+      const list = useProjectStore.getState().projects
+      const found = list.find((p) => p.name === trimmed)
+      if (found) selectProject(found)
       showSuccess(t('explorer.projectCreatedWithName', { name: trimmed }))
-      await fetchProjects()
       setNewProjectName('')
       setCreateOpen(false)
-      setTimeout(() => {
-        const state = (useProjectStore.getState as () => { projects: ProjectInfo[] })?.()
-        const list = state?.projects ?? []
-        const found = list.find((p) => p.name === trimmed)
-        if (found) selectProject(found)
-      }, 100)
     } catch (err) {
       showError((err as Error).message)
     } finally {
       setCreateLoading(false)
+    }
+  }
+
+  const handleSaveAsExample = async () => {
+    if (!selectedProject) return
+    const exampleName = newExampleName.trim()
+    const error = validateName(exampleName)
+    if (error) {
+      showError(error)
+      return
+    }
+    setSaveExampleLoading(true)
+    try {
+      await saveAsExample(selectedProject.name, exampleName)
+      showSuccess(`已保存为示例: ${exampleName}`)
+      setNewExampleName('')
+      setSaveExampleOpen(false)
+    } catch (err) {
+      showError((err as Error).message)
+    } finally {
+      setSaveExampleLoading(false)
     }
   }
 
@@ -88,17 +132,17 @@ export function ExplorerPanel() {
     ? projects.filter((p) => p.name.toLowerCase().includes(search.toLowerCase()))
     : projects
 
-  const favoriteList = filtered.filter((p) => favoriteProjects.includes(p.id))
+  const favoriteList = filtered.filter((p) => favoriteProjects.includes(p.name))
   const recentList = filtered.filter(
-    (p) => recentProjects.includes(p.id) && !favoriteProjects.includes(p.id),
+    (p) => recentProjects.includes(p.name) && !favoriteProjects.includes(p.name),
   )
-  const allList = filtered.filter(
-    (p) => !favoriteProjects.includes(p.id) && !recentProjects.includes(p.id),
+  const normalList = filtered.filter(
+    (p) => !favoriteProjects.includes(p.name) && !recentProjects.includes(p.name),
   )
 
-  const renderProjectRow = (p: ProjectInfo) => {
-    const isSelected = selectedProject?.id === p.id
-    const isFav = favoriteProjects.includes(p.id)
+  const renderProjectItem = (p: ProjectInfo) => {
+    const isSelected = selectedProject?.name === p.name
+    const isFav = favoriteProjects.includes(p.name)
     return (
       <div
         key={p.id}
@@ -112,7 +156,7 @@ export function ExplorerPanel() {
         <button
           onClick={(e) => {
             e.stopPropagation()
-            toggleFavorite(p.id)
+            toggleFavorite(p.name)
           }}
           title={isFav ? t('explorer.unfavorite') : t('explorer.favorite')}
           className={clsx(
@@ -124,7 +168,7 @@ export function ExplorerPanel() {
         </button>
         <button
           onClick={() => {
-            const wasSelected = selectedProject?.id === p.id
+            const wasSelected = selectedProject?.name === p.name
             selectProject(p)
             if (!wasSelected) {
               setSelectedIds([String(p.id)])
@@ -161,13 +205,13 @@ export function ExplorerPanel() {
           {icon}
           {title}
         </div>
-        {items.map(renderProjectRow)}
+        {items.map(renderProjectItem)}
       </div>
     )
   }
 
   const showEmptyHint = filtered.length === 0
-  const showAllGroups = !showEmptyHint && (favoriteList.length > 0 || recentList.length > 0 || allList.length > 0)
+  const showAllGroups = !showEmptyHint && (favoriteList.length > 0 || recentList.length > 0 || normalList.length > 0)
 
   return (
     <div className="flex flex-col h-full">
@@ -196,17 +240,26 @@ export function ExplorerPanel() {
           <span>{t('explorer.projectList')}</span>
           <div className="flex items-center gap-1">
             <button
-              onClick={() => {
-                setNewProjectName('')
-                setTemplateOption('example')
-                setCreateError('')
-                setCreateOpen(true)
-              }}
+              onClick={openCreateDialog}
               title={t('explorer.newProject')}
               className="px-1.5 py-0.5 rounded border text-[10px] font-normal flex items-center gap-0.5 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600"
             >
               <Plus size={10} />
               {t('explorer.newButton')}
+            </button>
+            <button
+              onClick={() => {
+                if (selectedProject) {
+                  setNewExampleName(`${selectedProject.name}_example`)
+                  setSaveExampleOpen(true)
+                }
+              }}
+              disabled={!selectedProject}
+              title="存为示例"
+              className="px-1.5 py-0.5 rounded border text-[10px] font-normal flex items-center gap-0.5 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-blue-900/30 disabled:opacity-50"
+            >
+              <Save size={10} />
+              存为示例
             </button>
             <button
               onClick={() => {
@@ -237,7 +290,7 @@ export function ExplorerPanel() {
               <>
                 {renderGroup(t('explorer.favorites'), <Star size={10} className="text-yellow-500" />, favoriteList)}
                 {renderGroup(t('explorer.recent'), <Clock size={10} className="text-gray-400 dark:text-gray-500" />, recentList)}
-                {renderGroup(t('explorer.allProjectsGroup'), <Folder size={10} className="text-gray-400 dark:text-gray-500" />, allList)}
+                {renderGroup(t('explorer.allProjectsGroup'), <Folder size={10} className="text-gray-400 dark:text-gray-500" />, normalList)}
               </>
             )}
           </>
@@ -310,14 +363,27 @@ export function ExplorerPanel() {
                 <input
                   type="radio"
                   checked={templateOption === 'example'}
+                  disabled={exampleTemplates.length === 0}
                   onChange={() => setTemplateOption('example')}
                   className="mt-0.5"
                 />
-                <div>
+                <div className="flex-1">
                   <div className="text-sm font-medium text-gray-900 dark:text-gray-100">{t('explorer.useExampleTemplate')}</div>
                   <div className="text-xs mt-0.5 text-gray-500 dark:text-gray-400">
-                    {t('explorer.exampleTemplateDesc')}
+                    从 example 目录选择一个示例项目复制到 workspace
                   </div>
+                  <select
+                    value={selectedExampleTemplate}
+                    disabled={templateOption !== 'example' || exampleTemplates.length === 0}
+                    onChange={(e) => setSelectedExampleTemplate(e.target.value)}
+                    className="mt-2 w-full px-2 py-1 text-xs rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-100 disabled:opacity-50"
+                  >
+                    {exampleTemplates.length === 0 ? (
+                      <option value="">没有可用示例</option>
+                    ) : (
+                      exampleTemplates.map((name) => <option key={name} value={name}>{name}</option>)
+                    )}
+                  </select>
                 </div>
               </label>
               <label
@@ -367,6 +433,49 @@ export function ExplorerPanel() {
         <p className="text-sm text-gray-700 dark:text-gray-200">
           {t('explorer.deleteConfirmMessage', { name: selectedProject?.name })}
         </p>
+      </Modal>
+
+      {/* 存为示例对话框 */}
+      <Modal
+        open={saveExampleOpen}
+        onClose={() => !saveExampleLoading && setSaveExampleOpen(false)}
+        title="存为示例"
+        width="400px"
+        footer={
+          <>
+            <button
+              onClick={() => setSaveExampleOpen(false)}
+              disabled={saveExampleLoading}
+              className="px-4 py-1.5 text-sm rounded-md border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50"
+            >
+              {t('common:app.cancel')}
+            </button>
+            <button
+              onClick={handleSaveAsExample}
+              disabled={saveExampleLoading}
+              className="px-4 py-1.5 text-sm rounded-md bg-primary-600 text-white hover:bg-primary-700 disabled:opacity-50"
+            >
+              保存
+            </button>
+          </>
+        }
+      >
+        <div className="space-y-3">
+          <p className="text-sm text-gray-700 dark:text-gray-200">
+            将当前项目 <span className="font-semibold">{selectedProject?.name}</span> 保存到 example 目录，运行输出目录不会复制。
+          </p>
+          <div>
+            <label className="block text-xs font-medium mb-1.5 text-gray-700 dark:text-gray-300">
+              示例名称
+            </label>
+            <input
+              type="text"
+              value={newExampleName}
+              onChange={(e) => setNewExampleName(e.target.value)}
+              className="w-full px-3 py-1.5 text-sm border rounded-md bg-white dark:bg-gray-900 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400"
+            />
+          </div>
+        </div>
       </Modal>
     </div>
   )

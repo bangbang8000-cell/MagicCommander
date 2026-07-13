@@ -23,10 +23,50 @@ export function getBackendDir(): string {
  * 获取工作区目录路径（项目数据所在目录）
  * 生产环境使用用户数据目录，避免安装目录无写入权限
  */
+function resolveExistingDir(candidates: string[], fallback: string): string {
+  for (const candidate of candidates) {
+    if (fs.existsSync(candidate)) return candidate
+  }
+  return fallback
+}
+
+function getRepoRootDir(): string {
+  const candidates = [
+    process.cwd(),
+    path.resolve(process.cwd(), '..'),
+    path.resolve(__dirname, '..'),
+    path.resolve(__dirname, '..', '..'),
+    app.getAppPath(),
+    path.resolve(app.getAppPath(), '..'),
+  ]
+  return resolveExistingDir(
+    candidates.filter((candidate) => fs.existsSync(path.join(candidate, 'package.json'))),
+    process.cwd(),
+  )
+}
+
 export function getWorkspaceDir(): string {
-  const devPath = path.join(process.cwd(), 'workspace')
-  if (fs.existsSync(devPath)) return devPath
-  return path.join(getUserDataDir(), 'workspace')
+  const userWorkspace = path.join(getUserDataDir(), 'workspace')
+  return resolveExistingDir([
+    path.join(getRepoRootDir(), 'workspace'),
+    path.join(process.cwd(), 'workspace'),
+    path.join(app.getAppPath(), 'workspace'),
+    userWorkspace,
+  ], userWorkspace)
+}
+
+/**
+ * 获取示例项目目录路径
+ */
+export function getExampleDir(): string {
+  const userExample = path.join(getUserDataDir(), 'example')
+  return resolveExistingDir([
+    path.join(getRepoRootDir(), 'example'),
+    path.join(process.cwd(), 'example'),
+    path.join(app.getAppPath(), 'example'),
+    path.join(process.resourcesPath, 'example'),
+    userExample,
+  ], userExample)
 }
 
 /**
@@ -35,16 +75,23 @@ export function getWorkspaceDir(): string {
  */
 export function initializeWorkspace(): void {
   const workspaceDir = getWorkspaceDir()
-  if (fs.existsSync(workspaceDir)) {
-    return
+  if (!fs.existsSync(workspaceDir)) {
+    fs.mkdirSync(workspaceDir, { recursive: true })
+
+    // 生产环境：从安装目录的 resources/workspace 复制初始示例
+    const bundledWorkspace = path.join(process.resourcesPath, 'workspace')
+    if (fs.existsSync(bundledWorkspace)) {
+      copyDirRecursive(bundledWorkspace, workspaceDir)
+    }
   }
 
-  fs.mkdirSync(workspaceDir, { recursive: true })
-
-  // 生产环境：从安装目录的 resources/workspace 复制初始示例
-  const bundledWorkspace = path.join(process.resourcesPath, 'workspace')
-  if (fs.existsSync(bundledWorkspace)) {
-    copyDirRecursive(bundledWorkspace, workspaceDir)
+  const exampleDir = getExampleDir()
+  if (!fs.existsSync(exampleDir)) {
+    fs.mkdirSync(exampleDir, { recursive: true })
+    const bundledExample = path.join(process.resourcesPath, 'example')
+    if (fs.existsSync(bundledExample)) {
+      copyDirRecursive(bundledExample, exampleDir)
+    }
   }
 }
 
@@ -212,7 +259,7 @@ export const APP_CONFIG = {
   
   // 版本信息
   VERSION: {
-    CURRENT: '2.9.8',
+    CURRENT: '2.9.9',
     MIN_SUPPORTED_PYTHON: '3.8',
   },
 }

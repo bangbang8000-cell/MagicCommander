@@ -5,7 +5,8 @@
   "messages": {
     "cleared": "Terminal effacé.",
     "executing": "Exécution en cours...",
-    "execError": "Erreur d'exécution : {{error}}"
+    "execError": "Erreur d'exécution : {{error}}",
+    "helpHint": "Type help to show command help again."
   },
   "placeholder": "Saisir une commande, Entrée pour exécuter",
   "placeholderExecuting": "Exécution en cours...",
@@ -70,5 +71,62 @@
       "desc": "Afficher du texte, usage : echo <texte>"
     },
     "unknown": "Commande inconnue : {{cmd}}"
+  },
+  "help": {
+    "terminal": [
+      "MagicCommander UI Terminal Help",
+      "",
+      "Note: this is an in-app shortcut terminal, not a system shell. It wraps common project, render, and label operations.",
+      "For the full CLI, open your system terminal, enter the backend directory, and run: python main.py <command>.",
+      "",
+      "Common UI terminal commands:",
+      "  help                         Show this help",
+      "  help cli                     Show main.py CLI usage",
+      "  list / ls                    List projects",
+      "  select <name or ID>          Select a project",
+      "  render project <ID|all>      Render configuration, e.g. render project 1",
+      "  render yaml <ID|all>         Generate YAML, e.g. render yaml 1,2",
+      "  render project <ID> --format device_sn  Output config files by SN",
+      "  render yaml <ID> --format device_sn     Output YAML files by SN",
+      "  label <ID|all>               Generate label documents",
+      "  theme [light|dark]           Toggle or set theme",
+      "  clear / cls                  Clear terminal",
+      "",
+      "ID format: 1 means one project, 1,2,3 means multiple projects, and all means all projects.",
+      "Type help cli for more CLI examples."
+    ],
+    "cli": [
+      "MagicCommander CLI Usage",
+      "",
+      "Run from the backend directory in your system terminal / PowerShell:",
+      "  python main.py <command>",
+      "",
+      "Project management:",
+      "  python main.py project list",
+      "  python main.py project create <project-name>",
+      "  python main.py project delete <ID or 1,2,3> --force",
+      "  python main.py project info <ID>",
+      "",
+      "Configuration rendering:",
+      "  python main.py render project <ID|1,2,3|all>",
+      "  python main.py render project <ID> --format device_sn",
+      "  python main.py render yaml <ID|1,2,3|all>",
+      "  python main.py render yaml <ID> --format device_sn",
+      "",
+      "Labels:",
+      "  python main.py label print <ID|1,2,3|all>",
+      "  python main.py label delete <ID|1,2,3|all>",
+      "",
+      "File cleanup:",
+      "  python main.py file delete output <ID|all> --force",
+      "  python main.py file delete output-sn <ID|all> --force",
+      "  python main.py file delete yaml <ID|all> --force",
+      "  python main.py file delete yaml-sn <ID|all> --force",
+      "",
+      "Native argparse help:",
+      "  python main.py --help",
+      "  python main.py project --help",
+      "  python main.py render --help"
+    ]
   }
 }

@@ -228,9 +228,10 @@ def handle_project_command(processor, args):
                 print_info('操作已取消')
                 sys.exit(0)
         
-        for idx in target_ids:
+        for idx in sorted(target_ids, reverse=True):
+            project_name = processor.project_name[idx]
             processor.execute_delete('project', str(idx + 1))
-            print_success(f'项目 "{processor.project_name[idx]}" 删除成功')
+            print_success(f'项目 "{project_name}" 删除成功')
 
     elif args.subcommand == 'info':
         try:

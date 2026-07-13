@@ -146,7 +146,22 @@
   "logViewer": {
     "executionLog": "บันทึกการดำเนินการ",
     "noLogs": "ไม่มีบันทึก",
-    "clear": "ล้าง"
+    "clear": "ล้าง",
+    "noMatchedLogs": "No matching logs",
+    "searchPlaceholder": "Search logs...",
+    "levels": {
+      "info": "Info",
+      "success": "Success",
+      "warn": "Warning",
+      "error": "Error",
+      "debug": "Debug"
+    },
+    "sources": {
+      "app": "App",
+      "electron": "Main",
+      "backend": "Backend",
+      "terminal": "Terminal"
+    }
   },
   "noContent": "ไม่มีเนื้อหา",
   "emptyState": {
