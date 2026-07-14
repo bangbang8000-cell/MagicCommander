@@ -9,8 +9,11 @@ import argparse
 import sys
 import json
 import os
+import logging
 from pre_processing import PreProcessing
 from config import WORKSPACE_DIR
+
+logger = logging.getLogger(__name__)
 
 
 def main():
@@ -182,8 +185,7 @@ def main():
     except Exception as e:
         print_error(str(e))
         if args.verbose:
-            import traceback
-            print(traceback.format_exc())
+            logger.error("命令执行异常", exc_info=True)
         sys.exit(1)
 
 
@@ -536,7 +538,7 @@ def handle_label_command(processor, args):
             import json as _json
             label_config = _json.loads(args.config)
         except Exception as _e:
-            print(f'警告: 无法解析 config 参数: {_e}，使用默认配置')
+            logger.error(f"无法解析 config 参数: {_e}，使用默认配置")
 
     if args.subcommand == 'print':
         processor.execute_feature('label-print', target_str, label_config)

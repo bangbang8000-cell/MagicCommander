@@ -11,13 +11,13 @@ class TestJsonSafeVal:
         val = np.int64(42)
         result = json_safe_val(val)
         assert result == 42
-        assert type(result) is int
+        assert isinstance(result, int)
 
     def test_converts_list_of_numpy(self):
         val = [np.int64(1), np.int64(2)]
         result = json_safe_val(val)
         assert result == [1, 2]
-        assert all(type(x) is int for x in result)
+        assert all(isinstance(x, int) for x in result)
 
     def test_passes_through_regular_values(self):
         assert json_safe_val("hello") == "hello"

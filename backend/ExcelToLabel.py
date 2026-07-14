@@ -4,7 +4,10 @@ from docx import Document
 from docx.shared import Cm
 from docx.enum.section import WD_ORIENTATION
 import os
+import logging
 from config import WORKSPACE_DIR
+
+logger = logging.getLogger(__name__)
 
 
 # 打印配置中文字段映射（前端 → Python docx）
@@ -86,7 +89,7 @@ def exceltolabel(target_list: list, time_str: str, config=None):
 
         excel_path = os.path.join(mid_path, target, 'excel', excel_name)
         if not os.path.exists(excel_path):
-            print(f'{target} 的 excel 中没有 hostname.xlsx 文件，本次不处理该项目')
+            logger.warning(f'{target} 的 excel 中没有 hostname.xlsx 文件，本次不处理该项目')
             continue
 
         word_path = os.path.join(output_dir, word_name)
@@ -151,4 +154,4 @@ def exceltolabel(target_list: list, time_str: str, config=None):
 
             d.save(word_path)
 
-        print(f'完成 {target} 的标签卡转换')
+        logger.info(f'完成 {target} 的标签卡转换')
