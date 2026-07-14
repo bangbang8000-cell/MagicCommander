@@ -115,7 +115,34 @@ docs/prd/
 
 ---
 
-## 5. 创建新文档 Checklist
+## 5. 应用版本号规则
+
+MagicCommander 应用版本采用“语义化版本 + 日期型 Build 号”的双层规则：
+
+```text
+对外显示：MagicCommander V{MAJOR}.{MINOR}.{PATCH} Build {YYMMDDNN}
+示例：MagicCommander V3.0.0 Build 26071401
+package.json version：3.0.0
+Git Tag：v3.0.0-build.26071401
+```
+
+### 字段含义
+
+- `MAJOR`：大版本，架构级升级、产品方向变化、重大 UI/功能升级时递增。
+- `MINOR`：中版本，新增重要模块或明显功能增强时递增。
+- `PATCH`：修订版本，bug 修复、小功能优化、体验改进时递增。
+- `YYMMDDNN`：日期型构建号，`YY` 年、`MM` 月、`DD` 日、`NN` 当天构建序号，从 `01` 开始。
+
+### 强制约束
+
+- `package.json` 的 `version` 只使用标准语义化版本，例如 `3.0.0`。
+- 正式版不要使用 `3.0.0-26071401` 这类连字符后缀，避免被识别为预发布版本，影响 Electron 自动更新和版本比较。
+- 对用户、发布说明、问题反馈统一展示完整版本，例如 `V3.0.0 Build 26071401`。
+- 每次正式发布必须同步更新 `VERSION.txt`、`electron/config.ts` 中的版本信息，并创建对应 Git tag。
+
+---
+
+## 6. 创建新文档 Checklist
 
 - [ ] 确认文档类型，放入正确的子目录
 - [ ] 按 `{文档名}_{版本号}_{日期}.{扩展名}` 格式命名

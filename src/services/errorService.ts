@@ -15,28 +15,16 @@ class ErrorService {
     console.error(`[${context}]`, message)
 
     // 转发到日志 Store，便于用户查看
-    useLogStore.getState().addLog({
-      source: 'app',
-      level: 'error',
-      message: `[${context}] ${message}`,
-    })
+    useLogStore.getState().addLog('error', `[${context}] ${message}`, 'app')
   }
 
   handleWarning(message: string, context: string): void {
     console.warn(`[${context}]`, message)
-    useLogStore.getState().addLog({
-      source: 'app',
-      level: 'warn',
-      message: `[${context}] ${message}`,
-    })
+    useLogStore.getState().addLog('warn', `[${context}] ${message}`, 'app')
   }
 
   handleInfo(message: string, context: string): void {
-    useLogStore.getState().addLog({
-      source: 'app',
-      level: 'info',
-      message: `[${context}] ${message}`,
-    })
+    useLogStore.getState().addLog('info', `[${context}] ${message}`, 'app')
   }
 }
 

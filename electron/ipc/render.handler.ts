@@ -175,7 +175,7 @@ export class RenderHandler {
     return await this.runPythonCommand(args, true)
   }
 
-  private async runPythonCommand(args: string[], returnData: boolean = false): Promise<any> {
+  async runPythonCommand(args: string[], returnData: boolean = false): Promise<any> {
     return new Promise((resolve, reject) => {
       const devPath = path.join(process.cwd(), 'backend')
       const backendPath = fs.existsSync(devPath) ? devPath : path.join(process.resourcesPath, 'backend')

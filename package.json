@@ -118,7 +118,7 @@
         }
       ],
       "icon": "public/icons/icon.ico",
-      "artifactName": "${productName}-Setup-${version}.${ext}"
+      "artifactName": "${productName}-Setup-${version}-build.26071401.${ext}"
     },
     "nsis": {
       "oneClick": false,
@@ -139,7 +139,7 @@
         }
       ],
       "icon": "public/icons/icon.icns",
-      "artifactName": "${productName}-${version}-mac-${arch}.${ext}",
+      "artifactName": "${productName}-${version}-build.26071401-mac-${arch}.${ext}",
       "category": "public.app-category.utilities"
     },
     "linux": {
@@ -158,7 +158,7 @@
         }
       ],
       "icon": "public/icons/icon.png",
-      "artifactName": "${productName}-${version}-linux-${arch}.${ext}",
+      "artifactName": "${productName}-${version}-build.26071401-linux-${arch}.${ext}",
       "category": "Network",
       "maintainer": "Magic Commander Team"
     }

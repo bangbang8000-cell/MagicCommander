@@ -38,6 +38,7 @@ export interface ElectronAPI {
   app: AppIpcApi
   log: LogIpcApi
   shell: { showItemInFolder: (path: string) => Promise<void> }
+  onMenuNewProject: (callback: () => void) => () => void
   versions: {
     node: string
     electron: string
@@ -83,6 +84,7 @@ export interface RenderIpcApi {
   yaml: (ids: string[]) => Promise<void>
   projectSn: (ids: string[]) => Promise<void>
   yamlSn: (ids: string[]) => Promise<void>
+  undo: (ids: string[]) => Promise<void>
   onProgress: (callback: (data: unknown) => void) => () => void
 }
 

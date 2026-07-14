@@ -33,3 +33,25 @@
 - **项目类型**: Electron + React 桌面应用
 - **项目根目录**: `D:\MyCoding\MagicCommander\MagicCommander3`
 - **技术栈**: Electron 28.x + React 18.x + TypeScript 5.x + Vite 5.x + TailwindCSS 3.x
+
+---
+
+## 版本号长期规则
+
+### 推荐格式
+- **对外显示**: `MagicCommander V{MAJOR}.{MINOR}.{PATCH} Build {YYMMDDNN}`
+- **示例**: `MagicCommander V3.0.0 Build 26071401`
+- **package.json version**: 只保留标准语义化版本，例如 `3.0.0`
+- **Git Tag**: 使用 `v{MAJOR}.{MINOR}.{PATCH}-build.{YYMMDDNN}`，例如 `v3.0.0-build.26071401`
+- **安装包名**: 使用 `MagicCommander-Setup-{version}-build.{build}.{ext}` 或在发布说明中标明 Build 号
+
+### 字段含义
+- `MAJOR`: 大版本，架构级升级、产品方向变化、重大 UI/功能升级时递增
+- `MINOR`: 中版本，新增重要模块或明显功能增强时递增
+- `PATCH`: 修订版本，bug 修复、小功能优化、体验改进时递增
+- `YYMMDDNN`: 日期型构建号，`YY` 年、`MM` 月、`DD` 日、`NN` 当天构建序号，从 `01` 开始
+
+### 注意事项
+- 不要把正式版写成 `3.0.0-26071401`，因为连字符后缀会被语义化版本识别为预发布版本，可能影响 Electron 自动更新和版本比较。
+- Build 号用于精确追踪构建批次，不替代语义化版本。
+- 用户反馈时优先记录完整版本，例如 `V3.0.0 Build 26071401`。

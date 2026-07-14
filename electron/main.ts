@@ -41,7 +41,7 @@ class MagicCommanderApp {
       updateService.quitAndInstall()
     })
     
-    ipcMain.handle('app:get-version', () => {
+    ipcMain.handle('app:getVersion', () => {
       return app.getVersion()
     })
 

@@ -12,6 +12,7 @@ interface ProjectState {
   error: string | null
   favoriteProjects: string[]
   recentProjects: string[]
+  pendingCreateDialog: boolean
 
   fetchProjects: () => Promise<void>
   listExamples: () => Promise<string[]>
@@ -22,6 +23,8 @@ interface ProjectState {
   loadStructure: (name: string) => Promise<void>
   toggleFavorite: (name: string) => void
   trackRecent: (name: string) => void
+  triggerCreateProject: () => void
+  clearCreateTrigger: () => void
 }
 
 const normalizeProjects = (rawProjects: any[]): ProjectInfo[] => (

@@ -363,7 +363,7 @@ export function setupIpcHandlers(window: BrowserWindow): void {
 
   // 渲染撤销
   ipcMain.handle('render:undo', async (_e, ids: string[]): Promise<void> => {
-    return await renderHandler.runPythonCommand(['render', 'undo', ids.join(',')], '撤销渲染')
+    return await renderHandler.runPythonCommand(['render', 'undo', ids.join(',')])
   })
 
   // 删除操作 API（通过 Python 后端执行）
