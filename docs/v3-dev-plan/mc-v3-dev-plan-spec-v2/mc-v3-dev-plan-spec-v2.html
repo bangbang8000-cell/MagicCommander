@@ -158,6 +158,9 @@
     </li>
     <li><a href="#s3">Phase 0：品质筑基（详细任务）</a></li>
     <li><a href="#s4">Phase 1：体验升级（详细任务）</a></li>
+    <li><a href="#s4b">Trae Work 布局对齐实施方案</a>
+      <ol class="sub"><li><a href="#s4b-1">组件映射表</a></li><li><a href="#s4b-2">详细任务分解</a></li><li><a href="#s4b-3">技术实现要点</a></li></ol>
+    </li>
     <li><a href="#s5">Phase 2：AI 智能中心（详细任务）</a></li>
     <li><a href="#s6">Phase 3-5：后续阶段概览</a></li>
     <li><a href="#s7">代码规范</a>
@@ -321,6 +324,152 @@
     <li>✅ 10+ 内置模板项目可用</li>
     <li>✅ 前端测试覆盖率 ≥ 40%</li>
     <li>✅ 七维度均分 ≥ 80</li>
+  </ul>
+</div>
+
+<!-- ====== 4b. Trae Work Layout Implementation ====== -->
+<h2 id="s4b">4b. Trae Work 布局对齐实施方案 <span class="phase-tag phase-alpha">P0 · Alpha</span></h2>
+
+<p><strong>时间</strong>：与 Phase 1 并行 | <strong>工时</strong>：~28h | <strong>目标</strong>：将 MagicCommander 布局向 Trae Work 风格靠齐，使 AI 集成后的交互体验与 Trae Work 保持一致</p>
+
+<div class="card card-accent2">
+  <h4>实施策略</h4>
+  <p>采用 <strong>渐进式对齐</strong> 策略，分三步走：<mark class="key">先搭骨架（右侧面板+三列布局），再嵌灵魂（AI Chat 交互框架），最后深度整合（上下文感知+AI 驱动操作）</mark>。布局对齐工作与 Phase 1 的体验升级任务并行推进，两者相互协同。</p>
+</div>
+
+<h3 id="s4b-1">4b.1 组件映射表</h3>
+
+<p>MagicCommander 现有组件与 Trae Work 布局元素的对应关系：</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Trae Work 元素</th><th>MagicCommander 现有组件</th><th>需要变更</th><th>工时</th></tr></thead>
+  <tbody>
+    <tr><td>顶部模式标签 (Work/Code/Design)</td><td><code>src/components/layout/Header.tsx</code></td><td>新增模式切换标签组，支持"项目模式"和"AI 模式"</td><td>2h</td></tr>
+    <tr><td>左侧活动栏</td><td><code>src/components/layout/ActivityBar.tsx</code></td><td>新增 AI 历史图标，调整图标顺序</td><td>1h</td></tr>
+    <tr><td>左侧侧边栏</td><td><code>src/components/layout/Sidebar.tsx</code></td><td>新增 AI 会话历史面板组件</td><td>3h</td></tr>
+    <tr><td>中央对话/编辑区</td><td><code>src/components/editor/EditorArea.tsx</code></td><td>新增 AI Chat 面板，与 EditorArea 按模式切换</td><td>6h</td></tr>
+    <tr><td>右侧预览面板</td><td><span class="p0">无</span>（需新建）</td><td>新建 <code>RightPanel</code> 组件，支持预览/审查/对比视图</td><td>6h</td></tr>
+    <tr><td>底部输入栏</td><td><code>src/components/panel/PanelArea.tsx</code></td><td>新增 AI 输入栏组件，固定在底部面板上方</td><td>4h</td></tr>
+    <tr><td>暗色主题</td><td><code>src/styles/index.css</code> + <code>tailwind.config.js</code></td><td>色板对齐 TRAE 设计系统（cyan 强调色）</td><td>2h</td></tr>
+    <tr><td>面板过渡动画</td><td>全局 CSS</td><td>新增 fade/slide 过渡动画类</td><td>1h</td></tr>
+    <tr><td>面板布局容器</td><td><code>src/App.tsx</code></td><td>react-resizable-panels 从两列升级为三列</td><td>3h</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h3 id="s4b-2">4b.2 详细任务分解</h3>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>#</th><th>任务</th><th>涉及文件</th><th>工时</th><th>验收标准</th></tr></thead>
+  <tbody>
+    <tr><td>L1</td><td><strong>三列布局升级</strong></td><td><code>src/App.tsx</code></td><td>3h</td><td>布局支持左侧栏+中央+右侧面板三列，各列可独立折叠/拖拽</td></tr>
+    <tr><td>L2</td><td><strong>右侧面板组件</strong></td><td>新建 <code>src/components/panel/RightPanel.tsx</code></td><td>6h</td><td>支持文件预览、渲染结果、diff 对比、配置审查 4 种视图</td></tr>
+    <tr><td>L3</td><td><strong>AI Chat 面板</strong></td><td>新建 <code>src/components/chat/ChatPanel.tsx</code></td><td>6h</td><td>消息列表、流式渲染、Markdown 渲染、代码高亮、复制按钮</td></tr>
+    <tr><td>L4</td><td><strong>底部 AI 输入栏</strong></td><td>新建 <code>src/components/chat/ChatInput.tsx</code></td><td>4h</td><td>输入框、模型选择器下拉、附件按钮、发送按钮，参考 Trae Work 样式</td></tr>
+    <tr><td>L5</td><td><strong>模式切换机制</strong></td><td><code>src/components/layout/Header.tsx</code>, <code>src/stores/ui.store.ts</code></td><td>2h</td><td>项目模式/AI 模式切换标签，切换时中央区域内容切换</td></tr>
+    <tr><td>L6</td><td><strong>AI 会话历史</strong></td><td>新建 <code>src/components/sidebar/AIHistoryPanel.tsx</code></td><td>3h</td><td>会话列表、搜索、删除、重命名，持久化存储</td></tr>
+    <tr><td>L7</td><td><strong>设计系统色板对齐</strong></td><td><code>tailwind.config.js</code>, <code>src/styles/index.css</code></td><td>2h</td><td>暗色主题色板对齐 TRAE 设计系统，新增 cyan 强调色体系</td></tr>
+    <tr><td>L8</td><td><strong>面板过渡动画</strong></td><td><code>src/styles/index.css</code>, 各面板组件</td><td>1h</td><td>面板展开/折叠、模式切换时有平滑过渡</td></tr>
+    <tr><td>L9</td><td><strong>全局 Tooltip 系统</strong></td><td>新建 <code>src/components/ui/Tooltip.tsx</code></td><td>1h</td><td>所有操作按钮有 hover 提示，支持快捷键显示</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h3 id="s4b-3">4b.3 技术实现要点</h3>
+
+<div class="card card-accent">
+  <h4>三列布局实现</h4>
+  <pre><code>// src/App.tsx — 三列布局结构
+import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels'
+
+&lt;PanelGroup direction="horizontal"&gt;
+  {/* 左侧：ActivityBar + Sidebar */}
+  &lt;Panel defaultSize={20} minSize={15} maxSize={30}&gt;
+    &lt;Sidebar /&gt;
+  &lt;/Panel&gt;
+  &lt;PanelResizeHandle /&gt;
+
+  {/* 中央：EditorArea / AI Chat（按模式切换）*/}
+  &lt;Panel defaultSize={55} minSize={30}&gt;
+    {activeMode === 'project' ? &lt;EditorArea /&gt; : &lt;ChatPanel /&gt;}
+  &lt;/Panel&gt;
+  &lt;PanelResizeHandle /&gt;
+
+  {/* 右侧：预览/审查面板 */}
+  &lt;Panel defaultSize={25} minSize={15} maxSize={40} collapsible&gt;
+    &lt;RightPanel /&gt;
+  &lt;/Panel&gt;
+&lt;/PanelGroup&gt;
+
+{/* 底部：AI 输入栏（始终可见）*/}
+&lt;ChatInput /&gt;</code></pre>
+</div>
+
+<div class="card card-accent">
+  <h4>模式切换实现</h4>
+  <pre><code>// src/stores/ui.store.ts — 新增字段
+interface UIState {
+  // ... 现有字段
+  activeMode: 'project' | 'ai'  // 新增：模式切换
+  rightPanelVisible: boolean     // 新增：右侧面板可见性
+  rightPanelTab: 'preview' | 'diff' | 'review' | 'file'  // 新增：右侧面板标签
+}
+
+// src/components/layout/Header.tsx — 模式切换标签
+&lt;div className="mode-tabs"&gt;
+  &lt;button
+    className={clsx('mode-tab', { active: activeMode === 'project' })}
+    onClick={() => setActiveMode('project')}
+  &gt;
+    📁 项目模式
+  &lt;/button&gt;
+  &lt;button
+    className={clsx('mode-tab', { active: activeMode === 'ai' })}
+    onClick={() => setActiveMode('ai')}
+  &gt;
+    🧠 AI 模式
+  &lt;/button&gt;
+&lt;/div&gt;</code></pre>
+</div>
+
+<div class="card card-accent2">
+  <h4>设计系统色板对齐</h4>
+  <pre><code>// tailwind.config.js — 对齐 TRAE 设计系统
+colors: {
+  // 背景层级（深 → 浅）
+  bg: {
+    DEFAULT: '#0b0f1a',   // 最深背景
+    surface: '#111827',   // 卡片/面板背景
+    elevated: '#1e293b',  // 悬浮/弹窗背景
+  },
+  // 文字层级
+  ink: {
+    DEFAULT: '#e2e8f0',   // 正文
+    strong: '#f1f5f9',    // 标题/强调
+    muted: '#64748b',     // 次要/辅助
+  },
+  // TRAE 强调色
+  accent: {
+    cyan: '#38bdf8',      // 主强调色 (TRAE cyan)
+    indigo: '#818cf8',    // 辅助强调色 (TRAE indigo)
+  },
+  // 语义色
+  success: '#34d399',
+  warning: '#fbbf24',
+  danger: '#f87171',
+}</code></pre>
+</div>
+
+<div class="card card-success">
+  <h4>关键原则</h4>
+  <ul>
+    <li><strong>不破坏现有布局</strong>：三列布局通过 feature flag 渐进启用，确保 V2.x 项目模式不受影响</li>
+    <li><strong>AI 模式可选</strong>：用户可始终使用"项目模式"（传统布局），AI 模式作为增强选项</li>
+    <li><strong>布局状态持久化</strong>：面板大小、折叠状态、模式选择通过 Zustand persist 持久化</li>
+    <li><strong>键盘快捷键</strong>：Ctrl+Shift+R 切换右侧面板，Ctrl+Shift+M 切换模式，Ctrl+Shift+I 打开 AI 输入</li>
+    <li><strong>响应式适配</strong>：窗口宽度 &lt; 900px 时自动折叠右侧面板，&lt; 700px 时自动折叠左侧栏</li>
   </ul>
 </div>
 

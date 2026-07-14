@@ -440,6 +440,9 @@
       <ol class="sub"><li><a href="#s3-1">美观度</a></li><li><a href="#s3-2">易用性</a></li><li><a href="#s3-3">实用性</a></li><li><a href="#s3-4">可用性</a></li><li><a href="#s3-5">自动化</a></li><li><a href="#s3-6">准确率</a></li><li><a href="#s3-7">可维护性</a></li></ol>
     </li>
     <li><a href="#s4">已知问题清单（来自代码审查）</a></li>
+    <li><a href="#s4b">Trae Work 布局风格对齐分析</a>
+      <ol class="sub"><li><a href="#s4b-1">Trae Work 布局特征</a></li><li><a href="#s4b-2">MagicCommander 现状 vs 目标对比</a></li><li><a href="#s4b-3">对齐可行性评估</a></li><li><a href="#s4b-4">布局演进路线</a></li></ol>
+    </li>
     <li><a href="#s5">更新后的功能需求</a>
       <ol class="sub"><li><a href="#s5-1">Phase 0：品质筑基（立即启动）</a></li><li><a href="#s5-2">Phase 1：体验升级</a></li><li><a href="#s5-3">Phase 2：AI 智能中心</a></li><li><a href="#s5-4">Phase 3：模板资产中心</a></li><li><a href="#s5-5">Phase 4：社区分享中心</a></li><li><a href="#s5-6">Phase 5：企业级能力</a></li></ol>
     </li>
@@ -788,7 +791,240 @@
   <p>以上 14 项问题修复预计总工时约 <strong>25.5 小时</strong>（约 3-4 个工作日），建议在 AI 功能开发前集中完成。</p>
 </div>
 
-<!-- ====== 5. 更新后的功能需求 ====== -->
+<!-- ====== 4b. Trae Work Layout ====== -->
+<h2 id="s4b">4b. Trae Work 布局风格对齐分析</h2>
+
+<div class="card card-accent2">
+  <h4>对齐动机</h4>
+  <p>Trae Work 作为 AI 原生工作台，其布局风格代表了 AI 时代桌面应用的最佳实践：<mark class="key">对话驱动、多面板协同、暗色专业、灵活可调</mark>。MagicCommander V3.X 在引入 AI 能力后，需要在界面布局上向 Trae Work 靠齐，让用户在 AI 辅助配置工程时获得一致、专业的体验。当前 MagicCommander 的 IDE 风格布局已经具备良好的基础，<strong>对齐成本可控，可行性高</strong>。</p>
+</div>
+
+<h3 id="s4b-1">4b.1 Trae Work 布局特征分析</h3>
+
+<p>通过对 Trae Work 网页版/桌面版的界面分析和官方设计系统文档的研究，提炼出以下核心布局特征：</p>
+
+<div class="module-grid">
+  <div class="module-card">
+    <h4>① 对话驱动交互</h4>
+    <p>Chat 对话是主要的交互界面，用户通过自然语言下达指令，AI 在对话中返回结果、触发操作。编辑器/预览器是对话的"附属品"而非主角。</p>
+    <span class="tag tag-core">核心范式</span>
+  </div>
+  <div class="module-card">
+    <h4>② 三面板弹性布局</h4>
+    <p>左侧活动栏 + 侧边栏 | 中央对话/编辑区 | 右侧预览/详情面板。三区可独立折叠、拖拽调整大小，支持多种布局组合。</p>
+    <span class="tag tag-core">核心范式</span>
+  </div>
+  <div class="module-card">
+    <h4>③ 模式切换标签</h4>
+    <p>顶部 Work / Code / Design 模式标签，一键切换不同工作场景，每种模式有独立的布局预设和功能集。</p>
+    <span class="tag tag-new">可借鉴</span>
+  </div>
+  <div class="module-card">
+    <h4>④ 暗色专业设计系统</h4>
+    <p>深色背景（#0b0f1a 系）+ 醒目强调色（cyan/blue）+ 克制的排版层级。官方 "TRAE" 设计系统专为开发者工作台打造。</p>
+    <span class="tag tag-core">核心范式</span>
+  </div>
+  <div class="module-card">
+    <h4>⑤ 底部固定输入栏</h4>
+    <p>Chat 输入框固定在底部，包含文本输入、模型选择器（Auto Mode）、附件上传、发送按钮。始终可见，随时可用。</p>
+    <span class="tag tag-upgrade">高优先级</span>
+  </div>
+  <div class="module-card">
+    <h4>⑥ 上下文感知面板</h4>
+    <p>AI 理解当前工作上下文（打开的文件、选中的项目），右侧面板根据对话内容动态展示预览、代码、图表等。</p>
+    <span class="tag tag-upgrade">高优先级</span>
+  </div>
+</div>
+
+<h3 id="s4b-2">4b.2 MagicCommander 现状 vs 目标对比</h3>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>布局元素</th><th>当前 MagicCommander</th><th>目标（Trae Work 风格）</th><th>差距</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><strong>主交互范式</strong></td>
+      <td>文件编辑驱动（打开文件→编辑→保存）</td>
+      <td>对话+编辑双驱动（AI 对话→触发编辑/渲染→预览确认）</td>
+      <td><span class="p1">中等</span></td>
+    </tr>
+    <tr>
+      <td><strong>左侧区域</strong></td>
+      <td>ActivityBar（6 个图标）+ 可折叠 Sidebar</td>
+      <td>保持现有结构，增加 AI 会话历史面板</td>
+      <td><span class="p2">小</span></td>
+    </tr>
+    <tr>
+      <td><strong>中央区域</strong></td>
+      <td>EditorArea（Monaco / Excel / Word 标签页）</td>
+      <td>EditorArea + AI Chat 面板（可切换/分屏）</td>
+      <td><span class="p1">中等</span></td>
+    </tr>
+    <tr>
+      <td><strong>右侧面板</strong></td>
+      <td><span class="p0">无</span>（仅中央编辑器独占）</td>
+      <td>新增右侧面板：AI 预览 / Diff 对比 / 配置审查 / 文件预览</td>
+      <td><span class="p0">大</span></td>
+    </tr>
+    <tr>
+      <td><strong>底部面板</strong></td>
+      <td>PanelArea（日志/终端/问题）</td>
+      <td>AI 输入栏 + 可切换日志/终端/问题</td>
+      <td><span class="p1">中等</span></td>
+    </tr>
+    <tr>
+      <td><strong>顶部区域</strong></td>
+      <td>Header（项目名 + 操作按钮）</td>
+      <td>模式切换标签（项目/AI）+ 项目名 + 操作按钮</td>
+      <td><span class="p2">小</span></td>
+    </tr>
+    <tr>
+      <td><strong>设计系统</strong></td>
+      <td>TailwindCSS 自定义调色板（暗色/亮色）</td>
+      <td>对齐 TRAE 设计系统暗色主题：深色底板 + cyan 强调色 + 克制排版</td>
+      <td><span class="p2">小</span></td>
+    </tr>
+    <tr>
+      <td><strong>面板交互</strong></td>
+      <td>可拖拽调整大小，无动画过渡</td>
+      <td>保持拖拽 + 新增平滑过渡动画 + 一键折叠/展开</td>
+      <td><span class="p2">小</span></td>
+    </tr>
+    <tr>
+      <td><strong>上下文感知</strong></td>
+      <td>无（AI 模块尚未实现）</td>
+      <td>AI 感知当前项目、打开文件、选中内容，自动关联上下文</td>
+      <td><span class="p0">大</span></td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<h3 id="s4b-3">4b.3 对齐可行性评估</h3>
+
+<div class="card card-success">
+  <h4>✅ 高度可行 — 基础架构已具备</h4>
+  <p>MagicCommander 当前已采用 <strong>Electron + React + TailwindCSS + Zustand</strong> 技术栈，且已实现 IDE 风格的多面板布局（ActivityBar + Sidebar + EditorArea + PanelArea），这为向 Trae Work 风格对齐提供了坚实的基础：</p>
+  <ul>
+    <li><strong>react-resizable-panels</strong> 已集成，支持三面板弹性布局</li>
+    <li><strong>TailwindCSS dark mode</strong> 已启用，只需调整色板即可对齐</li>
+    <li><strong>Zustand persist</strong> 已实现布局状态持久化</li>
+    <li><strong>Monaco Editor</strong> 已集成，与 Trae Work 的代码编辑体验一致</li>
+  </ul>
+</div>
+
+<div class="card card-warning">
+  <h4>⚠️ 需要新增的能力</h4>
+  <ul>
+    <li><strong>右侧面板系统</strong>：当前布局无右侧面板，需要在 <code>react-resizable-panels</code> 中新增第三列</li>
+    <li><strong>AI Chat 面板组件</strong>：需从零构建对话界面（消息列表、流式渲染、输入框、模型选择器）</li>
+    <li><strong>模式切换机制</strong>：需设计"项目模式"与"AI 模式"的切换逻辑和布局预设</li>
+    <li><strong>上下文感知系统</strong>：需建立 AI 与编辑器/项目/文件系统的双向通信</li>
+  </ul>
+</div>
+
+<div class="card card-accent">
+  <h4>📐 布局演进目标架构</h4>
+  <pre><code>┌──────────────────────────────────────────────────────────┐
+│  Header: [项目模式] [AI 模式] │ 项目名称 │ 操作按钮      │
+├────────┬────────────────────────────────┬────────────────┤
+│        │                                │                │
+│ Act-   │  EditorArea / AI Chat          │  Right Panel   │
+│ ivity  │  ┌──────────────────────────┐  │  ┌──────────┐  │
+│  Bar   │  │  Monaco / Excel / Word   │  │  │ AI 预览  │  │
+│        │  │          OR              │  │  │ Diff 对比│  │
+│  📁    │  │  AI 对话消息列表          │  │  │ 配置审查  │  │
+│  🔍    │  │                          │  │  │ 文件预览  │  │
+│  🧠    │  └──────────────────────────┘  │  └──────────┘  │
+│  ⚙️    │                                │                │
+│        ├────────────────────────────────┴────────────────┤
+│        │  AI Input Bar: [输入框] [模型选择] [📎] [发送]   │
+└────────┴─────────────────────────────────────────────────┘
+│  StatusBar: 项目状态 │ 渲染进度 │ AI 连接状态 │ 语言      │
+└──────────────────────────────────────────────────────────┘</code></pre>
+</div>
+
+<h3 id="s4b-4">4b.4 布局演进路线</h3>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>阶段</th><th>布局变更</th><th>依赖</th><th>工时</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><strong>Phase 1-A</strong><br>布局基础升级</td>
+      <td>
+        • 新增右侧面板（react-resizable-panels 三列布局）<br>
+        • 暗色主题色板对齐 TRAE 设计系统（cyan #38bdf8 强调色）<br>
+        • 面板切换动画（fade/slide 过渡）<br>
+        • 全局 Tooltip 系统
+      </td>
+      <td>Phase 0 完成</td>
+      <td>~12h</td>
+    </tr>
+    <tr>
+      <td><strong>Phase 1-B</strong><br>AI 交互框架</td>
+      <td>
+        • AI Chat 面板组件（消息列表 + 流式渲染 + Markdown 渲染）<br>
+        • 底部 AI 输入栏（输入框 + 模型选择器 + 发送按钮，参考 Trae Work）<br>
+        • 模式切换标签（项目模式 / AI 模式）<br>
+        • 右侧面板内容区（预览/审查/对比容器）
+      </td>
+      <td>Phase 1-A</td>
+      <td>~16h</td>
+    </tr>
+    <tr>
+      <td><strong>Phase 2</strong><br>上下文感知</td>
+      <td>
+        • AI 上下文感知（当前项目、打开文件、选中内容自动关联）<br>
+        • AI 驱动的编辑器操作（AI 可打开文件、跳转行、触发渲染）<br>
+        • 右侧面板动态内容（AI 生成预览 / Diff 对比 / 配置审查结果）<br>
+        • AI 会话历史管理（左侧 Sidebar 新增 AI 历史面板）
+      </td>
+      <td>Phase 1-B + AI Hub</td>
+      <td>~20h</td>
+    </tr>
+    <tr>
+      <td><strong>Phase 3+</strong><br>深度整合</td>
+      <td>
+        • 布局预设管理（保存/切换个人布局偏好）<br>
+        • 右键 AI 快捷菜单（"AI 解释此配置"、"AI 优化此行"）<br>
+        • 内联 AI 建议（编辑器中直接显示 AI 建议，类似 Copilot）<br>
+        • 设计系统完整对齐（图标、间距、圆角、阴影等细节）
+      </td>
+      <td>Phase 2</td>
+      <td>~16h</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<div class="card card-accent">
+  <h4>设计系统对齐要点</h4>
+  <p>Trae Work 官方提供 <strong>TRAE 设计系统</strong>（"面向开发者工作台的深色设计系统，采用深色背景加醒目强调色"），MagicCommander 应直接对齐该设计系统的核心设计变量：</p>
+  <div class="two-col">
+    <div>
+      <h4 style="margin-top:0;color:var(--accent)">颜色</h4>
+      <ul style="font-size:0.85rem">
+        <li>背景：<code>#0b0f1a</code> → <code>#111827</code> → <code>#1e293b</code></li>
+        <li>文字：<code>#e2e8f0</code> / <code>#f1f5f9</code> / <code>#64748b</code></li>
+        <li>强调：<code>#38bdf8</code>（cyan）/ <code>#818cf8</code>（indigo）</li>
+        <li>成功/警告/错误：<code>#34d399</code> / <code>#fbbf24</code> / <code>#f87171</code></li>
+      </ul>
+    </div>
+    <div>
+      <h4 style="margin-top:0;color:var(--accent)">排版</h4>
+      <ul style="font-size:0.85rem">
+        <li>正文：Inter / SF Pro Text，14px</li>
+        <li>标题：SF Pro Display，semibold</li>
+        <li>等宽：JetBrains Mono / Consolas</li>
+        <li>行高：1.5-1.75</li>
+        <li>字重层级：400 → 500 → 600 → 700</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ====== 5. Updated Features ====== -->
 <h2 id="s5">5. 更新后的功能需求</h2>
 
 <p>基于七维度评估和代码审查，功能需求重新排序为 <strong>6 个阶段</strong>：<mark class="key">品质筑基 → 体验升级 → AI 智能 → 模板资产 → 社区分享 → 企业能力</mark>。与原始 PRD v1.0 相比，新增了 Phase 0（品质筑基）和 Phase 1（体验升级），将 AI 功能后移至 Phase 2。</p>
@@ -830,9 +1066,9 @@
   </div>
 </div>
 
-<h3 id="s5-2">5.2 Phase 1：体验升级（~40h）<span class="phase-tag phase-alpha">Alpha</span></h3>
+<h3 id="s5-2">5.2 Phase 1：体验升级（~52h）<span class="phase-tag phase-alpha">Alpha</span></h3>
 
-<p><strong>目标</strong>：提升七维度评分中垫底的易用性、准确率、可用性指标，让基础体验达到专业级水准。</p>
+<p><strong>目标</strong>：提升七维度评分中垫底的易用性、准确率、可用性指标，同时完成向 Trae Work 布局风格的靠齐，让基础体验达到专业级水准。</p>
 
 <div class="module-grid">
   <div class="module-card">
@@ -874,6 +1110,21 @@
     <h4>P1-8 操作撤销与恢复</h4>
     <p>渲染输出自动备份，支持撤销渲染结果；文件编辑支持 Ctrl+Z 撤销。</p>
     <span class="tag tag-new">新增</span>
+  </div>
+  <div class="module-card">
+    <h4>P1-9 🆕 右侧面板系统</h4>
+    <p>react-resizable-panels 三列布局，新增右侧预览面板，支持文件预览、渲染结果、diff 对比视图。</p>
+    <span class="tag tag-upgrade">Trae Work 对齐</span>
+  </div>
+  <div class="module-card">
+    <h4>P1-10 🆕 AI Chat 交互框架</h4>
+    <p>底部固定 AI 输入栏（参考 Trae Work 设计），AI Chat 面板组件（消息列表、流式渲染、Markdown）。</p>
+    <span class="tag tag-upgrade">Trae Work 对齐</span>
+  </div>
+  <div class="module-card">
+    <h4>P1-11 🆕 模式切换与设计对齐</h4>
+    <p>项目模式/AI 模式切换标签，暗色主题色板对齐 TRAE 设计系统，面板过渡动画。</p>
+    <span class="tag tag-upgrade">Trae Work 对齐</span>
   </div>
 </div>
 
@@ -1012,7 +1263,7 @@
   <thead><tr><th>阶段</th><th>名称</th><th>时间</th><th>核心交付</th><th>工时</th><th>优先级</th></tr></thead>
   <tbody>
     <tr><td><span class="phase-tag phase-quality">Phase 0</span></td><td>品质筑基</td><td>2026.07（立即）</td><td>修复 14 项已知问题，建立代码质量基线</td><td>~25h</td><td><span class="p0">P0</span></td></tr>
-    <tr><td><span class="phase-tag phase-alpha">Phase 1</span></td><td>体验升级</td><td>2026.08 - 2026.09</td><td>模板校验、数据验证、diff 对比、品牌升级、模板库、搜索、缓存、撤销</td><td>~40h</td><td><span class="p0">P0</span></td></tr>
+    <tr><td><span class="phase-tag phase-alpha">Phase 1</span></td><td>体验升级</td><td>2026.08 - 2026.09</td><td>模板校验、数据验证、diff 对比、品牌升级、模板库、搜索、缓存、撤销、<strong>Trae Work 布局对齐</strong></td><td>~52h</td><td><span class="p0">P0</span></td></tr>
     <tr><td><span class="phase-tag phase-beta">Phase 2</span></td><td>AI 智能中心</td><td>2026.10 - 2026.12</td><td>AI Hub、Prompt 管理、智能初始化、反向生成、校对、对话助手、推荐、优化</td><td>~80h</td><td><span class="p1">P1</span></td></tr>
     <tr><td><span class="phase-tag phase-ga">Phase 3</span></td><td>模板资产中心</td><td>2027.01 - 2027.03</td><td>版本管理、调试沙盒、质量评级、模板市场</td><td>~60h</td><td><span class="p1">P1</span></td></tr>
     <tr><td><span class="phase-tag phase-scale">Phase 4</span></td><td>社区分享中心</td><td>2027.04 - 2027.06</td><td>一键分享、社区广场、协作审阅、创作者体系</td><td>~50h</td><td><span class="p2">P2</span></td></tr>
