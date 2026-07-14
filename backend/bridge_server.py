@@ -97,8 +97,23 @@ async def project_list():
     return _scan_projects()
 
 
+@app.post("/api/project:listExamples")
+async def project_list_examples():
+    """列出可用的示例模板项目"""
+    example_dir = REPO_ROOT / "example"
+    if not example_dir.exists():
+        return []
+    examples = []
+    for entry in sorted(example_dir.iterdir()):
+        if entry.is_dir() and not entry.name.startswith('.') and not entry.name.startswith('_'):
+            if (entry / "para.xlsx").exists() or (entry / "templates").exists():
+                examples.append(entry.name)
+    return examples
+
+
 class ProjectCreate(BaseModel):
     name: str
+    options: dict | None = None
 
 
 @app.post("/api/project:create")
@@ -109,22 +124,49 @@ async def project_create(body: ProjectCreate):
     proj = WORKSPACE_DIR / name
     if proj.exists():
         raise HTTPException(400, "项目已存在")
-    (proj / "templates").mkdir(parents=True, exist_ok=True)
-    (proj / "excel").mkdir(parents=True, exist_ok=True)
-    (proj / "output").mkdir(parents=True, exist_ok=True)
-    (proj / "templates" / "main.j2").write_text(
-        "{% for item in items %}\n{{ item.name }}\n{% endfor %}\n", encoding="utf-8"
-    )
-    try:
-        import openpyxl
-        wb = openpyxl.Workbook()
-        ws = wb.active
-        ws.title = "Sheet1"
-        ws.append(["name", "value"])
-        ws.append(["sample", "1"])
-        wb.save(str(proj / "excel" / "parameters.xlsx"))
-    except Exception:
-        pass
+
+    options = body.options or {}
+    if options.get("empty"):
+        # 空白项目：仅创建目录结构
+        (proj / "templates").mkdir(parents=True, exist_ok=True)
+        (proj / "excel").mkdir(parents=True, exist_ok=True)
+        (proj / "output").mkdir(parents=True, exist_ok=True)
+        (proj / "yaml").mkdir(parents=True, exist_ok=True)
+    else:
+        # 使用模板创建项目
+        template_name = options.get("template")
+        example_dir = REPO_ROOT / "example"
+        if template_name and (example_dir / template_name).exists():
+            src = example_dir / template_name
+            shutil.copytree(src, proj, ignore=shutil.ignore_patterns('output', 'yaml', 'output-label'))
+        else:
+            # 无模板时创建默认项目结构
+            (proj / "templates").mkdir(parents=True, exist_ok=True)
+            (proj / "excel").mkdir(parents=True, exist_ok=True)
+            (proj / "output").mkdir(parents=True, exist_ok=True)
+            (proj / "templates" / "main.j2").write_text(
+                "{% for item in items %}\n{{ item.name }}\n{% endfor %}\n", encoding="utf-8"
+            )
+    return {"ok": True}
+
+
+class ProjectSaveAsExample(BaseModel):
+    projectName: str
+    exampleName: str
+
+
+@app.post("/api/project:saveAsExample")
+async def project_save_as_example(body: ProjectSaveAsExample):
+    """将现有项目保存为示例模板"""
+    proj = WORKSPACE_DIR / body.projectName
+    if not proj.exists():
+        raise HTTPException(400, "项目不存在")
+    example_dir = REPO_ROOT / "example"
+    example_dir.mkdir(parents=True, exist_ok=True)
+    target = example_dir / body.exampleName
+    if target.exists():
+        raise HTTPException(400, "示例已存在")
+    shutil.copytree(proj, target, ignore=shutil.ignore_patterns('output', 'yaml', 'output-label', '.output_backups', '.render_cache'))
     return {"ok": True}
 
 

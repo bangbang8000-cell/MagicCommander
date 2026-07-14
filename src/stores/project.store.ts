@@ -46,6 +46,7 @@ export const useProjectStore = create<ProjectState>()(
       error: null,
       favoriteProjects: [],
       recentProjects: [],
+      pendingCreateDialog: false,
 
       fetchProjects: async () => {
         set({ isLoading: true, error: null })
@@ -146,6 +147,8 @@ export const useProjectStore = create<ProjectState>()(
         const next = [name, ...list].slice(0, 5)
         set({ recentProjects: next })
       },
+      triggerCreateProject: () => set({ pendingCreateDialog: true }),
+      clearCreateTrigger: () => set({ pendingCreateDialog: false }),
     }),
     {
       name: 'mc-project-state',

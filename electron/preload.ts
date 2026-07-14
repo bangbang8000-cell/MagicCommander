@@ -87,6 +87,11 @@ const api = {
   shell: {
     showItemInFolder: (path: string) => ipcRenderer.invoke('shell:showItemInFolder', path),
   },
+  onMenuNewProject: (cb: () => void) => {
+    const handler = () => cb()
+    ipcRenderer.on('menu:newProject', handler)
+    return () => { ipcRenderer.removeListener('menu:newProject', handler) }
+  },
   versions: {
     node: process.versions.node,
     electron: process.versions.electron,

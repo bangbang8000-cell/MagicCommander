@@ -122,9 +122,13 @@ export function setupIpcHandlers(window: BrowserWindow): void {
       await renderHandler.runPythonCommand(['project', 'create', name, '--empty'])
     } else {
       const examples = listExampleProjects()
-      const template = options?.template || examples[0]
-      if (!template) throw new Error('没有可用的示例模板')
-      if (!examples.includes(template)) throw new Error(`示例模板不存在: ${template}`)
+      const template = options?.template ?? examples[0] ?? null
+      if (!template) {
+        throw new Error('没有可用的示例模板，请使用空白项目模式创建')
+      }
+      if (!examples.includes(template)) {
+        throw new Error(`示例模板 "${template}" 不存在，可用模板: ${examples.join(', ') || '无'}`)
+      }
       copyDirRecursive(path.join(getExampleDir(), template), targetPath)
       syncMcParaProject(name, 'add')
     }

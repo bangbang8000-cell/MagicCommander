@@ -3,7 +3,7 @@ import { useRenderStore } from '@/stores/render.store'
 import { ProjectExplorer } from '@/components/common/ProjectExplorer'
 import { Search, Plus, Trash2, FolderOpen, Star, Clock, Folder, Save } from 'lucide-react'
 import clsx from 'clsx'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Modal } from '@/components/ui/Modal'
 import { showError, showSuccess } from '@/components/ui/Toast'
@@ -24,6 +24,8 @@ export function ExplorerPanel() {
   const favoriteProjects = useProjectStore((s) => s.favoriteProjects)
   const recentProjects = useProjectStore((s) => s.recentProjects)
   const toggleFavorite = useProjectStore((s) => s.toggleFavorite)
+  const pendingCreateDialog = useProjectStore((s) => s.pendingCreateDialog)
+  const clearCreateTrigger = useProjectStore((s) => s.clearCreateTrigger)
   const setSelectedIds = useRenderStore((s) => s.setSelectedIds)
   const [search, setSearch] = useState('')
   const [createOpen, setCreateOpen] = useState(false)
@@ -67,6 +69,14 @@ export function ExplorerPanel() {
     }
     setCreateOpen(true)
   }
+
+  // 从菜单或外部触发创建项目对话框
+  useEffect(() => {
+    if (pendingCreateDialog) {
+      openCreateDialog()
+      clearCreateTrigger()
+    }
+  }, [pendingCreateDialog])
 
   const handleCreateProject = async () => {
     const trimmed = newProjectName.trim()

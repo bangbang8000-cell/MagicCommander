@@ -3,12 +3,10 @@ import { useTranslation } from 'react-i18next'
 import { useProjectStore } from '@/stores/project.store'
 import { useEditorStore } from '@/stores/editor.store'
 import { useUIStore } from '@/stores/ui.store'
-import { Search, FileText, ChevronDown, ChevronRight, RefreshCw, Loader2, Plus } from 'lucide-react'
-import { Modal } from '@/components/ui/Modal'
-import { showError, showSuccess } from '@/components/ui/Toast'
+import { Search, FileText, ChevronDown, ChevronRight, RefreshCw, Loader2 } from 'lucide-react'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { getFileTypeFromPath } from '@/types/editor'
-import type { FileNode, ProjectInfo } from '@/types/project'
+import type { FileNode } from '@/types/project'
 import type { FileType } from '@/types/editor'
 import clsx from 'clsx'
 
@@ -28,7 +26,6 @@ function getNodeFileType(name: string): string {
 }
 
 type SearchTab = 'filename' | 'content'
-type TemplateOption = 'example' | 'empty'
 
 interface FilenameMatch {
   file: FileNode
@@ -138,7 +135,6 @@ export const SearchPanel = React.memo(function SearchPanel() {
   const [filenameResults, setFilenameResults] = useState<FilenameMatch[]>([])
   const [contentResults, setContentResults] = useState<ContentMatch[]>([])
   const [searchTrigger, setSearchTrigger] = useState(0)
-  const [projectCreateOpen, setProjectCreateOpen] = useState(false)
   const [selectedTypes, setSelectedTypes] = useState<Set<string>>(new Set())
   const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set())
   const isDark = useUIStore((s) => s.isDark)
@@ -147,9 +143,6 @@ export const SearchPanel = React.memo(function SearchPanel() {
   const selectedProject = useProjectStore((s) => s.selectedProject)
   const projectStructure = useProjectStore((s) => s.projectStructure)
   const projects = useProjectStore((s) => s.projects)
-  const createProject = useProjectStore((s) => s.createProject)
-  const selectProject = useProjectStore((s) => s.selectProject)
-  const fetchProjects = useProjectStore((s) => s.fetchProjects)
   const loadStructure = useProjectStore((s) => s.loadStructure)
 
   const openFile = useEditorStore((s) => s.openFile)
@@ -282,53 +275,6 @@ export const SearchPanel = React.memo(function SearchPanel() {
     })
   }
 
-  const [newProjectName, setNewProjectName] = useState('')
-  const [templateOption, setTemplateOption] = useState<TemplateOption>('example')
-  const [createLoading, setCreateLoading] = useState(false)
-  const [createError, setCreateError] = useState('')
-
-  const invalidChars = /[\\/:*?"<>|]/
-  const invalidCharsHint = t('search.projectNameInvalid')
-  const projectNamePlaceholder = t('search.projectNamePlaceholder')
-
-  const validateName = (name: string): string => {
-    if (!name.trim()) return t('search.projectNameEmpty')
-    if (invalidChars.test(name)) return invalidCharsHint
-    if (projects.some((p) => p.name === name.trim())) return t('search.projectNameExists')
-    return ''
-  }
-
-  const handleCreateProject = async () => {
-    const trimmed = newProjectName.trim()
-    const error = validateName(trimmed)
-    if (error) {
-      setCreateError(error)
-      return
-    }
-    setCreateLoading(true)
-    setCreateError('')
-    try {
-      await createProject(trimmed)
-      showSuccess(t('search.projectCreated', { name: trimmed }))
-      await fetchProjects()
-      setNewProjectName('')
-      setProjectCreateOpen(false)
-      // 自动选中
-      setTimeout(() => {
-        const updated = (useProjectStore.getState as () => {
-          projects: ProjectInfo[]
-        })?.()
-        const list = updated?.projects ?? []
-        const found = list.find((p) => p.name === trimmed)
-        if (found) selectProject(found)
-      }, 100)
-    } catch (err) {
-      showError((err as Error).message)
-    } finally {
-      setCreateLoading(false)
-    }
-  }
-
   // 文件类型过滤切换
   const toggleType = (key: string) => {
     setSelectedTypes((prev) => {
@@ -452,24 +398,6 @@ export const SearchPanel = React.memo(function SearchPanel() {
             )}
           >
             <RefreshCw size={12} />
-          </button>
-          <button
-            onClick={() => {
-              setNewProjectName('')
-              setTemplateOption('example')
-              setCreateError('')
-              setProjectCreateOpen(true)
-            }}
-            title={t('search.newProjectTooltip')}
-            className={clsx(
-              'px-2 py-1 text-xs rounded border flex items-center gap-1',
-              isDark
-                ? 'border-gray-600 bg-gray-800 hover:bg-gray-700 text-gray-300'
-                : 'border-gray-300 bg-white hover:bg-gray-50 text-gray-700',
-            )}
-          >
-            <Plus size={12} />
-            <span>{t('search.newProject')}</span>
           </button>
         </div>
 
@@ -688,129 +616,6 @@ export const SearchPanel = React.memo(function SearchPanel() {
           </div>
         )}
       </div>
-
-      {/* 新建项目对话框 */}
-      <Modal
-        open={projectCreateOpen}
-        onClose={() => !createLoading && setProjectCreateOpen(false)}
-        title={t('search.modalTitle')}
-        width="440px"
-        footer={
-          <>
-            <button
-              onClick={() => setProjectCreateOpen(false)}
-              disabled={createLoading}
-              className={clsx(
-                'px-4 py-1.5 text-sm rounded border disabled:opacity-50',
-                isDark
-                  ? 'border-gray-600 text-gray-300 hover:bg-gray-700'
-                  : 'border-gray-300 text-gray-700 hover:bg-gray-50',
-              )}
-            >
-              {t('search.cancel')}
-            </button>
-            <button
-              onClick={handleCreateProject}
-              disabled={createLoading}
-              className="px-4 py-1.5 text-sm rounded bg-primary-600 text-white hover:bg-primary-700 disabled:opacity-50 flex items-center gap-1"
-            >
-              {createLoading && <Loader2 size={12} className="animate-spin" />}
-              {t('search.create')}
-            </button>
-          </>
-        }
-      >
-        <div className="space-y-4">
-          <div>
-            <label
-              className={clsx(
-                'block text-xs font-medium mb-1',
-                isDark ? 'text-gray-300' : 'text-gray-700',
-              )}
-            >
-              {t('search.projectNameLabel')}
-            </label>
-            <input
-              type="text"
-              value={newProjectName}
-              onChange={(e) => {
-                setNewProjectName(e.target.value)
-                if (createError) setCreateError('')
-              }}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && !createLoading) handleCreateProject()
-              }}
-              autoFocus
-              placeholder={projectNamePlaceholder}
-              className={clsx(
-                'w-full px-3 py-1.5 text-sm border rounded focus:outline-none focus:ring-1 focus:ring-primary-500',
-                isDark
-                  ? 'bg-gray-800 border-gray-600 text-gray-200 placeholder-gray-500'
-                  : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400',
-              )}
-            />
-            {createError && <p className="text-xs text-red-500 mt-1">{createError}</p>}
-          </div>
-          <div>
-            <label
-              className={clsx(
-                'block text-xs font-medium mb-1',
-                isDark ? 'text-gray-300' : 'text-gray-700',
-              )}
-            >
-              {t('search.projectTemplateLabel')}
-            </label>
-            <div className="space-y-2">
-              <label
-                className={clsx(
-                  'flex items-start gap-2 p-2 border rounded cursor-pointer',
-                  isDark
-                    ? 'border-gray-600 hover:bg-gray-700/70 text-gray-300'
-                    : 'border-gray-300 hover:bg-gray-50 text-gray-700',
-                )}
-              >
-                <input
-                  type="radio"
-                  checked={templateOption === 'example'}
-                  onChange={() => setTemplateOption('example')}
-                  className="mt-0.5"
-                />
-                <div>
-                  <div className={clsx('text-sm', isDark ? 'text-gray-200' : 'text-gray-800')}>
-                    {t('search.useExampleTemplate')}
-                  </div>
-                  <div className={clsx('text-xs mt-0.5', isDark ? 'text-gray-500' : 'text-gray-500')}>
-                    {t('search.exampleTemplateDesc')}
-                  </div>
-                </div>
-              </label>
-              <label
-                className={clsx(
-                  'flex items-start gap-2 p-2 border rounded cursor-pointer',
-                  isDark
-                    ? 'border-gray-600 hover:bg-gray-700/70 text-gray-300'
-                    : 'border-gray-300 hover:bg-gray-50 text-gray-700',
-                )}
-              >
-                <input
-                  type="radio"
-                  checked={templateOption === 'empty'}
-                  onChange={() => setTemplateOption('empty')}
-                  className="mt-0.5"
-                />
-                <div>
-                  <div className={clsx('text-sm', isDark ? 'text-gray-200' : 'text-gray-800')}>
-                    {t('search.emptyProject')}
-                  </div>
-                  <div className={clsx('text-xs mt-0.5', isDark ? 'text-gray-500' : 'text-gray-500')}>
-                    {t('search.emptyProjectDesc')}
-                  </div>
-                </div>
-              </label>
-            </div>
-          </div>
-        </div>
-      </Modal>
     </div>
   )
 })

@@ -5,6 +5,7 @@ import { setupIpcHandlers } from './ipc/handlers'
 import { initializeAppDirs, initializeWorkspace, isDev } from './config'
 import { updateService } from './services/update.service'
 import { logger } from './utils/logger'
+import { createApplicationMenu } from './utils/menu'
 import electronI18n from './electron-i18n'
 
 // 初始化应用目录
@@ -17,7 +18,7 @@ class MagicCommanderApp {
     await app.whenReady()
     initializeWorkspace()
     this.createMainWindow()
-    Menu.setApplicationMenu(null)
+    createApplicationMenu(this.mainWindow!)
     setupIpcHandlers(this.mainWindow!)
     this.setupUpdateService()
     this.registerAppEvents()

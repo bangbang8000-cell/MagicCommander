@@ -45,7 +45,9 @@
   const api = {
     project: {
       list: () => post('project:list', {}),
-      create: (name) => post('project:create', { name }),
+      listExamples: () => post('project:listExamples', {}),
+      create: (name, options) => post('project:create', { name, options }),
+      saveAsExample: (projectName, exampleName) => post('project:saveAsExample', { projectName, exampleName }),
       delete: (ids) => post('project:delete', { ids }),
       getStructure: (name) => post('project:structure', { name }),
       parameters: (id) => post('project:parameters', { id }),
