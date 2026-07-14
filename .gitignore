@@ -34,9 +34,6 @@ __pycache__/
 .env
 .env.local
 
-# Doc report
-magiccommander-i18n-plan/
-
 # Electron cache
 .electron-user-data/
 electron-builder-cache/
