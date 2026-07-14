@@ -54,7 +54,7 @@ export const SECURITY_CONFIG = {
 export function escapePythonArg(arg: string): string {
   if (!arg || typeof arg !== 'string') return ''
   
-  // 移除危险字符
+  // 移除危险字符（Shell 元字符），保留空格（spawn 用数组传参，空格安全）
   const dangerousChars = ['$', '`', '\\', '\n', '\r', ';', '|', '&', '<', '>', '(', ')', '{', '}', '[', ']']
   let escaped = arg
   
@@ -62,15 +62,15 @@ export function escapePythonArg(arg: string): string {
     escaped = escaped.replace(char, '')
   }
   
-  // 只允许字母、数字、下划线、连字符、点
-  escaped = escaped.replace(/[^\w\-\.]/g, '_')
+  // 允许字母、数字、下划线、连字符、点、空格、中文
+  escaped = escaped.replace(/[^\w\-\u4e00-\u9fff\u3400-\u4dbf\s\.]/g, '_')
   
   // 限制长度
   if (escaped.length > SECURITY_CONFIG.PROJECT_NAME_MAX_LENGTH) {
     escaped = escaped.slice(0, SECURITY_CONFIG.PROJECT_NAME_MAX_LENGTH)
   }
   
-  return escaped
+  return escaped.trim()
 }
 
 /**
