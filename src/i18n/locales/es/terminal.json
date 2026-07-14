@@ -1,6 +1,7 @@
 {
   "banner": {
-    "welcomeBanner": "╔══════════════════════════════════════════════════════════════╗\n║                 Terminal de MagicCommander                 ║\n╠══════════════════════════════════════════════════════════════╣\n║  Bienvenido al terminal integrado de MagicCommander!       ║\n║  Escriba help para ver todos los comandos disponibles      ║\n╠══════════════════════════════════════════════════════════════╣\n║  Comandos frecuentes:                                     ║\n║  ┌─────────────────────────────────────────────────────┐ ║\n║  │ help       - Mostrar información de ayuda             │ ║\n║  │ list       - Listar todos los proyectos               │ ║\n║  │ select     - Seleccionar proyecto                    │ ║\n║  │ render     - Ejecutar renderizado                    │ ║\n║  │ label      - Imprimir etiquetas                      │ ║\n║  │ clear      - Limpiar terminal                        │ ║\n║  └─────────────────────────────────────────────────────┘ ║\n╚══════════════════════════════════════════════════════════════╝"
+    "welcomeBanner": "╔══════════════════════════════════════════════════════════════╗\n║                 Terminal de MagicCommander                 ║\n╠══════════════════════════════════════════════════════════════╣\n║  Bienvenido al terminal integrado de MagicCommander!       ║\n║  Escriba help para ver todos los comandos disponibles      ║\n╠══════════════════════════════════════════════════════════════╣\n║  Comandos frecuentes:                                     ║\n║  ┌─────────────────────────────────────────────────────┐ ║\n║  │ help       - Mostrar información de ayuda             │ ║\n║  │ list       - Listar todos los proyectos               │ ║\n║  │ select     - Seleccionar proyecto                    │ ║\n║  │ render     - Ejecutar renderizado                    │ ║\n║  │ label      - Imprimir etiquetas                      │ ║\n║  │ clear      - Limpiar terminal                        │ ║\n║  └─────────────────────────────────────────────────────┘ ║\n╚══════════════════════════════════════════════════════════════╝",
+    "compactWelcome": "MagicCommander Terminal\nType help to see UI terminal commands, or help cli for CLI usage."
   },
   "messages": {
     "cleared": "Terminal limpiado.",
@@ -128,5 +129,14 @@
       "  python main.py project --help",
       "  python main.py render --help"
     ]
+  },
+  "contextMenu": {
+    "copySelection": "Copy Selection",
+    "copyCurrentLine": "Copy Current Line",
+    "copyAll": "Copy All Output",
+    "showHelp": "Show Help",
+    "clear": "Clear Terminal",
+    "copySuccess": "Copied to clipboard",
+    "copyFailed": "Copy failed"
   }
 }

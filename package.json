@@ -1,6 +1,6 @@
 {
   "name": "magiccommander",
-  "version": "2.9.9",
+  "version": "3.0.0",
   "description": "MagicCommander - 网络设备配置管理工具",
   "main": "dist-electron/main.js",
   "author": "Magic Commander Team",
@@ -68,6 +68,13 @@
     "directories": {
       "output": "release"
     },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "bangbang8000-cell",
+        "repo": "MagicCommander"
+      }
+    ],
     "files": [
       "dist/**/*",
       "dist-electron/**/*"

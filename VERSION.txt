@@ -1,6 +1,6 @@
 MagicCommander
 ==============
-Version: 2.9.9
-Release Date: 2026-07-13
+Version: 3.0.0
+Release Date: 2026-07-14
 Architecture: Electron + React + Python
 Description: 网络设备配置管理工具 - 基于模板和参数批量生成网络设备配置

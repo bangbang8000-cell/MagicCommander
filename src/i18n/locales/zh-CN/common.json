@@ -127,6 +127,20 @@
     "feature4": "标签打印 - 支持设备标签批量打印",
     "feature5": "YAML 输出 - 支持生成 YAML 格式配置文件"
   },
+  "updates": {
+    "title": "软件更新",
+    "idle": "可手动检查是否有新版本。",
+    "checking": "正在检查更新...",
+    "available": "发现新版本 {{version}}。",
+    "notAvailable": "当前已是最新版本。",
+    "downloading": "正在下载更新：{{progress}}%",
+    "downloaded": "更新已下载完成，可立即重启安装。",
+    "error": "更新失败：{{error}}",
+    "unknownError": "未知错误",
+    "checkButton": "检查更新",
+    "downloadButton": "下载更新",
+    "installButton": "立即重启安装"
+  },
   "errorBoundary": {
     "title": "页面加载失败",
     "message": "渲染过程中发生错误，请尝试刷新页面",

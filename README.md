@@ -2,7 +2,7 @@
 
 **批量生成网络设备配置 | Network Device Configuration Automation**
 
-[![Version](https://img.shields.io/badge/version-2.9.9-blue)](https://github.com/bangbang8000-cell/MagicCommander)
+[![Version](https://img.shields.io/badge/version-3.0.0-blue)](https://github.com/bangbang8000-cell/MagicCommander)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![Windows](https://img.shields.io/badge/Windows-NSIS-blue)](https://github.com/bangbang8000-cell/MagicCommander/releases)
 [![macOS](https://img.shields.io/badge/macOS-DMG-silver)](https://github.com/bangbang8000-cell/MagicCommander/releases)
@@ -151,7 +151,7 @@ Electron 28 · React 18 · TypeScript 5 · Vite 5 · TailwindCSS 3 · Zustand 4 
 
 | 版本 | 日期 | 更新内容 |
 |------|------|---------|
-| **V3.0 规划中** | 2026-07 | AI 驱动的网络配置工程平台升级（详见 [V3.0 PRD](docs/v3-prd/)） |
+| **3.0.0** | 2026-07-14 | V3.0 正式版：新增发布版检查更新/下载/重启安装入口，优化终端 help 布局与右键复制，完善日志分类展示，并将 Actions 发布流程调整为仅在版本 tag 推送后触发编译发布 |
 | 2.9.9 | 2026-07-13 | 完善日志与终端体验：日志接入后台命令输出，支持信息/成功/警告/错误分类、搜索和来源标签；终端首次打开自动显示 help，并增强多语言支持 |
 | 2.9.8 | 2026-07-13 | 以本地程序和数据为准同步工作区、示例项目与界面优化 |
 | 2.9.2 | 2026-07-01 | 跨平台编译支持：Windows (NSIS) / macOS (DMG x64+arm64) / Linux (AppImage+deb) |

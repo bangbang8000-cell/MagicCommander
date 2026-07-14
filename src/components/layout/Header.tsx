@@ -25,6 +25,7 @@ import {
 import clsx from 'clsx'
 import { Modal } from '@/components/ui/Modal'
 import { MarkdownViewer } from '@/components/common/MarkdownViewer'
+import type { UpdateStatus } from '@/types/ipc'
 
 interface MenuItem {
   id: string
@@ -58,8 +59,18 @@ export function Header() {
   const [guideOpen, setGuideOpen] = useState(false)
   const [guideContent, setGuideContent] = useState('')
   const [langMenuOpen, setLangMenuOpen] = useState(false)
+  const [updateStatus, setUpdateStatus] = useState<UpdateStatus | null>(null)
+  const [updateBusy, setUpdateBusy] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
   const langMenuRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!window.electron?.app?.onUpdateStatus) return
+    return window.electron.app.onUpdateStatus((status) => {
+      setUpdateStatus(status)
+      setUpdateBusy(status.status === 'checking' || status.status === 'downloading')
+    })
+  }, [])
 
   // 点击外部关闭菜单
   useEffect(() => {
@@ -96,6 +107,54 @@ export function Header() {
   const handleAbout = () => {
     setAboutOpen(true)
     setActiveMenu(null)
+  }
+
+  const handleCheckUpdate = async () => {
+    if (!window.electron?.app?.checkUpdate) return
+    setUpdateBusy(true)
+    setUpdateStatus({ status: 'checking' })
+    try {
+      await window.electron.app.checkUpdate()
+    } catch (err) {
+      setUpdateStatus({ status: 'error', error: (err as Error).message })
+      setUpdateBusy(false)
+    }
+  }
+
+  const handleDownloadUpdate = async () => {
+    if (!window.electron?.app?.downloadUpdate) return
+    setUpdateBusy(true)
+    try {
+      await window.electron.app.downloadUpdate()
+    } catch (err) {
+      setUpdateStatus({ status: 'error', error: (err as Error).message })
+      setUpdateBusy(false)
+    }
+  }
+
+  const handleInstallUpdate = async () => {
+    if (!window.electron?.app?.quitAndInstall) return
+    await window.electron.app.quitAndInstall()
+  }
+
+  const getUpdateMessage = () => {
+    if (!updateStatus) return t('updates.idle')
+    switch (updateStatus.status) {
+      case 'checking':
+        return t('updates.checking')
+      case 'available':
+        return t('updates.available', { version: updateStatus.version || '' })
+      case 'not-available':
+        return t('updates.notAvailable')
+      case 'downloading':
+        return t('updates.downloading', { progress: updateStatus.progress ?? 0 })
+      case 'downloaded':
+        return t('updates.downloaded')
+      case 'error':
+        return t('updates.error', { error: updateStatus.error || t('updates.unknownError') })
+      default:
+        return t('updates.idle')
+    }
   }
 
   const handleNewProject = () => {
@@ -369,6 +428,61 @@ export function Header() {
                 {t('about.feature5')}
               </li>
             </ul>
+          </div>
+
+          {/* 更新检查 */}
+          <div className="space-y-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                  {t('updates.title')}
+                </h3>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  {getUpdateMessage()}
+                </p>
+              </div>
+              <button
+                onClick={handleCheckUpdate}
+                disabled={updateBusy}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-md border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                <RefreshCw size={13} className={clsx(updateBusy && 'animate-spin')} />
+                {t('updates.checkButton')}
+              </button>
+            </div>
+
+            {updateStatus?.status === 'downloading' && (
+              <div className="h-2 rounded-full bg-gray-100 dark:bg-gray-700 overflow-hidden">
+                <div
+                  className="h-full bg-primary-500 transition-all"
+                  style={{ width: `${Math.min(100, Math.max(0, updateStatus.progress ?? 0))}%` }}
+                />
+              </div>
+            )}
+
+            {updateStatus?.status === 'available' && (
+              <button
+                onClick={handleDownloadUpdate}
+                className="w-full px-3 py-1.5 text-xs rounded-md bg-primary-500 text-white hover:bg-primary-600 transition-colors"
+              >
+                {t('updates.downloadButton')}
+              </button>
+            )}
+
+            {updateStatus?.status === 'downloaded' && (
+              <button
+                onClick={handleInstallUpdate}
+                className="w-full px-3 py-1.5 text-xs rounded-md bg-green-600 text-white hover:bg-green-700 transition-colors"
+              >
+                {t('updates.installButton')}
+              </button>
+            )}
+
+            {updateStatus?.status === 'available' && updateStatus.releaseNotes && (
+              <div className="max-h-24 overflow-auto rounded-md bg-gray-50 dark:bg-gray-800 px-3 py-2 text-xs text-gray-600 dark:text-gray-300 whitespace-pre-wrap">
+                {Array.isArray(updateStatus.releaseNotes) ? updateStatus.releaseNotes.join('\n') : updateStatus.releaseNotes}
+              </div>
+            )}
           </div>
 
           {/* 技术栈 */}

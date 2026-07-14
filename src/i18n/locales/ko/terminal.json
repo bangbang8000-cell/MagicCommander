@@ -1,6 +1,7 @@
 {
   "banner": {
-    "welcomeBanner": "╔══════════════════════════════════════════════════════════════╗\n║                   MagicCommander 터미널                    ║\n╠══════════════════════════════════════════════════════════════╣\n║  MagicCommander 내장 터미널에 오신 것을 환영합니다!       ║\n║  help를 입력하여 사용 가능한 모든 명령어를 확인하세요     ║\n╠══════════════════════════════════════════════════════════════╣\n║  자주 사용하는 명령어:                                    ║\n║  ┌─────────────────────────────────────────────────────┐ ║\n║  │ help       - 도움말 정보 표시                       │ ║\n║  │ list       - 모든 프로젝트 나열                     │ ║\n║  │ select     - 프로젝트 선택                          │ ║\n║  │ render     - 렌더링 실행                            │ ║\n║  │ label      - 라벨 인쇄                              │ ║\n║  │ clear      - 터미널 지우기                          │ ║\n║  └─────────────────────────────────────────────────────┘ ║\n╚══════════════════════════════════════════════════════════════╝"
+    "welcomeBanner": "╔══════════════════════════════════════════════════════════════╗\n║                   MagicCommander 터미널                    ║\n╠══════════════════════════════════════════════════════════════╣\n║  MagicCommander 내장 터미널에 오신 것을 환영합니다!       ║\n║  help를 입력하여 사용 가능한 모든 명령어를 확인하세요     ║\n╠══════════════════════════════════════════════════════════════╣\n║  자주 사용하는 명령어:                                    ║\n║  ┌─────────────────────────────────────────────────────┐ ║\n║  │ help       - 도움말 정보 표시                       │ ║\n║  │ list       - 모든 프로젝트 나열                     │ ║\n║  │ select     - 프로젝트 선택                          │ ║\n║  │ render     - 렌더링 실행                            │ ║\n║  │ label      - 라벨 인쇄                              │ ║\n║  │ clear      - 터미널 지우기                          │ ║\n║  └─────────────────────────────────────────────────────┘ ║\n╚══════════════════════════════════════════════════════════════╝",
+    "compactWelcome": "MagicCommander Terminal\nType help to see UI terminal commands, or help cli for CLI usage."
   },
   "messages": {
     "cleared": "터미널이 지워졌습니다.",
@@ -128,5 +129,14 @@
       "  python main.py project --help",
       "  python main.py render --help"
     ]
+  },
+  "contextMenu": {
+    "copySelection": "Copy Selection",
+    "copyCurrentLine": "Copy Current Line",
+    "copyAll": "Copy All Output",
+    "showHelp": "Show Help",
+    "clear": "Clear Terminal",
+    "copySuccess": "Copied to clipboard",
+    "copyFailed": "Copy failed"
   }
 }

@@ -141,9 +141,21 @@ export interface DialogIpcApi {
 // App API
 // ============================================================
 
+export type UpdateStatus =
+  | { status: 'checking' }
+  | { status: 'available'; version?: string; releaseNotes?: string | string[] }
+  | { status: 'not-available' }
+  | { status: 'downloading'; progress?: number; transferred?: number; total?: number }
+  | { status: 'downloaded' }
+  | { status: 'error'; error?: string }
+
 export interface AppIpcApi {
   getVersion: () => Promise<string>
   getPath: (name: 'home' | 'appData' | 'userData' | 'backend' | 'workspace') => Promise<string>
+  checkUpdate: () => Promise<void>
+  downloadUpdate: () => Promise<void>
+  quitAndInstall: () => Promise<void>
+  onUpdateStatus: (callback: (status: UpdateStatus) => void) => () => void
   getLanguage: () => Promise<string>
   setLanguage: (lang: string) => Promise<void>
   onLanguageChange: (callback: (lang: string) => void) => () => void

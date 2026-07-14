@@ -4,8 +4,10 @@ import i18n from '@/i18n'
 
 export type LogLevel = 'info' | 'success' | 'warn' | 'error'
 
+export type TerminalOutputKind = 'text' | 'command' | 'help' | 'banner'
+
 export interface CommandContext {
-  addLog: (level: LogLevel, msg: string) => void
+  addLog: (level: LogLevel, msg: string, kind?: TerminalOutputKind) => void
   toggleDark: () => void
   setTheme: (theme: 'light' | 'dark') => void
   clearTerminal: () => void
@@ -28,7 +30,7 @@ function tLines(key: string): string[] {
 }
 
 function printLines(ctx: CommandContext, lines: string[]) {
-  lines.forEach((line) => ctx.addLog('info', line))
+  lines.forEach((line) => ctx.addLog('info', line, 'help'))
 }
 
 export function terminalHelpLines(): string[] {

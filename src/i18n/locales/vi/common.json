@@ -305,5 +305,19 @@
     "openProjectRoot": "Mở thư mục gốc dự án trong trình khám phá",
     "refresh": "Làm mới",
     "openInExplorer": "Mở trong trình khám phá"
+  },
+  "updates": {
+    "title": "Software Update",
+    "idle": "You can manually check whether a new version is available.",
+    "checking": "Checking for updates...",
+    "available": "New version {{version}} is available.",
+    "notAvailable": "You are already using the latest version.",
+    "downloading": "Downloading update: {{progress}}%",
+    "downloaded": "Update downloaded. Restart now to install it.",
+    "error": "Update failed: {{error}}",
+    "unknownError": "Unknown error",
+    "checkButton": "Check for Updates",
+    "downloadButton": "Download Update",
+    "installButton": "Restart and Install"
   }
 }

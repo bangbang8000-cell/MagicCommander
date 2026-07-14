@@ -127,6 +127,20 @@
     "feature4": "Label Printing - Support batch printing of device labels",
     "feature5": "YAML Output - Support generating YAML format configuration files"
   },
+  "updates": {
+    "title": "Software Update",
+    "idle": "You can manually check whether a new version is available.",
+    "checking": "Checking for updates...",
+    "available": "New version {{version}} is available.",
+    "notAvailable": "You are already using the latest version.",
+    "downloading": "Downloading update: {{progress}}%",
+    "downloaded": "Update downloaded. Restart now to install it.",
+    "error": "Update failed: {{error}}",
+    "unknownError": "Unknown error",
+    "checkButton": "Check for Updates",
+    "downloadButton": "Download Update",
+    "installButton": "Restart and Install"
+  },
   "errorBoundary": {
     "title": "Page Load Failed",
     "message": "An error occurred during rendering. Please try refreshing the page.",

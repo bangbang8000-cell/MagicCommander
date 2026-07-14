@@ -1,6 +1,7 @@
 {
   "banner": {
-    "welcomeBanner": "╔══════════════════════════════════════════════════════════════╗\n║                    MagicCommander 終端                     ║\n╠══════════════════════════════════════════════════════════════╣\n║  歡迎使用 MagicCommander 內建終端！                       ║\n║  輸入 help 查看所有可用命令                               ║\n╠══════════════════════════════════════════════════════════════╣\n║  常用命令速覽:                                           ║\n║  ┌─────────────────────────────────────────────────────┐ ║\n║  │ help       - 顯示說明資訊                            │ ║\n║  │ list       - 列出所有專案                            │ ║\n║  │ select     - 選擇專案                               ║\n║  │ render     - 執行渲染                               ║\n║  │ label      - 標籤列印                               ║\n║  │ clear      - 清空終端                               ║\n║  └─────────────────────────────────────────────────────┘ ║\n╚══════════════════════════════════════════════════════════════╝"
+    "welcomeBanner": "╔══════════════════════════════════════════════════════════════╗\n║                    MagicCommander 終端                     ║\n╠══════════════════════════════════════════════════════════════╣\n║  歡迎使用 MagicCommander 內建終端！                       ║\n║  輸入 help 查看所有可用命令                               ║\n╠══════════════════════════════════════════════════════════════╣\n║  常用命令速覽:                                           ║\n║  ┌─────────────────────────────────────────────────────┐ ║\n║  │ help       - 顯示說明資訊                            │ ║\n║  │ list       - 列出所有專案                            │ ║\n║  │ select     - 選擇專案                               ║\n║  │ render     - 執行渲染                               ║\n║  │ label      - 標籤列印                               ║\n║  │ clear      - 清空終端                               ║\n║  └─────────────────────────────────────────────────────┘ ║\n╚══════════════════════════════════════════════════════════════╝",
+    "compactWelcome": "MagicCommander Terminal\nType help to see UI terminal commands, or help cli for CLI usage."
   },
   "messages": {
     "cleared": "終端已清空。",
@@ -128,5 +129,14 @@
       "  python main.py project --help",
       "  python main.py render --help"
     ]
+  },
+  "contextMenu": {
+    "copySelection": "Copy Selection",
+    "copyCurrentLine": "Copy Current Line",
+    "copyAll": "Copy All Output",
+    "showHelp": "Show Help",
+    "clear": "Clear Terminal",
+    "copySuccess": "Copied to clipboard",
+    "copyFailed": "Copy failed"
   }
 }

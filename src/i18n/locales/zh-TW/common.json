@@ -305,5 +305,19 @@
     "openProjectRoot": "在資源管理器中開啟專案根目錄",
     "refresh": "重新整理",
     "openInExplorer": "在資源管理器中開啟"
+  },
+  "updates": {
+    "title": "Software Update",
+    "idle": "You can manually check whether a new version is available.",
+    "checking": "Checking for updates...",
+    "available": "New version {{version}} is available.",
+    "notAvailable": "You are already using the latest version.",
+    "downloading": "Downloading update: {{progress}}%",
+    "downloaded": "Update downloaded. Restart now to install it.",
+    "error": "Update failed: {{error}}",
+    "unknownError": "Unknown error",
+    "checkButton": "Check for Updates",
+    "downloadButton": "Download Update",
+    "installButton": "Restart and Install"
   }
 }
