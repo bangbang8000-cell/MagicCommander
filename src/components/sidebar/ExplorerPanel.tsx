@@ -53,6 +53,7 @@ export function ExplorerPanel() {
   }
 
   const openCreateDialog = async () => {
+    if (createOpen) return
     setNewProjectName('')
     setTemplateOption('example')
     setCreateError('')
@@ -76,7 +77,7 @@ export function ExplorerPanel() {
       openCreateDialog()
       clearCreateTrigger()
     }
-  }, [pendingCreateDialog])
+  }, [pendingCreateDialog, clearCreateTrigger, createOpen])
 
   const handleCreateProject = async () => {
     const trimmed = newProjectName.trim()

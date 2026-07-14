@@ -43,6 +43,7 @@ feature [label-print | label-delete] 项目代号/项目代号/项目代号··�
 '''
 
     def __init__(self):
+        self.workspace = WORKSPACE_DIR
         self.project_para = []
         self.project_name = []
         self.target_project_name = []
