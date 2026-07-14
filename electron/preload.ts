@@ -23,6 +23,7 @@ const api = {
     yaml: (ids: string[]) => ipcRenderer.invoke('render:yaml', ids),
     projectSn: (ids: string[]) => ipcRenderer.invoke('render:project-sn', ids),
     yamlSn: (ids: string[]) => ipcRenderer.invoke('render:yaml-sn', ids),
+    undo: (ids: string[]) => ipcRenderer.invoke('render:undo', ids),
     onProgress: (callback: (progress: unknown) => void) => {
       const handler = (_e: unknown, data: unknown) => callback(data)
       ipcRenderer.on('render:progress', handler)

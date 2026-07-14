@@ -7,6 +7,8 @@ import shutil
 import pandas as pd
 from pandas import read_excel
 from time import strftime, localtime
+from datetime import datetime
+import hashlib
 from config import WORKSPACE_DIR
 
 logger = logging.getLogger(__name__)
@@ -371,6 +373,79 @@ feature [label-print | label-delete] 项目代号/项目代号/项目代号··�
 
         return 'error'
 
+    def _backup_output(self, project_dir: str) -> str | None:
+        """渲染前备份 output 目录，支持撤销恢复"""
+        output_dir = os.path.join(project_dir, 'output')
+        if not os.path.exists(output_dir) or not os.listdir(output_dir):
+            return None
+        
+        backup_dir = os.path.join(project_dir, '.output_backups')
+        os.makedirs(backup_dir, exist_ok=True)
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        backup_path = os.path.join(backup_dir, timestamp)
+        shutil.copytree(output_dir, backup_path)
+        logger.info(f'已备份 output 到 {backup_path}')
+        return backup_path
+
+    def _restore_backup(self, project_dir: str) -> bool:
+        """恢复最近一次备份"""
+        backup_dir = os.path.join(project_dir, '.output_backups')
+        if not os.path.exists(backup_dir):
+            return False
+        backups = sorted(os.listdir(backup_dir), reverse=True)
+        if not backups:
+            return False
+        latest = os.path.join(backup_dir, backups[0])
+        output_dir = os.path.join(project_dir, 'output')
+        if os.path.exists(output_dir):
+            shutil.rmtree(output_dir)
+        shutil.copytree(latest, output_dir)
+        logger.info(f'已恢复备份: {backups[0]}')
+        return True
+
+    def _compute_cache_key(self, project_dir: str, sheet_name: str) -> str:
+        """计算渲染参数的 hash 缓存键"""
+        hasher = hashlib.sha256()
+        para_path = os.path.join(project_dir, 'para.xlsx')
+        excel_path = os.path.join(project_dir, 'excel', f'{sheet_name}.xlsx')
+        template_dir = os.path.join(project_dir, 'templates')
+        
+        for path in [para_path, excel_path]:
+            if os.path.exists(path):
+                with open(path, 'rb') as f:
+                    hasher.update(f.read())
+        
+        if os.path.isdir(template_dir):
+            for fname in sorted(os.listdir(template_dir)):
+                if fname.endswith('.j2'):
+                    fpath = os.path.join(template_dir, fname)
+                    with open(fpath, 'rb') as f:
+                        hasher.update(fname.encode())
+                        hasher.update(f.read())
+        
+        return hasher.hexdigest()[:16]
+
+    def _get_cached(self, project_dir: str, sheet_name: str, cache_key: str) -> str | None:
+        """获取缓存的渲染结果"""
+        cache_dir = os.path.join(project_dir, '.render_cache')
+        cache_file = os.path.join(cache_dir, f'{sheet_name}.output')
+        cache_meta = os.path.join(cache_dir, f'{sheet_name}.key')
+        
+        if os.path.exists(cache_file) and os.path.exists(cache_meta):
+            with open(cache_meta) as f:
+                if f.read().strip() == cache_key:
+                    with open(cache_file, 'r', encoding='utf-8') as f:
+                        return f.read()
+        return None
+
+    def _save_cache(self, project_dir: str, sheet_name: str, cache_key: str):
+        """保存渲染结果到缓存"""
+        cache_dir = os.path.join(project_dir, '.render_cache')
+        os.makedirs(cache_dir, exist_ok=True)
+        # 缓存 key 和 output 目录状态
+        with open(os.path.join(cache_dir, f'{sheet_name}.key'), 'w') as f:
+            f.write(cache_key)
+
     def execute_render(self, word: str, out_name_type: str):
         """执行选中项目的渲染"""
         time_str = strftime("%Y_%m_%d_%H_%M_%S", localtime())
@@ -381,6 +456,11 @@ feature [label-print | label-delete] 项目代号/项目代号/项目代号··�
 
         for name in self.project_name:
             self.read_project_para(name, 'para.xlsx')
+
+        # 渲染前自动备份 output 目录
+        for i in range(0, len(self.target_project_name)):
+            project_dir = os.path.join(self.workspace, self.target_project_name[i])
+            self._backup_output(project_dir)
 
         total_steps = self._calc_render_steps(include_template_render=True)
         current_step = 0

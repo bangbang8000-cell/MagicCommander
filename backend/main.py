@@ -98,6 +98,10 @@ def main():
     render_yaml_parser.add_argument('ids', help='项目ID (使用,分隔多个ID)')
     render_yaml_parser.add_argument('--format', choices=['device_name', 'device_sn'], default='device_name', help='输出格式')
 
+    # 渲染撤销
+    render_undo_parser = render_subparsers.add_parser('undo', help='撤销渲染 (恢复最近一次备份)')
+    render_undo_parser.add_argument('ids', help='项目ID (使用,分隔多个ID)')
+
     # 标签功能命令
     label_parser = subparsers.add_parser('label', help='标签功能操作')
     label_subparsers = label_parser.add_subparsers(title='标签操作', dest='subcommand', help='标签子命令')
@@ -521,6 +525,16 @@ def handle_render_command(processor, args):
         else:
             processor.execute_yaml(target_str)
         print_success(f'YAML文件渲染完成')
+
+    elif args.subcommand == 'undo':
+        # 撤销渲染：恢复最近一次备份
+        restored = 0
+        for project_id in target_ids:
+            name = processor.project_name[project_id - 1]
+            project_dir = os.path.join(WORKSPACE_DIR, name)
+            if processor._restore_backup(project_dir):
+                restored += 1
+        print_success(f'已恢复 {restored} 个项目的渲染输出')
 
 
 def handle_label_command(processor, args):

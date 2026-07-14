@@ -8,6 +8,7 @@ import {
   buildSafePath,
   isFileTypeAllowed,
   isFileAccessible,
+  validateProjectName,
 } from '../utils/security'
 import { getBackendDir, getExampleDir, getWorkspaceDir } from '../config'
 
@@ -108,28 +109,25 @@ export function setupIpcHandlers(window: BrowserWindow): void {
   })
 
   ipcMain.handle('project:create', async (_e, name: string, options?: { template?: string; empty?: boolean }): Promise<void> => {
-    const validation = validateFilePath(name)
-    if (!validation.valid || name.includes('/') || name.includes('\\')) {
-      throw new Error('项目名无效')
+    const validation = validateProjectName(name)
+    if (!validation.valid) {
+      throw new Error(validation.error || '项目名无效')
     }
     const workspaceDir = getWorkspaceDir()
     const targetPath = path.join(workspaceDir, name)
     if (fs.existsSync(targetPath)) throw new Error(`项目已存在: ${name}`)
 
+    // 统一走 Python CLI 创建项目（保证目录结构、MC_Para.xlsx、para.xlsx 同步）
     if (options?.empty) {
-      fs.mkdirSync(path.join(targetPath, 'excel'), { recursive: true })
-      fs.mkdirSync(path.join(targetPath, 'templates'), { recursive: true })
-      fs.mkdirSync(path.join(targetPath, 'output'), { recursive: true })
-      fs.mkdirSync(path.join(targetPath, 'yaml'), { recursive: true })
+      await renderHandler.runPythonCommand(['project', 'create', name, '--empty'])
     } else {
       const examples = listExampleProjects()
       const template = options?.template || examples[0]
       if (!template) throw new Error('没有可用的示例模板')
       if (!examples.includes(template)) throw new Error(`示例模板不存在: ${template}`)
       copyDirRecursive(path.join(getExampleDir(), template), targetPath)
+      syncMcParaProject(name, 'add')
     }
-
-    syncMcParaProject(name, 'add')
   })
 
   ipcMain.handle('project:saveAsExample', async (_e, projectName: string, exampleName: string): Promise<void> => {
@@ -357,6 +355,11 @@ export function setupIpcHandlers(window: BrowserWindow): void {
 
   ipcMain.handle('render:yaml-sn', async (_e, ids: string[]): Promise<void> => {
     return await renderHandler.renderYamlSn(ids)
+  })
+
+  // 渲染撤销
+  ipcMain.handle('render:undo', async (_e, ids: string[]): Promise<void> => {
+    return await renderHandler.runPythonCommand(['render', 'undo', ids.join(',')], '撤销渲染')
   })
 
   // 删除操作 API（通过 Python 后端执行）

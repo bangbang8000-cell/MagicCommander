@@ -31,6 +31,7 @@ interface RenderState {
   deleteOutputSn: (ids: string[]) => Promise<void>
   deleteYaml: (ids: string[]) => Promise<void>
   deleteYamlSn: (ids: string[]) => Promise<void>
+  undoRender: (ids: string[]) => Promise<void>
   subscribeProgress: () => () => void
 }
 
@@ -196,6 +197,13 @@ export const useRenderStore = create<RenderState>((set, get) => {
       successMessage: '删除完成',
       failurePrefix: '删除SN YAML失败',
       action: () => window.electron.delete.yamlSn(ids),
+    }),
+
+    undoRender: (ids) => runTask(ids, {
+      type: 'general',
+      successMessage: '渲染已撤销',
+      failurePrefix: '撤销渲染失败',
+      action: () => window.electron.render.undo(ids),
     }),
 
     subscribeProgress: () => {
