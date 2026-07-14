@@ -41,10 +41,6 @@ class MagicCommanderApp {
       updateService.quitAndInstall()
     })
     
-    ipcMain.handle('app:getVersion', () => {
-      return app.getVersion()
-    })
-
     // i18n 语言 IPC 处理器
     ipcMain.handle('app:getLanguage', () => {
       return electronI18n.language
