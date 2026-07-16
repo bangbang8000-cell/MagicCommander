@@ -76,16 +76,6 @@ export default function App() {
     return () => { i18n.off('languageChanged', handleLanguageChanged) }
   }, [])
 
-  // 监听菜单栏"新建项目"事件
-  const triggerCreateProject = useProjectStore((s) => s.triggerCreateProject)
-  useEffect(() => {
-    if (!window.electron?.onMenuNewProject) return
-    const unsub = window.electron.onMenuNewProject(() => {
-      triggerCreateProject()
-    })
-    return unsub
-  }, [triggerCreateProject])
-
   const restoreTabs = useCallback(
     (metas: EditorTabMeta[]) => {
       metas.forEach((meta) => {

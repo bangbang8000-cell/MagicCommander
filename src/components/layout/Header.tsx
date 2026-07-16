@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useAppVersion } from '@/hooks/useAppVersion'
+import { useAppVersion, useBuildInfo } from '@/hooks/useAppVersion'
 import { useUIStore } from '@/stores/ui.store'
 import { useProjectStore } from '@/stores/project.store'
 import i18n from '@/i18n'
@@ -46,6 +46,7 @@ interface MenuGroup {
 export function Header() {
   const { t } = useTranslation()
   const version = useAppVersion()
+  const buildInfo = useBuildInfo()
   const isDark = useUIStore((s) => s.isDark)
   const toggleDark = useUIStore((s) => s.toggleDark)
   const setWelcomeOpen = useUIStore((s) => s.setWelcomeOpen)
@@ -53,6 +54,7 @@ export function Header() {
   const toggleSidebar = useUIStore((s) => s.toggleSidebar)
   const sidebarVisible = useUIStore((s) => s.sidebarVisible)
   const selectedProject = useProjectStore((s) => s.selectedProject)
+  const triggerCreateProject = useProjectStore((s) => s.triggerCreateProject)
 
   const [activeMenu, setActiveMenu] = useState<string | null>(null)
   const [aboutOpen, setAboutOpen] = useState(false)
@@ -158,9 +160,10 @@ export function Header() {
   }
 
   const handleNewProject = () => {
-    // 切换到项目浏览器面板，让用户使用那里的新建按钮
+    // 确保侧边栏可见并切换到项目浏览器（ExplorerPanel 挂载后才会响应创建对话框触发）
     if (!sidebarVisible) toggleSidebar()
     setActiveActivity('explorer')
+    triggerCreateProject()
     setActiveMenu(null)
   }
 
@@ -362,7 +365,7 @@ export function Header() {
             {isDark ? <Sun size={16} /> : <Moon size={16} />}
           </button>
           <span className="text-xs px-2 py-1 rounded-md bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300">
-            v{version}
+            v{version}{buildInfo.build ? ` (${buildInfo.build})` : ''}
           </span>
         </div>
       </div>
@@ -391,7 +394,7 @@ export function Header() {
             <div>
               <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">MagicCommander</h2>
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                {t('app.version')} {version}
+                {t('app.version')} {buildInfo.displayVersion || version}
               </p>
             </div>
           </div>

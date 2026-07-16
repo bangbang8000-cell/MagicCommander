@@ -10,7 +10,7 @@ import {
   isFileAccessible,
   validateProjectName,
 } from '../utils/security'
-import { getBackendDir, getExampleDir, getWorkspaceDir } from '../config'
+import { getBackendDir, getExampleDir, getWorkspaceDir, APP_CONFIG } from '../config'
 
 function readExcelByPath(filePath: string): { name: string; headers: string[]; rows: Record<string, any>[] }[] {
   if (!fs.existsSync(filePath)) {
@@ -527,6 +527,14 @@ export function setupIpcHandlers(window: BrowserWindow): void {
 
   ipcMain.handle('app:getVersion', async (): Promise<string> => {
     return require('../../package.json').version
+  })
+
+  ipcMain.handle('app:getBuildInfo', async (): Promise<{ version: string; build: string; displayVersion: string }> => {
+    return {
+      version: APP_CONFIG.VERSION.CURRENT,
+      build: APP_CONFIG.VERSION.BUILD,
+      displayVersion: APP_CONFIG.VERSION.DISPLAY,
+    }
   })
 
   ipcMain.handle('app:getPath', async (_e, name: string): Promise<string> => {

@@ -42,7 +42,7 @@
 - **对外显示**: `MagicCommander V{MAJOR}.{MINOR}.{PATCH} Build {YYMMDDNN}`
 - **示例**: `MagicCommander V3.0.0 Build 26071401`
 - **package.json version**: 只保留标准语义化版本，例如 `3.0.0`
-- **Git Tag**: 使用 `v{MAJOR}.{MINOR}.{PATCH}-build.{YYMMDDNN}`，例如 `v3.0.0-build.26071401`
+- **Git Tag**: 使用 `v{MAJOR}.{MINOR}.{PATCH}`，例如 `v3.0.0`。仅在 MAJOR/MINOR/PATCH 版本号发生变化时创建 tag，Build 号变化不打 tag，避免频繁创建 tag 污染 Release 列表
 - **安装包名**: 使用 `MagicCommander-Setup-{version}-build.{build}.{ext}` 或在发布说明中标明 Build 号
 
 ### 字段含义

@@ -142,11 +142,19 @@ git push -u origin main
 
 ### 触发方式
 
-推送 `v*` 格式的 tag 会自动触发三平台编译和 Release 发布：
+推送 `v*` 格式的 tag 会自动触发三平台编译和 Release 发布。
+
+**Tag 创建策略**：仅在 MAJOR/MINOR/PATCH 版本号变更时创建 tag，Build 号变化不打 tag。
 
 ```powershell
-git tag -a v2.9.2 -m "v2.9.2: <描述>"
-git push origin v2.9.2
+# 语义化版本变更时打 tag（例如 v3.0.1 → v3.0.2）
+git tag -a v3.0.2 -m "v3.0.2: 修复 XX 问题"
+git push origin v3.0.2
+
+# Build 号变化时（如 26071409 → 26071410）直接推送到 main 分支即可，不打 tag
+git add -A
+git commit -m "v3.0.1: 更新 build 号"
+git push -u origin main
 ```
 
 ### 关键避坑：artifact 上传路径

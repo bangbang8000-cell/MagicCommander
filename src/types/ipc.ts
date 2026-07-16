@@ -153,6 +153,7 @@ export type UpdateStatus =
 
 export interface AppIpcApi {
   getVersion: () => Promise<string>
+  getBuildInfo: () => Promise<{ version: string; build: string; displayVersion: string }>
   getPath: (name: 'home' | 'appData' | 'userData' | 'backend' | 'workspace') => Promise<string>
   checkUpdate: () => Promise<void>
   downloadUpdate: () => Promise<void>
