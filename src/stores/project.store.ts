@@ -27,7 +27,7 @@ interface ProjectState {
   clearCreateTrigger: () => void
 }
 
-const normalizeProjects = (rawProjects: any[]): ProjectInfo[] => (
+const normalizeProjects = (rawProjects: any[]): ProjectInfo[] =>
   Array.isArray(rawProjects)
     ? rawProjects.map((p: any) => ({
         id: p.id ?? 0,
@@ -35,7 +35,6 @@ const normalizeProjects = (rawProjects: any[]): ProjectInfo[] => (
         index: p.index ?? 0,
       }))
     : []
-)
 
 export const useProjectStore = create<ProjectState>()(
   persist(
@@ -62,7 +61,7 @@ export const useProjectStore = create<ProjectState>()(
           const validNames = new Set(projects.map((p) => p.name))
           const selectedProjectName = get().selectedProjectName
           const selectedProject = selectedProjectName
-            ? projects.find((p) => p.name === selectedProjectName) ?? null
+            ? (projects.find((p) => p.name === selectedProjectName) ?? null)
             : null
           set((state) => ({
             projects,
@@ -104,9 +103,10 @@ export const useProjectStore = create<ProjectState>()(
         const projects = normalizeProjects(await window.electron.project.list())
         const validNames = new Set(projects.map((p) => p.name))
         const selectedProjectName = get().selectedProjectName
-        const selectedProject = selectedProjectName && !deletingNames.has(selectedProjectName)
-          ? projects.find((p) => p.name === selectedProjectName) ?? null
-          : null
+        const selectedProject =
+          selectedProjectName && !deletingNames.has(selectedProjectName)
+            ? (projects.find((p) => p.name === selectedProjectName) ?? null)
+            : null
         set((state) => ({
           projects,
           isLoading: false,

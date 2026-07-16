@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useProjectStore } from '@/stores/project.store'
 import { useRenderStore } from '@/stores/render.store'
+import { errorService } from '@/services/errorService'
 import { Button } from '../ui/Button'
 import { Modal } from '../ui/Modal'
 import { Printer, Settings, FileText, Download, Trash2, Info } from 'lucide-react'
@@ -28,14 +29,14 @@ const DEFAULT_CONFIG: LabelPrintConfig = {
   labelsPerPage: 8,
   labelSize: {
     width: 90,
-    height: 60
+    height: 60,
   },
   margins: {
     top: 10,
     bottom: 10,
     left: 10,
-    right: 10
-  }
+    right: 10,
+  },
 }
 
 export function LabelPrintPanel() {
@@ -61,7 +62,7 @@ export function LabelPrintPanel() {
       await window.electron.dialog.showMessage({
         type: 'warning',
         title: t('project:label.dialogTitle'),
-        message: t('project:label.selectProjectToPrint')
+        message: t('project:label.selectProjectToPrint'),
       })
       return
     }
@@ -74,14 +75,14 @@ export function LabelPrintPanel() {
       await window.electron.dialog.showMessage({
         type: 'warning',
         title: t('project:label.dialogTitle'),
-        message: t('project:label.selectProjectToDelete')
+        message: t('project:label.selectProjectToDelete'),
       })
       return
     }
 
     const ok = await window.electron.dialog.showConfirm({
       title: t('project:label.confirmDeleteLabel'),
-      message: t('project:label.confirmDeleteLabelFullMessage')
+      message: t('project:label.confirmDeleteLabelFullMessage'),
     })
 
     if (ok) {
@@ -94,7 +95,7 @@ export function LabelPrintPanel() {
       await window.electron.dialog.showMessage({
         type: 'warning',
         title: t('project:label.dialogTitle'),
-        message: t('project:label.selectProjectToPreview')
+        message: t('project:label.selectProjectToPreview'),
       })
       return
     }
@@ -103,54 +104,58 @@ export function LabelPrintPanel() {
       const projectPath = await window.electron.app.getPath('workspace')
       const projectDir = selectedProject.name
       const labelsPath = `${projectPath}/${projectDir}/excel/label.xlsx`
-      
-      if (!await window.electron.file.exists(labelsPath)) {
+
+      if (!(await window.electron.file.exists(labelsPath))) {
         await window.electron.dialog.showMessage({
           type: 'error',
           title: t('project:label.fileNotFound'),
-          message: t('project:label.labelFileNotFound')
+          message: t('project:label.labelFileNotFound'),
         })
         return
       }
 
-      const excelData = await window.electron.file.readExcel(labelsPath, 'labels') as { rows?: Array<Record<string, unknown>> }
-      const labels = (excelData.rows ?? []).map((row) => String(row['serial_number'] || row['label_id'] || '')).filter(Boolean)
+      const excelData = (await window.electron.file.readExcel(labelsPath, 'labels')) as {
+        rows?: Array<Record<string, unknown>>
+      }
+      const labels = (excelData.rows ?? [])
+        .map((row) => String(row['serial_number'] || row['label_id'] || ''))
+        .filter(Boolean)
       setPreviewLabels(labels)
       setShowLabelPreview(true)
     } catch (error) {
-      console.error(t('project:label.getPreviewFailed'), error)
+      errorService.handleError(error, 'LabelPrintPanel.getPreview')
       await window.electron.dialog.showMessage({
         type: 'error',
         title: t('project:label.previewFailed'),
-        message: t('project:label.getPreviewFailedMessage', { message: (error as Error).message })
+        message: t('project:label.getPreviewFailedMessage', { message: (error as Error).message }),
       })
     }
   }, [selectedProject, t])
 
   const handleConfigChange = useCallback((field: string, value: any) => {
-    setPrintConfig(prev => ({
+    setPrintConfig((prev) => ({
       ...prev,
-      [field]: value
+      [field]: value,
     }))
   }, [])
 
   const handleSizeChange = useCallback((field: 'width' | 'height', value: number) => {
-    setPrintConfig(prev => ({
+    setPrintConfig((prev) => ({
       ...prev,
       labelSize: {
         ...prev.labelSize,
-        [field]: value
-      }
+        [field]: value,
+      },
     }))
   }, [])
 
   const handleMarginChange = useCallback((field: 'top' | 'bottom' | 'left' | 'right', value: number) => {
-    setPrintConfig(prev => ({
+    setPrintConfig((prev) => ({
       ...prev,
       margins: {
         ...prev.margins,
-        [field]: value
-      }
+        [field]: value,
+      },
     }))
   }, [])
 
@@ -161,11 +166,7 @@ export function LabelPrintPanel() {
           <Printer size={16} className="text-primary-600" />
           {t('project:label.labelPrintFeature')}
         </h3>
-        <Button
-          variant="secondary"
-          icon={<Settings size={14} />}
-          onClick={() => setShowPrintConfig(!showPrintConfig)}
-        >
+        <Button variant="secondary" icon={<Settings size={14} />} onClick={() => setShowPrintConfig(!showPrintConfig)}>
           {t('project:label.printSettings')}
         </Button>
       </div>
@@ -174,14 +175,16 @@ export function LabelPrintPanel() {
         <select
           value={selectedProject?.name || ''}
           onChange={(e) => {
-            const found = projects.find(p => p.name === e.target.value)
+            const found = projects.find((p) => p.name === e.target.value)
             if (found) selectProject(found)
           }}
           className="text-sm px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
         >
           <option value="">{t('project:label.selectProjectPlaceholder')}</option>
-          {projects.map(project => (
-            <option key={project.id} value={project.name}>{project.name}</option>
+          {projects.map((project) => (
+            <option key={project.id} value={project.name}>
+              {project.name}
+            </option>
           ))}
         </select>
 
@@ -204,12 +207,7 @@ export function LabelPrintPanel() {
           {t('project:label.previewLabels')}
         </Button>
 
-        <Button
-          variant="secondary"
-          icon={<Download size={14} />}
-          onClick={() => {}}
-          disabled={!selectedProject}
-        >
+        <Button variant="secondary" icon={<Download size={14} />} onClick={() => {}} disabled={!selectedProject}>
           {t('project:label.exportLabels')}
         </Button>
 
@@ -226,7 +224,7 @@ export function LabelPrintPanel() {
       {showPrintConfig && (
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 space-y-3">
           <h4 className="text-xs font-semibold text-gray-700">{t('project:label.printConfig')}</h4>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
             <div>
               <label className="block font-medium text-gray-700 mb-1">{t('project:label.paperFormat')}</label>
@@ -363,7 +361,9 @@ export function LabelPrintPanel() {
             <Info size={12} /> {t('project:label.printError')}
           </div>
           {errors.map((error, index) => (
-            <div key={index} className="text-xs text-red-600">{error}</div>
+            <div key={index} className="text-xs text-red-600">
+              {error}
+            </div>
           ))}
         </div>
       )}
@@ -372,17 +372,11 @@ export function LabelPrintPanel() {
         open={showLabelPreview}
         onClose={() => setShowLabelPreview(false)}
         title={t('project:label.labelPreview')}
-        footer={
-          <Button onClick={() => setShowLabelPreview(false)}>
-            {t('common:app.close')}
-          </Button>
-        }
+        footer={<Button onClick={() => setShowLabelPreview(false)}>{t('common:app.close')}</Button>}
       >
         <div className="space-y-4">
-          <div className="text-sm text-gray-600">
-            {t('project:label.totalLabels', { count: previewLabels.length })}
-          </div>
-          
+          <div className="text-sm text-gray-600">{t('project:label.totalLabels', { count: previewLabels.length })}</div>
+
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 max-h-96 overflow-y-auto">
             {previewLabels.map((label, index) => (
               <div
@@ -394,11 +388,9 @@ export function LabelPrintPanel() {
               </div>
             ))}
           </div>
-          
+
           {previewLabels.length === 0 && (
-            <div className="text-center py-8 text-gray-500">
-              {t('project:label.noPreviewData')}
-            </div>
+            <div className="text-center py-8 text-gray-500">{t('project:label.noPreviewData')}</div>
           )}
         </div>
       </Modal>

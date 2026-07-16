@@ -43,10 +43,7 @@ export function Sidebar({ panels }: SidebarProps) {
         )}
       >
         <h3
-          className={clsx(
-            'text-xs font-semibold uppercase tracking-wider',
-            isDark ? 'text-gray-300' : 'text-gray-600',
-          )}
+          className={clsx('text-xs font-semibold uppercase tracking-wider', isDark ? 'text-gray-300' : 'text-gray-600')}
         >
           {t(PANEL_TITLE_KEYS[activeActivity] || 'common:noContent')}
         </h3>
@@ -54,7 +51,9 @@ export function Sidebar({ panels }: SidebarProps) {
           onClick={toggleSidebar}
           className={clsx(
             'p-0.5 rounded transition-colors',
-            isDark ? 'text-gray-400 hover:text-gray-100 hover:bg-gray-700' : 'text-gray-400 hover:text-gray-700 hover:bg-gray-200',
+            isDark
+              ? 'text-gray-400 hover:text-gray-100 hover:bg-gray-700'
+              : 'text-gray-400 hover:text-gray-700 hover:bg-gray-200',
           )}
           title={t('sidebar.collapse')}
         >
@@ -63,7 +62,12 @@ export function Sidebar({ panels }: SidebarProps) {
       </div>
       <div className="flex-1 overflow-hidden min-h-0">
         {activePanel || (
-          <div className={clsx('flex items-center justify-center h-full text-xs', isDark ? 'text-gray-500' : 'text-gray-400')}>
+          <div
+            className={clsx(
+              'flex items-center justify-center h-full text-xs',
+              isDark ? 'text-gray-500' : 'text-gray-400',
+            )}
+          >
             {t('common:noContent')}
           </div>
         )}

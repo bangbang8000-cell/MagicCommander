@@ -24,13 +24,13 @@ export interface RenderProgressEvent {
 
 /** 渲染状态 */
 export type RenderStatus =
-  | 'start'    // 开始
-  | 'info'     // 信息
-  | 'log'      // 日志
+  | 'start' // 开始
+  | 'info' // 信息
+  | 'log' // 日志
   | 'progress' // 进度
-  | 'success'  // 成功
+  | 'success' // 成功
   | 'complete' // 完成
-  | 'error'    // 错误
+  | 'error' // 错误
 
 /** 标签打印配置 */
 export interface LabelPrintConfig {
@@ -82,17 +82,17 @@ export interface RenderError {
   code: RenderErrorCode
   message: string
   details?: string
-  line?: number    // 模板行号
-  column?: number  // 模板列号
-  file?: string    // 出错文件
+  line?: number // 模板行号
+  column?: number // 模板列号
+  file?: string // 出错文件
 }
 
 export type RenderErrorCode =
-  | 'TEMPLATE_SYNTAX_ERROR'   // Jinja2 模板语法错误
-  | 'EXCEL_PARSE_ERROR'        // Excel 解析错误
-  | 'EXCEL_MISSING_SHEET'      // Excel 缺少必要 Sheet
-  | 'EXCEL_EMPTY_DATA'         // Excel 数据为空
-  | 'PYTHON_EXECUTION_ERROR'   // Python 执行错误
-  | 'FILE_WRITE_ERROR'         // 文件写入错误
-  | 'PROJECT_NOT_FOUND'        // 项目不存在
-  | 'UNKNOWN_ERROR'            // 未知错误
+  | 'TEMPLATE_SYNTAX_ERROR' // Jinja2 模板语法错误
+  | 'EXCEL_PARSE_ERROR' // Excel 解析错误
+  | 'EXCEL_MISSING_SHEET' // Excel 缺少必要 Sheet
+  | 'EXCEL_EMPTY_DATA' // Excel 数据为空
+  | 'PYTHON_EXECUTION_ERROR' // Python 执行错误
+  | 'FILE_WRITE_ERROR' // 文件写入错误
+  | 'PROJECT_NOT_FOUND' // 项目不存在
+  | 'UNKNOWN_ERROR' // 未知错误

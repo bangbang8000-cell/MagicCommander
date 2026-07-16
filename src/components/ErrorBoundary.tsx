@@ -1,6 +1,7 @@
 import { Component, type ReactNode } from 'react'
 import { withTranslation, type WithTranslation } from 'react-i18next'
 import { AlertTriangle, RefreshCw } from 'lucide-react'
+import { errorService } from '@/services/errorService'
 
 interface Props extends WithTranslation {
   children: ReactNode
@@ -23,7 +24,7 @@ class ErrorBoundaryClass extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, info: { componentStack?: string }) {
-    console.error('[ErrorBoundary] 捕获到未处理异常:', error, info.componentStack)
+    errorService.handleError(error, 'ErrorBoundary')
   }
 
   handleReload = () => {

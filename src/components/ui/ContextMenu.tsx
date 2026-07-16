@@ -53,12 +53,7 @@ export function ContextMenu({ items, children, className }: ContextMenuProps) {
         >
           {items.map((item, i) => {
             if (item.separator) {
-              return (
-                <div
-                  key={i}
-                  className={clsx('border-t my-1', isDark ? 'border-gray-700' : 'border-gray-200')}
-                />
-              )
+              return <div key={i} className={clsx('border-t my-1', isDark ? 'border-gray-700' : 'border-gray-200')} />
             }
             return (
               <button
@@ -74,13 +69,8 @@ export function ContextMenu({ items, children, className }: ContextMenuProps) {
                   item.disabled
                     ? 'text-gray-400 cursor-not-allowed'
                     : item.danger
-                      ? clsx(
-                          'text-red-500',
-                          isDark ? 'hover:bg-red-900/30' : 'hover:bg-red-50',
-                        )
-                      : clsx(
-                          isDark ? 'text-gray-200 hover:bg-gray-700' : 'text-gray-700 hover:bg-gray-100',
-                        ),
+                      ? clsx('text-red-500', isDark ? 'hover:bg-red-900/30' : 'hover:bg-red-50')
+                      : clsx(isDark ? 'text-gray-200 hover:bg-gray-700' : 'text-gray-700 hover:bg-gray-100'),
                 )}
               >
                 {item.icon && <span className="w-4 flex justify-center">{item.icon}</span>}

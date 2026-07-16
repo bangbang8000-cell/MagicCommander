@@ -7,16 +7,15 @@ import commonZh from './locales/zh-CN/common.json'
 
 /** 从 JSON 翻译文件中提取所有叶子键路径 */
 type NestedKeyOf<TObj extends Record<string, unknown>> = {
-  [K in keyof TObj & string]: TObj[K] extends Record<string, unknown>
-    ? `${K}.${NestedKeyOf<TObj[K]>}`
-    : K
+  [K in keyof TObj & string]: TObj[K] extends Record<string, unknown> ? `${K}.${NestedKeyOf<TObj[K]>}` : K
 }[keyof TObj & string]
 
 /** 所有翻译键的联合类型（基于 zh-CN/common.json 的结构） */
 export type TranslationKey = NestedKeyOf<typeof commonZh>
 
 /** 支持的语言代码 */
-export type SupportedLocale = 'zh-CN' | 'zh-TW' | 'en' | 'ja' | 'ko' | 'fr' | 'de' | 'es' | 'pt' | 'ru' | 'ar' | 'vi' | 'th'
+export type SupportedLocale =
+  'zh-CN' | 'zh-TW' | 'en' | 'ja' | 'ko' | 'fr' | 'de' | 'es' | 'pt' | 'ru' | 'ar' | 'vi' | 'th'
 
 /** 语言名称映射 */
 export const LOCALE_NAMES: Record<SupportedLocale, string> = {

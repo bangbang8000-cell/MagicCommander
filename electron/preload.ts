@@ -5,17 +5,29 @@ const api = {
   project: {
     list: () => ipcRenderer.invoke('project:list'),
     listExamples: () => ipcRenderer.invoke('project:listExamples'),
-    create: (name: string, options?: { template?: string; empty?: boolean }) => ipcRenderer.invoke('project:create', name, options),
-    saveAsExample: (projectName: string, exampleName: string) => ipcRenderer.invoke('project:saveAsExample', projectName, exampleName),
+    create: (name: string, options?: { template?: string; empty?: boolean }) =>
+      ipcRenderer.invoke('project:create', name, options),
+    saveAsExample: (projectName: string, exampleName: string) =>
+      ipcRenderer.invoke('project:saveAsExample', projectName, exampleName),
     delete: (ids: string[]) => ipcRenderer.invoke('project:delete', ids),
     getStructure: (name: string) => ipcRenderer.invoke('project:structure', name),
     parameters: (name: string) => ipcRenderer.invoke('project:parameters', name),
-    readExcel: (id: number, filePath: string, projectName?: string) => ipcRenderer.invoke('project:readExcel', id, filePath, projectName),
-    writeExcel: (id: number, filePath: string, sheets: { name: string; headers: string[]; rows: Record<string, any>[] }[], projectName?: string) => ipcRenderer.invoke('project:writeExcel', id, filePath, sheets, projectName),
-    readFile: (id: number, filePath: string, projectName?: string) => ipcRenderer.invoke('project:readFile', id, filePath, projectName),
-    writeFile: (id: number, filePath: string, content: string, projectName?: string) => ipcRenderer.invoke('project:writeFile', id, filePath, content, projectName),
-    readDocx: (id: number, filePath: string, projectName?: string) => ipcRenderer.invoke('project:readDocx', id, filePath, projectName),
-    readDocxBuffer: (id: number, filePath: string, projectName?: string) => ipcRenderer.invoke('project:readDocxBuffer', id, filePath, projectName),
+    readExcel: (id: number, filePath: string, projectName?: string) =>
+      ipcRenderer.invoke('project:readExcel', id, filePath, projectName),
+    writeExcel: (
+      id: number,
+      filePath: string,
+      sheets: { name: string; headers: string[]; rows: Record<string, any>[] }[],
+      projectName?: string,
+    ) => ipcRenderer.invoke('project:writeExcel', id, filePath, sheets, projectName),
+    readFile: (id: number, filePath: string, projectName?: string) =>
+      ipcRenderer.invoke('project:readFile', id, filePath, projectName),
+    writeFile: (id: number, filePath: string, content: string, projectName?: string) =>
+      ipcRenderer.invoke('project:writeFile', id, filePath, content, projectName),
+    readDocx: (id: number, filePath: string, projectName?: string) =>
+      ipcRenderer.invoke('project:readDocx', id, filePath, projectName),
+    readDocxBuffer: (id: number, filePath: string, projectName?: string) =>
+      ipcRenderer.invoke('project:readDocxBuffer', id, filePath, projectName),
     listFiles: (id: string, fileType?: string) => ipcRenderer.invoke('project:listFiles', id, fileType),
   },
   render: {
@@ -60,7 +72,8 @@ const api = {
   app: {
     getVersion: () => ipcRenderer.invoke('app:getVersion'),
     getBuildInfo: () => ipcRenderer.invoke('app:getBuildInfo'),
-    getPath: (name: 'home' | 'appData' | 'userData' | 'backend' | 'workspace') => ipcRenderer.invoke('app:getPath', name),
+    getPath: (name: 'home' | 'appData' | 'userData' | 'backend' | 'workspace') =>
+      ipcRenderer.invoke('app:getPath', name),
     checkUpdate: () => ipcRenderer.invoke('app:check-update'),
     downloadUpdate: () => ipcRenderer.invoke('app:download-update'),
     quitAndInstall: () => ipcRenderer.invoke('app:quit-and-install'),
@@ -91,7 +104,9 @@ const api = {
   onMenuNewProject: (cb: () => void) => {
     const handler = () => cb()
     ipcRenderer.on('menu:newProject', handler)
-    return () => { ipcRenderer.removeListener('menu:newProject', handler) }
+    return () => {
+      ipcRenderer.removeListener('menu:newProject', handler)
+    }
   },
   versions: {
     node: process.versions.node,

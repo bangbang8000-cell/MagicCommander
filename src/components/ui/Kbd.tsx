@@ -34,7 +34,9 @@ export function HotkeyKeys({ combo }: { combo: string }) {
       {parts.map((part, i) => (
         <span key={i} className="flex items-center">
           {i > 0 && <span className="text-gray-400 mx-0.5 text-xs">+</span>}
-          <Kbd>{part === 'ctrl' ? 'Ctrl' : part === 'shift' ? '⇧' : part === 'alt' ? 'Alt' : part === 'meta' ? '⌘' : part}</Kbd>
+          <Kbd>
+            {part === 'ctrl' ? 'Ctrl' : part === 'shift' ? '⇧' : part === 'alt' ? 'Alt' : part === 'meta' ? '⌘' : part}
+          </Kbd>
         </span>
       ))}
     </span>

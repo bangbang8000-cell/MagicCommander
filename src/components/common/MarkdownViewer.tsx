@@ -46,17 +46,11 @@ export function MarkdownViewer({ content, title, onClose }: MarkdownViewerProps)
   }
 
   return (
-    <div
-      className={clsx(
-        'fixed inset-0 z-50 flex',
-        isDark ? 'bg-black/60' : 'bg-gray-900/40'
-      )}
-      onClick={onClose}
-    >
+    <div className={clsx('fixed inset-0 z-50 flex', isDark ? 'bg-black/60' : 'bg-gray-900/40')} onClick={onClose}>
       <div
         className={clsx(
           'flex flex-col m-auto w-full max-w-5xl h-[85vh] rounded-lg shadow-2xl overflow-hidden',
-          isDark ? 'bg-gray-800' : 'bg-white'
+          isDark ? 'bg-gray-800' : 'bg-white',
         )}
         onClick={(e) => e.stopPropagation()}
       >
@@ -64,17 +58,15 @@ export function MarkdownViewer({ content, title, onClose }: MarkdownViewerProps)
         <div
           className={clsx(
             'flex items-center justify-between px-4 py-3 border-b shrink-0',
-            isDark ? 'border-gray-700' : 'border-gray-200'
+            isDark ? 'border-gray-700' : 'border-gray-200',
           )}
         >
-          <h2 className={clsx('text-base font-semibold', isDark ? 'text-gray-100' : 'text-gray-800')}>
-            {title}
-          </h2>
+          <h2 className={clsx('text-base font-semibold', isDark ? 'text-gray-100' : 'text-gray-800')}>{title}</h2>
           <button
             onClick={onClose}
             className={clsx(
               'p-1.5 rounded transition-colors',
-              isDark ? 'hover:bg-gray-700 text-gray-400' : 'hover:bg-gray-100 text-gray-500'
+              isDark ? 'hover:bg-gray-700 text-gray-400' : 'hover:bg-gray-100 text-gray-500',
             )}
           >
             <X size={18} />
@@ -88,13 +80,13 @@ export function MarkdownViewer({ content, title, onClose }: MarkdownViewerProps)
             <div
               className={clsx(
                 'w-56 shrink-0 border-e overflow-y-auto',
-                isDark ? 'border-gray-700 bg-gray-900/30' : 'border-gray-200 bg-gray-50'
+                isDark ? 'border-gray-700 bg-gray-900/30' : 'border-gray-200 bg-gray-50',
               )}
             >
               <div
                 className={clsx(
                   'px-3 py-2 text-xs font-semibold uppercase tracking-wider cursor-pointer flex items-center gap-1',
-                  isDark ? 'text-gray-400 hover:text-gray-200' : 'text-gray-500 hover:text-gray-700'
+                  isDark ? 'text-gray-400 hover:text-gray-200' : 'text-gray-500 hover:text-gray-700',
                 )}
                 onClick={() => setExpanded(!expanded)}
               >
@@ -109,12 +101,10 @@ export function MarkdownViewer({ content, title, onClose }: MarkdownViewerProps)
                       onClick={() => scrollToHeading(item.id)}
                       className={clsx(
                         'block w-full text-start text-xs py-1 px-2 rounded truncate transition-colors',
-                        item.level === 1
-                          ? 'font-semibold mt-1'
-                          : `ps-${(item.level - 1) * 3}`,
+                        item.level === 1 ? 'font-semibold mt-1' : `ps-${(item.level - 1) * 3}`,
                         isDark
                           ? 'text-gray-400 hover:text-gray-200 hover:bg-gray-700'
-                          : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+                          : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100',
                       )}
                       style={{ paddingLeft: `${item.level * 12}px` }}
                     >
@@ -130,7 +120,7 @@ export function MarkdownViewer({ content, title, onClose }: MarkdownViewerProps)
           <div
             className={clsx(
               'flex-1 overflow-y-auto px-8 py-6 prose prose-sm max-w-none',
-              isDark ? 'text-gray-300' : 'text-gray-700'
+              isDark ? 'text-gray-300' : 'text-gray-700',
             )}
           >
             <style>{`
@@ -152,9 +142,7 @@ export function MarkdownViewer({ content, title, onClose }: MarkdownViewerProps)
               .markdown-content a { color: ${isDark ? '#60a5fa' : '#2563eb'}; text-decoration: underline; }
             `}</style>
             <div className="markdown-content">
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                {content}
-              </ReactMarkdown>
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
             </div>
           </div>
         </div>

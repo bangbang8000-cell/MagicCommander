@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { useAppVersion, useBuildInfo } from '@/hooks/useAppVersion'
 import { useUIStore } from '@/stores/ui.store'
 import { useProjectStore } from '@/stores/project.store'
+import { errorService } from '@/services/errorService'
 import i18n from '@/i18n'
 import { LOCALE_NAMES, type SupportedLocale } from '@/i18n/resources'
 import {
@@ -100,7 +101,7 @@ export function Header() {
       const text = await window.electron.guide.getContent(i18n.language)
       setGuideContent(text)
     } catch (err) {
-      console.error('加载使用指南失败:', err)
+      errorService.handleError(err, 'Header.loadGuide')
       setGuideContent(t('menu.guideLoadFailed'))
     }
     setGuideOpen(true)
@@ -197,24 +198,83 @@ export function Header() {
       label: t('menu.file'),
       items: [
         { id: 'new-project', label: t('menu.newProject'), icon: <FolderPlus size={14} />, action: handleNewProject },
-        { id: 'open-dir', label: t('menu.openProjectDir'), icon: <FolderOpen size={14} />, action: handleOpenProjectDir, disabled: !selectedProject },
+        {
+          id: 'open-dir',
+          label: t('menu.openProjectDir'),
+          icon: <FolderOpen size={14} />,
+          action: handleOpenProjectDir,
+          disabled: !selectedProject,
+        },
         { divider: true, id: 'div1', label: '' },
-        { id: 'refresh', label: t('app.refresh'), icon: <RefreshCw size={14} />, shortcut: 'F5', action: handleRefresh },
+        {
+          id: 'refresh',
+          label: t('app.refresh'),
+          icon: <RefreshCw size={14} />,
+          shortcut: 'F5',
+          action: handleRefresh,
+        },
       ],
     },
     {
       id: 'view',
       label: t('menu.view'),
       items: [
-        { id: 'search', label: t('app.search'), icon: <Search size={14} />, shortcut: 'Ctrl+Shift+F', action: () => handleSwitchPanel('search') },
-        { id: 'explorer', label: t('menu.projectExplorer'), icon: <FolderOpen size={14} />, shortcut: 'Ctrl+Shift+E', action: () => handleSwitchPanel('explorer') },
-        { id: 'render', label: t('menu.renderOperations'), icon: <PlayCircle size={14} />, shortcut: 'Ctrl+Shift+R', action: () => handleSwitchPanel('render') },
-        { id: 'label', label: t('menu.labelPrint'), icon: <Tag size={14} />, shortcut: 'Ctrl+Shift+L', action: () => handleSwitchPanel('label') },
-        { id: 'output', label: t('menu.outputResults'), icon: <FileOutput size={14} />, shortcut: 'Ctrl+Shift+O', action: () => handleSwitchPanel('output') },
+        {
+          id: 'search',
+          label: t('app.search'),
+          icon: <Search size={14} />,
+          shortcut: 'Ctrl+Shift+F',
+          action: () => handleSwitchPanel('search'),
+        },
+        {
+          id: 'explorer',
+          label: t('menu.projectExplorer'),
+          icon: <FolderOpen size={14} />,
+          shortcut: 'Ctrl+Shift+E',
+          action: () => handleSwitchPanel('explorer'),
+        },
+        {
+          id: 'render',
+          label: t('menu.renderOperations'),
+          icon: <PlayCircle size={14} />,
+          shortcut: 'Ctrl+Shift+R',
+          action: () => handleSwitchPanel('render'),
+        },
+        {
+          id: 'label',
+          label: t('menu.labelPrint'),
+          icon: <Tag size={14} />,
+          shortcut: 'Ctrl+Shift+L',
+          action: () => handleSwitchPanel('label'),
+        },
+        {
+          id: 'output',
+          label: t('menu.outputResults'),
+          icon: <FileOutput size={14} />,
+          shortcut: 'Ctrl+Shift+O',
+          action: () => handleSwitchPanel('output'),
+        },
         { divider: true, id: 'div2', label: '' },
-        { id: 'toggle-sidebar', label: t(sidebarVisible ? 'menu.hideSidebar' : 'menu.showSidebar'), icon: <Monitor size={14} />, shortcut: 'Ctrl+B', action: () => { toggleSidebar(); setActiveMenu(null) } },
+        {
+          id: 'toggle-sidebar',
+          label: t(sidebarVisible ? 'menu.hideSidebar' : 'menu.showSidebar'),
+          icon: <Monitor size={14} />,
+          shortcut: 'Ctrl+B',
+          action: () => {
+            toggleSidebar()
+            setActiveMenu(null)
+          },
+        },
         { divider: true, id: 'div3', label: '' },
-        { id: 'theme', label: t(isDark ? 'menu.lightMode' : 'menu.darkMode'), icon: isDark ? <Sun size={14} /> : <Moon size={14} />, action: () => { toggleDark(); setActiveMenu(null) } },
+        {
+          id: 'theme',
+          label: t(isDark ? 'menu.lightMode' : 'menu.darkMode'),
+          icon: isDark ? <Sun size={14} /> : <Moon size={14} />,
+          action: () => {
+            toggleDark()
+            setActiveMenu(null)
+          },
+        },
       ],
     },
     {
@@ -235,17 +295,12 @@ export function Header() {
       <div
         className={clsx(
           'absolute top-full start-0 mt-1 min-w-[180px] rounded-md shadow-lg z-50 py-1',
-          'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700'
+          'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700',
         )}
       >
         {menu.items.map((item) => {
           if (item.divider) {
-            return (
-              <div
-                key={item.id}
-                className="my-1 h-px bg-gray-200 dark:bg-gray-700"
-              />
-            )
+            return <div key={item.id} className="my-1 h-px bg-gray-200 dark:bg-gray-700" />
           }
           return (
             <button
@@ -256,16 +311,12 @@ export function Header() {
                 'w-full flex items-center gap-2 px-3 py-1.5 text-sm text-start transition-colors',
                 item.disabled
                   ? 'text-gray-400 dark:text-gray-500 cursor-not-allowed'
-                  : 'text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700'
+                  : 'text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700',
               )}
             >
               {item.icon && <span className="shrink-0">{item.icon}</span>}
               <span className="flex-1">{item.label}</span>
-              {item.shortcut && (
-                <span className="text-xs text-gray-400 dark:text-gray-500">
-                  {item.shortcut}
-                </span>
-              )}
+              {item.shortcut && <span className="text-xs text-gray-400 dark:text-gray-500">{item.shortcut}</span>}
             </button>
           )
         })}
@@ -277,22 +328,22 @@ export function Header() {
     <header
       className={clsx(
         'h-12 flex items-center justify-between px-4 shrink-0 relative',
-        'bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700'
+        'bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700',
       )}
     >
       {/* Logo 和标题 */}
       <div className="flex items-center gap-2.5">
-        <div className={clsx(
-          'w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold',
-          'bg-primary-500 text-white'
-        )}>
+        <div
+          className={clsx(
+            'w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold',
+            'bg-primary-500 text-white',
+          )}
+        >
           M
         </div>
         <div>
           <h1 className="text-sm font-semibold text-gray-900 dark:text-gray-100">MagicCommander</h1>
-          <p className="text-xs text-gray-500 dark:text-gray-400">
-            {t('app.subtitle')}
-          </p>
+          <p className="text-xs text-gray-500 dark:text-gray-400">{t('app.subtitle')}</p>
         </div>
       </div>
 
@@ -306,7 +357,7 @@ export function Header() {
                 'px-3 py-1.5 text-sm rounded-md flex items-center gap-1 transition-colors',
                 activeMenu === menu.id
                   ? 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100'
-                  : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+                  : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700',
               )}
             >
               {menu.label}
@@ -328,10 +379,12 @@ export function Header() {
               <Languages size={16} />
             </button>
             {langMenuOpen && (
-              <div className={clsx(
-                'absolute top-full end-0 mt-1 min-w-[140px] rounded-md shadow-lg z-50 py-1 max-h-[320px] overflow-y-auto',
-                'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700'
-              )}>
+              <div
+                className={clsx(
+                  'absolute top-full end-0 mt-1 min-w-[140px] rounded-md shadow-lg z-50 py-1 max-h-[320px] overflow-y-auto',
+                  'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700',
+                )}
+              >
                 {(Object.keys(LOCALE_NAMES) as SupportedLocale[]).map((lng) => (
                   <button
                     key={lng}
@@ -340,7 +393,7 @@ export function Header() {
                       'w-full flex items-center justify-between px-3 py-1.5 text-sm text-start transition-colors',
                       i18n.language === lng
                         ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 font-medium'
-                        : 'text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700'
+                        : 'text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700',
                     )}
                   >
                     <span>{LOCALE_NAMES[lng]}</span>
@@ -365,7 +418,8 @@ export function Header() {
             {isDark ? <Sun size={16} /> : <Moon size={16} />}
           </button>
           <span className="text-xs px-2 py-1 rounded-md bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300">
-            v{version}{buildInfo.build ? ` (${buildInfo.build})` : ''}
+            v{version}
+            {buildInfo.build ? ` (${buildInfo.build})` : ''}
           </span>
         </div>
       </div>
@@ -400,15 +454,11 @@ export function Header() {
           </div>
 
           {/* 简介 */}
-          <p className="text-sm leading-relaxed text-gray-600 dark:text-gray-300">
-            {t('about.description')}
-          </p>
+          <p className="text-sm leading-relaxed text-gray-600 dark:text-gray-300">{t('about.description')}</p>
 
           {/* 功能特性 */}
           <div className="space-y-2">
-            <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-              {t('about.keyFeatures')}
-            </h3>
+            <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">{t('about.keyFeatures')}</h3>
             <ul className="text-sm space-y-1.5 text-gray-600 dark:text-gray-400">
               <li className="flex items-center gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-primary-500 shrink-0"></span>
@@ -437,12 +487,8 @@ export function Header() {
           <div className="space-y-3 pt-3 border-t border-gray-200 dark:border-gray-700">
             <div className="flex items-center justify-between gap-3">
               <div>
-                <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-                  {t('updates.title')}
-                </h3>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                  {getUpdateMessage()}
-                </p>
+                <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">{t('updates.title')}</h3>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{getUpdateMessage()}</p>
               </div>
               <button
                 onClick={handleCheckUpdate}
@@ -483,7 +529,9 @@ export function Header() {
 
             {updateStatus?.status === 'available' && updateStatus.releaseNotes && (
               <div className="max-h-24 overflow-auto rounded-md bg-gray-50 dark:bg-gray-800 px-3 py-2 text-xs text-gray-600 dark:text-gray-300 whitespace-pre-wrap">
-                {Array.isArray(updateStatus.releaseNotes) ? updateStatus.releaseNotes.join('\n') : updateStatus.releaseNotes}
+                {Array.isArray(updateStatus.releaseNotes)
+                  ? updateStatus.releaseNotes.join('\n')
+                  : updateStatus.releaseNotes}
               </div>
             )}
           </div>
@@ -497,11 +545,7 @@ export function Header() {
 
       {/* 使用指南弹窗 */}
       {guideOpen && (
-        <MarkdownViewer
-          content={guideContent}
-          title={t('menu.userGuide')}
-          onClose={() => setGuideOpen(false)}
-        />
+        <MarkdownViewer content={guideContent} title={t('menu.userGuide')} onClose={() => setGuideOpen(false)} />
       )}
     </header>
   )

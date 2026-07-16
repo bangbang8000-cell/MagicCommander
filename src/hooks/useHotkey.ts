@@ -30,17 +30,18 @@ const KEY_NORMALIZE: Record<string, string> = {
 
 /** 解析 "ctrl+s" / "ctrl+shift+e" 等字符串 */
 export function parseKeyCombo(raw: string): KeyCombo {
-  const parts = raw.toLowerCase().split('+').map((p) => KEY_NORMALIZE[p] ?? p)
+  const parts = raw
+    .toLowerCase()
+    .split('+')
+    .map((p) => KEY_NORMALIZE[p] ?? p)
   const key = parts[parts.length - 1]
-  const modifiers = parts
-    .slice(0, -1)
-    .map((m) => {
-      if (m === 'Control') return 'ctrl'
-      if (m === 'Alt') return 'alt'
-      if (m === 'Shift') return 'shift'
-      if (m === 'Meta') return 'meta'
-      return m
-    }) as ModifierKey[]
+  const modifiers = parts.slice(0, -1).map((m) => {
+    if (m === 'Control') return 'ctrl'
+    if (m === 'Alt') return 'alt'
+    if (m === 'Shift') return 'shift'
+    if (m === 'Meta') return 'meta'
+    return m
+  }) as ModifierKey[]
   return { key, modifiers, enableInInput: false }
 }
 

@@ -49,11 +49,15 @@ export function EditorArea() {
   const renderEditor = (tab: typeof activeTab) => {
     if (!tab) {
       return (
-        <div className={`absolute inset-0 flex items-center justify-center text-sm ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+        <div
+          className={`absolute inset-0 flex items-center justify-center text-sm ${isDark ? 'text-gray-500' : 'text-gray-400'}`}
+        >
           <div className="text-center space-y-2">
             <Layout size={48} className={`mx-auto ${isDark ? 'text-gray-600' : 'text-gray-300'}`} />
             <p>{t('editor:empty.openFileHint')}</p>
-            <p className={`text-xs ${isDark ? 'text-gray-600' : 'text-gray-400'}`}>{t('editor:empty.supportedFormats')}</p>
+            <p className={`text-xs ${isDark ? 'text-gray-600' : 'text-gray-400'}`}>
+              {t('editor:empty.supportedFormats')}
+            </p>
           </div>
         </div>
       )
@@ -88,7 +92,9 @@ export function EditorArea() {
               onClick={() => setPendingCloseTab(null)}
               className={clsx(
                 'px-4 py-1.5 text-sm rounded border',
-                isDark ? 'border-gray-600 hover:bg-gray-700 text-gray-200' : 'border-gray-300 hover:bg-gray-50 text-gray-700',
+                isDark
+                  ? 'border-gray-600 hover:bg-gray-700 text-gray-200'
+                  : 'border-gray-300 hover:bg-gray-50 text-gray-700',
               )}
             >
               {t('editor:modal.cancel')}
@@ -117,18 +123,20 @@ export function EditorArea() {
         <p className={clsx('text-sm', isDark ? 'text-gray-200' : 'text-gray-700')}>
           <strong>{pendingTab.title}</strong> {t('editor:modal.unsavedMessage', { name: pendingTab.title })}
         </p>
-        <p className={`text-sm mt-2 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{t('editor:modal.saveBeforeClose')}</p>
+        <p className={`text-sm mt-2 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+          {t('editor:modal.saveBeforeClose')}
+        </p>
       </Modal>
     )
   }
 
   const renderTabBar = (tabs: typeof openTabs, activeId: string | null, isSplit: boolean) => (
-    <div className={`flex items-center border-b h-9 shrink-0 overflow-x-auto ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-gray-50 border-gray-200'}`}>
+    <div
+      className={`flex items-center border-b h-9 shrink-0 overflow-x-auto ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-gray-50 border-gray-200'}`}
+    >
       {tabs.map((tab) => {
         // 构建完整的悬浮提示信息
-        const dirPath = tab.filePath.includes('/')
-          ? tab.filePath.substring(0, tab.filePath.lastIndexOf('/'))
-          : ''
+        const dirPath = tab.filePath.includes('/') ? tab.filePath.substring(0, tab.filePath.lastIndexOf('/')) : ''
         const fullPath = dirPath
           ? `${tab.projectName} / ${dirPath} / ${tab.title}`
           : `${tab.projectName} / ${tab.title}`
@@ -145,8 +153,8 @@ export function EditorArea() {
                   ? 'bg-gray-900 text-gray-100 border-b-2 border-b-primary-400'
                   : 'bg-white text-gray-900 border-b-2 border-b-primary-500 shadow-sm'
                 : isDark
-                ? 'text-gray-400 hover:text-gray-200 hover:bg-gray-700'
-                : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100',
+                  ? 'text-gray-400 hover:text-gray-200 hover:bg-gray-700'
+                  : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100',
             )}
           >
             {(() => {
@@ -184,8 +192,8 @@ export function EditorArea() {
                   ? 'text-gray-400 hover:bg-gray-700'
                   : 'text-gray-500 hover:bg-gray-200'
                 : isDark
-                ? 'text-gray-600 cursor-not-allowed'
-                : 'text-gray-300 cursor-not-allowed',
+                  ? 'text-gray-600 cursor-not-allowed'
+                  : 'text-gray-300 cursor-not-allowed',
             )}
             title={t('editor:tabs.reopenTooltip')}
           >
@@ -205,14 +213,14 @@ export function EditorArea() {
             </button>
           )}
           <button
-              onClick={() => setSplitMode(splitMode === 'vertical' ? 'none' : 'vertical')}
-              className={clsx(
-                'p-1 rounded',
-                splitMode === 'vertical' && (isDark ? 'bg-gray-700' : 'bg-gray-200'),
-                isDark ? 'text-gray-400 hover:bg-gray-700' : 'text-gray-500 hover:bg-gray-200',
-              )}
-              title={t('editor:split.verticalSplit')}
-            >
+            onClick={() => setSplitMode(splitMode === 'vertical' ? 'none' : 'vertical')}
+            className={clsx(
+              'p-1 rounded',
+              splitMode === 'vertical' && (isDark ? 'bg-gray-700' : 'bg-gray-200'),
+              isDark ? 'text-gray-400 hover:bg-gray-700' : 'text-gray-500 hover:bg-gray-200',
+            )}
+            title={t('editor:split.verticalSplit')}
+          >
             <SplitSquareVertical size={14} />
           </button>
         </div>
@@ -226,9 +234,7 @@ export function EditorArea() {
         <div className={`flex-1 flex flex-col min-h-0 ${isDark ? 'bg-gray-900' : 'bg-white'}`}>
           {renderTabBar(openTabs, activeTabId, false)}
           <div className="flex-1 min-h-0 relative overflow-hidden">
-            <div className="w-full h-full">
-              {renderEditor(activeTab)}
-            </div>
+            <div className="w-full h-full">{renderEditor(activeTab)}</div>
           </div>
         </div>
         {renderUnsavedModal()}
@@ -239,20 +245,21 @@ export function EditorArea() {
   return (
     <div className="w-full h-full flex flex-col">
       <div className="flex-1 flex min-h-0">
-        <div className={clsx('flex-1 flex flex-col min-h-0 border-e', isDark ? 'bg-gray-900 border-gray-700' : 'bg-white border-gray-300')}>
+        <div
+          className={clsx(
+            'flex-1 flex flex-col min-h-0 border-e',
+            isDark ? 'bg-gray-900 border-gray-700' : 'bg-white border-gray-300',
+          )}
+        >
           {renderTabBar(openTabs, activeTabId, false)}
           <div className="flex-1 min-h-0 relative overflow-hidden">
-            <div className="w-full h-full">
-              {renderEditor(activeTab)}
-            </div>
+            <div className="w-full h-full">{renderEditor(activeTab)}</div>
           </div>
         </div>
         <div className={clsx('flex-1 flex flex-col min-h-0', isDark ? 'bg-gray-900' : 'bg-white')}>
           {renderTabBar(splitTabs, activeSplitTabId, true)}
           <div className="flex-1 min-h-0 relative overflow-hidden">
-            <div className="w-full h-full">
-              {renderEditor(activeSplitTab)}
-            </div>
+            <div className="w-full h-full">{renderEditor(activeSplitTab)}</div>
           </div>
         </div>
       </div>

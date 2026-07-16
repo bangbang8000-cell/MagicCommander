@@ -19,7 +19,9 @@ export function PanelArea() {
 
   return (
     <div className={`flex flex-col min-w-0 h-full ${isDark ? 'bg-gray-900' : 'bg-white'}`}>
-      <div className={`flex items-center justify-between px-3 h-8 border-b shrink-0 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-gray-100 border-gray-200'}`}>
+      <div
+        className={`flex items-center justify-between px-3 h-8 border-b shrink-0 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-gray-100 border-gray-200'}`}
+      >
         <div className="flex items-center gap-0.5">
           <button
             onClick={() => setActivePanel('log')}
@@ -30,8 +32,8 @@ export function PanelArea() {
                   ? 'bg-gray-900 text-gray-100'
                   : 'bg-white text-gray-900'
                 : isDark
-                ? 'text-gray-400 hover:text-gray-200 hover:bg-gray-700'
-                : 'text-gray-500 hover:text-gray-700',
+                  ? 'text-gray-400 hover:text-gray-200 hover:bg-gray-700'
+                  : 'text-gray-500 hover:text-gray-700',
             )}
           >
             <ScrollText size={12} /> {t('common:panel.log')}
@@ -45,8 +47,8 @@ export function PanelArea() {
                   ? 'bg-gray-900 text-gray-100'
                   : 'bg-white text-gray-900'
                 : isDark
-                ? 'text-gray-400 hover:text-gray-200 hover:bg-gray-700'
-                : 'text-gray-500 hover:text-gray-700',
+                  ? 'text-gray-400 hover:text-gray-200 hover:bg-gray-700'
+                  : 'text-gray-500 hover:text-gray-700',
             )}
           >
             <Terminal size={12} /> {t('common:panel.terminal')}
@@ -71,7 +73,9 @@ export function PanelArea() {
           {activePanel === 'log' && <LogPanel />}
           {activePanel === 'terminal' && <TerminalPanel />}
           {activePanel === 'problems' && (
-            <div className={`flex items-center justify-center h-full text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+            <div
+              className={`flex items-center justify-center h-full text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}
+            >
               {t('common:panel.noProblems')}
             </div>
           )}
@@ -123,7 +127,9 @@ function LogPanel() {
 
   return (
     <div className="flex flex-col h-full">
-      <div className={`flex items-center justify-between px-3 py-1 border-b ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-gray-50 border-gray-100'}`}>
+      <div
+        className={`flex items-center justify-between px-3 py-1 border-b ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-gray-50 border-gray-100'}`}
+      >
         <div className="flex items-center gap-1">
           {filterOptions.map((opt) => (
             <button
@@ -136,8 +142,8 @@ function LogPanel() {
                     ? 'bg-gray-700 text-gray-100'
                     : 'bg-gray-300 text-gray-900'
                   : isDark
-                  ? 'text-gray-400 hover:bg-gray-700 hover:text-gray-100'
-                  : 'text-gray-500 hover:bg-gray-200',
+                    ? 'text-gray-400 hover:bg-gray-700 hover:text-gray-100'
+                    : 'text-gray-500 hover:bg-gray-200',
               )}
             >
               {t(opt.labelKey)}
@@ -151,7 +157,9 @@ function LogPanel() {
           onClick={clearLogs}
           className={clsx(
             'text-[10px] px-1 py-0.5 rounded',
-            isDark ? 'text-gray-400 hover:text-red-400 hover:bg-gray-800' : 'text-gray-400 hover:text-red-500 hover:bg-gray-100',
+            isDark
+              ? 'text-gray-400 hover:text-red-400 hover:bg-gray-800'
+              : 'text-gray-400 hover:text-red-500 hover:bg-gray-100',
           )}
         >
           {t('common:panel.clear')}

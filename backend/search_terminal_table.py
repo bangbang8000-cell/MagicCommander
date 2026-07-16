@@ -7,14 +7,18 @@
 
 import os
 import sys
+import logging
+
+
+logger = logging.getLogger(__name__)
 
 
 def search_terminal_table():
     base_dir = os.path.dirname(os.path.abspath(__file__))
     target_str = '终端连接表'
     
-    print(f"搜索包含 '{target_str}' 的文件...")
-    print("=" * 50)
+    logger.info(f"搜索包含 '{target_str}' 的文件...")
+    logger.info("=" * 50)
     
     matched_files = []
     
@@ -25,7 +29,6 @@ def search_terminal_table():
                 
                 try:
                     if file_name.endswith('.xlsx'):
-                        # 对于 Excel 文件，需要使用 pandas 库来读取内容
                         try:
                             import pandas as pd
                             xls = pd.ExcelFile(file_path)
@@ -33,7 +36,7 @@ def search_terminal_table():
                                 try:
                                     df = pd.read_excel(file_path, sheet_name=sheet_name)
                                     if target_str in str(df.columns) or target_str in str(df.values):
-                                        print(f"Excel 文件: {file_path} (工作表: {sheet_name})")
+                                        logger.info(f"Excel 文件: {file_path} (工作表: {sheet_name})")
                                         matched_files.append((file_path, sheet_name))
                                 except Exception as e:
                                     continue
@@ -43,13 +46,13 @@ def search_terminal_table():
                         with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
                             content = f.read()
                             if target_str in content:
-                                print(f"文件: {file_path}")
+                                logger.info(f"文件: {file_path}")
                                 matched_files.append(file_path)
                 except Exception as e:
                     continue
     
-    print("=" * 50)
-    print(f"共找到 {len(matched_files)} 个文件包含 '{target_str}'")
+    logger.info("=" * 50)
+    logger.info(f"共找到 {len(matched_files)} 个文件包含 '{target_str}'")
     
     return matched_files
 
@@ -58,8 +61,8 @@ if __name__ == "__main__":
     try:
         search_terminal_table()
     except KeyboardInterrupt:
-        print("\n搜索被用户中断")
+        logger.info("\n搜索被用户中断")
         sys.exit(1)
     except Exception as e:
-        print(f"\n搜索过程中出错: {e}")
+        logger.info(f"\n搜索过程中出错: {e}")
         sys.exit(1)

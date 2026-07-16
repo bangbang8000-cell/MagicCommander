@@ -39,8 +39,9 @@ export function Cheatsheet({ open, onClose }: CheatsheetProps) {
           return (
             <div key={category}>
               <h4
-                className={clsx('text-xs font-semibold uppercase tracking-wider mb-2',
-                  isDark ? 'text-gray-400' : 'text-gray-500'
+                className={clsx(
+                  'text-xs font-semibold uppercase tracking-wider mb-2',
+                  isDark ? 'text-gray-400' : 'text-gray-500',
                 )}
               >
                 {category}
@@ -49,8 +50,9 @@ export function Cheatsheet({ open, onClose }: CheatsheetProps) {
                 {items.map((item) => (
                   <div
                     key={item.combo}
-                    className={clsx('flex items-center justify-between py-1.5 px-2 rounded',
-                      isDark ? 'hover:bg-gray-800' : 'hover:bg-gray-50'
+                    className={clsx(
+                      'flex items-center justify-between py-1.5 px-2 rounded',
+                      isDark ? 'hover:bg-gray-800' : 'hover:bg-gray-50',
                     )}
                   >
                     <span className={clsx('text-sm', isDark ? 'text-gray-200' : 'text-gray-700')}>{item.label}</span>

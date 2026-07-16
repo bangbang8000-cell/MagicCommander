@@ -26,7 +26,11 @@ export function WordViewer({ tab }: { tab: EditorTab }) {
       // 尝试使用 docx-preview（需要主进程支持 readDocxBuffer）
       if (window.electron?.project?.readDocxBuffer) {
         try {
-          const arrayBuffer = await window.electron.project.readDocxBuffer(Number(tab.projectId), tab.filePath, tab.projectName)
+          const arrayBuffer = await window.electron.project.readDocxBuffer(
+            Number(tab.projectId),
+            tab.filePath,
+            tab.projectName,
+          )
           if (!isMountedRef.current) return
 
           // 动态导入 docx-preview
@@ -68,7 +72,7 @@ export function WordViewer({ tab }: { tab: EditorTab }) {
         // 将纯文本按行分割并用 <pre> 包裹，保持格式
         const lines = text.split('\n')
         containerRef.current.innerHTML = lines
-          .map(line => `<div style="min-height: 1.5em;">${escapeHtml(line) || '&nbsp;'}</div>`)
+          .map((line) => `<div style="min-height: 1.5em;">${escapeHtml(line) || '&nbsp;'}</div>`)
           .join('')
       }
     } catch (err) {
@@ -96,7 +100,12 @@ export function WordViewer({ tab }: { tab: EditorTab }) {
 
   if (loading) {
     return (
-      <div className={clsx('absolute inset-0 flex flex-col items-center justify-center gap-2', isDark ? 'text-gray-400' : 'text-gray-500')}>
+      <div
+        className={clsx(
+          'absolute inset-0 flex flex-col items-center justify-center gap-2',
+          isDark ? 'text-gray-400' : 'text-gray-500',
+        )}
+      >
         <div className="w-6 h-6 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" />
         <span className="text-sm">正在解析 Word 文档...</span>
         <span className={clsx('text-xs', isDark ? 'text-gray-500' : 'text-gray-400')}>{tab.filePath}</span>
@@ -106,7 +115,12 @@ export function WordViewer({ tab }: { tab: EditorTab }) {
 
   if (error) {
     return (
-      <div className={clsx('absolute inset-0 flex flex-col items-center justify-center gap-3 p-6', isDark ? 'text-red-400' : 'text-red-500')}>
+      <div
+        className={clsx(
+          'absolute inset-0 flex flex-col items-center justify-center gap-3 p-6',
+          isDark ? 'text-red-400' : 'text-red-500',
+        )}
+      >
         <AlertCircle size={32} />
         <span className="font-medium text-center">打开 Word 文档失败</span>
         <span className="text-sm text-center max-w-md">{error}</span>
@@ -127,7 +141,12 @@ export function WordViewer({ tab }: { tab: EditorTab }) {
   return (
     <div className="w-full h-full flex flex-col">
       {/* 提示栏 */}
-      <div className={clsx('flex items-center gap-2 px-3 py-2 text-xs border-b shrink-0', isDark ? 'bg-amber-900/20 border-amber-700/40 text-amber-300' : 'bg-amber-50 border-amber-200 text-amber-800')}>
+      <div
+        className={clsx(
+          'flex items-center gap-2 px-3 py-2 text-xs border-b shrink-0',
+          isDark ? 'bg-amber-900/20 border-amber-700/40 text-amber-300' : 'bg-amber-50 border-amber-200 text-amber-800',
+        )}
+      >
         <FileText size={14} />
         <span className="font-medium">Word 文档预览</span>
         <span className={isDark ? 'text-amber-400/70' : 'text-amber-700/60'}>
@@ -140,7 +159,7 @@ export function WordViewer({ tab }: { tab: EditorTab }) {
           ref={containerRef}
           className={clsx(
             'min-h-full p-4 font-mono text-sm leading-relaxed',
-            isDark ? 'text-gray-200' : 'text-gray-800'
+            isDark ? 'text-gray-200' : 'text-gray-800',
           )}
         />
       </div>

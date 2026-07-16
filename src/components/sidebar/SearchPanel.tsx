@@ -15,7 +15,11 @@ const FILE_TYPE_FILTERS: { key: string; label: string; exts: string[] }[] = [
   { key: 'yaml', label: 'search.fileType.yaml', exts: ['yml', 'yaml'] },
   { key: 'template', label: 'search.fileType.template', exts: ['j2', 'jinja', 'jinja2'] },
   { key: 'excel', label: 'search.fileType.excel', exts: ['xlsx', 'xls'] },
-  { key: 'txt', label: 'search.fileType.txt', exts: ['txt', 'csv', 'md', 'json', 'html', 'py', 'log', 'conf', 'cfg', 'ini'] },
+  {
+    key: 'txt',
+    label: 'search.fileType.txt',
+    exts: ['txt', 'csv', 'md', 'json', 'html', 'py', 'log', 'conf', 'cfg', 'ini'],
+  },
 ]
 
 function getNodeFileType(name: string): string {
@@ -148,10 +152,7 @@ export const SearchPanel = React.memo(function SearchPanel() {
 
   const openFile = useEditorStore((s) => s.openFile)
 
-  const keywords = useMemo(
-    () => keyword.trim().split(/\s+/).filter(Boolean),
-    [keyword],
-  )
+  const keywords = useMemo(() => keyword.trim().split(/\s+/).filter(Boolean), [keyword])
 
   // 文件名搜索：在 projectStructure 中查找
   const performFilenameSearch = useCallback(() => {
@@ -311,9 +312,7 @@ export const SearchPanel = React.memo(function SearchPanel() {
       const [start, end] = ranges[i]
       if (start < lastEnd) continue
       if (start > cursor) {
-        segments.push(
-          <span key={`t-${i}`}>{text.slice(cursor, start)}</span>,
-        )
+        segments.push(<span key={`t-${i}`}>{text.slice(cursor, start)}</span>)
       }
       segments.push(
         <span
@@ -366,11 +365,7 @@ export const SearchPanel = React.memo(function SearchPanel() {
               value={keyword}
               onChange={(e) => setKeyword(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder={
-                activeTab === 'filename'
-                  ? t('search.filenamePlaceholder')
-                  : t('search.contentPlaceholder')
-              }
+              placeholder={activeTab === 'filename' ? t('search.filenamePlaceholder') : t('search.contentPlaceholder')}
               className={clsx(
                 'w-full ps-6 pe-2 py-1 text-xs border rounded focus:outline-none focus:ring-1 focus:ring-primary-500',
                 isDark
@@ -465,37 +460,36 @@ export const SearchPanel = React.memo(function SearchPanel() {
       {/* 搜索结果 */}
       <div className={clsx('flex-1 overflow-auto', isDark ? 'bg-gray-900' : 'bg-white')}>
         {!selectedProject ? (
-          <EmptyState
-            icon="search"
-            title={t('search.noProjectSelected')}
-            description={t('search.noProjectHint')}
-          />
+          <EmptyState icon="search" title={t('search.noProjectSelected')} description={t('search.noProjectHint')} />
         ) : keywords.length === 0 ? (
           <EmptyState
             icon="search"
             title={t('search.enterKeyword')}
-            description={
-              activeTab === 'filename'
-                ? t('search.searchByFilename')
-                : t('search.searchByContent')
-            }
+            description={activeTab === 'filename' ? t('search.searchByFilename') : t('search.searchByContent')}
           />
         ) : loading ? (
-          <div className={clsx('flex flex-col items-center justify-center p-8 text-xs gap-2', isDark ? 'text-gray-400' : 'text-gray-500')}>
+          <div
+            className={clsx(
+              'flex flex-col items-center justify-center p-8 text-xs gap-2',
+              isDark ? 'text-gray-400' : 'text-gray-500',
+            )}
+          >
             <Loader2 size={16} className="animate-spin" />
             <span>{t('search.searchingContent')}</span>
           </div>
         ) : activeTab === 'filename' ? (
           filenameResults.length === 0 ? (
-            <EmptyState icon="search" title={t('search.noFilenameMatches')} description={t('search.noFilenameMatchesDesc', { keyword })} />
+            <EmptyState
+              icon="search"
+              title={t('search.noFilenameMatches')}
+              description={t('search.noFilenameMatchesDesc', { keyword })}
+            />
           ) : (
             <div className="py-1">
               <div
                 className={clsx(
                   'px-3 py-1 text-xs border-b',
-                  isDark
-                    ? 'text-gray-400 bg-gray-800/60 border-gray-700'
-                    : 'text-gray-500 bg-gray-50 border-gray-200',
+                  isDark ? 'text-gray-400 bg-gray-800/60 border-gray-700' : 'text-gray-500 bg-gray-50 border-gray-200',
                 )}
               >
                 {t('search.filenameMatchesCount', { count: filenameResults.length })}
@@ -506,23 +500,13 @@ export const SearchPanel = React.memo(function SearchPanel() {
                   onClick={() => handleFileClick(item.file)}
                   className={clsx(
                     'w-full flex items-start gap-2 px-3 py-1.5 text-xs text-start',
-                    isDark
-                      ? 'text-gray-200 hover:bg-gray-800'
-                      : 'text-gray-700 hover:bg-gray-100',
+                    isDark ? 'text-gray-200 hover:bg-gray-800' : 'text-gray-700 hover:bg-gray-100',
                   )}
                 >
-                  <FileText
-                    size={12}
-                    className={clsx('shrink-0 mt-0.5', isDark ? 'text-gray-500' : 'text-gray-400')}
-                  />
+                  <FileText size={12} className={clsx('shrink-0 mt-0.5', isDark ? 'text-gray-500' : 'text-gray-400')} />
                   <div className="flex-1 min-w-0">
                     <div className="truncate">{renderHighlightedText(item.file.name)}</div>
-                    <div
-                      className={clsx(
-                        'truncate text-[10px] mt-0.5',
-                        isDark ? 'text-gray-500' : 'text-gray-400',
-                      )}
-                    >
+                    <div className={clsx('truncate text-[10px] mt-0.5', isDark ? 'text-gray-500' : 'text-gray-400')}>
                       {item.relativePath || item.file.path}
                     </div>
                   </div>
@@ -531,15 +515,17 @@ export const SearchPanel = React.memo(function SearchPanel() {
             </div>
           )
         ) : contentResults.length === 0 ? (
-          <EmptyState icon="search" title={t('search.noContentMatches')} description={t('search.noContentMatchesDesc', { keyword })} />
+          <EmptyState
+            icon="search"
+            title={t('search.noContentMatches')}
+            description={t('search.noContentMatchesDesc', { keyword })}
+          />
         ) : (
           <div className="py-1">
             <div
               className={clsx(
                 'px-3 py-1 text-xs border-b',
-                isDark
-                  ? 'text-gray-400 bg-gray-800/60 border-gray-700'
-                  : 'text-gray-500 bg-gray-50 border-gray-200',
+                isDark ? 'text-gray-400 bg-gray-800/60 border-gray-700' : 'text-gray-500 bg-gray-50 border-gray-200',
               )}
             >
               {t('search.contentMatchesCount', { count: contentResults.length, files: groupedContent.length })}
@@ -547,10 +533,7 @@ export const SearchPanel = React.memo(function SearchPanel() {
             {groupedContent.map((group) => {
               const isCollapsed = collapsedGroups.has(group.file.path)
               return (
-                <div
-                  key={group.file.path}
-                  className={clsx('border-b', isDark ? 'border-gray-800' : 'border-gray-100')}
-                >
+                <div key={group.file.path} className={clsx('border-b', isDark ? 'border-gray-800' : 'border-gray-100')}>
                   <button
                     onClick={() => {
                       const next = new Set(collapsedGroups)
@@ -568,10 +551,7 @@ export const SearchPanel = React.memo(function SearchPanel() {
                     ) : (
                       <ChevronDown size={11} className="shrink-0" />
                     )}
-                    <FileText
-                      size={12}
-                      className={clsx('shrink-0', isDark ? 'text-gray-500' : 'text-gray-400')}
-                    />
+                    <FileText size={12} className={clsx('shrink-0', isDark ? 'text-gray-500' : 'text-gray-400')} />
                     <span className="flex-1 truncate font-medium">{group.file.name}</span>
                     <span className={clsx('shrink-0 text-[10px]', isDark ? 'text-gray-500' : 'text-gray-400')}>
                       {group.matches.length} {t('search.matchCountSuffix')}
@@ -580,10 +560,7 @@ export const SearchPanel = React.memo(function SearchPanel() {
                   {!isCollapsed && (
                     <div>
                       <div
-                        className={clsx(
-                          'px-3 pb-1 text-[10px] truncate',
-                          isDark ? 'text-gray-500' : 'text-gray-400',
-                        )}
+                        className={clsx('px-3 pb-1 text-[10px] truncate', isDark ? 'text-gray-500' : 'text-gray-400')}
                       >
                         {group.relativePath || group.file.path}
                       </div>
@@ -596,7 +573,12 @@ export const SearchPanel = React.memo(function SearchPanel() {
                             isDark ? 'text-gray-300 hover:bg-gray-800/70' : 'text-gray-600 hover:bg-gray-50',
                           )}
                         >
-                          <span className={clsx('shrink-0 text-[10px] font-mono', isDark ? 'text-gray-500' : 'text-gray-400')}>
+                          <span
+                            className={clsx(
+                              'shrink-0 text-[10px] font-mono',
+                              isDark ? 'text-gray-500' : 'text-gray-400',
+                            )}
+                          >
                             L{item.lineNum}
                           </span>
                           <div

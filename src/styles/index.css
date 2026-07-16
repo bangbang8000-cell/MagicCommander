@@ -3,7 +3,9 @@
 @tailwind utilities;
 
 @layer base {
-  html, body, #root {
+  html,
+  body,
+  #root {
     @apply h-full w-full overflow-hidden;
   }
   body {
@@ -44,22 +46,46 @@
 /* 字体层级组件类 */
 @layer components {
   /* 标题 */
-  .heading-1 { @apply text-h1 text-gray-900 dark:text-gray-100; }
-  .heading-2 { @apply text-h2 text-gray-900 dark:text-gray-100; }
-  .heading-3 { @apply text-h3 text-gray-900 dark:text-gray-100; }
-  .heading-4 { @apply text-h4 text-gray-900 dark:text-gray-100; }
+  .heading-1 {
+    @apply text-h1 text-gray-900 dark:text-gray-100;
+  }
+  .heading-2 {
+    @apply text-h2 text-gray-900 dark:text-gray-100;
+  }
+  .heading-3 {
+    @apply text-h3 text-gray-900 dark:text-gray-100;
+  }
+  .heading-4 {
+    @apply text-h4 text-gray-900 dark:text-gray-100;
+  }
 
   /* 正文 */
-  .text-body { @apply text-body text-gray-700 dark:text-gray-300; }
-  .text-body-sm { @apply text-body-sm text-gray-700 dark:text-gray-300; }
-  .text-caption { @apply text-caption text-gray-500 dark:text-gray-400; }
+  .text-body {
+    @apply text-body text-gray-700 dark:text-gray-300;
+  }
+  .text-body-sm {
+    @apply text-body-sm text-gray-700 dark:text-gray-300;
+  }
+  .text-caption {
+    @apply text-caption text-gray-500 dark:text-gray-400;
+  }
 
   /* 语义颜色文本 */
-  .text-primary { @apply text-primary-600 dark:text-primary-400; }
-  .text-success { @apply text-success-600 dark:text-success-400; }
-  .text-warning { @apply text-warning-600 dark:text-warning-400; }
-  .text-danger { @apply text-danger-600 dark:text-danger-400; }
-  .text-info { @apply text-info-600 dark:text-info-400; }
+  .text-primary {
+    @apply text-primary-600 dark:text-primary-400;
+  }
+  .text-success {
+    @apply text-success-600 dark:text-success-400;
+  }
+  .text-warning {
+    @apply text-warning-600 dark:text-warning-400;
+  }
+  .text-danger {
+    @apply text-danger-600 dark:text-danger-400;
+  }
+  .text-info {
+    @apply text-info-600 dark:text-info-400;
+  }
 
   /* 卡片样式 */
   .card {
@@ -97,11 +123,21 @@
   }
 
   /* 图标尺寸规范 */
-  .icon-activity { @apply w-5 h-5; }    /* 活动栏 20px */
-  .icon-button { @apply w-3.5 h-3.5; }   /* 按钮 14px */
-  .icon-node { @apply w-3.5 h-3.5; }      /* 树形节点 14px */
-  .icon-close { @apply w-2.5 h-2.5; }     /* 标签关闭 10px */
-  .icon-aux { @apply w-3 h-3; }           /* 辅助图标 12px */
+  .icon-activity {
+    @apply w-5 h-5;
+  } /* 活动栏 20px */
+  .icon-button {
+    @apply w-3.5 h-3.5;
+  } /* 按钮 14px */
+  .icon-node {
+    @apply w-3.5 h-3.5;
+  } /* 树形节点 14px */
+  .icon-close {
+    @apply w-2.5 h-2.5;
+  } /* 标签关闭 10px */
+  .icon-aux {
+    @apply w-3 h-3;
+  } /* 辅助图标 12px */
 
   /* 悬停效果 */
   .hover-lift {
@@ -118,26 +154,54 @@
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes slideInLeft {
-  from { opacity: 0; transform: translateX(-8px); }
-  to { opacity: 1; transform: translateX(0); }
+  from {
+    opacity: 0;
+    transform: translateX(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
 @keyframes slideInRight {
-  from { opacity: 0; transform: translateX(8px); }
-  to { opacity: 1; transform: translateX(0); }
+  from {
+    opacity: 0;
+    transform: translateX(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
 @keyframes slideUp {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes scaleIn {
-  from { opacity: 0; transform: scale(0.95); }
-  to { opacity: 1; transform: scale(1); }
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }

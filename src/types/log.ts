@@ -23,7 +23,7 @@ export interface LogFilter {
 /** 日志持久化配置 */
 export interface LogPersistConfig {
   enabled: boolean
-  maxFileSize: number    // MB
+  maxFileSize: number // MB
   maxFiles: number
   logDir: string
 }

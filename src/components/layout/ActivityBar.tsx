@@ -1,14 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import { useUIStore, type ActivityType } from '@/stores/ui.store'
-import {
-  Search,
-  FolderOpen,
-  PlayCircle,
-  Tag,
-  FileOutput,
-  PanelLeftClose,
-  PanelLeft,
-} from 'lucide-react'
+import { Search, FolderOpen, PlayCircle, Tag, FileOutput, PanelLeftClose, PanelLeft } from 'lucide-react'
 import clsx from 'clsx'
 
 interface ActivityItem {
@@ -56,7 +48,7 @@ export function ActivityBar() {
                 'w-12 h-12 flex items-center justify-center relative transition-colors',
                 isActive
                   ? 'text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-gray-700'
-                  : 'text-gray-500 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-gray-200 dark:hover:bg-gray-700'
+                  : 'text-gray-500 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-gray-200 dark:hover:bg-gray-700',
               )}
             >
               {isActive && (

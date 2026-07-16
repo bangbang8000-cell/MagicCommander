@@ -123,35 +123,106 @@ export const WorkbenchPanel = React.memo(function WorkbenchPanel() {
     <div className={clsx('flex flex-col h-full overflow-auto', isDark ? 'bg-gray-900' : 'bg-white')}>
       <div className="p-3 space-y-3">
         <div className="space-y-1.5">
-          <h4 className={clsx('text-xs font-semibold flex items-center gap-1', isDark ? 'text-gray-200' : 'text-gray-700')}>
+          <h4
+            className={clsx(
+              'text-xs font-semibold flex items-center gap-1',
+              isDark ? 'text-gray-200' : 'text-gray-700',
+            )}
+          >
             <FolderOpen size={12} /> {t('workbench.currentProject')}
           </h4>
           {selectedProject ? (
-            <div className={clsx('rounded p-2 text-xs space-y-1 border', isDark ? 'bg-gray-800/60 border-gray-700' : 'bg-gray-50 border-gray-200')}>
+            <div
+              className={clsx(
+                'rounded p-2 text-xs space-y-1 border',
+                isDark ? 'bg-gray-800/60 border-gray-700' : 'bg-gray-50 border-gray-200',
+              )}
+            >
               <div className="flex justify-between">
                 <span className={isDark ? 'text-gray-400' : 'text-gray-500'}>{t('workbench.name')}</span>
-                <span className={clsx('font-medium', isDark ? 'text-gray-200' : 'text-gray-700')}>{selectedProject.name}</span>
+                <span className={clsx('font-medium', isDark ? 'text-gray-200' : 'text-gray-700')}>
+                  {selectedProject.name}
+                </span>
               </div>
               <div className="flex justify-between">
                 <span className={isDark ? 'text-gray-400' : 'text-gray-500'}>{t('workbench.id')}</span>
-                <span className={clsx('font-medium', isDark ? 'text-gray-200' : 'text-gray-700')}>{selectedProject.id}</span>
+                <span className={clsx('font-medium', isDark ? 'text-gray-200' : 'text-gray-700')}>
+                  {selectedProject.id}
+                </span>
               </div>
               {projectInfo && (
                 <>
                   <div className="flex justify-between">
                     <span className={isDark ? 'text-gray-400' : 'text-gray-500'}>{t('workbench.path')}</span>
-                    <span className={clsx('font-medium text-[10px] truncate max-w-[140px]', isDark ? 'text-gray-200' : 'text-gray-700')}>{projectInfo.path}</span>
+                    <span
+                      className={clsx(
+                        'font-medium text-[10px] truncate max-w-[140px]',
+                        isDark ? 'text-gray-200' : 'text-gray-700',
+                      )}
+                    >
+                      {projectInfo.path}
+                    </span>
                   </div>
                   <div className="flex flex-wrap gap-1 pt-1">
-                    {projectInfo.structure?.excel && <span className={clsx('px-1.5 py-0.5 rounded text-[10px]', isDark ? 'bg-green-900/40 text-green-300' : 'bg-green-100 text-green-700')}>{t('workbench.excel')}</span>}
-                    {projectInfo.structure?.templates && <span className={clsx('px-1.5 py-0.5 rounded text-[10px]', isDark ? 'bg-blue-900/40 text-blue-300' : 'bg-blue-100 text-blue-700')}>{t('workbench.template')}</span>}
-                    {projectInfo.structure?.para && <span className={clsx('px-1.5 py-0.5 rounded text-[10px]', isDark ? 'bg-purple-900/40 text-purple-300' : 'bg-purple-100 text-purple-700')}>{t('workbench.para')}</span>}
-                    {projectInfo.structure?.output && <span className={clsx('px-1.5 py-0.5 rounded text-[10px]', isDark ? 'bg-orange-900/40 text-orange-300' : 'bg-orange-100 text-orange-700')}>{t('workbench.output')}</span>}
-                    {projectInfo.structure?.yaml && <span className={clsx('px-1.5 py-0.5 rounded text-[10px]', isDark ? 'bg-cyan-900/40 text-cyan-300' : 'bg-cyan-100 text-cyan-700')}>{t('workbench.yaml')}</span>}
+                    {projectInfo.structure?.excel && (
+                      <span
+                        className={clsx(
+                          'px-1.5 py-0.5 rounded text-[10px]',
+                          isDark ? 'bg-green-900/40 text-green-300' : 'bg-green-100 text-green-700',
+                        )}
+                      >
+                        {t('workbench.excel')}
+                      </span>
+                    )}
+                    {projectInfo.structure?.templates && (
+                      <span
+                        className={clsx(
+                          'px-1.5 py-0.5 rounded text-[10px]',
+                          isDark ? 'bg-blue-900/40 text-blue-300' : 'bg-blue-100 text-blue-700',
+                        )}
+                      >
+                        {t('workbench.template')}
+                      </span>
+                    )}
+                    {projectInfo.structure?.para && (
+                      <span
+                        className={clsx(
+                          'px-1.5 py-0.5 rounded text-[10px]',
+                          isDark ? 'bg-purple-900/40 text-purple-300' : 'bg-purple-100 text-purple-700',
+                        )}
+                      >
+                        {t('workbench.para')}
+                      </span>
+                    )}
+                    {projectInfo.structure?.output && (
+                      <span
+                        className={clsx(
+                          'px-1.5 py-0.5 rounded text-[10px]',
+                          isDark ? 'bg-orange-900/40 text-orange-300' : 'bg-orange-100 text-orange-700',
+                        )}
+                      >
+                        {t('workbench.output')}
+                      </span>
+                    )}
+                    {projectInfo.structure?.yaml && (
+                      <span
+                        className={clsx(
+                          'px-1.5 py-0.5 rounded text-[10px]',
+                          isDark ? 'bg-cyan-900/40 text-cyan-300' : 'bg-cyan-100 text-cyan-700',
+                        )}
+                      >
+                        {t('workbench.yaml')}
+                      </span>
+                    )}
                   </div>
                   <button
                     onClick={openInFolder}
-                    className={clsx('flex items-center gap-1 px-2 py-1 mt-2 text-[10px] rounded transition-colors', isDark ? 'text-gray-400 hover:text-gray-200 hover:bg-gray-700' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100')}
+                    className={clsx(
+                      'flex items-center gap-1 px-2 py-1 mt-2 text-[10px] rounded transition-colors',
+                      isDark
+                        ? 'text-gray-400 hover:text-gray-200 hover:bg-gray-700'
+                        : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100',
+                    )}
                     title={t('workbench.openInExplorer')}
                   >
                     <ExternalLink size={10} /> {t('workbench.openFolder')}
@@ -160,21 +231,40 @@ export const WorkbenchPanel = React.memo(function WorkbenchPanel() {
               )}
             </div>
           ) : (
-            <div className={isDark ? 'text-xs text-gray-500' : 'text-xs text-gray-400'}>{t('workbench.selectProjectInExplorer')}</div>
+            <div className={isDark ? 'text-xs text-gray-500' : 'text-xs text-gray-400'}>
+              {t('workbench.selectProjectInExplorer')}
+            </div>
           )}
         </div>
 
         <div className="space-y-1.5">
-          <h4 className={clsx('text-xs font-semibold flex items-center gap-1', isDark ? 'text-gray-200' : 'text-gray-700')}>
+          <h4
+            className={clsx(
+              'text-xs font-semibold flex items-center gap-1',
+              isDark ? 'text-gray-200' : 'text-gray-700',
+            )}
+          >
             <Settings size={12} /> {t('workbench.paraConfig')}
           </h4>
-          <Button variant="secondary" size="sm" icon={<FileCode size={12} />} onClick={openParaConfig} disabled={!selectedProject} className="w-full justify-start">
+          <Button
+            variant="secondary"
+            size="sm"
+            icon={<FileCode size={12} />}
+            onClick={openParaConfig}
+            disabled={!selectedProject}
+            className="w-full justify-start"
+          >
             {t('workbench.openParaXlsx')}
           </Button>
         </div>
 
         <div className={clsx('border-t pt-3 space-y-1.5', isDark ? 'border-gray-700' : 'border-gray-200')}>
-          <h4 className={clsx('text-xs font-semibold flex items-center gap-1', isDark ? 'text-gray-200' : 'text-gray-700')}>
+          <h4
+            className={clsx(
+              'text-xs font-semibold flex items-center gap-1',
+              isDark ? 'text-gray-200' : 'text-gray-700',
+            )}
+          >
             <Play size={12} /> {t('workbench.renderConfig')}
           </h4>
           <div className={clsx('flex items-center gap-1 text-[10px]', isDark ? 'text-gray-400' : 'text-gray-500')}>
@@ -182,7 +272,10 @@ export const WorkbenchPanel = React.memo(function WorkbenchPanel() {
             <select
               value={config.outputFormat}
               onChange={(e) => setConfig({ outputFormat: e.target.value as 'device_name' | 'device_sn' })}
-              className={clsx('text-[10px] border rounded px-1 py-0.5 flex-1', isDark ? 'border-gray-600 bg-gray-800 text-gray-200' : 'border-gray-300 text-gray-700')}
+              className={clsx(
+                'text-[10px] border rounded px-1 py-0.5 flex-1',
+                isDark ? 'border-gray-600 bg-gray-800 text-gray-200' : 'border-gray-300 text-gray-700',
+              )}
             >
               <option value="device_name">{t('workbench.deviceName')}</option>
               <option value="device_sn">{t('workbench.deviceSn')}</option>
@@ -193,7 +286,10 @@ export const WorkbenchPanel = React.memo(function WorkbenchPanel() {
             <select
               value={config.renderType}
               onChange={(e) => setConfig({ renderType: e.target.value as 'project' | 'yaml' })}
-              className={clsx('text-[10px] border rounded px-1 py-0.5 flex-1', isDark ? 'border-gray-600 bg-gray-800 text-gray-200' : 'border-gray-300 text-gray-700')}
+              className={clsx(
+                'text-[10px] border rounded px-1 py-0.5 flex-1',
+                isDark ? 'border-gray-600 bg-gray-800 text-gray-200' : 'border-gray-300 text-gray-700',
+              )}
             >
               <option value="project">{t('workbench.projectConfig')}</option>
               <option value="yaml">{t('workbench.yamlFile')}</option>
@@ -202,10 +298,16 @@ export const WorkbenchPanel = React.memo(function WorkbenchPanel() {
         </div>
 
         <div className={clsx('border-t pt-3 space-y-1.5', isDark ? 'border-gray-700' : 'border-gray-200')}>
-          <h4 className={clsx('text-xs font-semibold', isDark ? 'text-gray-200' : 'text-gray-700')}>{t('workbench.batchProjects')}</h4>
-          <div className={clsx('flex flex-wrap gap-1 max-h-20 overflow-auto', isDark ? 'text-gray-300' : 'text-gray-700')}>
+          <h4 className={clsx('text-xs font-semibold', isDark ? 'text-gray-200' : 'text-gray-700')}>
+            {t('workbench.batchProjects')}
+          </h4>
+          <div
+            className={clsx('flex flex-wrap gap-1 max-h-20 overflow-auto', isDark ? 'text-gray-300' : 'text-gray-700')}
+          >
             {projects.length === 0 ? (
-              <span className={isDark ? 'text-[10px] text-gray-500' : 'text-[10px] text-gray-400'}>{t('explorer.noProjects')}</span>
+              <span className={isDark ? 'text-[10px] text-gray-500' : 'text-[10px] text-gray-400'}>
+                {t('explorer.noProjects')}
+              </span>
             ) : (
               projects.map((p) => {
                 const selected = selectedProjectIds.includes(String(p.id))
@@ -231,24 +333,58 @@ export const WorkbenchPanel = React.memo(function WorkbenchPanel() {
             )}
           </div>
           <div className="flex flex-col gap-1">
-            <Button variant="primary" size="sm" icon={<Play size={12} />} onClick={handleRenderBatch} disabled={isRendering || selectedProjectIds.length === 0} loading={isRendering} className="w-full justify-start">
+            <Button
+              variant="primary"
+              size="sm"
+              icon={<Play size={12} />}
+              onClick={handleRenderBatch}
+              disabled={isRendering || selectedProjectIds.length === 0}
+              loading={isRendering}
+              className="w-full justify-start"
+            >
               {t('workbench.batchRender', { count: selectedProjectIds.length })}
             </Button>
-            <Button variant="secondary" size="sm" icon={<Play size={12} />} onClick={handleRenderSingle} disabled={isRendering || !selectedProject} className="w-full justify-start">
+            <Button
+              variant="secondary"
+              size="sm"
+              icon={<Play size={12} />}
+              onClick={handleRenderSingle}
+              disabled={isRendering || !selectedProject}
+              className="w-full justify-start"
+            >
               {t('workbench.renderCurrentOnly')}
             </Button>
           </div>
         </div>
 
         <div className={clsx('border-t pt-3 space-y-1.5', isDark ? 'border-gray-700' : 'border-gray-200')}>
-          <h4 className={clsx('text-xs font-semibold flex items-center gap-1', isDark ? 'text-gray-200' : 'text-gray-700')}>
+          <h4
+            className={clsx(
+              'text-xs font-semibold flex items-center gap-1',
+              isDark ? 'text-gray-200' : 'text-gray-700',
+            )}
+          >
             <RefreshCw size={12} /> {t('workbench.cleanup')}
           </h4>
           <div className="flex flex-col gap-1">
-            <Button variant="secondary" size="sm" icon={<FileOutput size={12} />} onClick={handleDeleteOutput} disabled={isRendering} className="w-full justify-start">
+            <Button
+              variant="secondary"
+              size="sm"
+              icon={<FileOutput size={12} />}
+              onClick={handleDeleteOutput}
+              disabled={isRendering}
+              className="w-full justify-start"
+            >
               {t('render.deleteOutput')}
             </Button>
-            <Button variant="secondary" size="sm" icon={<FileCode size={12} />} onClick={handleDeleteYaml} disabled={isRendering} className="w-full justify-start">
+            <Button
+              variant="secondary"
+              size="sm"
+              icon={<FileCode size={12} />}
+              onClick={handleDeleteYaml}
+              disabled={isRendering}
+              className="w-full justify-start"
+            >
               {t('render.deleteYaml')}
             </Button>
           </div>
@@ -261,7 +397,10 @@ export const WorkbenchPanel = React.memo(function WorkbenchPanel() {
               <span>{progress}%</span>
             </div>
             <div className={clsx('w-full rounded-full h-1', isDark ? 'bg-gray-700' : 'bg-gray-200')}>
-              <div className="bg-primary-600 h-1 rounded-full transition-all duration-300" style={{ width: `${progress}%` }} />
+              <div
+                className="bg-primary-600 h-1 rounded-full transition-all duration-300"
+                style={{ width: `${progress}%` }}
+              />
             </div>
           </div>
         )}
@@ -269,7 +408,15 @@ export const WorkbenchPanel = React.memo(function WorkbenchPanel() {
         {errors.length > 0 && (
           <div className={clsx('space-y-1 border-t pt-2', isDark ? 'border-gray-700' : 'border-gray-200')}>
             {errors.map((err, i) => (
-              <div key={i} className={clsx('text-[10px] px-2 py-1 rounded', isDark ? 'bg-red-900/40 text-red-300' : 'bg-red-50 text-red-600')}>{err}</div>
+              <div
+                key={i}
+                className={clsx(
+                  'text-[10px] px-2 py-1 rounded',
+                  isDark ? 'bg-red-900/40 text-red-300' : 'bg-red-50 text-red-600',
+                )}
+              >
+                {err}
+              </div>
             ))}
           </div>
         )}

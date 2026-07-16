@@ -4,7 +4,18 @@ import { useRenderStore } from '@/stores/render.store'
 import { useEditorStore } from '@/stores/editor.store'
 import { useUIStore } from '@/stores/ui.store'
 import { Button } from '@/components/ui/Button'
-import { Play, FileCode, RefreshCw, FolderOpen, FileCheck, Printer, Trash2, Info, ChevronDown, ChevronUp } from 'lucide-react'
+import {
+  Play,
+  FileCode,
+  RefreshCw,
+  FolderOpen,
+  FileCheck,
+  Printer,
+  Trash2,
+  Info,
+  ChevronDown,
+  ChevronUp,
+} from 'lucide-react'
 import { useState, useEffect } from 'react'
 import clsx from 'clsx'
 
@@ -39,7 +50,10 @@ export function RenderPanel() {
 
   useEffect(() => {
     if (selectedProject) {
-      window.electron.project.parameters(String(selectedProject.id)).then(setProjectInfo).catch(() => setProjectInfo(null))
+      window.electron.project
+        .parameters(String(selectedProject.id))
+        .then(setProjectInfo)
+        .catch(() => setProjectInfo(null))
     } else {
       setProjectInfo(null)
     }
@@ -109,7 +123,7 @@ export function RenderPanel() {
               onClick={() => setShowProjectInfo(!showProjectInfo)}
               className={clsx(
                 'w-full flex items-center gap-1 text-xs font-semibold',
-                isDark ? 'text-gray-200' : 'text-gray-700'
+                isDark ? 'text-gray-200' : 'text-gray-700',
               )}
             >
               {showProjectInfo ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
@@ -133,7 +147,12 @@ export function RenderPanel() {
                   <>
                     <div className="flex justify-between">
                       <span className={isDark ? 'text-gray-400' : 'text-gray-500'}>{t('common:renderPanel.path')}</span>
-                      <span className={clsx('font-medium text-[10px] truncate max-w-[140px]', isDark ? 'text-gray-300' : 'text-gray-600')}>
+                      <span
+                        className={clsx(
+                          'font-medium text-[10px] truncate max-w-[140px]',
+                          isDark ? 'text-gray-300' : 'text-gray-600',
+                        )}
+                      >
                         {projectInfo.path}
                       </span>
                     </div>
@@ -142,16 +161,24 @@ export function RenderPanel() {
                         <span className="px-1.5 py-0.5 bg-green-100 text-green-700 rounded text-[10px]">Excel</span>
                       )}
                       {projectInfo.structure?.templates && (
-                        <span className="px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded text-[10px]">{t('common:renderPanel.template')}</span>
+                        <span className="px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded text-[10px]">
+                          {t('common:renderPanel.template')}
+                        </span>
                       )}
                       {projectInfo.structure?.para && (
-                        <span className="px-1.5 py-0.5 bg-purple-100 text-purple-700 rounded text-[10px]">{t('common:renderPanel.parameter')}</span>
+                        <span className="px-1.5 py-0.5 bg-purple-100 text-purple-700 rounded text-[10px]">
+                          {t('common:renderPanel.parameter')}
+                        </span>
                       )}
                       {projectInfo.structure?.output && (
-                        <span className="px-1.5 py-0.5 bg-orange-100 text-orange-700 rounded text-[10px]">{t('common:renderPanel.output')}</span>
+                        <span className="px-1.5 py-0.5 bg-orange-100 text-orange-700 rounded text-[10px]">
+                          {t('common:renderPanel.output')}
+                        </span>
                       )}
                       {projectInfo.structure?.yaml && (
-                        <span className="px-1.5 py-0.5 bg-cyan-100 text-cyan-700 rounded text-[10px]">{t('common:renderPanel.yaml')}</span>
+                        <span className="px-1.5 py-0.5 bg-cyan-100 text-cyan-700 rounded text-[10px]">
+                          {t('common:renderPanel.yaml')}
+                        </span>
                       )}
                     </div>
                   </>
@@ -171,7 +198,12 @@ export function RenderPanel() {
         )}
 
         <div className="space-y-1.5">
-          <h4 className={clsx('text-xs font-semibold flex items-center gap-1', isDark ? 'text-gray-200' : 'text-gray-700')}>
+          <h4
+            className={clsx(
+              'text-xs font-semibold flex items-center gap-1',
+              isDark ? 'text-gray-200' : 'text-gray-700',
+            )}
+          >
             <Play size={12} /> {t('common:renderPanel.renderConfig')}
           </h4>
           <div className="flex flex-col gap-1">
@@ -182,7 +214,7 @@ export function RenderPanel() {
                 onChange={(e) => setConfig({ outputFormat: e.target.value as 'device_name' | 'device_sn' })}
                 className={clsx(
                   'text-[10px] border rounded px-1 py-0.5 flex-1',
-                  isDark ? 'bg-gray-800 border-gray-600 text-gray-200' : 'bg-white border-gray-300 text-gray-900'
+                  isDark ? 'bg-gray-800 border-gray-600 text-gray-200' : 'bg-white border-gray-300 text-gray-900',
                 )}
               >
                 <option value="device_name">{t('common:renderPanel.deviceName')}</option>
@@ -196,7 +228,7 @@ export function RenderPanel() {
                 onChange={(e) => setConfig({ renderType: e.target.value as 'project' | 'yaml' })}
                 className={clsx(
                   'text-[10px] border rounded px-1 py-0.5 flex-1',
-                  isDark ? 'bg-gray-800 border-gray-600 text-gray-200' : 'bg-white border-gray-300 text-gray-900'
+                  isDark ? 'bg-gray-800 border-gray-600 text-gray-200' : 'bg-white border-gray-300 text-gray-900',
                 )}
               >
                 <option value="project">{t('common:renderPanel.projectConfig')}</option>
@@ -213,9 +245,16 @@ export function RenderPanel() {
               ({selectedProjectIds.length}/{projects.length})
             </span>
           </h4>
-          <div className={clsx('flex flex-wrap gap-1 max-h-32 overflow-auto rounded p-1', isDark ? 'bg-gray-800' : 'bg-gray-50')}>
+          <div
+            className={clsx(
+              'flex flex-wrap gap-1 max-h-32 overflow-auto rounded p-1',
+              isDark ? 'bg-gray-800' : 'bg-gray-50',
+            )}
+          >
             {projects.length === 0 ? (
-              <span className={clsx('text-[10px]', isDark ? 'text-gray-400' : 'text-gray-500')}>{t('common:renderPanel.noProjects')}</span>
+              <span className={clsx('text-[10px]', isDark ? 'text-gray-400' : 'text-gray-500')}>
+                {t('common:renderPanel.noProjects')}
+              </span>
             ) : (
               projects.map((p) => {
                 const selected = selectedProjectIds.includes(String(p.id))
@@ -231,7 +270,7 @@ export function RenderPanel() {
                           : 'bg-primary-100 border-primary-400 text-primary-700'
                         : isDark
                           ? 'bg-gray-700 border-gray-600 text-gray-300 hover:border-gray-500'
-                          : 'bg-white border-gray-300 text-gray-700 hover:border-primary-300'
+                          : 'bg-white border-gray-300 text-gray-700 hover:border-primary-300',
                     )}
                   >
                     {p.name}
@@ -257,7 +296,12 @@ export function RenderPanel() {
         </div>
 
         <div className={clsx('border-t pt-2 space-y-1.5', isDark ? 'border-gray-700' : 'border-gray-200')}>
-          <h4 className={clsx('text-xs font-semibold flex items-center gap-1', isDark ? 'text-gray-200' : 'text-gray-700')}>
+          <h4
+            className={clsx(
+              'text-xs font-semibold flex items-center gap-1',
+              isDark ? 'text-gray-200' : 'text-gray-700',
+            )}
+          >
             <Printer size={12} /> {t('common:renderPanel.labelOperations')}
           </h4>
           <div className="flex flex-col gap-1">
@@ -286,7 +330,12 @@ export function RenderPanel() {
         </div>
 
         <div className={clsx('border-t pt-2 space-y-1.5', isDark ? 'border-gray-700' : 'border-gray-200')}>
-          <h4 className={clsx('text-xs font-semibold flex items-center gap-1', isDark ? 'text-gray-200' : 'text-gray-700')}>
+          <h4
+            className={clsx(
+              'text-xs font-semibold flex items-center gap-1',
+              isDark ? 'text-gray-200' : 'text-gray-700',
+            )}
+          >
             <RefreshCw size={12} /> {t('common:renderPanel.cleanupOperations')}
           </h4>
           <div className="flex flex-col gap-1">
@@ -333,7 +382,10 @@ export function RenderPanel() {
             {errors.map((err, i) => (
               <div
                 key={i}
-                className={clsx('text-[10px] px-2 py-1 rounded', isDark ? 'text-red-300 bg-red-900/40' : 'text-red-600 bg-red-50')}
+                className={clsx(
+                  'text-[10px] px-2 py-1 rounded',
+                  isDark ? 'text-red-300 bg-red-900/40' : 'text-red-600 bg-red-50',
+                )}
               >
                 {err}
               </div>

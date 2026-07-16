@@ -13,7 +13,10 @@ export class FileHandler {
     await fs.writeFile(filePath, content, 'utf-8')
   }
 
-  async readExcel(filePath: string, sheetName?: string): Promise<{ name: string; columns: string[]; rows: Record<string, unknown>[] }[]> {
+  async readExcel(
+    filePath: string,
+    sheetName?: string,
+  ): Promise<{ name: string; columns: string[]; rows: Record<string, unknown>[] }[]> {
     if (!fsSync.existsSync(filePath)) {
       throw new Error(`文件不存在: ${filePath}`)
     }

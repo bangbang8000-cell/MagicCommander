@@ -96,7 +96,12 @@ export function LogViewer() {
           filteredLogs.map((log) => (
             <div key={log.id} className="flex gap-2 hover:bg-white px-2 py-0.5 rounded group">
               <span className="text-gray-400 shrink-0">[{log.timestamp}]</span>
-              <span className={clsx('shrink-0 min-w-[64px] text-center rounded border px-1 font-semibold', levelColor[log.level])}>
+              <span
+                className={clsx(
+                  'shrink-0 min-w-[64px] text-center rounded border px-1 font-semibold',
+                  levelColor[log.level],
+                )}
+              >
                 {t(`logViewer.levels.${log.level}`)}
               </span>
               {log.source && (

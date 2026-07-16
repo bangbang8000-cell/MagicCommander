@@ -17,7 +17,11 @@ export function Modal({ open, onClose, title, children, width = '500px', footer 
   if (!open) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 animate-fade-in" onClick={onClose} style={{ animationDuration: '0.15s' }}>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 animate-fade-in"
+      onClick={onClose}
+      style={{ animationDuration: '0.15s' }}
+    >
       <div
         className={clsx(
           'rounded-lg flex flex-col max-h-[90vh] animate-scale-in',
@@ -65,10 +69,12 @@ interface ConfirmOptions {
 }
 
 export function useConfirm() {
-  const [state, setState] = useState<{ open: boolean; options: ConfirmOptions | null; resolve?: (v: boolean) => void }>({
-    open: false,
-    options: null,
-  })
+  const [state, setState] = useState<{ open: boolean; options: ConfirmOptions | null; resolve?: (v: boolean) => void }>(
+    {
+      open: false,
+      options: null,
+    },
+  )
 
   const confirm = (options: ConfirmOptions): Promise<boolean> => {
     return new Promise((resolve) => {

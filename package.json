@@ -1,6 +1,6 @@
 {
   "name": "magiccommander",
-  "version": "3.0.2",
+  "version": "3.0.3",
   "description": "MagicCommander - 网络设备配置管理工具",
   "main": "dist-electron/main.js",
   "author": "Magic Commander Team",
@@ -19,7 +19,9 @@
     "dist:linux": "npm run build && electron-builder --linux",
     "dist:all": "npm run build && electron-builder --win --mac --linux",
     "typecheck": "tsc --noEmit && tsc --noEmit -p electron/tsconfig.json",
-    "test": "vitest run",
+    "test": "vitest run && vitest run --config vitest.electron.config.ts",
+    "test:renderer": "vitest run",
+    "test:electron": "vitest run --config vitest.electron.config.ts",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "lint": "eslint src/ electron/ --ext .ts,.tsx",
@@ -118,7 +120,7 @@
         }
       ],
       "icon": "public/icons/icon.ico",
-      "artifactName": "${productName}-Setup-${version}-build.26071402.${ext}"
+      "artifactName": "${productName}-Setup-${version}-build.26071601.${ext}"
     },
     "nsis": {
       "oneClick": false,

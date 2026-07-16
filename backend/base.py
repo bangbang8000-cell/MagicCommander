@@ -85,9 +85,10 @@ def error_output(err_str):
 
 class Base:
 
-    def __init__(self):
+    def __init__(self, workspace: str | None = None):
         self.devices = dict()
         self.role = []
+        self.workspace = workspace or WORKSPACE_DIR
 
     def _ensure_dir(self, dir_path: str):
         """确保目录存在，不存在则创建"""
@@ -103,7 +104,7 @@ class Base:
 
     def out_base_info(self, yaml_project_name: str, project_name: str, time_str: str, out_name_type: str):
         """将存储在数据字典中的数据保存到yaml文件当中"""
-        mid_path = WORKSPACE_DIR
+        mid_path = self.workspace
         base_dir = os.path.join(mid_path, project_name, yaml_project_name, time_str)
         self._ensure_dir(base_dir)
 
@@ -127,7 +128,7 @@ class Base:
 
     def read_assign_table(self, document: str, sheet: str, filename: str, project_name: str, key_num: int):
         """读取赋值表的内容"""
-        mid_path = WORKSPACE_DIR
+        mid_path = self.workspace
         filepath = os.path.join(mid_path, project_name, filename, document)
         data = read_excel(filepath, sheet_name=None, keep_default_na=False)
 
@@ -145,7 +146,7 @@ class Base:
 
     def read_para(self, document: str, sheet: str, filename: str, project_name: str):
         """读取参数表的内容"""
-        mid_path = WORKSPACE_DIR
+        mid_path = self.workspace
         filepath = os.path.join(mid_path, project_name, filename, document)
         data = read_excel(filepath, sheet_name=None, keep_default_na=False)
 
@@ -162,7 +163,7 @@ class Base:
 
     def read_symmetrice_table(self, document: str, sheet: str, filename: str, project_name: str, col_num: int, key_num: int):
         """读取对称表的内容"""
-        mid_path = WORKSPACE_DIR
+        mid_path = self.workspace
         filepath = os.path.join(mid_path, project_name, filename, document)
         data = read_excel(filepath, sheet_name=None, keep_default_na=False)
 
@@ -193,7 +194,7 @@ class Base:
 
     def render_txt(self, templates: str, project_name: str, time_str: str, out_name_type: str):
         """使用jinja2模板渲染生成配置文件"""
-        mid_path = WORKSPACE_DIR
+        mid_path = self.workspace
 
         if out_name_type == 'device_name':
             output_dir_name = 'output'

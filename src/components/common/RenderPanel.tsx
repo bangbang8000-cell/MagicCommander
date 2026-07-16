@@ -80,12 +80,15 @@ export function RenderPanel() {
     }
   }, [newName, createProject, t])
 
-  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    setNewName(e.target.value)
-    if (createError) {
-      setCreateError(null)
-    }
-  }, [createError])
+  const handleInputChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setNewName(e.target.value)
+      if (createError) {
+        setCreateError(null)
+      }
+    },
+    [createError],
+  )
 
   const handleDelete = async () => {
     if (selectedProjectIds.length === 0) return
@@ -165,7 +168,7 @@ export function RenderPanel() {
       })
       return
     }
-    
+
     if (config.outputFormat === 'device_name') {
       await deleteOutput(selectedProjectIds)
     } else {
@@ -182,7 +185,7 @@ export function RenderPanel() {
       })
       return
     }
-    
+
     if (config.outputFormat === 'device_name') {
       await deleteYaml(selectedProjectIds)
     } else {
@@ -233,13 +236,11 @@ export function RenderPanel() {
           onClick={() => setConfig({ renderType: config.renderType === 'project' ? 'yaml' : 'project' })}
           disabled={isRendering}
         >
-          {t('renderPanel.switchToMode', { mode: config.renderType === 'project' ? 'YAML' : t('renderPanel.projectMode') })}
+          {t('renderPanel.switchToMode', {
+            mode: config.renderType === 'project' ? 'YAML' : t('renderPanel.projectMode'),
+          })}
         </Button>
-        <Button
-          variant="secondary"
-          icon={<Settings size={14} />}
-          onClick={() => setShowConfig(!showConfig)}
-        >
+        <Button variant="secondary" icon={<Settings size={14} />} onClick={() => setShowConfig(!showConfig)}>
           {t('renderPanel.config')}
         </Button>
 
@@ -254,32 +255,17 @@ export function RenderPanel() {
         >
           {t('menu.labelPrint')}
         </Button>
-        <Button
-          variant="secondary"
-          icon={<Trash2 size={14} />}
-          onClick={handleLabelDelete}
-          disabled={isRendering}
-        >
+        <Button variant="secondary" icon={<Trash2 size={14} />} onClick={handleLabelDelete} disabled={isRendering}>
           {t('renderPanel.deleteLabel')}
         </Button>
 
         <div className="w-px h-6 bg-gray-300 mx-2" />
 
-        <Button
-          variant="secondary"
-          icon={<RefreshCw size={14} />}
-          onClick={handleDeleteOutput}
-          disabled={isRendering}
-        >
+        <Button variant="secondary" icon={<RefreshCw size={14} />} onClick={handleDeleteOutput} disabled={isRendering}>
           {t('renderPanel.deleteOutput')}
           {config.outputFormat === 'device_sn' && ' (SN)'}
         </Button>
-        <Button
-          variant="secondary"
-          icon={<RefreshCw size={14} />}
-          onClick={handleDeleteYaml}
-          disabled={isRendering}
-        >
+        <Button variant="secondary" icon={<RefreshCw size={14} />} onClick={handleDeleteYaml} disabled={isRendering}>
           {t('renderPanel.deleteYaml')}
           {config.outputFormat === 'device_sn' && ' (SN)'}
         </Button>

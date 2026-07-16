@@ -28,12 +28,13 @@ export function TerminalPanel() {
   const selectProject = useProjectStore((s) => s.selectProject)
   const addGlobalLog = useLogStore((s) => s.addLog)
 
-  const createHelpEntries = (): HistoryEntry[] => terminalHelpLines().map((line) => ({
-    input: '',
-    output: line,
-    level: 'info' as LogLevel,
-    kind: 'help',
-  }))
+  const createHelpEntries = (): HistoryEntry[] =>
+    terminalHelpLines().map((line) => ({
+      input: '',
+      output: line,
+      level: 'info' as LogLevel,
+      kind: 'help',
+    }))
 
   const [history, setHistory] = useState<HistoryEntry[]>(() => [
     {
@@ -173,7 +174,12 @@ export function TerminalPanel() {
 
     setIsExecuting(true)
     try {
-      const hasAsync = lower.startsWith('list') || lower === 'ls' || lower.startsWith('select') || lower.startsWith('render') || lower.startsWith('label')
+      const hasAsync =
+        lower.startsWith('list') ||
+        lower === 'ls' ||
+        lower.startsWith('select') ||
+        lower.startsWith('render') ||
+        lower.startsWith('label')
       if (hasAsync) {
         appendOutput('info', t('messages.executing'))
       }
@@ -277,7 +283,9 @@ export function TerminalPanel() {
               }}
             >
               {entry.input && (
-                <div className={clsx('py-0.5 whitespace-pre-wrap break-words', isDark ? 'text-cyan-300' : 'text-blue-600')}>
+                <div
+                  className={clsx('py-0.5 whitespace-pre-wrap break-words', isDark ? 'text-cyan-300' : 'text-blue-600')}
+                >
                   <span className="me-1 select-none">&gt;</span>
                   <span>{entry.input}</span>
                 </div>
@@ -302,7 +310,12 @@ export function TerminalPanel() {
       </ContextMenu>
 
       {copyNotice && (
-        <div className={clsx('px-2 py-1 text-[11px] border-t', isDark ? 'bg-gray-800 border-gray-700 text-gray-300' : 'bg-gray-50 border-gray-200 text-gray-600')}>
+        <div
+          className={clsx(
+            'px-2 py-1 text-[11px] border-t',
+            isDark ? 'bg-gray-800 border-gray-700 text-gray-300' : 'bg-gray-50 border-gray-200 text-gray-600',
+          )}
+        >
           {copyNotice}
         </div>
       )}

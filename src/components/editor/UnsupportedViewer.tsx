@@ -17,9 +17,7 @@ export function UnsupportedViewer({ tab, type }: UnsupportedViewerProps) {
         <p className="text-xs text-gray-400">
           {t('editor:unsupported.descriptionWithType', { type, name: tab.title })}
         </p>
-        <p className="text-xs text-gray-400">
-          {t('editor:unsupported.openExternally')}
-        </p>
+        <p className="text-xs text-gray-400">{t('editor:unsupported.openExternally')}</p>
       </div>
     </div>
   )

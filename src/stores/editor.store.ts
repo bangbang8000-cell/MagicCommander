@@ -248,10 +248,7 @@ export const useEditorStore = create<EditorState>()(
 
       saveActiveTab: async () => {
         const { activeTabId, splitMode, splitTabs } = get()
-        const tabId =
-          splitMode !== 'none' && splitTabs.some((t) => t.id === activeTabId)
-            ? activeTabId
-            : activeTabId
+        const tabId = splitMode !== 'none' && splitTabs.some((t) => t.id === activeTabId) ? activeTabId : activeTabId
         if (tabId) {
           await get().saveTab(tabId)
         }

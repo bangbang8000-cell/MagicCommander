@@ -44,7 +44,19 @@ export interface ExcelData {
 export type SplitMode = 'none' | 'horizontal' | 'vertical'
 
 /** Monaco 编辑器语言类型 */
-export type MonacoLanguage = 'yaml' | 'jinja2' | 'plaintext' | 'ini' | 'json' | 'javascript' | 'python' | 'xml' | 'html' | 'css' | 'text' | 'markdown'
+export type MonacoLanguage =
+  | 'yaml'
+  | 'jinja2'
+  | 'plaintext'
+  | 'ini'
+  | 'json'
+  | 'javascript'
+  | 'python'
+  | 'xml'
+  | 'html'
+  | 'css'
+  | 'text'
+  | 'markdown'
 
 /** 根据文件扩展名获取语言 */
 export function getLanguageFromExt(ext: string): MonacoLanguage {

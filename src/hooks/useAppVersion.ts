@@ -11,7 +11,10 @@ export function useAppVersion(): string {
 
   useEffect(() => {
     if (window.electron && window.electron.app) {
-      window.electron.app.getVersion().then(setVersion).catch(() => setVersion('2.0.0'))
+      window.electron.app
+        .getVersion()
+        .then(setVersion)
+        .catch(() => setVersion('2.0.0'))
     }
   }, [])
 
@@ -27,7 +30,8 @@ export function useBuildInfo(): BuildInfo {
 
   useEffect(() => {
     if (window.electron?.app?.getBuildInfo) {
-      window.electron.app.getBuildInfo()
+      window.electron.app
+        .getBuildInfo()
         .then(setBuildInfo)
         .catch(() => {
           setBuildInfo({ version: '2.0.0', build: '', displayVersion: '2.0.0' })

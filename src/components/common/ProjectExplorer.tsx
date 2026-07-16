@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from 'react'
 import { useProjectStore } from '@/stores/project.store'
 import { useEditorStore } from '@/stores/editor.store'
 import { useUIStore } from '@/stores/ui.store'
+import { errorService } from '@/services/errorService'
 import { ChevronRight, ChevronDown, Folder, FileText, RefreshCw, FolderOpen, Loader2, AlertCircle } from 'lucide-react'
 import clsx from 'clsx'
 import { getFileTypeFromPath } from '@/types/editor'
@@ -20,7 +21,7 @@ async function openInExplorer(projectName: string, relativePath: string) {
     const fullPath = `${workspacePath}/${projectName}/${relativePath}`
     window.electron.shell.showItemInFolder(fullPath)
   } catch (err) {
-    console.error('Failed to open in explorer:', err)
+    errorService.handleError(err, 'ProjectExplorer.openExplorer')
   }
 }
 
@@ -55,12 +56,26 @@ export function ProjectExplorer() {
   }
 
   const handleFileClick = (node: FileNode) => {
-    console.log('[ProjectExplorer] handleFileClick - node:', node.name, 'isDirectory:', node.isDirectory, 'path:', node.path)
+    console.log(
+      '[ProjectExplorer] handleFileClick - node:',
+      node.name,
+      'isDirectory:',
+      node.isDirectory,
+      'path:',
+      node.path,
+    )
     if (node.isDirectory) {
       toggle(node.path)
     } else if (selectedProject) {
       const fileType = getFileTypeFromPath(node.name)
-      console.log('[ProjectExplorer] 打开文件 - projectId:', selectedProject.id, 'fileType:', fileType, 'filePath:', node.path)
+      console.log(
+        '[ProjectExplorer] 打开文件 - projectId:',
+        selectedProject.id,
+        'fileType:',
+        fileType,
+        'filePath:',
+        node.path,
+      )
       openFile({
         id: '',
         title: node.name,
@@ -84,10 +99,7 @@ export function ProjectExplorer() {
         )}
       >
         <h3
-          className={clsx(
-            'text-xs font-semibold uppercase tracking-wider',
-            isDark ? 'text-gray-300' : 'text-gray-600',
-          )}
+          className={clsx('text-xs font-semibold uppercase tracking-wider', isDark ? 'text-gray-300' : 'text-gray-600')}
         >
           {t('common:explorer.title')}
         </h3>
@@ -95,7 +107,10 @@ export function ProjectExplorer() {
           {selectedProject && (
             <button
               onClick={() => openInExplorer(selectedProject.name, '')}
-              className={clsx('p-1 rounded', isDark ? 'hover:bg-gray-700 text-gray-400' : 'hover:bg-gray-100 text-gray-500')}
+              className={clsx(
+                'p-1 rounded',
+                isDark ? 'hover:bg-gray-700 text-gray-400' : 'hover:bg-gray-100 text-gray-500',
+              )}
               title={t('common:explorer.openProjectRoot')}
             >
               <FolderOpen size={12} />
@@ -103,7 +118,10 @@ export function ProjectExplorer() {
           )}
           <button
             onClick={() => fetchProjects()}
-            className={clsx('p-1 rounded', isDark ? 'hover:bg-gray-700 text-gray-400' : 'hover:bg-gray-100 text-gray-500')}
+            className={clsx(
+              'p-1 rounded',
+              isDark ? 'hover:bg-gray-700 text-gray-400' : 'hover:bg-gray-100 text-gray-500',
+            )}
             title={t('common:explorer.refresh')}
           >
             <RefreshCw size={12} />
@@ -121,17 +139,32 @@ export function ProjectExplorer() {
           {t('common:explorer.selectProjectToView')}
         </div>
       ) : isLoading ? (
-        <div className={clsx('flex-1 flex items-center justify-center gap-2 text-xs', isDark ? 'text-gray-400' : 'text-gray-500')}>
+        <div
+          className={clsx(
+            'flex-1 flex items-center justify-center gap-2 text-xs',
+            isDark ? 'text-gray-400' : 'text-gray-500',
+          )}
+        >
           <Loader2 size={14} className="animate-spin" />
           {t('common:explorer.loading')}
         </div>
       ) : error ? (
-        <div className={clsx('flex-1 flex flex-col items-center justify-center gap-1 text-xs p-4 text-center', isDark ? 'text-red-400' : 'text-red-500')}>
+        <div
+          className={clsx(
+            'flex-1 flex flex-col items-center justify-center gap-1 text-xs p-4 text-center',
+            isDark ? 'text-red-400' : 'text-red-500',
+          )}
+        >
           <AlertCircle size={16} />
-          <span>{t('common:explorer.loadFailed')}: {error}</span>
+          <span>
+            {t('common:explorer.loadFailed')}: {error}
+          </span>
           <button
             onClick={() => selectedProject && loadStructure(selectedProject.name)}
-            className={clsx('mt-2 px-2 py-0.5 rounded text-xs', isDark ? 'bg-gray-700 hover:bg-gray-600 text-gray-200' : 'bg-gray-100 hover:bg-gray-200 text-gray-700')}
+            className={clsx(
+              'mt-2 px-2 py-0.5 rounded text-xs',
+              isDark ? 'bg-gray-700 hover:bg-gray-600 text-gray-200' : 'bg-gray-100 hover:bg-gray-200 text-gray-700',
+            )}
           >
             {t('common:explorer.retry')}
           </button>
@@ -229,7 +262,10 @@ function TreeItem({
         ) : (
           <ChevronRight size={12} className={clsx('shrink-0', isDark ? 'text-gray-400' : 'text-gray-500')} />
         )}
-        <Folder size={12} className={clsx('shrink-0', isOpen ? 'text-primary-500' : isDark ? 'text-gray-400' : 'text-gray-400')} />
+        <Folder
+          size={12}
+          className={clsx('shrink-0', isOpen ? 'text-primary-500' : isDark ? 'text-gray-400' : 'text-gray-400')}
+        />
         <span className="truncate font-medium flex-1">{node.name}</span>
         <button
           onClick={(e) => {

@@ -66,8 +66,17 @@ export interface ProjectIpcApi {
   delete: (ids: string[]) => Promise<void>
   getStructure: (name: string) => Promise<unknown[]>
   parameters: (id: string) => Promise<unknown>
-  readExcel: (id: number, filePath: string, projectName?: string) => Promise<{ name: string; headers: string[]; rows: Record<string, any>[] }[]>
-  writeExcel: (id: number, filePath: string, sheets: { name: string; headers: string[]; rows: Record<string, any>[] }[], projectName?: string) => Promise<void>
+  readExcel: (
+    id: number,
+    filePath: string,
+    projectName?: string,
+  ) => Promise<{ name: string; headers: string[]; rows: Record<string, any>[] }[]>
+  writeExcel: (
+    id: number,
+    filePath: string,
+    sheets: { name: string; headers: string[]; rows: Record<string, any>[] }[],
+    projectName?: string,
+  ) => Promise<void>
   readFile: (id: number, filePath: string, projectName?: string) => Promise<string>
   writeFile: (id: number, filePath: string, content: string, projectName?: string) => Promise<void>
   readDocx: (id: number, filePath: string, projectName?: string) => Promise<string>

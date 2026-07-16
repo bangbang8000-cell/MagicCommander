@@ -36,7 +36,7 @@ class ProjectServiceImpl implements ProjectService {
   async listProjects(): Promise<ProjectInfo[]> {
     try {
       const result = await electron.project.list()
-      return result as ProjectInfo[] || []
+      return (result as ProjectInfo[]) || []
     } catch (error) {
       console.error('[ProjectService] listProjects error:', error)
       throw error
@@ -63,7 +63,7 @@ class ProjectServiceImpl implements ProjectService {
 
   async getProjectStructure(name: string): Promise<any[]> {
     try {
-      return await electron.project.getStructure(name) || []
+      return (await electron.project.getStructure(name)) || []
     } catch (error) {
       console.error('[ProjectService] getProjectStructure error:', error)
       throw error
@@ -73,7 +73,7 @@ class ProjectServiceImpl implements ProjectService {
   async getProjectParameters(id: string): Promise<any[]> {
     try {
       const result = await electron.project.parameters(id)
-      return result as any[] || []
+      return (result as any[]) || []
     } catch (error) {
       console.error('[ProjectService] getProjectParameters error:', error)
       throw error
@@ -82,7 +82,7 @@ class ProjectServiceImpl implements ProjectService {
 
   async readFile(projectId: number, filePath: string): Promise<string> {
     try {
-      return await electron.project.readFile(projectId, filePath) || ''
+      return (await electron.project.readFile(projectId, filePath)) || ''
     } catch (error) {
       console.error('[ProjectService] readFile error:', error)
       throw error
@@ -101,7 +101,7 @@ class ProjectServiceImpl implements ProjectService {
   async listFiles(projectId: string, fileType?: string): Promise<any[]> {
     try {
       const result = await electron.project.listFiles(projectId, fileType)
-      return result as any[] || []
+      return (result as any[]) || []
     } catch (error) {
       console.error('[ProjectService] listFiles error:', error)
       throw error
@@ -110,7 +110,7 @@ class ProjectServiceImpl implements ProjectService {
 
   async readExcel(projectId: number, filePath: string): Promise<any[]> {
     try {
-      return await electron.project.readExcel(projectId, filePath) || []
+      return (await electron.project.readExcel(projectId, filePath)) || []
     } catch (error) {
       console.error('[ProjectService] readExcel error:', error)
       throw error
@@ -128,7 +128,7 @@ class ProjectServiceImpl implements ProjectService {
 
   async readDocx(projectId: number, filePath: string): Promise<string> {
     try {
-      return await electron.project.readDocx(projectId, filePath) || ''
+      return (await electron.project.readDocx(projectId, filePath)) || ''
     } catch (error) {
       console.error('[ProjectService] readDocx error:', error)
       throw error

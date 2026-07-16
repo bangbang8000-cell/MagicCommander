@@ -1,4 +1,14 @@
-import { Rocket, Sparkles, Zap, FolderPlus, FileSpreadsheet, Play, LayoutPanelTop, Keyboard, HelpCircle } from 'lucide-react'
+import {
+  Rocket,
+  Sparkles,
+  Zap,
+  FolderPlus,
+  FileSpreadsheet,
+  Play,
+  LayoutPanelTop,
+  Keyboard,
+  HelpCircle,
+} from 'lucide-react'
 import clsx from 'clsx'
 import { useTranslation } from 'react-i18next'
 import { useUIStore } from '@/stores/ui.store'
@@ -124,7 +134,12 @@ export function Welcome() {
         </div>
 
         <div>
-          <h3 className={clsx('text-xs font-semibold uppercase tracking-wider mb-2', isDark ? 'text-gray-400' : 'text-gray-500')}>
+          <h3
+            className={clsx(
+              'text-xs font-semibold uppercase tracking-wider mb-2',
+              isDark ? 'text-gray-400' : 'text-gray-500',
+            )}
+          >
             <span className="inline-flex items-center gap-1">
               <Sparkles size={12} /> {t('tips.title')}
             </span>
@@ -147,11 +162,18 @@ export function Welcome() {
                   {idx + 1}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className={clsx('flex items-center gap-1.5 text-sm font-medium', isDark ? 'text-gray-100' : 'text-gray-900')}>
+                  <div
+                    className={clsx(
+                      'flex items-center gap-1.5 text-sm font-medium',
+                      isDark ? 'text-gray-100' : 'text-gray-900',
+                    )}
+                  >
                     <span className={isDark ? 'text-primary-400' : 'text-primary-600'}>{step.icon}</span>
                     {step.title}
                   </div>
-                  <p className={clsx('text-xs mt-0.5 leading-relaxed', isDark ? 'text-gray-400' : 'text-gray-600')}>{step.desc}</p>
+                  <p className={clsx('text-xs mt-0.5 leading-relaxed', isDark ? 'text-gray-400' : 'text-gray-600')}>
+                    {step.desc}
+                  </p>
                 </div>
               </div>
             ))}
@@ -159,7 +181,12 @@ export function Welcome() {
         </div>
 
         <div>
-          <h3 className={clsx('text-xs font-semibold uppercase tracking-wider mb-2', isDark ? 'text-gray-400' : 'text-gray-500')}>
+          <h3
+            className={clsx(
+              'text-xs font-semibold uppercase tracking-wider mb-2',
+              isDark ? 'text-gray-400' : 'text-gray-500',
+            )}
+          >
             <span className="inline-flex items-center gap-1">
               <Keyboard size={12} /> {t('shortcuts.title')}
             </span>
@@ -173,7 +200,10 @@ export function Welcome() {
             {hotkeys.map((item) => (
               <div
                 key={item.combo}
-                className={clsx('flex items-center justify-between py-1 px-1.5 rounded text-xs', isDark ? 'text-gray-300' : 'text-gray-700')}
+                className={clsx(
+                  'flex items-center justify-between py-1 px-1.5 rounded text-xs',
+                  isDark ? 'text-gray-300' : 'text-gray-700',
+                )}
               >
                 <span>{item.label}</span>
                 <HotkeyKeys combo={item.combo} />

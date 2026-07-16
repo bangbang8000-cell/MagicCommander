@@ -73,6 +73,8 @@ def main():
     create_project_parser = project_subparsers.add_parser('create', help='创建新项目')
     create_project_parser.add_argument('name', help='项目名称')
     create_project_parser.add_argument('--force', action='store_true', help='强制覆盖已存在的项目')
+    create_project_parser.add_argument('--empty', action='store_true', help='创建空白项目（不生成示例文件）')
+    create_project_parser.add_argument('--template', help='从 example 目录的模板创建项目')
 
     # 删除项目
     delete_project_parser = project_subparsers.add_parser('delete', help='删除项目')
@@ -220,7 +222,10 @@ def handle_project_command(processor, args):
                 print_error(f'项目 "{args.name}" 已存在，请使用 --force 参数强制覆盖')
                 sys.exit(1)
         
-        processor.execute_create('project', args.name)
+        if args.template:
+            processor.execute_create_from_template(args.name, args.template)
+        else:
+            processor.execute_create('project', args.name, empty=args.empty)
         print_success(f'项目 "{args.name}" 创建成功')
 
     elif args.subcommand == 'delete':
@@ -280,15 +285,15 @@ def handle_project_command(processor, args):
                 except ImportError:
                     print_error('YAML格式需要安装PyYAML库')
             else:
-                print(f'项目信息:')
-                print(f'ID: {info["id"]}')
-                print(f'名称: {info["name"]}')
-                print(f'路径: {info["path"]}')
-                print(f'存在: {"是" if info["exists"] else "否"}')
+                logger.info(f'项目信息:')
+                logger.info(f'ID: {info["id"]}')
+                logger.info(f'名称: {info["name"]}')
+                logger.info(f'路径: {info["path"]}')
+                logger.info(f'存在: {"是" if info["exists"] else "否"}')
                 if info['exists']:
-                    print('结构:')
+                    logger.info('结构:')
                     for key, value in info['structure'].items():
-                        print(f'  - {key}: {"存在" if value else "不存在"}')
+                        logger.info(f'  - {key}: {"存在" if value else "不存在"}')
                         
         except ValueError as e:
             print_error(str(e))
@@ -600,14 +605,14 @@ def handle_file_command(processor, args):
                 print_error(f'项目目录不存在: {project_dir}')
                 sys.exit(1)
             
-            print(f'项目 "{project_name}" 文件结构:')
+            logger.info(f'项目 "{project_name}" 文件结构:')
             for root, dirs, files in os.walk(project_dir):
                 level = root.replace(project_dir, '').count(os.sep)
                 indent = ' ' * 2 * level
-                print(f'{indent}{os.path.basename(root)}/')
+                logger.info(f'{indent}{os.path.basename(root)}/')
                 subindent = ' ' * 2 * (level + 1)
                 for file in files:
-                    print(f'{subindent}{file}')
+                    logger.info(f'{subindent}{file}')
                     
         except ValueError as e:
             print_error(str(e))

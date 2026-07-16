@@ -12,7 +12,8 @@ describe('formatCommandForLog', () => {
 
   it('转义参数中的双引号', () => {
     const config = JSON.stringify({ title: '核心"机房"标签' })
-    expect(formatCommandForLog(['label', 'print', 'test1', '--config', config]))
-      .toBe('label print test1 --config "{\\"title\\":\\"核心\\"机房\\"标签\\"}"')
+    expect(formatCommandForLog(['label', 'print', 'test1', '--config', config])).toBe(
+      'label print test1 --config "{\\"title\\":\\"核心\\\\"机房\\\\"标签\\"}"',
+    )
   })
 })

@@ -8,9 +8,7 @@ import { getPythonPath, getWorkspaceDir, getPythonSitePackages } from '../config
 const THROTTLE_MS = 100
 
 export function formatCommandForLog(args: string[]): string {
-  return args
-    .map((arg) => /\s|"/.test(arg) ? `"${arg.replace(/"/g, '\\"')}"` : arg)
-    .join(' ')
+  return args.map((arg) => (/\s|"/.test(arg) ? `"${arg.replace(/"/g, '\\"')}"` : arg)).join(' ')
 }
 
 export class RenderHandler {
@@ -18,9 +16,7 @@ export class RenderHandler {
   private progressTimer: NodeJS.Timeout | null = null
   private logBuffer: { level: string; message: string }[] = []
   private logTimer: NodeJS.Timeout | null = null
-  constructor(
-    private window: BrowserWindow,
-  ) {
+  constructor(private window: BrowserWindow) {
     // Python output is now handled via per-command spawn in runPythonCommand()
   }
 
@@ -70,25 +66,25 @@ export class RenderHandler {
   }
 
   async renderProject(ids: string[]): Promise<void> {
-    const safeIds = ids.map(id => escapePythonArg(id)).filter(id => id)
+    const safeIds = ids.map((id) => escapePythonArg(id)).filter((id) => id)
     if (safeIds.length === 0) throw new Error('无效的项目 ID')
     await this.runPythonCommand(['render', 'project', safeIds.join(',')])
   }
 
   async renderYaml(ids: string[]): Promise<void> {
-    const safeIds = ids.map(id => escapePythonArg(id)).filter(id => id)
+    const safeIds = ids.map((id) => escapePythonArg(id)).filter((id) => id)
     if (safeIds.length === 0) throw new Error('无效的项目 ID')
     await this.runPythonCommand(['render', 'yaml', safeIds.join(',')])
   }
 
   async renderProjectSn(ids: string[]): Promise<void> {
-    const safeIds = ids.map(id => escapePythonArg(id)).filter(id => id)
+    const safeIds = ids.map((id) => escapePythonArg(id)).filter((id) => id)
     if (safeIds.length === 0) throw new Error('无效的项目 ID')
     await this.runPythonCommand(['render', 'project', safeIds.join(','), '--format', 'device_sn'])
   }
 
   async renderYamlSn(ids: string[]): Promise<void> {
-    const safeIds = ids.map(id => escapePythonArg(id)).filter(id => id)
+    const safeIds = ids.map((id) => escapePythonArg(id)).filter((id) => id)
     if (safeIds.length === 0) throw new Error('无效的项目 ID')
     await this.runPythonCommand(['render', 'yaml', safeIds.join(','), '--format', 'device_sn'])
   }
@@ -100,31 +96,31 @@ export class RenderHandler {
   }
 
   async deleteProject(ids: string[]): Promise<void> {
-    const safeIds = ids.map(id => escapePythonArg(id)).filter(id => id)
+    const safeIds = ids.map((id) => escapePythonArg(id)).filter((id) => id)
     if (safeIds.length === 0) throw new Error('无效的项目 ID')
     await this.runPythonCommand(['project', 'delete', safeIds.join(','), '--force'])
   }
 
   async deleteOutput(ids: string[]): Promise<void> {
-    const safeIds = ids.map(id => escapePythonArg(id)).filter(id => id)
+    const safeIds = ids.map((id) => escapePythonArg(id)).filter((id) => id)
     if (safeIds.length === 0) throw new Error('无效的项目 ID')
     await this.runPythonCommand(['file', 'delete', 'output', safeIds.join(','), '--force'])
   }
 
   async deleteOutputSn(ids: string[]): Promise<void> {
-    const safeIds = ids.map(id => escapePythonArg(id)).filter(id => id)
+    const safeIds = ids.map((id) => escapePythonArg(id)).filter((id) => id)
     if (safeIds.length === 0) throw new Error('无效的项目 ID')
     await this.runPythonCommand(['file', 'delete', 'output-sn', safeIds.join(','), '--force'])
   }
 
   async deleteYaml(ids: string[]): Promise<void> {
-    const safeIds = ids.map(id => escapePythonArg(id)).filter(id => id)
+    const safeIds = ids.map((id) => escapePythonArg(id)).filter((id) => id)
     if (safeIds.length === 0) throw new Error('无效的项目 ID')
     await this.runPythonCommand(['file', 'delete', 'yaml', safeIds.join(','), '--force'])
   }
 
   async deleteYamlSn(ids: string[]): Promise<void> {
-    const safeIds = ids.map(id => escapePythonArg(id)).filter(id => id)
+    const safeIds = ids.map((id) => escapePythonArg(id)).filter((id) => id)
     if (safeIds.length === 0) throw new Error('无效的项目 ID')
     await this.runPythonCommand(['file', 'delete', 'yaml-sn', safeIds.join(','), '--force'])
   }
@@ -203,7 +199,13 @@ export class RenderHandler {
         }
         const pythonProcess = spawn(pythonCmd, fullCommand, {
           cwd: backendPath,
-          env: { ...process.env, PYTHONIOENCODING: 'utf-8', PYTHONUNBUFFERED: '1', MC_WORKSPACE: getWorkspaceDir(), PYTHONPATH: pythonPaths.join(path.delimiter) },
+          env: {
+            ...process.env,
+            PYTHONIOENCODING: 'utf-8',
+            PYTHONUNBUFFERED: '1',
+            MC_WORKSPACE: getWorkspaceDir(),
+            PYTHONPATH: pythonPaths.join(path.delimiter),
+          },
           shell: false,
         })
 

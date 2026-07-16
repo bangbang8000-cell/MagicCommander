@@ -28,7 +28,10 @@ export function ConfigPanel() {
 
   useEffect(() => {
     if (selectedProject) {
-      window.electron.project.parameters(String(selectedProject.id)).then(setProjectInfo).catch(() => setProjectInfo(null))
+      window.electron.project
+        .parameters(String(selectedProject.id))
+        .then(setProjectInfo)
+        .catch(() => setProjectInfo(null))
     } else {
       setProjectInfo(null)
     }
@@ -100,11 +103,31 @@ export function ConfigPanel() {
                   <span className="font-medium text-[10px] truncate max-w-[140px]">{projectInfo.path}</span>
                 </div>
                 <div className="flex flex-wrap gap-1 pt-1">
-                  {projectInfo.structure?.excel && <span className="px-1.5 py-0.5 bg-green-100 text-green-700 rounded text-[10px]">{t('workbench.excel')}</span>}
-                  {projectInfo.structure?.templates && <span className="px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded text-[10px]">{t('workbench.template')}</span>}
-                  {projectInfo.structure?.para && <span className="px-1.5 py-0.5 bg-purple-100 text-purple-700 rounded text-[10px]">{t('workbench.para')}</span>}
-                  {projectInfo.structure?.output && <span className="px-1.5 py-0.5 bg-orange-100 text-orange-700 rounded text-[10px]">{t('workbench.output')}</span>}
-                  {projectInfo.structure?.yaml && <span className="px-1.5 py-0.5 bg-cyan-100 text-cyan-700 rounded text-[10px]">{t('workbench.yaml')}</span>}
+                  {projectInfo.structure?.excel && (
+                    <span className="px-1.5 py-0.5 bg-green-100 text-green-700 rounded text-[10px]">
+                      {t('workbench.excel')}
+                    </span>
+                  )}
+                  {projectInfo.structure?.templates && (
+                    <span className="px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded text-[10px]">
+                      {t('workbench.template')}
+                    </span>
+                  )}
+                  {projectInfo.structure?.para && (
+                    <span className="px-1.5 py-0.5 bg-purple-100 text-purple-700 rounded text-[10px]">
+                      {t('workbench.para')}
+                    </span>
+                  )}
+                  {projectInfo.structure?.output && (
+                    <span className="px-1.5 py-0.5 bg-orange-100 text-orange-700 rounded text-[10px]">
+                      {t('workbench.output')}
+                    </span>
+                  )}
+                  {projectInfo.structure?.yaml && (
+                    <span className="px-1.5 py-0.5 bg-cyan-100 text-cyan-700 rounded text-[10px]">
+                      {t('workbench.yaml')}
+                    </span>
+                  )}
                 </div>
               </>
             )}
@@ -115,7 +138,13 @@ export function ConfigPanel() {
           <h4 className="text-xs font-semibold text-gray-700 flex items-center gap-1">
             <FileCheck size={12} /> {t('workbench.paraConfig')}
           </h4>
-          <Button variant="secondary" size="sm" icon={<FileCode size={12} />} onClick={openParaConfig} className="w-full justify-start">
+          <Button
+            variant="secondary"
+            size="sm"
+            icon={<FileCode size={12} />}
+            onClick={openParaConfig}
+            className="w-full justify-start"
+          >
             {t('workbench.openParaXlsx')}
           </Button>
         </div>
@@ -148,7 +177,15 @@ export function ConfigPanel() {
               </select>
             </div>
           </div>
-          <Button variant="primary" size="sm" icon={<Play size={12} />} onClick={handleRender} disabled={isRendering} loading={isRendering} className="w-full justify-start">
+          <Button
+            variant="primary"
+            size="sm"
+            icon={<Play size={12} />}
+            onClick={handleRender}
+            disabled={isRendering}
+            loading={isRendering}
+            className="w-full justify-start"
+          >
             {t('workbench.executeRender')}
           </Button>
         </div>
@@ -158,10 +195,24 @@ export function ConfigPanel() {
             <RefreshCw size={12} /> {t('workbench.cleanup')}
           </h4>
           <div className="flex flex-col gap-1">
-            <Button variant="secondary" size="sm" icon={<FileOutput size={12} />} onClick={handleDeleteOutput} disabled={isRendering} className="w-full justify-start">
+            <Button
+              variant="secondary"
+              size="sm"
+              icon={<FileOutput size={12} />}
+              onClick={handleDeleteOutput}
+              disabled={isRendering}
+              className="w-full justify-start"
+            >
               {t('render.deleteOutput')}
             </Button>
-            <Button variant="secondary" size="sm" icon={<FileCode size={12} />} onClick={handleDeleteYaml} disabled={isRendering} className="w-full justify-start">
+            <Button
+              variant="secondary"
+              size="sm"
+              icon={<FileCode size={12} />}
+              onClick={handleDeleteYaml}
+              disabled={isRendering}
+              className="w-full justify-start"
+            >
               {t('render.deleteYaml')}
             </Button>
           </div>
@@ -174,7 +225,10 @@ export function ConfigPanel() {
               <span>{progress}%</span>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-1">
-              <div className="bg-primary-600 h-1 rounded-full transition-all duration-300" style={{ width: `${progress}%` }} />
+              <div
+                className="bg-primary-600 h-1 rounded-full transition-all duration-300"
+                style={{ width: `${progress}%` }}
+              />
             </div>
           </div>
         )}

@@ -21,6 +21,7 @@ import { ErrorBoundary } from './components/ErrorBoundary'
 import { ToastContainer } from './components/ui/Toast'
 import { Cheatsheet } from './components/ui/Cheatsheet'
 import { LoadingScreen } from './components/common/LoadingScreen'
+import { errorService } from '@/services/errorService'
 import type { EditorTabMeta } from './types/editor'
 import i18n from './i18n'
 import { RTL_LOCALES } from './i18n/resources'
@@ -73,26 +74,25 @@ export default function App() {
     }
     handleLanguageChanged(i18n.language)
     i18n.on('languageChanged', handleLanguageChanged)
-    return () => { i18n.off('languageChanged', handleLanguageChanged) }
+    return () => {
+      i18n.off('languageChanged', handleLanguageChanged)
+    }
   }, [])
 
-  const restoreTabs = useCallback(
-    (metas: EditorTabMeta[]) => {
-      metas.forEach((meta) => {
-        const tab: EditorTab = {
-          id: meta.tabId,
-          title: meta.title,
-          filePath: meta.filePath,
-          fileType: meta.fileType,
-          projectId: meta.projectId,
-          projectName: meta.projectName,
-          isDirty: false,
-        }
-        openFileRef.current(tab)
-      })
-    },
-    [],
-  )
+  const restoreTabs = useCallback((metas: EditorTabMeta[]) => {
+    metas.forEach((meta) => {
+      const tab: EditorTab = {
+        id: meta.tabId,
+        title: meta.title,
+        filePath: meta.filePath,
+        fileType: meta.fileType,
+        projectId: meta.projectId,
+        projectName: meta.projectName,
+        isDirty: false,
+      }
+      openFileRef.current(tab)
+    })
+  }, [])
 
   useEffect(() => {
     if (initRef.current) return
@@ -111,8 +111,7 @@ export default function App() {
         if (window.electron && window.electron.log) {
           window.electron.log.write(level, message)
         }
-      } catch {
-      }
+      } catch {}
     }
     safeLogWrite('info', '应用启动完成')
     const versions = window.electron?.versions
@@ -145,15 +144,12 @@ export default function App() {
       try {
         // 阶段1：等待状态恢复
         setLoadingStage(1)
-        await Promise.all([
-          waitForHydration(useProjectStore),
-          waitForHydration(useEditorStore),
-        ])
+        await Promise.all([waitForHydration(useProjectStore), waitForHydration(useEditorStore)])
 
         // 阶段2：加载项目列表
         setLoadingStage(2)
         await fetchProjectsRef.current()
-        await new Promise(resolve => setTimeout(resolve, 0))
+        await new Promise((resolve) => setTimeout(resolve, 0))
 
         // 阶段3：恢复项目选择
         setLoadingStage(3)
@@ -175,11 +171,11 @@ export default function App() {
 
         if (savedTabMetas && savedTabMetas.length > 0) {
           if (savedProjectName !== null) {
-            await new Promise(resolve => setTimeout(resolve, 50))
+            await new Promise((resolve) => setTimeout(resolve, 50))
           }
           restoreTabs(savedTabMetas)
 
-          await new Promise(resolve => setTimeout(resolve, 0))
+          await new Promise((resolve) => setTimeout(resolve, 0))
           const afterRestore = useEditorStore.getState()
           const openTabsCount = afterRestore.openTabs.length
           const activeTabId = afterRestore.activeTabId
@@ -189,7 +185,7 @@ export default function App() {
           }
         }
       } catch (err) {
-        console.error('[App] init 错误:', err)
+        errorService.handleError(err, 'App.init')
       } finally {
         // 无论成功还是失败，都要隐藏加载屏幕
         // 添加短暂延迟避免闪烁
@@ -213,9 +209,24 @@ export default function App() {
 
   const [cheatsheetPending, setCheatsheetPending] = useState(false)
   useHotkey('k', () => setCheatsheetPending(true), [])
-  useHotkey('s', () => { if (cheatsheetPending) { setCheatsheetPending(false); setCheatsheetOpen(true) } }, [cheatsheetPending])
+  useHotkey(
+    's',
+    () => {
+      if (cheatsheetPending) {
+        setCheatsheetPending(false)
+        setCheatsheetOpen(true)
+      }
+    },
+    [cheatsheetPending],
+  )
   useHotkey('ctrl+b', () => toggleSidebar(), [toggleSidebar])
-  useHotkey('ctrl+j', () => { useUIStore.getState().togglePanel() }, [])
+  useHotkey(
+    'ctrl+j',
+    () => {
+      useUIStore.getState().togglePanel()
+    },
+    [],
+  )
   useHotkey('ctrl+shift+e', () => setActiveActivity('explorer'), [setActiveActivity])
   useHotkey('ctrl+shift+f', () => setActiveActivity('search'), [setActiveActivity])
   useHotkey('ctrl+shift+r', () => setActiveActivity('render'), [setActiveActivity])
@@ -223,44 +234,71 @@ export default function App() {
   useHotkey('ctrl+shift+o', () => setActiveActivity('output'), [setActiveActivity])
   useHotkey('ctrl+s', () => saveActiveTab(), [saveActiveTab])
   useHotkey('f5', () => window.location.reload(), [])
-  useHotkey('ctrl+w', () => {
-    const { splitMode, activeTabId, splitTabs, activeSplitTabId } = useEditorStore.getState()
-    const tabId = splitMode !== 'none' && splitTabs.some((t) => t.id === activeSplitTabId) ? activeSplitTabId : activeTabId
-    if (tabId) closeTab(tabId)
-  }, [])
+  useHotkey(
+    'ctrl+w',
+    () => {
+      const { splitMode, activeTabId, splitTabs, activeSplitTabId } = useEditorStore.getState()
+      const tabId =
+        splitMode !== 'none' && splitTabs.some((t) => t.id === activeSplitTabId) ? activeSplitTabId : activeTabId
+      if (tabId) closeTab(tabId)
+    },
+    [],
+  )
   useHotkey('ctrl+shift+t', () => reopenLastClosed(), [])
 
   const renderSidebarContent = () => {
     switch (activeActivity) {
-      case 'search': return <SearchPanel />
-      case 'explorer': return <ExplorerPanel />
-      case 'render': return <RenderPanel />
-      case 'label': return <LabelPanel />
-      case 'output': return <OutputPanel />
-      case 'workbench': return <WorkbenchPanel />
-      default: return <SearchPanel />
+      case 'search':
+        return <SearchPanel />
+      case 'explorer':
+        return <ExplorerPanel />
+      case 'render':
+        return <RenderPanel />
+      case 'label':
+        return <LabelPanel />
+      case 'output':
+        return <OutputPanel />
+      case 'workbench':
+        return <WorkbenchPanel />
+      default:
+        return <SearchPanel />
     }
   }
 
   return (
     <ErrorBoundary>
       <LoadingScreen isLoading={!isInitialized} stage={loadingStage} />
-      <div className={clsx("h-screen w-screen flex flex-col overflow-hidden", isDark ? "dark bg-gray-900 text-gray-100" : "bg-gray-50 text-gray-900")}>
+      <div
+        className={clsx(
+          'h-screen w-screen flex flex-col overflow-hidden',
+          isDark ? 'dark bg-gray-900 text-gray-100' : 'bg-gray-50 text-gray-900',
+        )}
+      >
         <Header />
         <div className="flex-1 flex overflow-hidden">
           <ActivityBar />
           <div className="flex-1 flex overflow-hidden">
             {sidebarVisible && (
-              <div className={clsx("w-80 flex-shrink-0 overflow-hidden", isDark ? "bg-gray-800 border-r border-gray-700" : "bg-white border-r border-gray-200")}>
+              <div
+                className={clsx(
+                  'w-80 flex-shrink-0 overflow-hidden',
+                  isDark ? 'bg-gray-800 border-r border-gray-700' : 'bg-white border-r border-gray-200',
+                )}
+              >
                 {renderSidebarContent()}
               </div>
             )}
             <div className="flex-1 flex flex-col overflow-hidden min-h-0">
-              <div className={clsx("flex-1 overflow-hidden min-h-0", isDark ? "bg-gray-900" : "bg-white")}>
+              <div className={clsx('flex-1 overflow-hidden min-h-0', isDark ? 'bg-gray-900' : 'bg-white')}>
                 <EditorArea />
               </div>
               {panelVisible && (
-                <div className={clsx("h-48 overflow-hidden border-t", isDark ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200")}>
+                <div
+                  className={clsx(
+                    'h-48 overflow-hidden border-t',
+                    isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200',
+                  )}
+                >
                   <PanelArea />
                 </div>
               )}

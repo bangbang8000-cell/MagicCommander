@@ -26,21 +26,21 @@ class MagicCommanderApp {
 
   private setupUpdateService(): void {
     if (!this.mainWindow) return
-    
+
     updateService.setWindow(this.mainWindow)
-    
+
     ipcMain.handle('app:check-update', async () => {
       await updateService.checkForUpdates()
     })
-    
+
     ipcMain.handle('app:download-update', async () => {
       await updateService.downloadUpdate()
     })
-    
+
     ipcMain.handle('app:quit-and-install', () => {
       updateService.quitAndInstall()
     })
-    
+
     // i18n 语言 IPC 处理器
     ipcMain.handle('app:getLanguage', () => {
       return electronI18n.language
@@ -101,12 +101,10 @@ class MagicCommanderApp {
           { label: electronI18n.t('common:app.copy', '复制'), role: 'copy' },
           { label: electronI18n.t('common:app.paste', '粘贴'), role: 'paste' },
           { type: 'separator' },
-          { label: electronI18n.t('common:app.selectAll', '全选'), role: 'selectAll' }
+          { label: electronI18n.t('common:app.selectAll', '全选'), role: 'selectAll' },
         )
       } else if (params.selectionText) {
-        template.push(
-          { label: electronI18n.t('common:app.copy', '复制'), role: 'copy' }
-        )
+        template.push({ label: electronI18n.t('common:app.copy', '复制'), role: 'copy' })
       }
 
       if (template.length > 0) {

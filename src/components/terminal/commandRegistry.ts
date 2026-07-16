@@ -152,7 +152,10 @@ export const commands: { [name: string]: CommandEntry } = {
       const target = parsed.args.slice(1).join(' ')
       let ids: string[] = []
       if (target) {
-        ids = target.split(',').map((id) => id.trim()).filter(Boolean)
+        ids = target
+          .split(',')
+          .map((id) => id.trim())
+          .filter(Boolean)
       } else {
         const selected = useProjectStore.getState().selectedProject
         if (selected) {
@@ -257,10 +260,7 @@ export function parseInput(input: string): { cmd: string; args: string[] } {
   return { cmd: parts[0], args: parts.slice(1) }
 }
 
-export async function executeCommand(
-  input: string,
-  ctx: CommandContext,
-): Promise<void> {
+export async function executeCommand(input: string, ctx: CommandContext): Promise<void> {
   const { cmd, args } = parseInput(input)
   if (!cmd) return
   const found = findCommand(cmd)

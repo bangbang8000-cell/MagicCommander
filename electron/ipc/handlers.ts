@@ -10,6 +10,7 @@ import {
   isFileAccessible,
   validateProjectName,
 } from '../utils/security'
+import { logger } from '../utils/logger'
 import { getBackendDir, getExampleDir, getWorkspaceDir, APP_CONFIG } from '../config'
 
 function readExcelByPath(filePath: string): { name: string; headers: string[]; rows: Record<string, any>[] }[] {
@@ -47,30 +48,12 @@ function copyDirRecursive(src: string, dest: string, options?: { skipRuntimeDirs
 function listExampleProjects(): string[] {
   const exampleDir = getExampleDir()
   if (!fs.existsSync(exampleDir)) return []
-  return fs.readdirSync(exampleDir, { withFileTypes: true })
+  return fs
+    .readdirSync(exampleDir, { withFileTypes: true })
     .filter((entry) => entry.isDirectory() && !entry.name.startsWith('.'))
     .map((entry) => entry.name)
     .filter((name) => isProjectLikeDir(path.join(exampleDir, name)))
     .sort((a, b) => a.localeCompare(b))
-}
-
-function syncMcParaProject(projectName: string, action: 'add' | 'remove' = 'add'): void {
-  const XLSX = require('xlsx')
-  const mcParaPath = path.join(getWorkspaceDir(), 'MC_Para.xlsx')
-  let names: string[] = []
-  if (fs.existsSync(mcParaPath)) {
-    const wb = XLSX.readFile(mcParaPath)
-    const ws = wb.Sheets['项目名称'] || wb.Sheets[wb.SheetNames[0]]
-    const rows = ws ? XLSX.utils.sheet_to_json(ws, { defval: '' }) : []
-    names = rows.map((row: any) => String(row['项目名称'] ?? '').trim()).filter(Boolean)
-  }
-  names = names.filter((name) => name !== projectName)
-  if (action === 'add') names.push(projectName)
-  const wb = XLSX.utils.book_new()
-  const ws = XLSX.utils.json_to_sheet(names.map((name) => ({ 项目名称: name })))
-  XLSX.utils.book_append_sheet(wb, ws, '项目名称')
-  fs.mkdirSync(path.dirname(mcParaPath), { recursive: true })
-  XLSX.writeFile(wb, mcParaPath)
 }
 
 export function setupIpcHandlers(window: BrowserWindow): void {
@@ -104,35 +87,36 @@ export function setupIpcHandlers(window: BrowserWindow): void {
 
   ipcMain.handle('project:listExamples', async (): Promise<string[]> => {
     const examples = listExampleProjects()
-    console.log('[project:listExamples]', getExampleDir(), examples)
+    logger.info('[project:listExamples]', { dir: getExampleDir(), examples })
     return examples
   })
 
-  ipcMain.handle('project:create', async (_e, name: string, options?: { template?: string; empty?: boolean }): Promise<void> => {
-    const validation = validateProjectName(name)
-    if (!validation.valid) {
-      throw new Error(validation.error || '项目名无效')
-    }
-    const workspaceDir = getWorkspaceDir()
-    const targetPath = path.join(workspaceDir, name)
-    if (fs.existsSync(targetPath)) throw new Error(`项目已存在: ${name}`)
+  ipcMain.handle(
+    'project:create',
+    async (_e, name: string, options?: { template?: string; empty?: boolean }): Promise<void> => {
+      const validation = validateProjectName(name)
+      if (!validation.valid) {
+        throw new Error(validation.error || '项目名无效')
+      }
+      const workspaceDir = getWorkspaceDir()
+      const targetPath = path.join(workspaceDir, name)
+      if (fs.existsSync(targetPath)) throw new Error(`项目已存在: ${name}`)
 
-    // 统一走 Python CLI 创建项目（保证目录结构、MC_Para.xlsx、para.xlsx 同步）
-    if (options?.empty) {
-      await renderHandler.runPythonCommand(['project', 'create', name, '--empty'])
-    } else {
-      const examples = listExampleProjects()
-      const template = options?.template ?? examples[0] ?? null
-      if (!template) {
-        throw new Error('没有可用的示例模板，请使用空白项目模式创建')
+      if (options?.empty) {
+        await renderHandler.runPythonCommand(['project', 'create', name, '--empty'])
+      } else {
+        const examples = listExampleProjects()
+        const template = options?.template ?? examples[0] ?? null
+        if (!template) {
+          throw new Error('没有可用的示例模板，请使用空白项目模式创建')
+        }
+        if (!examples.includes(template)) {
+          throw new Error(`示例模板 "${template}" 不存在，可用模板: ${examples.join(', ') || '无'}`)
+        }
+        await renderHandler.runPythonCommand(['project', 'create', name, '--template', template])
       }
-      if (!examples.includes(template)) {
-        throw new Error(`示例模板 "${template}" 不存在，可用模板: ${examples.join(', ') || '无'}`)
-      }
-      copyDirRecursive(path.join(getExampleDir(), template), targetPath)
-      syncMcParaProject(name, 'add')
-    }
-  })
+    },
+  )
 
   ipcMain.handle('project:saveAsExample', async (_e, projectName: string, exampleName: string): Promise<void> => {
     const projectPath = path.join(getWorkspaceDir(), projectName)
@@ -199,63 +183,69 @@ export function setupIpcHandlers(window: BrowserWindow): void {
   })
 
   // 项目文件读写 API（走文件系统，替代 Python 回退）
-  ipcMain.handle('project:readFile', async (_e, id: number, filePath: string, projectName?: string): Promise<string> => {
-    // 安全校验：文件路径
-    const pathValidation = validateFilePath(filePath)
-    if (!pathValidation.valid) {
-      throw new Error(pathValidation.error || '文件路径无效')
-    }
-    
-    // 安全校验：文件类型
-    if (!isFileTypeAllowed(filePath)) {
-      throw new Error('不支持该文件类型')
-    }
-    
-    const projectDir = await getProjectPath(id, projectName)
-    
-    // 构建安全路径
-    const fullPath = buildSafePath(projectDir, filePath)
-    if (!fullPath) {
-      throw new Error('文件路径不安全')
-    }
-    
-    if (!isFileAccessible(fullPath)) {
-      throw new Error(`文件不存在或无法访问`)
-    }
-    
-    return fs.readFileSync(fullPath, 'utf-8')
-  })
+  ipcMain.handle(
+    'project:readFile',
+    async (_e, id: number, filePath: string, projectName?: string): Promise<string> => {
+      // 安全校验：文件路径
+      const pathValidation = validateFilePath(filePath)
+      if (!pathValidation.valid) {
+        throw new Error(pathValidation.error || '文件路径无效')
+      }
 
-  ipcMain.handle('project:writeFile', async (_e, id: number, filePath: string, content: string, projectName?: string): Promise<void> => {
-    // 安全校验：文件路径
-    const pathValidation = validateFilePath(filePath)
-    if (!pathValidation.valid) {
-      throw new Error(pathValidation.error || '文件路径无效')
-    }
-    
-    // 安全校验：文件类型
-    if (!isFileTypeAllowed(filePath)) {
-      throw new Error('不支持该文件类型')
-    }
-    
-    // 安全校验：文件内容长度
-    const contentValidation = validateFileContent(content)
-    if (!contentValidation.valid) {
-      throw new Error(contentValidation.error || '文件内容过大')
-    }
-    
-    const projectDir = await getProjectPath(id, projectName)
-    
-    // 构建安全路径
-    const fullPath = buildSafePath(projectDir, filePath)
-    if (!fullPath) {
-      throw new Error('文件路径不安全')
-    }
-    
-    const dir = path.dirname(fullPath)
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
-    fs.writeFileSync(fullPath, content, 'utf-8')
-  })
+      // 安全校验：文件类型
+      if (!isFileTypeAllowed(filePath)) {
+        throw new Error('不支持该文件类型')
+      }
+
+      const projectDir = await getProjectPath(id, projectName)
+
+      // 构建安全路径
+      const fullPath = buildSafePath(projectDir, filePath)
+      if (!fullPath) {
+        throw new Error('文件路径不安全')
+      }
+
+      if (!isFileAccessible(fullPath)) {
+        throw new Error(`文件不存在或无法访问`)
+      }
+
+      return fs.readFileSync(fullPath, 'utf-8')
+    },
+  )
+
+  ipcMain.handle(
+    'project:writeFile',
+    async (_e, id: number, filePath: string, content: string, projectName?: string): Promise<void> => {
+      // 安全校验：文件路径
+      const pathValidation = validateFilePath(filePath)
+      if (!pathValidation.valid) {
+        throw new Error(pathValidation.error || '文件路径无效')
+      }
+
+      // 安全校验：文件类型
+      if (!isFileTypeAllowed(filePath)) {
+        throw new Error('不支持该文件类型')
+      }
+
+      // 安全校验：文件内容长度
+      const contentValidation = validateFileContent(content)
+      if (!contentValidation.valid) {
+        throw new Error(contentValidation.error || '文件内容过大')
+      }
+
+      const projectDir = await getProjectPath(id, projectName)
+
+      // 构建安全路径
+      const fullPath = buildSafePath(projectDir, filePath)
+      if (!fullPath) {
+        throw new Error('文件路径不安全')
+      }
+
+      const dir = path.dirname(fullPath)
+      if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
+      fs.writeFileSync(fullPath, content, 'utf-8')
+    },
+  )
 
   ipcMain.handle('project:listFiles', async (_e, id: string, fileType?: string): Promise<any[]> => {
     const projectDir = await getProjectPathById(id)
@@ -270,7 +260,10 @@ export function setupIpcHandlers(window: BrowserWindow): void {
           const ext = entry.name.slice(entry.name.lastIndexOf('.')).toLowerCase()
           if (!fileType) {
             files.push(path.relative(projectDir, fullPath).replace(/\\/g, '/'))
-          } else if (fileType === 'text' && ['.txt', '.yml', '.yaml', '.j2', '.jinja', '.jinja2', '.html', '.json', '.md'].includes(ext)) {
+          } else if (
+            fileType === 'text' &&
+            ['.txt', '.yml', '.yaml', '.j2', '.jinja', '.jinja2', '.html', '.json', '.md'].includes(ext)
+          ) {
             files.push(path.relative(projectDir, fullPath).replace(/\\/g, '/'))
           } else if (fileType === 'excel' && ['.xlsx', '.xls'].includes(ext)) {
             files.push(path.relative(projectDir, fullPath).replace(/\\/g, '/'))
@@ -283,66 +276,83 @@ export function setupIpcHandlers(window: BrowserWindow): void {
   })
 
   // 项目 Excel 读写（已使用文件系统直接读写）
-  ipcMain.handle('project:readExcel', async (_e, projectId: number, filePath: string, projectName?: string): Promise<{ name: string; headers: string[]; rows: Record<string, any>[] }[]> => {
-    // 安全校验：文件路径
-    const pathValidation = validateFilePath(filePath)
-    if (!pathValidation.valid) {
-      throw new Error(pathValidation.error || '文件路径无效')
-    }
-    
-    // 安全校验：文件类型（仅允许 Excel）
-    const ext = path.extname(filePath).toLowerCase()
-    if (!['.xlsx', '.xls'].includes(ext)) {
-      throw new Error('仅支持 Excel 文件 (.xlsx, .xls)')
-    }
-    
-    const projectDir = await getProjectPath(projectId, projectName)
-    
-    // 构建安全路径
-    const fullPath = buildSafePath(projectDir, filePath)
-    if (!fullPath) {
-      throw new Error('文件路径不安全')
-    }
-    
-    if (!isFileAccessible(fullPath)) {
-      throw new Error(`文件不存在或无法访问`)
-    }
-    
-    return readExcelByPath(fullPath)
-  })
+  ipcMain.handle(
+    'project:readExcel',
+    async (
+      _e,
+      projectId: number,
+      filePath: string,
+      projectName?: string,
+    ): Promise<{ name: string; headers: string[]; rows: Record<string, any>[] }[]> => {
+      // 安全校验：文件路径
+      const pathValidation = validateFilePath(filePath)
+      if (!pathValidation.valid) {
+        throw new Error(pathValidation.error || '文件路径无效')
+      }
 
-  ipcMain.handle('project:writeExcel', async (_e, projectId: number, filePath: string, sheets: { name: string; headers: string[]; rows: Record<string, any>[] }[], projectName?: string): Promise<void> => {
-    // 安全校验：文件路径
-    const pathValidation = validateFilePath(filePath)
-    if (!pathValidation.valid) {
-      throw new Error(pathValidation.error || '文件路径无效')
-    }
-    
-    // 安全校验：文件类型（仅允许 Excel）
-    const ext = path.extname(filePath).toLowerCase()
-    if (!['.xlsx', '.xls'].includes(ext)) {
-      throw new Error('仅支持 Excel 文件 (.xlsx, .xls)')
-    }
-    
-    const projectDir = await getProjectPath(projectId, projectName)
-    
-    // 构建安全路径
-    const fullPath = buildSafePath(projectDir, filePath)
-    if (!fullPath) {
-      throw new Error('文件路径不安全')
-    }
-    
-    const dir = path.dirname(fullPath)
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
-    const XLSX = require('xlsx')
-    const wb = XLSX.utils.book_new()
-    for (const sheet of sheets) {
-      const ws = XLSX.utils.json_to_sheet(sheet.rows, { header: sheet.headers })
-      XLSX.utils.book_append_sheet(wb, ws, sheet.name)
-    }
-    XLSX.writeFile(wb, fullPath)
-    console.log('[project:writeExcel] 保存成功')
-  })
+      // 安全校验：文件类型（仅允许 Excel）
+      const ext = path.extname(filePath).toLowerCase()
+      if (!['.xlsx', '.xls'].includes(ext)) {
+        throw new Error('仅支持 Excel 文件 (.xlsx, .xls)')
+      }
+
+      const projectDir = await getProjectPath(projectId, projectName)
+
+      // 构建安全路径
+      const fullPath = buildSafePath(projectDir, filePath)
+      if (!fullPath) {
+        throw new Error('文件路径不安全')
+      }
+
+      if (!isFileAccessible(fullPath)) {
+        throw new Error(`文件不存在或无法访问`)
+      }
+
+      return readExcelByPath(fullPath)
+    },
+  )
+
+  ipcMain.handle(
+    'project:writeExcel',
+    async (
+      _e,
+      projectId: number,
+      filePath: string,
+      sheets: { name: string; headers: string[]; rows: Record<string, any>[] }[],
+      projectName?: string,
+    ): Promise<void> => {
+      // 安全校验：文件路径
+      const pathValidation = validateFilePath(filePath)
+      if (!pathValidation.valid) {
+        throw new Error(pathValidation.error || '文件路径无效')
+      }
+
+      // 安全校验：文件类型（仅允许 Excel）
+      const ext = path.extname(filePath).toLowerCase()
+      if (!['.xlsx', '.xls'].includes(ext)) {
+        throw new Error('仅支持 Excel 文件 (.xlsx, .xls)')
+      }
+
+      const projectDir = await getProjectPath(projectId, projectName)
+
+      // 构建安全路径
+      const fullPath = buildSafePath(projectDir, filePath)
+      if (!fullPath) {
+        throw new Error('文件路径不安全')
+      }
+
+      const dir = path.dirname(fullPath)
+      if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
+      const XLSX = require('xlsx')
+      const wb = XLSX.utils.book_new()
+      for (const sheet of sheets) {
+        const ws = XLSX.utils.json_to_sheet(sheet.rows, { header: sheet.headers })
+        XLSX.utils.book_append_sheet(wb, ws, sheet.name)
+      }
+      XLSX.writeFile(wb, fullPath)
+      logger.info('[project:writeExcel] 保存成功')
+    },
+  )
 
   // 渲染 API（通过 Python 后端执行）
   ipcMain.handle('render:project', async (_e, ids: string[]): Promise<void> => {
@@ -394,9 +404,9 @@ export function setupIpcHandlers(window: BrowserWindow): void {
 
   // 文件操作API
   ipcMain.handle('file:read', async (_e, filePath: string): Promise<string> => {
-    console.log('[file:read] 请求路径:', filePath)
+    logger.info('[file:read] 请求路径:', filePath)
     if (!fs.existsSync(filePath)) {
-      console.log('[file:read] 文件不存在:', filePath)
+      logger.error('[file:read] 文件不存在:', filePath)
       throw new Error('文件不存在')
     }
     const buffer = fs.readFileSync(filePath)
@@ -406,10 +416,10 @@ export function setupIpcHandlers(window: BrowserWindow): void {
         const iconv = require('iconv-lite')
         text = iconv.decode(buffer, 'gbk')
       } catch {
-        console.log('[file:read] iconv-lite 加载失败，使用 UTF-8 结果')
+        logger.warn('[file:read] iconv-lite 加载失败，使用 UTF-8 结果')
       }
     }
-    console.log('[file:read] 读取成功，长度:', text.length)
+    logger.info('[file:read] 读取成功，长度:', text.length)
     return text
   })
 
@@ -426,20 +436,23 @@ export function setupIpcHandlers(window: BrowserWindow): void {
     return exists
   })
 
-  ipcMain.handle('file:readExcel', async (_e, filePath: string): Promise<{ name: string; headers: string[]; rows: Record<string, any>[] }[]> => {
-    try {
-      return readExcelByPath(filePath)
-    } catch (err: any) {
-      console.error('[file:readExcel] 错误:', err.message)
-      throw err
-    }
-  })
+  ipcMain.handle(
+    'file:readExcel',
+    async (_e, filePath: string): Promise<{ name: string; headers: string[]; rows: Record<string, any>[] }[]> => {
+      try {
+        return readExcelByPath(filePath)
+      } catch (err: any) {
+        logger.error('[file:readExcel] 错误:', err.message)
+        throw err
+      }
+    },
+  )
 
   // 文件读取 API —— Word 文档
   ipcMain.handle('file:readDocx', async (_e, filePath: string): Promise<string> => {
-    console.log('[file:readDocx] 请求:', filePath)
+    logger.info('[file:readDocx] 请求:', filePath)
     if (!fs.existsSync(filePath)) {
-      console.log('[file:readDocx] 文件不存在:', filePath)
+      logger.error('[file:readDocx] 文件不存在:', filePath)
       throw new Error('文件不存在: ' + filePath)
     }
     const ext = filePath.slice(filePath.lastIndexOf('.')).toLowerCase()
@@ -449,67 +462,70 @@ export function setupIpcHandlers(window: BrowserWindow): void {
     try {
       const mammoth = require('mammoth')
       const result = await mammoth.extractRawText({ path: filePath })
-      console.log('[file:readDocx] 读取成功，文本长度:', String(result.value).length)
+      logger.info('[file:readDocx] 读取成功，文本长度:', String(result.value).length)
       return result.value
     } catch (err: any) {
-      console.log('[file:readDocx] 解析失败:', err.message)
+      logger.error('[file:readDocx] 解析失败:', err.message)
       throw new Error('解析 Word 文档失败: ' + (err.message || String(err)))
     }
   })
 
   // 项目文件读取 API —— Word 文档（通过 projectId + 相对路径）
-  ipcMain.handle('project:readDocx', async (_e, projectId: number, filePath: string, projectName?: string): Promise<string> => {
-    console.log('[project:readDocx] 请求 projectId:', projectId, 'projectName:', projectName, 'filePath:', filePath)
-    const projectDir = await getProjectPath(projectId, projectName)
-    const fullPath = path.join(projectDir, String(filePath))
-    console.log('[project:readDocx] 完整路径:', fullPath)
-    if (!fs.existsSync(fullPath)) throw new Error(`文件不存在: ${fullPath}`)
+  ipcMain.handle(
+    'project:readDocx',
+    async (_e, projectId: number, filePath: string, projectName?: string): Promise<string> => {
+      logger.info('[project:readDocx] 请求', { projectId, projectName, filePath })
+      const projectDir = await getProjectPath(projectId, projectName)
+      const fullPath = path.join(projectDir, String(filePath))
+      logger.info('[project:readDocx] 完整路径:', fullPath)
+      if (!fs.existsSync(fullPath)) throw new Error(`文件不存在: ${fullPath}`)
 
-    const ext = fullPath.slice(fullPath.lastIndexOf('.')).toLowerCase()
-    if (ext === '.doc') {
-      throw new Error('请将 .doc 文件在 Word 中另存为 .docx 格式后再打开')
-    }
-    try {
-      const mammoth = require('mammoth')
-      const result = await mammoth.extractRawText({ path: fullPath })
-      console.log('[project:readDocx] 读取成功，文本长度:', String(result.value).length)
-      return result.value
-    } catch (err: any) {
-      console.log('[project:readDocx] 解析失败:', err.message)
-      throw new Error('解析 Word 文档失败: ' + (err.message || String(err)))
-    }
-  })
+      const ext = fullPath.slice(fullPath.lastIndexOf('.')).toLowerCase()
+      if (ext === '.doc') {
+        throw new Error('请将 .doc 文件在 Word 中另存为 .docx 格式后再打开')
+      }
+      try {
+        const mammoth = require('mammoth')
+        const result = await mammoth.extractRawText({ path: fullPath })
+        logger.info('[project:readDocx] 读取成功，文本长度:', String(result.value).length)
+        return result.value
+      } catch (err: any) {
+        logger.error('[project:readDocx] 解析失败:', err.message)
+        throw new Error('解析 Word 文档失败: ' + (err.message || String(err)))
+      }
+    },
+  )
 
   // 项目文件读取 API —— Word 文档（返回 ArrayBuffer 用于 docx-preview）
-  ipcMain.handle('project:readDocxBuffer', async (_e, projectId: number, filePath: string, projectName?: string): Promise<ArrayBuffer> => {
-    console.log('[project:readDocxBuffer] 请求 projectId:', projectId, 'projectName:', projectName, 'filePath:', filePath)
-    const projectDir = await getProjectPath(projectId, projectName)
-    const fullPath = path.join(projectDir, String(filePath))
-    console.log('[project:readDocxBuffer] 完整路径:', fullPath)
-    if (!fs.existsSync(fullPath)) throw new Error(`文件不存在: ${fullPath}`)
+  ipcMain.handle(
+    'project:readDocxBuffer',
+    async (_e, projectId: number, filePath: string, projectName?: string): Promise<ArrayBuffer> => {
+      logger.info('[project:readDocxBuffer] 请求', { projectId, projectName, filePath })
+      const projectDir = await getProjectPath(projectId, projectName)
+      const fullPath = path.join(projectDir, String(filePath))
+      logger.info('[project:readDocxBuffer] 完整路径:', fullPath)
+      if (!fs.existsSync(fullPath)) throw new Error(`文件不存在: ${fullPath}`)
 
-    const ext = fullPath.slice(fullPath.lastIndexOf('.')).toLowerCase()
-    if (ext === '.doc') {
-      throw new Error('请将 .doc 文件在 Word 中另存为 .docx 格式后再打开')
-    }
+      const ext = fullPath.slice(fullPath.lastIndexOf('.')).toLowerCase()
+      if (ext === '.doc') {
+        throw new Error('请将 .doc 文件在 Word 中另存为 .docx 格式后再打开')
+      }
 
-    try {
-      const buffer = fs.readFileSync(fullPath)
-      console.log('[project:readDocxBuffer] 读取成功，文件大小:', buffer.length)
-      return buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength)
-    } catch (err: any) {
-      console.log('[project:readDocxBuffer] 读取失败:', err.message)
-      throw new Error('读取 Word 文档失败: ' + (err.message || String(err)))
-    }
-  })
+      try {
+        const buffer = fs.readFileSync(fullPath)
+        logger.info('[project:readDocxBuffer] 读取成功，文件大小:', buffer.length)
+        return buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength)
+      } catch (err: any) {
+        logger.error('[project:readDocxBuffer] 读取失败:', err.message)
+        throw new Error('读取 Word 文档失败: ' + (err.message || String(err)))
+      }
+    },
+  )
 
   // 应用API
   ipcMain.handle('guide:getContent', async (_e, lang: string): Promise<string> => {
     // 同时尝试 public/docs（开发环境，Vite 直接服务）和 dist/docs（生产环境，构建产物）
-    const possibleDirs = [
-      path.join(process.cwd(), 'public', 'docs'),
-      path.join(__dirname, '..', '..', 'dist', 'docs'),
-    ]
+    const possibleDirs = [path.join(process.cwd(), 'public', 'docs'), path.join(__dirname, '..', '..', 'dist', 'docs')]
     const supportedLangs = ['zh-CN', 'en', 'ja', 'ko', 'fr', 'de', 'es', 'pt', 'ru', 'ar', 'vi', 'th']
     const targetLang = supportedLangs.includes(lang) ? lang : 'zh-CN'
     for (const guideDir of possibleDirs) {
@@ -548,20 +564,23 @@ export function setupIpcHandlers(window: BrowserWindow): void {
   })
 
   // 对话框API
-  ipcMain.handle('dialog:showMessage', async (_e, options: { type: 'info' | 'warning' | 'error'; title: string; message: string }): Promise<void> => {
-    // 在Electron中实现消息对话框
-    console.log(`[${options.type}] ${options.title}: ${options.message}`)
-  })
+  ipcMain.handle(
+    'dialog:showMessage',
+    async (_e, options: { type: 'info' | 'warning' | 'error'; title: string; message: string }): Promise<void> => {
+      // 在Electron中实现消息对话框
+      logger.info(`[${options.type}] ${options.title}: ${options.message}`)
+    },
+  )
 
   ipcMain.handle('dialog:showConfirm', async (_e, options: { title: string; message: string }): Promise<boolean> => {
     // 在Electron中实现确认对话框
-    console.log(`[Confirm] ${options.title}: ${options.message}`)
+    logger.info(`[Confirm] ${options.title}: ${options.message}`)
     return true // 默认返回确认
   })
 
   // 日志API
   ipcMain.handle('log:write', async (_e, level: string, message: string): Promise<void> => {
-    console.log(`[${level}] ${message}`)
+    logger.info(`[${level}] ${message}`)
     if (!window.isDestroyed()) {
       window.webContents.send('log:output', { level, message })
     }

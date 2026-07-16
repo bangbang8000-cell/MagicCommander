@@ -186,19 +186,42 @@ export function MonacoEditor({ tab }: MonacoEditorProps) {
             { open: '<', close: '>', token: 'delimiter.angle' },
           ],
           keywords: [
-            'if', 'else', 'elif', 'for', 'endfor', 'endif', 'set', 'block', 'endblock',
-            'extends', 'include', 'macro', 'endmacro', 'import', 'from', 'as', 'with',
-            'endwith', 'autoescape', 'endautoescape', 'raw', 'endraw', 'filter', 'endfilter',
-            'true', 'false', 'none', 'True', 'False', 'None',
+            'if',
+            'else',
+            'elif',
+            'for',
+            'endfor',
+            'endif',
+            'set',
+            'block',
+            'endblock',
+            'extends',
+            'include',
+            'macro',
+            'endmacro',
+            'import',
+            'from',
+            'as',
+            'with',
+            'endwith',
+            'autoescape',
+            'endautoescape',
+            'raw',
+            'endraw',
+            'filter',
+            'endfilter',
+            'true',
+            'false',
+            'none',
+            'True',
+            'False',
+            'None',
           ],
           operators: ['==', '!=', '<=', '>=', '&&', '||', '~', 'is', 'in', 'not', 'and', 'or'],
           symbols: /[=><!~?:&|+\-*/^%]+/,
           escapes: /\\(?:[btnfr\\']|\\|[0-7]{1,3}|x[0-9A-Fa-f]{1,2}|u[0-9A-Fa-f]{4}|U[0-9A-Fa-f]{8})/,
           tokenizer: {
-            root: [
-              { include: '@jinjaBlocks' },
-              { include: '@html' },
-            ],
+            root: [{ include: '@jinjaBlocks' }, { include: '@html' }],
             jinjaBlocks: [
               [/\{#/, 'comment', '@jinjaComment'],
               [/\{\%/, 'keyword', '@jinjaTag'],
@@ -333,7 +356,10 @@ export function MonacoEditor({ tab }: MonacoEditorProps) {
     const scrollHandler = (e: Event) => {
       const custom = e as CustomEvent<{ scrollTop: number; scrollLeft: number; sourceId: string }>
       if (custom.detail.sourceId !== tab.id && useUIStore.getState().syncScroll) {
-        editorRef.current?.setScrollPosition({ scrollTop: custom.detail.scrollTop, scrollLeft: custom.detail.scrollLeft })
+        editorRef.current?.setScrollPosition({
+          scrollTop: custom.detail.scrollTop,
+          scrollLeft: custom.detail.scrollLeft,
+        })
       }
     }
     window.addEventListener('mc-editor-scroll', scrollHandler)
@@ -357,14 +383,14 @@ export function MonacoEditor({ tab }: MonacoEditorProps) {
   return (
     <div ref={wrapperRef} className={`w-full h-full relative ${isDark ? 'bg-gray-900' : 'bg-white'}`}>
       {loading && (
-        <div className={`absolute inset-0 flex items-center justify-center text-sm z-10 pointer-events-none ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+        <div
+          className={`absolute inset-0 flex items-center justify-center text-sm z-10 pointer-events-none ${isDark ? 'text-gray-500' : 'text-gray-400'}`}
+        >
           加载中...
         </div>
       )}
       {!loading && error && (
-        <div className="absolute inset-0 flex items-center justify-center text-sm text-red-500 z-10">
-          {error}
-        </div>
+        <div className="absolute inset-0 flex items-center justify-center text-sm text-red-500 z-10">{error}</div>
       )}
       {!loading && !error && (
         <Editor

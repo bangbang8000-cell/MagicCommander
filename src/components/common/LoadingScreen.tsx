@@ -44,14 +44,18 @@ export function LoadingScreen({ isLoading, stage = 0 }: LoadingScreenProps) {
   const progress = stage > 0 ? ((stage - 1) / 4) * 100 : 0
 
   const stageLabel = isLoading
-    ? (STAGE_KEYS[stage - 1] ? t(STAGE_KEYS[stage - 1]) : t('common:loading.starting'))
+    ? STAGE_KEYS[stage - 1]
+      ? t(STAGE_KEYS[stage - 1])
+      : t('common:loading.starting')
     : t('common:loading.ready')
 
   return (
-    <div className={clsx(
-      'fixed inset-0 z-[9998] flex items-center justify-center transition-opacity duration-300',
-      isLoading ? 'opacity-100' : 'opacity-0 pointer-events-none'
-    )}>
+    <div
+      className={clsx(
+        'fixed inset-0 z-[9998] flex items-center justify-center transition-opacity duration-300',
+        isLoading ? 'opacity-100' : 'opacity-0 pointer-events-none',
+      )}
+    >
       {/* 背景渐变 */}
       <div className="absolute inset-0 bg-gradient-to-br from-gray-50 via-gray-100 to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900" />
 
@@ -81,31 +85,33 @@ export function LoadingScreen({ isLoading, stage = 0 }: LoadingScreenProps) {
 
         {/* 进度阶段文字 */}
         <div className="text-center">
-          <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
-            {stageLabel}
-          </p>
-          <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
-            {stage}/4
-          </p>
+          <p className="text-sm font-medium text-gray-700 dark:text-gray-300">{stageLabel}</p>
+          <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">{stage}/4</p>
         </div>
 
         {/* 分隔线 */}
         <div className="w-48 h-px bg-gradient-to-r from-transparent via-gray-300 dark:via-gray-600 to-transparent" />
 
         {/* 名言区域 */}
-        <div className={clsx(
-          'text-center max-w-sm transition-all duration-300',
-          fadeQuote ? 'opacity-0 -translate-y-2' : 'opacity-100 translate-y-0'
-        )}>
+        <div
+          className={clsx(
+            'text-center max-w-sm transition-all duration-300',
+            fadeQuote ? 'opacity-0 -translate-y-2' : 'opacity-100 translate-y-0',
+          )}
+        >
           <div className="relative px-4 py-3">
             {/* 引号装饰 */}
-            <span className="absolute -top-2 -start-1 text-4xl text-primary-300 dark:text-primary-700 opacity-50 font-serif">"</span>
+            <span className="absolute -top-2 -start-1 text-4xl text-primary-300 dark:text-primary-700 opacity-50 font-serif">
+              "
+            </span>
 
             <p className="text-sm text-gray-600 dark:text-gray-400 italic leading-relaxed px-4">
               {currentQuote || t('common:loading.defaultQuote')}
             </p>
 
-            <span className="absolute -bottom-4 -end-1 text-4xl text-primary-300 dark:text-primary-700 opacity-50 font-serif rotate-180">"</span>
+            <span className="absolute -bottom-4 -end-1 text-4xl text-primary-300 dark:text-primary-700 opacity-50 font-serif rotate-180">
+              "
+            </span>
           </div>
           <p className="text-xs text-gray-400 dark:text-gray-500 mt-4">
             — {t('common:loading.networkEngineerProverb')}

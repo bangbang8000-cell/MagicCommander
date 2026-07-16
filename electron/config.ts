@@ -47,12 +47,15 @@ function getRepoRootDir(): string {
 
 export function getWorkspaceDir(): string {
   const userWorkspace = path.join(getUserDataDir(), 'workspace')
-  return resolveExistingDir([
-    path.join(getRepoRootDir(), 'workspace'),
-    path.join(process.cwd(), 'workspace'),
-    path.join(app.getAppPath(), 'workspace'),
+  return resolveExistingDir(
+    [
+      path.join(getRepoRootDir(), 'workspace'),
+      path.join(process.cwd(), 'workspace'),
+      path.join(app.getAppPath(), 'workspace'),
+      userWorkspace,
+    ],
     userWorkspace,
-  ], userWorkspace)
+  )
 }
 
 /**
@@ -60,13 +63,16 @@ export function getWorkspaceDir(): string {
  */
 export function getExampleDir(): string {
   const userExample = path.join(getUserDataDir(), 'example')
-  return resolveExistingDir([
-    path.join(getRepoRootDir(), 'example'),
-    path.join(process.cwd(), 'example'),
-    path.join(app.getAppPath(), 'example'),
-    path.join(process.resourcesPath, 'example'),
+  return resolveExistingDir(
+    [
+      path.join(getRepoRootDir(), 'example'),
+      path.join(process.cwd(), 'example'),
+      path.join(app.getAppPath(), 'example'),
+      path.join(process.resourcesPath, 'example'),
+      userExample,
+    ],
     userExample,
-  ], userExample)
+  )
 }
 
 /**
@@ -210,7 +216,7 @@ export function getCrashDumpsDir(): string {
 export const APP_CONFIG = {
   // 应用名称
   APP_NAME: 'MagicCommander',
-  
+
   // 窗口配置
   WINDOW: {
     WIDTH: 1400,
@@ -218,7 +224,7 @@ export const APP_CONFIG = {
     MIN_WIDTH: 1100,
     MIN_HEIGHT: 700,
   },
-  
+
   // 布局配置
   LAYOUT: {
     SIDEBAR_MIN: 400,
@@ -226,7 +232,7 @@ export const APP_CONFIG = {
     BOTTOM_MIN: 180,
     BOTTOM_DEFAULT: 320,
   },
-  
+
   // Python 配置
   PYTHON: {
     CMD: process.platform === 'win32' ? 'python' : 'python3',
@@ -239,7 +245,7 @@ export const APP_CONFIG = {
     // 进程重启间隔（毫秒）
     RESTART_INTERVAL: 1000,
   },
-  
+
   // 文件配置
   FILE: {
     // 支持的文本文件扩展名
@@ -249,19 +255,19 @@ export const APP_CONFIG = {
     // 支持的 Word 文件扩展名
     WORD_EXTENSIONS: ['.docx'],
   },
-  
+
   // 状态存储配置
   STORAGE: {
     PROJECT_STATE_KEY: 'mc-project-state',
     EDITOR_STATE_KEY: 'mc-editor-state',
     UI_STATE_KEY: 'mc-ui-state',
   },
-  
+
   // 版本信息
   VERSION: {
-    CURRENT: '3.0.2',
-    BUILD: '26071410',
-    DISPLAY: 'V3.0.2 Build 26071410',
+    CURRENT: '3.0.3',
+    BUILD: '26071601',
+    DISPLAY: 'V3.0.3 Build 26071601',
     MIN_SUPPORTED_PYTHON: '3.8',
   },
 }
@@ -270,19 +276,14 @@ export const APP_CONFIG = {
  * 初始化应用目录
  */
 export function initializeAppDirs(): void {
-  const dirs = [
-    getUserDataDir(),
-    getCacheDir(),
-    getLogDir(),
-    getCrashDumpsDir(),
-  ]
-  
+  const dirs = [getUserDataDir(), getCacheDir(), getLogDir(), getCrashDumpsDir()]
+
   for (const dir of dirs) {
     if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir, { recursive: true })
     }
   }
-  
+
   // 设置 Electron 路径
   app.setPath('userData', getUserDataDir())
   app.setPath('appData', getUserDataDir())

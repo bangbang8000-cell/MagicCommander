@@ -3,7 +3,22 @@ import { useTranslation } from 'react-i18next'
 import { useProjectStore } from '@/stores/project.store'
 import { useEditorStore } from '@/stores/editor.store'
 import { useUIStore } from '@/stores/ui.store'
-import { ChevronRight, ChevronDown, Folder, FileText, FolderOpen, Loader2, AlertCircle, RefreshCw, Settings, Tag, FileCode, FileCheck, FolderX } from 'lucide-react'
+import { errorService } from '@/services/errorService'
+import {
+  ChevronRight,
+  ChevronDown,
+  Folder,
+  FileText,
+  FolderOpen,
+  Loader2,
+  AlertCircle,
+  RefreshCw,
+  Settings,
+  Tag,
+  FileCode,
+  FileCheck,
+  FolderX,
+} from 'lucide-react'
 import clsx from 'clsx'
 import { getFileTypeFromPath } from '@/types/editor'
 import { getOutputDirIcon } from '@/config/icons'
@@ -20,16 +35,16 @@ interface FileNode {
 const OUTPUT_DIR_NAMES = ['output', 'output-sn', 'yaml', 'yaml-sn']
 
 const OUTPUT_TYPE_KEY_MAP: Record<string, string> = {
-  'output': 'common:outputPanel.configOutput',
+  output: 'common:outputPanel.configOutput',
   'output-sn': 'common:outputPanel.snConfig',
-  'yaml': 'common:outputPanel.yamlOutput',
+  yaml: 'common:outputPanel.yamlOutput',
   'yaml-sn': 'common:outputPanel.yamlSn',
 }
 
 const OUTPUT_TYPE_ICON_MAP: Record<string, LucideIcon> = {
-  'output': Settings,
+  output: Settings,
   'output-sn': Tag,
-  'yaml': FileCode,
+  yaml: FileCode,
   'yaml-sn': FileCheck,
 }
 
@@ -39,7 +54,7 @@ async function openInExplorer(projectName: string, relativePath: string) {
     const fullPath = `${workspacePath}/${projectName}/${relativePath}`
     window.electron.shell.showItemInFolder(fullPath)
   } catch (err) {
-    console.error('打开资源管理器失败:', err)
+    errorService.handleError(err, 'OutputPanel.openExplorer')
   }
 }
 
@@ -50,34 +65,37 @@ export function OutputPanel() {
   const selectProject = useProjectStore((s) => s.selectProject)
   const openFile = useEditorStore((s) => s.openFile)
   const isDark = useUIStore((s) => s.isDark)
-  
+
   const [outputStructure, setOutputStructure] = useState<FileNode[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [expanded, setExpanded] = useState<Set<string>>(new Set())
 
   // 加载输出目录结构
-  const loadOutputStructure = useCallback(async (projectName: string) => {
-    setIsLoading(true)
-    setError(null)
-    try {
-      const structure = await window.electron.project.getStructure(projectName) as FileNode[]
-      const outputDirs = structure.filter((node: FileNode) => 
-        OUTPUT_DIR_NAMES.includes(node.name) && node.isDirectory
-      )
-      setOutputStructure(outputDirs)
-      
-      const firstDir = outputDirs[0]
-      if (firstDir && firstDir.children && firstDir.children.length > 0) {
-        setExpanded(new Set([firstDir.path]))
+  const loadOutputStructure = useCallback(
+    async (projectName: string) => {
+      setIsLoading(true)
+      setError(null)
+      try {
+        const structure = (await window.electron.project.getStructure(projectName)) as FileNode[]
+        const outputDirs = structure.filter(
+          (node: FileNode) => OUTPUT_DIR_NAMES.includes(node.name) && node.isDirectory,
+        )
+        setOutputStructure(outputDirs)
+
+        const firstDir = outputDirs[0]
+        if (firstDir && firstDir.children && firstDir.children.length > 0) {
+          setExpanded(new Set([firstDir.path]))
+        }
+      } catch (err) {
+        setError(err instanceof Error ? err.message : t('common:outputPanel.loadFailed'))
+        setOutputStructure([])
+      } finally {
+        setIsLoading(false)
       }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : t('common:outputPanel.loadFailed'))
-      setOutputStructure([])
-    } finally {
-      setIsLoading(false)
-    }
-  }, [t])
+    },
+    [t],
+  )
 
   useEffect(() => {
     if (selectedProject) {
@@ -114,7 +132,7 @@ export function OutputPanel() {
     }
   }
 
-  const handleProjectSelect = (project: typeof projects[0]) => {
+  const handleProjectSelect = (project: (typeof projects)[0]) => {
     selectProject(project)
   }
 
@@ -127,17 +145,17 @@ export function OutputPanel() {
         )}
       >
         <h3
-          className={clsx(
-            'text-xs font-semibold uppercase tracking-wider',
-            isDark ? 'text-gray-300' : 'text-gray-600',
-          )}
+          className={clsx('text-xs font-semibold uppercase tracking-wider', isDark ? 'text-gray-300' : 'text-gray-600')}
         >
           {t('common:outputPanel.outputFiles')}
         </h3>
         {selectedProject && (
           <button
             onClick={() => loadOutputStructure(selectedProject.name)}
-            className={clsx('p-1 rounded', isDark ? 'hover:bg-gray-700 text-gray-400' : 'hover:bg-gray-100 text-gray-500')}
+            className={clsx(
+              'p-1 rounded',
+              isDark ? 'hover:bg-gray-700 text-gray-400' : 'hover:bg-gray-100 text-gray-500',
+            )}
             title={t('app.refresh')}
           >
             <RefreshCw size={12} />
@@ -146,10 +164,7 @@ export function OutputPanel() {
       </div>
 
       <div
-        className={clsx(
-          'px-3 py-1.5 border-b',
-          isDark ? 'bg-gray-800/40 border-gray-700' : 'bg-white border-gray-200',
-        )}
+        className={clsx('px-3 py-1.5 border-b', isDark ? 'bg-gray-800/40 border-gray-700' : 'bg-white border-gray-200')}
       >
         <select
           value={selectedProject?.id || ''}
@@ -159,9 +174,7 @@ export function OutputPanel() {
           }}
           className={clsx(
             'w-full text-xs px-2 py-1 rounded border',
-            isDark
-              ? 'bg-gray-700 border-gray-600 text-gray-200'
-              : 'bg-gray-50 border-gray-300 text-gray-700',
+            isDark ? 'bg-gray-700 border-gray-600 text-gray-200' : 'bg-gray-50 border-gray-300 text-gray-700',
           )}
         >
           <option value="">{t('common:outputPanel.selectProject')}</option>
@@ -183,17 +196,32 @@ export function OutputPanel() {
           {t('common:outputPanel.selectProjectHint')}
         </div>
       ) : isLoading ? (
-        <div className={clsx('flex-1 flex items-center justify-center gap-2 text-xs', isDark ? 'text-gray-400' : 'text-gray-500')}>
+        <div
+          className={clsx(
+            'flex-1 flex items-center justify-center gap-2 text-xs',
+            isDark ? 'text-gray-400' : 'text-gray-500',
+          )}
+        >
           <Loader2 size={14} className="animate-spin" />
           {t('app.loading')}
         </div>
       ) : error ? (
-        <div className={clsx('flex-1 flex flex-col items-center justify-center gap-1 text-xs p-4 text-center', isDark ? 'text-red-400' : 'text-red-500')}>
+        <div
+          className={clsx(
+            'flex-1 flex flex-col items-center justify-center gap-1 text-xs p-4 text-center',
+            isDark ? 'text-red-400' : 'text-red-500',
+          )}
+        >
           <AlertCircle size={16} />
-          <span>{t('common:outputPanel.loadFailed')}: {error}</span>
+          <span>
+            {t('common:outputPanel.loadFailed')}: {error}
+          </span>
           <button
             onClick={() => loadOutputStructure(selectedProject.name)}
-            className={clsx('mt-2 px-2 py-0.5 rounded text-xs', isDark ? 'bg-gray-700 hover:bg-gray-600 text-gray-200' : 'bg-gray-100 hover:bg-gray-200 text-gray-700')}
+            className={clsx(
+              'mt-2 px-2 py-0.5 rounded text-xs',
+              isDark ? 'bg-gray-700 hover:bg-gray-600 text-gray-200' : 'bg-gray-100 hover:bg-gray-200 text-gray-700',
+            )}
           >
             {t('app.retry')}
           </button>
@@ -299,26 +327,29 @@ function OutputTreeItem({
         ) : (
           <ChevronRight size={12} className={clsx('shrink-0', isDark ? 'text-gray-400' : 'text-gray-500')} />
         )}
-        
+
         {isOutputDir && IconComponent ? (
           <IconComponent size={14} className={clsx('shrink-0', isDark ? 'text-gray-400' : 'text-gray-500')} />
         ) : (
-          <Folder size={12} className={clsx('shrink-0', isOpen ? 'text-primary-500' : isDark ? 'text-gray-400' : 'text-gray-400')} />
+          <Folder
+            size={12}
+            className={clsx('shrink-0', isOpen ? 'text-primary-500' : isDark ? 'text-gray-400' : 'text-gray-400')}
+          />
         )}
-        
-        <span className="truncate font-medium flex-1">
-          {isOutputDir && labelKey ? t(labelKey) : node.name}
-        </span>
-        
+
+        <span className="truncate font-medium flex-1">{isOutputDir && labelKey ? t(labelKey) : node.name}</span>
+
         {fileCount > 0 && (
-          <span className={clsx(
-            'text-xs px-1 py-0.5 rounded shrink-0',
-            isDark ? 'bg-gray-700 text-gray-400' : 'bg-gray-100 text-gray-500'
-          )}>
+          <span
+            className={clsx(
+              'text-xs px-1 py-0.5 rounded shrink-0',
+              isDark ? 'bg-gray-700 text-gray-400' : 'bg-gray-100 text-gray-500',
+            )}
+          >
             {fileCount}
           </span>
         )}
-        
+
         <button
           onClick={(e) => {
             e.stopPropagation()
@@ -333,7 +364,7 @@ function OutputTreeItem({
           <FolderOpen size={11} />
         </button>
       </div>
-      
+
       {isOpen &&
         node.children?.map((child) => (
           <OutputTreeItem

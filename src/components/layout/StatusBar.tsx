@@ -66,11 +66,15 @@ export function StatusBar() {
         </div>
         <div className="flex items-center gap-1">
           <Activity size={11} />
-          <span>{t('statusBar.log')}: {logCount}</span>
+          <span>
+            {t('statusBar.log')}: {logCount}
+          </span>
         </div>
         <div className="flex items-center gap-1">
           <Folder size={11} />
-          <span>{t('statusBar.project')}: {selectedProject?.name || t('statusBar.noProject')}</span>
+          <span>
+            {t('statusBar.project')}: {selectedProject?.name || t('statusBar.noProject')}
+          </span>
         </div>
         <div className="flex items-center gap-1">
           <FileText size={11} />
@@ -79,7 +83,9 @@ export function StatusBar() {
         {selectedProject && totalFiles > 0 && (
           <div className="flex items-center gap-1">
             <FileCode size={11} />
-            <span>{t('statusBar.projectFiles')}: {totalFiles}</span>
+            <span>
+              {t('statusBar.projectFiles')}: {totalFiles}
+            </span>
           </div>
         )}
       </div>
@@ -91,7 +97,9 @@ export function StatusBar() {
           }}
           className={clsx(
             'flex items-center gap-1 px-2 py-0.5 rounded transition-colors',
-            isDark ? 'text-gray-400 hover:text-gray-100 hover:bg-gray-700' : 'text-gray-500 hover:text-primary-600 hover:bg-gray-100',
+            isDark
+              ? 'text-gray-400 hover:text-gray-100 hover:bg-gray-700'
+              : 'text-gray-500 hover:text-primary-600 hover:bg-gray-100',
           )}
           title={t('statusBar.resetLayoutTitle')}
         >
@@ -103,13 +111,13 @@ export function StatusBar() {
             <span className="truncate max-w-xs">
               {t('statusBar.fileName')}: {activeTab.title}
             </span>
-            <span>{t('statusBar.fileType')}: {getFileTypeLabel(activeTab.fileType, activeTab.filePath)}</span>
+            <span>
+              {t('statusBar.fileType')}: {getFileTypeLabel(activeTab.fileType, activeTab.filePath)}
+            </span>
           </>
         )}
         {cursorPosition && (
-          <span>
-            {t('statusBar.position', { line: cursorPosition.line, column: cursorPosition.column })}
-          </span>
+          <span>{t('statusBar.position', { line: cursorPosition.line, column: cursorPosition.column })}</span>
         )}
         {activeTab?.fileType === 'excel' && <span>{t('statusBar.excelTable')}</span>}
         <div className="flex items-center gap-1">

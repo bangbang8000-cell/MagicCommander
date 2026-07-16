@@ -43,9 +43,7 @@ export function ExcelViewer({ tab }: { tab: EditorTab }) {
     try {
       const result = await Promise.race([
         window.electron.project.readExcel(tab.projectId, tab.filePath, tab.projectName),
-        new Promise<never>((_, reject) =>
-          setTimeout(() => reject(new Error('读取 Excel 超时（10秒）')), 10000),
-        ),
+        new Promise<never>((_, reject) => setTimeout(() => reject(new Error('读取 Excel 超时（10秒）')), 10000)),
       ])
 
       if (!isMountedRef.current) return
@@ -76,7 +74,12 @@ export function ExcelViewer({ tab }: { tab: EditorTab }) {
 
   const handleSave = useCallback(async () => {
     try {
-      await window.electron.project.writeExcel(tab.projectId, tab.filePath, sheets as { name: string; headers: string[]; rows: Record<string, unknown>[] }[], tab.projectName)
+      await window.electron.project.writeExcel(
+        tab.projectId,
+        tab.filePath,
+        sheets as { name: string; headers: string[]; rows: Record<string, unknown>[] }[],
+        tab.projectName,
+      )
       markDirty(tab.id, false)
       showSuccess(`已保存: ${tab.title}`)
     } catch (err) {
@@ -149,7 +152,9 @@ export function ExcelViewer({ tab }: { tab: EditorTab }) {
 
   if (loading) {
     return (
-      <div className={`absolute inset-0 flex flex-col items-center justify-center gap-2 ${isDark ? 'text-gray-400' : 'text-gray-400'}`}>
+      <div
+        className={`absolute inset-0 flex flex-col items-center justify-center gap-2 ${isDark ? 'text-gray-400' : 'text-gray-400'}`}
+      >
         <div className="w-6 h-6 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" />
         <span className="text-sm">正在加载 Excel 文件...</span>
         <span className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>{tab.filePath}</span>
@@ -159,7 +164,9 @@ export function ExcelViewer({ tab }: { tab: EditorTab }) {
 
   if (error) {
     return (
-      <div className={`absolute inset-0 flex flex-col items-center justify-center gap-3 p-6 ${isDark ? 'text-red-400' : 'text-red-500'}`}>
+      <div
+        className={`absolute inset-0 flex flex-col items-center justify-center gap-3 p-6 ${isDark ? 'text-red-400' : 'text-red-500'}`}
+      >
         <AlertCircle size={32} />
         <span className="font-medium">读取 Excel 失败</span>
         <span className="text-sm text-center max-w-md">{error}</span>
@@ -179,27 +186,25 @@ export function ExcelViewer({ tab }: { tab: EditorTab }) {
   return (
     <div className="absolute inset-0 flex flex-col">
       {/* 工作表切换栏 */}
-      <div className={`flex items-center gap-1 px-2 py-1.5 border-b shrink-0 overflow-x-auto ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-gray-50 border-gray-200'}`}>
+      <div
+        className={`flex items-center gap-1 px-2 py-1.5 border-b shrink-0 overflow-x-auto ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-gray-50 border-gray-200'}`}
+      >
         {sheets.map((s) => (
           <button
             key={s.name}
             onClick={() => setActiveSheet(s.name)}
-            className={
-              `text-xs px-2 py-0.5 rounded whitespace-nowrap shrink-0 ${
-                activeSheet === s.name
-                  ? isDark
-                    ? 'bg-gray-900 border border-gray-600 text-gray-100'
-                    : 'bg-white border border-gray-300 text-gray-900'
-                  : isDark
+            className={`text-xs px-2 py-0.5 rounded whitespace-nowrap shrink-0 ${
+              activeSheet === s.name
+                ? isDark
+                  ? 'bg-gray-900 border border-gray-600 text-gray-100'
+                  : 'bg-white border border-gray-300 text-gray-900'
+                : isDark
                   ? 'text-gray-400 hover:text-gray-100 hover:bg-gray-700'
                   : 'text-gray-500 hover:text-gray-700'
-              }`
-            }
+            }`}
           >
             {s.name}
-            <span className={`ms-1 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
-              ({s.rows.length}行)
-            </span>
+            <span className={`ms-1 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>({s.rows.length}行)</span>
           </button>
         ))}
         <div className="flex-1" />
@@ -218,7 +223,9 @@ export function ExcelViewer({ tab }: { tab: EditorTab }) {
           <table className={`border-collapse text-xs ${isDark ? 'text-gray-200' : ''}`}>
             <thead>
               <tr className={`sticky top-0 z-10 ${isDark ? 'bg-gray-800' : 'bg-gray-100'}`}>
-                <th className={`border px-2 py-1.5 text-center w-10 font-medium select-none ${isDark ? 'border-gray-700 text-gray-400 bg-gray-800' : 'border-gray-300 text-gray-500'}`}>
+                <th
+                  className={`border px-2 py-1.5 text-center w-10 font-medium select-none ${isDark ? 'border-gray-700 text-gray-400 bg-gray-800' : 'border-gray-300 text-gray-500'}`}
+                >
                   #
                 </th>
                 {currentSheet.headers.map((h, i) => (
@@ -236,7 +243,9 @@ export function ExcelViewer({ tab }: { tab: EditorTab }) {
             <tbody>
               {currentSheet.rows.map((row, ri) => (
                 <tr key={ri} className={isDark ? 'hover:bg-gray-800' : 'hover:bg-blue-50'}>
-                  <td className={`border px-2 py-0.5 text-center w-10 font-mono ${isDark ? 'border-gray-700 text-gray-500 bg-gray-900' : 'border-gray-300 text-gray-400 bg-gray-50'}`}>
+                  <td
+                    className={`border px-2 py-0.5 text-center w-10 font-mono ${isDark ? 'border-gray-700 text-gray-500 bg-gray-900' : 'border-gray-300 text-gray-400 bg-gray-50'}`}
+                  >
                     {ri + 1}
                   </td>
                   {currentSheet.headers.map((h, ci) => {
@@ -273,7 +282,9 @@ export function ExcelViewer({ tab }: { tab: EditorTab }) {
             </tbody>
           </table>
         ) : (
-          <div className={`flex items-center justify-center h-full text-sm ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+          <div
+            className={`flex items-center justify-center h-full text-sm ${isDark ? 'text-gray-500' : 'text-gray-400'}`}
+          >
             无数据
           </div>
         )}

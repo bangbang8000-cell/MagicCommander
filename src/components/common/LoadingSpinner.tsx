@@ -19,18 +19,20 @@ const SIZE_MAP = {
 
 export function LoadingSpinner({ size = 'md', text, fullScreen = false }: LoadingSpinnerProps) {
   const spinnerClass = SIZE_MAP[size]
-  
+
   if (fullScreen) {
     return (
       <div className="fixed inset-0 flex items-center justify-center bg-white/80 dark:bg-gray-900/80 z-50">
         <div className="flex flex-col items-center gap-3">
-          <div className={`${spinnerClass} border-2 border-primary-200 border-t-primary-500 rounded-full animate-spin`} />
+          <div
+            className={`${spinnerClass} border-2 border-primary-200 border-t-primary-500 rounded-full animate-spin`}
+          />
           {text && <p className="text-sm text-gray-500 dark:text-gray-400">{text}</p>}
         </div>
       </div>
     )
   }
-  
+
   return (
     <div className="flex items-center gap-2">
       <div className={`${spinnerClass} border-2 border-primary-200 border-t-primary-500 rounded-full animate-spin`} />

@@ -89,9 +89,7 @@ export function ExplorerPanel() {
     setCreateLoading(true)
     setCreateError('')
     try {
-      await createProject(trimmed, templateOption === 'empty'
-        ? { empty: true }
-        : { template: selectedExampleTemplate })
+      await createProject(trimmed, templateOption === 'empty' ? { empty: true } : { template: selectedExampleTemplate })
       const list = useProjectStore.getState().projects
       const found = list.find((p) => p.name === trimmed)
       if (found) selectProject(found)
@@ -139,17 +137,11 @@ export function ExplorerPanel() {
     }
   }
 
-  const filtered = search
-    ? projects.filter((p) => p.name.toLowerCase().includes(search.toLowerCase()))
-    : projects
+  const filtered = search ? projects.filter((p) => p.name.toLowerCase().includes(search.toLowerCase())) : projects
 
   const favoriteList = filtered.filter((p) => favoriteProjects.includes(p.name))
-  const recentList = filtered.filter(
-    (p) => recentProjects.includes(p.name) && !favoriteProjects.includes(p.name),
-  )
-  const normalList = filtered.filter(
-    (p) => !favoriteProjects.includes(p.name) && !recentProjects.includes(p.name),
-  )
+  const recentList = filtered.filter((p) => recentProjects.includes(p.name) && !favoriteProjects.includes(p.name))
+  const normalList = filtered.filter((p) => !favoriteProjects.includes(p.name) && !recentProjects.includes(p.name))
 
   const renderProjectItem = (p: ProjectInfo) => {
     const isSelected = selectedProject?.name === p.name
@@ -195,9 +187,7 @@ export function ExplorerPanel() {
             e.stopPropagation()
             window.electron.app
               .getPath('workspace')
-              .then((workspacePath) =>
-                window.electron.shell.showItemInFolder(`${workspacePath}/${p.name}`),
-              )
+              .then((workspacePath) => window.electron.shell.showItemInFolder(`${workspacePath}/${p.name}`))
           }}
           className="p-0.5 rounded shrink-0 leading-none text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
           title={t('explorer.openInExplorer')}
@@ -239,7 +229,7 @@ export function ExplorerPanel() {
               'w-full ps-6 pe-2 py-1.5 text-xs border rounded-md transition-colors',
               'bg-white dark:bg-gray-900 border-gray-300 dark:border-gray-600',
               'text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500',
-              'focus:outline-none focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-transparent'
+              'focus:outline-none focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-transparent',
             )}
           />
         </div>
@@ -288,7 +278,9 @@ export function ExplorerPanel() {
         {showEmptyHint ? (
           <div className="px-3 py-2 text-xs text-gray-400 dark:text-gray-500">
             {projectError ? (
-              <span className="text-red-500">{t('explorer.loadFailed')}: {projectError}</span>
+              <span className="text-red-500">
+                {t('explorer.loadFailed')}: {projectError}
+              </span>
             ) : search ? (
               t('explorer.noMatchingProjects')
             ) : (
@@ -300,8 +292,16 @@ export function ExplorerPanel() {
             {showAllGroups && (
               <>
                 {renderGroup(t('explorer.favorites'), <Star size={10} className="text-yellow-500" />, favoriteList)}
-                {renderGroup(t('explorer.recent'), <Clock size={10} className="text-gray-400 dark:text-gray-500" />, recentList)}
-                {renderGroup(t('explorer.allProjectsGroup'), <Folder size={10} className="text-gray-400 dark:text-gray-500" />, normalList)}
+                {renderGroup(
+                  t('explorer.recent'),
+                  <Clock size={10} className="text-gray-400 dark:text-gray-500" />,
+                  recentList,
+                )}
+                {renderGroup(
+                  t('explorer.allProjectsGroup'),
+                  <Folder size={10} className="text-gray-400 dark:text-gray-500" />,
+                  normalList,
+                )}
               </>
             )}
           </>
@@ -358,7 +358,7 @@ export function ExplorerPanel() {
                 'w-full px-3 py-1.5 text-sm border rounded-md transition-colors',
                 'bg-white dark:bg-gray-900 border-gray-300 dark:border-gray-600',
                 'text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500',
-                'focus:outline-none focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400'
+                'focus:outline-none focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400',
               )}
             />
             {createError && <p className="text-xs text-red-500 mt-1">{createError}</p>}
@@ -368,9 +368,7 @@ export function ExplorerPanel() {
               {t('explorer.projectTemplate')}
             </label>
             <div className="space-y-2">
-              <label
-                className="flex items-start gap-2 p-2.5 border border-gray-200 dark:border-gray-700 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-              >
+              <label className="flex items-start gap-2 p-2.5 border border-gray-200 dark:border-gray-700 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
                 <input
                   type="radio"
                   checked={templateOption === 'example'}
@@ -379,7 +377,9 @@ export function ExplorerPanel() {
                   className="mt-0.5"
                 />
                 <div className="flex-1">
-                  <div className="text-sm font-medium text-gray-900 dark:text-gray-100">{t('explorer.useExampleTemplate')}</div>
+                  <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                    {t('explorer.useExampleTemplate')}
+                  </div>
                   <div className="text-xs mt-0.5 text-gray-500 dark:text-gray-400">
                     从 example 目录选择一个示例项目复制到 workspace
                   </div>
@@ -392,14 +392,16 @@ export function ExplorerPanel() {
                     {exampleTemplates.length === 0 ? (
                       <option value="">没有可用示例</option>
                     ) : (
-                      exampleTemplates.map((name) => <option key={name} value={name}>{name}</option>)
+                      exampleTemplates.map((name) => (
+                        <option key={name} value={name}>
+                          {name}
+                        </option>
+                      ))
                     )}
                   </select>
                 </div>
               </label>
-              <label
-                className="flex items-start gap-2 p-2.5 border border-gray-200 dark:border-gray-700 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-              >
+              <label className="flex items-start gap-2 p-2.5 border border-gray-200 dark:border-gray-700 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
                 <input
                   type="radio"
                   checked={templateOption === 'empty'}
@@ -407,7 +409,9 @@ export function ExplorerPanel() {
                   className="mt-0.5"
                 />
                 <div>
-                  <div className="text-sm font-medium text-gray-900 dark:text-gray-100">{t('explorer.emptyProject')}</div>
+                  <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                    {t('explorer.emptyProject')}
+                  </div>
                   <div className="text-xs mt-0.5 text-gray-500 dark:text-gray-400">
                     {t('explorer.emptyProjectDesc')}
                   </div>
@@ -473,12 +477,11 @@ export function ExplorerPanel() {
       >
         <div className="space-y-3">
           <p className="text-sm text-gray-700 dark:text-gray-200">
-            将当前项目 <span className="font-semibold">{selectedProject?.name}</span> 保存到 example 目录，运行输出目录不会复制。
+            将当前项目 <span className="font-semibold">{selectedProject?.name}</span> 保存到 example
+            目录，运行输出目录不会复制。
           </p>
           <div>
-            <label className="block text-xs font-medium mb-1.5 text-gray-700 dark:text-gray-300">
-              示例名称
-            </label>
+            <label className="block text-xs font-medium mb-1.5 text-gray-700 dark:text-gray-300">示例名称</label>
             <input
               type="text"
               value={newExampleName}

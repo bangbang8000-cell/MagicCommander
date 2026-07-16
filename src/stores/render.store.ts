@@ -78,7 +78,6 @@ export const useRenderStore = create<RenderState>((set, get) => {
         progress: 100,
         currentMessage: options.successMessage,
       })
-
     } catch (err) {
       const message = errorMessage(err)
       set({
@@ -104,107 +103,122 @@ export const useRenderStore = create<RenderState>((set, get) => {
       renderType: 'project',
     },
 
-    setConfig: (newConfig) => set((state) => ({
-      config: { ...state.config, ...newConfig },
-    })),
+    setConfig: (newConfig) =>
+      set((state) => ({
+        config: { ...state.config, ...newConfig },
+      })),
 
     setSelectedIds: (ids) => set({ selectedProjectIds: ids }),
 
     setRendering: (rendering, type = 'project') => set(taskFlags(type, rendering)),
 
-    setProgress: (progress, message) => set({
-      progress,
-      currentMessage: message,
-      errors: progress === 100 ? [] : get().errors,
-    }),
+    setProgress: (progress, message) =>
+      set({
+        progress,
+        currentMessage: message,
+        errors: progress === 100 ? [] : get().errors,
+      }),
 
-    addError: (error) => set((state) => ({
-      errors: [...state.errors, error],
-    })),
+    addError: (error) =>
+      set((state) => ({
+        errors: [...state.errors, error],
+      })),
 
-    resetProgress: () => set({
-      ...clearTaskFlags(),
-      progress: 0,
-      currentMessage: '',
-      errors: [],
-    }),
+    resetProgress: () =>
+      set({
+        ...clearTaskFlags(),
+        progress: 0,
+        currentMessage: '',
+        errors: [],
+      }),
 
-    renderProject: (ids) => runTask(ids, {
-      type: 'project',
-      successMessage: '渲染完成',
-      failurePrefix: '渲染失败',
-      action: () => window.electron.render.project(ids),
-    }),
+    renderProject: (ids) =>
+      runTask(ids, {
+        type: 'project',
+        successMessage: '渲染完成',
+        failurePrefix: '渲染失败',
+        action: () => window.electron.render.project(ids),
+      }),
 
-    renderYaml: (ids) => runTask(ids, {
-      type: 'yaml',
-      successMessage: 'YAML输出完成',
-      failurePrefix: 'YAML输出失败',
-      action: () => window.electron.render.yaml(ids),
-    }),
+    renderYaml: (ids) =>
+      runTask(ids, {
+        type: 'yaml',
+        successMessage: 'YAML输出完成',
+        failurePrefix: 'YAML输出失败',
+        action: () => window.electron.render.yaml(ids),
+      }),
 
-    renderProjectSn: (ids) => runTask(ids, {
-      type: 'project',
-      successMessage: 'SN模式渲染完成',
-      failurePrefix: 'SN模式渲染失败',
-      action: () => window.electron.render.projectSn(ids),
-    }),
+    renderProjectSn: (ids) =>
+      runTask(ids, {
+        type: 'project',
+        successMessage: 'SN模式渲染完成',
+        failurePrefix: 'SN模式渲染失败',
+        action: () => window.electron.render.projectSn(ids),
+      }),
 
-    renderYamlSn: (ids) => runTask(ids, {
-      type: 'yaml',
-      successMessage: 'SN模式YAML输出完成',
-      failurePrefix: 'SN模式YAML输出失败',
-      action: () => window.electron.render.yamlSn(ids),
-    }),
+    renderYamlSn: (ids) =>
+      runTask(ids, {
+        type: 'yaml',
+        successMessage: 'SN模式YAML输出完成',
+        failurePrefix: 'SN模式YAML输出失败',
+        action: () => window.electron.render.yamlSn(ids),
+      }),
 
-    labelPrint: (ids, config) => runTask(ids, {
-      type: 'label',
-      successMessage: '标签打印完成',
-      failurePrefix: '标签打印失败',
-      action: () => window.electron.feature.labelPrint(ids, config),
-    }),
+    labelPrint: (ids, config) =>
+      runTask(ids, {
+        type: 'label',
+        successMessage: '标签打印完成',
+        failurePrefix: '标签打印失败',
+        action: () => window.electron.feature.labelPrint(ids, config),
+      }),
 
-    labelDelete: (ids) => runTask(ids, {
-      type: 'label',
-      successMessage: '标签删除完成',
-      failurePrefix: '标签删除失败',
-      action: () => window.electron.feature.labelDelete(ids),
-    }),
+    labelDelete: (ids) =>
+      runTask(ids, {
+        type: 'label',
+        successMessage: '标签删除完成',
+        failurePrefix: '标签删除失败',
+        action: () => window.electron.feature.labelDelete(ids),
+      }),
 
-    deleteOutput: (ids) => runTask(ids, {
-      type: 'general',
-      successMessage: '删除完成',
-      failurePrefix: '删除输出失败',
-      action: () => window.electron.delete.output(ids),
-    }),
+    deleteOutput: (ids) =>
+      runTask(ids, {
+        type: 'general',
+        successMessage: '删除完成',
+        failurePrefix: '删除输出失败',
+        action: () => window.electron.delete.output(ids),
+      }),
 
-    deleteOutputSn: (ids) => runTask(ids, {
-      type: 'general',
-      successMessage: '删除完成',
-      failurePrefix: '删除SN输出失败',
-      action: () => window.electron.delete.outputSn(ids),
-    }),
+    deleteOutputSn: (ids) =>
+      runTask(ids, {
+        type: 'general',
+        successMessage: '删除完成',
+        failurePrefix: '删除SN输出失败',
+        action: () => window.electron.delete.outputSn(ids),
+      }),
 
-    deleteYaml: (ids) => runTask(ids, {
-      type: 'general',
-      successMessage: '删除完成',
-      failurePrefix: '删除YAML失败',
-      action: () => window.electron.delete.yaml(ids),
-    }),
+    deleteYaml: (ids) =>
+      runTask(ids, {
+        type: 'general',
+        successMessage: '删除完成',
+        failurePrefix: '删除YAML失败',
+        action: () => window.electron.delete.yaml(ids),
+      }),
 
-    deleteYamlSn: (ids) => runTask(ids, {
-      type: 'general',
-      successMessage: '删除完成',
-      failurePrefix: '删除SN YAML失败',
-      action: () => window.electron.delete.yamlSn(ids),
-    }),
+    deleteYamlSn: (ids) =>
+      runTask(ids, {
+        type: 'general',
+        successMessage: '删除完成',
+        failurePrefix: '删除SN YAML失败',
+        action: () => window.electron.delete.yamlSn(ids),
+      }),
 
-    undoRender: (ids) => runTask(ids, {
-      type: 'general',
-      successMessage: '渲染已撤销',
-      failurePrefix: '撤销渲染失败',
-      action: () => window.electron.render.undo(ids),
-    }),
+    undoRender: (ids) =>
+      runTask(ids, {
+        type: 'general',
+        successMessage: '渲染已撤销',
+        failurePrefix: '撤销渲染失败',
+        action: () => window.electron.render.undo(ids),
+      }),
 
     subscribeProgress: () => {
       if (!window.electron || !window.electron.render) {

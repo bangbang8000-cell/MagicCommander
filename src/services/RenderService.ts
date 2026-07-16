@@ -63,11 +63,7 @@ class RenderServiceImpl {
       progress = 0
     }
 
-    const message = this.normalizeMessage(
-      String(data.message ?? ''),
-      status,
-      data.details as string | undefined,
-    )
+    const message = this.normalizeMessage(String(data.message ?? ''), status, data.details as string | undefined)
 
     return {
       status,

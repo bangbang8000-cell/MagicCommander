@@ -61,45 +61,45 @@ import {
 // ========== 活动栏图标配置 ==========
 
 export const ACTIVITY_ICONS = {
-  explorer: FolderOpen,      // 项目浏览器
-  search: Search,            // 搜索
-  config: Settings,          // 项目配置
-  label: Tag,                // 标签打印
-  render: PlayCircle,        // 渲染操作（改为 PlayCircle）
-  output: FileOutput,        // 输出结果（改为 FileOutput）
+  explorer: FolderOpen, // 项目浏览器
+  search: Search, // 搜索
+  config: Settings, // 项目配置
+  label: Tag, // 标签打印
+  render: PlayCircle, // 渲染操作（改为 PlayCircle）
+  output: FileOutput, // 输出结果（改为 FileOutput）
 } as const
 
 // ========== 文件类型图标配置 ==========
 
 export const FILE_TYPE_ICONS = {
-  excel: FileSpreadsheet,    // Excel 文件
-  yaml: FileCode,            // YAML 文件
-  template: FileText,        // 模板文件
-  output: FileCheck,         // 输出文件
-  word: FileText,            // Word 文件
-  text: FileText,            // 文本文件
-  config: Settings,          // 配置文件
-  unknown: FileText,         // 未知文件
+  excel: FileSpreadsheet, // Excel 文件
+  yaml: FileCode, // YAML 文件
+  template: FileText, // 模板文件
+  output: FileCheck, // 输出文件
+  word: FileText, // Word 文件
+  text: FileText, // 文本文件
+  config: Settings, // 配置文件
+  unknown: FileText, // 未知文件
 } as const
 
 // ========== 输出目录类型图标配置 ==========
 
 export const OUTPUT_DIR_ICONS = {
-  output: Settings,          // 配置输出
-  'output-sn': Tag,          // SN配置
-  yaml: FileCode,            // YAML输出
-  'yaml-sn': FileCheck,      // YAML+SN
+  output: Settings, // 配置输出
+  'output-sn': Tag, // SN配置
+  yaml: FileCode, // YAML输出
+  'yaml-sn': FileCheck, // YAML+SN
 } as const
 
 // ========== 空状态图标配置 ==========
 
 export const EMPTY_STATE_ICONS = {
-  project: FolderOpen,       // 项目空状态
-  file: FileText,            // 文件空状态
-  search: Search,            // 搜索空状态
-  config: ClipboardList,     // 配置空状态
-  excel: FileSpreadsheet,    // Excel空状态
-  output: FileOutput,        // 输出空状态
+  project: FolderOpen, // 项目空状态
+  file: FileText, // 文件空状态
+  search: Search, // 搜索空状态
+  config: ClipboardList, // 配置空状态
+  excel: FileSpreadsheet, // Excel空状态
+  output: FileOutput, // 输出空状态
 } as const
 
 // ========== 操作图标配置 ==========
