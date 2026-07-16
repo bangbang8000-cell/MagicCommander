@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import Editor, { type OnMount } from '@monaco-editor/react'
 import { useEditorStore, type EditorTab } from '@/stores/editor.store'
 import { useUIStore } from '@/stores/ui.store'
@@ -48,6 +49,7 @@ export function MonacoEditor({ tab }: MonacoEditorProps) {
   const setCursorPosition = useUIStore((s) => s.setCursorPosition)
   const isDark = useUIStore((s) => s.isDark)
   const syncScroll = useUIStore((s) => s.syncScroll)
+  const { t } = useTranslation('project')
   const monacoRef = useRef<any>(null)
   const [content, setContent] = useState<string>('')
   const [loading, setLoading] = useState(true)
@@ -144,9 +146,9 @@ export function MonacoEditor({ tab }: MonacoEditorProps) {
     try {
       await window.electron.project.writeFile(Number(tab.projectId), tab.filePath, content, tab.projectName)
       markDirty(tab.id, false)
-      showSuccess(`已保存: ${tab.title}`)
+      showSuccess(t('editor.saveSuccess', { name: tab.title }))
     } catch (err) {
-      showError(`保存失败: ${(err as Error).message}`)
+      showError(t('editor.saveFailed', { message: (err as Error).message }))
     }
   }, [tab.filePath, tab.id, tab.projectId, tab.title, content, markDirty])
 
@@ -294,7 +296,7 @@ export function MonacoEditor({ tab }: MonacoEditorProps) {
         <div
           className={`absolute inset-0 flex items-center justify-center text-sm z-10 pointer-events-none ${isDark ? 'text-gray-500' : 'text-gray-400'}`}
         >
-          加载中...
+          {t('editor.loading')}
         </div>
       )}
       {!loading && error && (

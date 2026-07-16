@@ -88,7 +88,7 @@ export const LabelPanel = React.memo(function LabelPanel() {
           loading={isLabelPrinting}
           className="w-full justify-start"
         >
-          生成Markdown标签
+          {t('label.generateMarkdown')}
         </Button>
         <Button
           variant="secondary"
@@ -98,7 +98,7 @@ export const LabelPanel = React.memo(function LabelPanel() {
           disabled={!selectedProject || isLabelPrinting}
           className="w-full justify-start"
         >
-          导出Word标签
+          {t('label.exportWord')}
         </Button>
         <Button
           variant="secondary"
@@ -108,7 +108,7 @@ export const LabelPanel = React.memo(function LabelPanel() {
           disabled={!selectedProject || isLabelPrinting}
           className="w-full justify-start"
         >
-          导出PDF标签
+          {t('label.exportPdf')}
         </Button>
         <Button
           variant="secondary"

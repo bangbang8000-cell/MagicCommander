@@ -139,7 +139,10 @@
     "unknownError": "Unknown error",
     "checkButton": "Check for Updates",
     "downloadButton": "Download Update",
-    "installButton": "Restart and Install"
+    "installButton": "Restart and Install",
+    "later": "Later",
+    "restart": "Restart Now",
+    "restartHint": "The new version will take effect after restart."
   },
   "errorBoundary": {
     "title": "Page Load Failed",

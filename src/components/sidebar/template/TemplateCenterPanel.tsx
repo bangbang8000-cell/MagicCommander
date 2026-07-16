@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useProjectStore } from '@/stores/project.store'
 import { useUIStore } from '@/stores/ui.store'
 import { showError, showSuccess } from '@/components/ui/Toast'
@@ -14,6 +15,7 @@ type TemplateCenterPanelProps = {
 }
 
 export function TemplateCenterPanel({ onCreateProjectName }: TemplateCenterPanelProps) {
+  const { t } = useTranslation('project')
   const templates = useProjectStore((s) => s.templates)
   const fetchTemplates = useProjectStore((s) => s.fetchTemplates)
   const createProject = useProjectStore((s) => s.createProject)
@@ -28,7 +30,7 @@ export function TemplateCenterPanel({ onCreateProjectName }: TemplateCenterPanel
   const [editingTemplate, setEditingTemplate] = useState<TemplateInfo | null>(null)
 
   useEffect(() => {
-    fetchTemplates().catch((err) => showError(`读取模板失败: ${(err as Error).message}`))
+    fetchTemplates().catch((err) => showError(t('template.readFailed', { message: (err as Error).message })))
   }, [fetchTemplates])
 
   const visibleTemplates = useMemo(() => {
@@ -47,11 +49,11 @@ export function TemplateCenterPanel({ onCreateProjectName }: TemplateCenterPanel
 
   const createFromTemplate = async (template: TemplateInfo) => {
     const defaultName = onCreateProjectName ? onCreateProjectName(template.name) : `${template.name}-project`
-    const name = window.prompt('请输入新项目名称', defaultName)
+    const name = window.prompt(t('template.enterProjectName'), defaultName)
     if (!name?.trim()) return
     try {
       await createProject(name.trim(), { template: template.id })
-      showSuccess(`已从模板创建项目: ${name.trim()}`)
+      showSuccess(t('template.createFromTemplate', { name: name.trim() }))
     } catch (err) {
       showError((err as Error).message)
     }
@@ -60,7 +62,7 @@ export function TemplateCenterPanel({ onCreateProjectName }: TemplateCenterPanel
   const editTemplate = async (template: TemplateInfo, meta: Partial<TemplateMeta>) => {
     try {
       await updateTemplateMeta(template.id, meta)
-      showSuccess('模板信息已更新')
+      showSuccess(t('template.updated'))
     } catch (err) {
       showError((err as Error).message)
       throw err
@@ -68,11 +70,11 @@ export function TemplateCenterPanel({ onCreateProjectName }: TemplateCenterPanel
   }
 
   const removeTemplate = async (template: TemplateInfo) => {
-    if (!window.confirm(`确认删除模板"${template.name}"？`)) return
+    if (!window.confirm(t('template.confirmDelete', { name: template.name }))) return
     try {
       await deleteTemplate(template.id)
       if (selectedTemplateId === template.id) setSelectedTemplateId(null)
-      showSuccess('模板已删除')
+      showSuccess(t('template.deleted'))
     } catch (err) {
       showError((err as Error).message)
     }
@@ -94,7 +96,7 @@ export function TemplateCenterPanel({ onCreateProjectName }: TemplateCenterPanel
           style={{ maxHeight: `${templateListHeight}px` }}
         >
           {visibleTemplates.length === 0 ? (
-            <div className="text-xs text-gray-500 dark:text-gray-400 p-2">暂无模板</div>
+            <div className="text-xs text-gray-500 dark:text-gray-400 p-2">{t('template.noTemplates')}</div>
           ) : (
             visibleTemplates.map((template) => (
               <TemplateCard

@@ -1,4 +1,5 @@
 import clsx from 'clsx'
+import { useTranslation } from 'react-i18next'
 
 type WorkbenchResultCardProps = {
   isRendering: boolean
@@ -9,6 +10,7 @@ type WorkbenchResultCardProps = {
 }
 
 export function WorkbenchResultCard({ isRendering, progress, currentMessage, errors, isDark }: WorkbenchResultCardProps) {
+  const { t } = useTranslation('project')
   if (!isRendering && errors.length === 0) return null
 
   return (
@@ -16,7 +18,7 @@ export function WorkbenchResultCard({ isRendering, progress, currentMessage, err
       {isRendering && (
         <div className="space-y-1.5">
           <div className={clsx('flex justify-between text-[10px]', isDark ? 'text-gray-400' : 'text-gray-600')}>
-            <span className="truncate">{currentMessage || '处理中...'}</span>
+            <span className="truncate">{currentMessage || t('workbench.processing')}</span>
             <span>{progress}%</span>
           </div>
           <div className={clsx('w-full rounded-full h-1.5', isDark ? 'bg-gray-700' : 'bg-gray-200')}>

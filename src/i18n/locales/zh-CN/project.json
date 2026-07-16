@@ -55,7 +55,65 @@
     "exampleTemplateDesc": "从示例参数文件开始，包含常用参数模板",
     "emptyProject": "空白项目",
     "emptyProjectDesc": "创建一个空项目，从空白开始",
-    "deleteConfirmMessage": "确定要删除项目 \"{{name}}\" 吗？此操作无法撤销。"
+    "deleteConfirmMessage": "确定要删除项目 \"{{name}}\" 吗？此操作无法撤销。",
+    "saveAsTemplate": "存为模板",
+    "saveAsTemplateDesc": "将当前项目 <span>{{name}}</span> 保存到 template 目录，运行输出目录不会复制。",
+    "saveAsTemplateName": "模板名称",
+    "saveAsTemplateButton": "保存",
+    "templateCenter": "模板中心",
+    "noExampleAvailable": "没有可用示例",
+    "readExampleFailed": "读取示例模板失败: {{message}}",
+    "savedAsTemplate": "已保存为模板: {{name}}",
+    "deletedProjects": "已删除 {{count}} 个项目",
+    "exampleDesc": "从 example 目录选择一个示例项目复制到 workspace"
+  },
+  "template": {
+    "noTemplates": "暂无模板",
+    "readFailed": "读取模板失败: {{message}}",
+    "createFromTemplate": "已从模板创建项目: {{name}}",
+    "updated": "模板信息已更新",
+    "confirmDelete": "确认删除模板\"{{name}}\"？",
+    "deleted": "模板已删除",
+    "enterProjectName": "请输入新项目名称",
+    "card": {
+      "createProject": "从模板建立项目",
+      "editInfo": "编辑模板信息",
+      "deleteTemplate": "删除模板",
+      "noScenario": "未设置场景",
+      "noDescription": "暂无简介",
+      "sourceProject": "来源项目：{{name}}",
+      "unknown": "未知"
+    },
+    "detail": {
+      "selectHint": "请选择一个模板查看详情",
+      "noDescription": "暂无简介",
+      "scenario": "适用场景",
+      "sourceProject": "来源项目",
+      "structure": "结构摘要",
+      "inputRequirements": "输入要求",
+      "outputDescription": "输出说明",
+      "fileStructure": "文件结构",
+      "notSet": "未设置",
+      "unknown": "未知"
+    },
+    "edit": {
+      "title": "编辑模板信息",
+      "namePlaceholder": "模板名称",
+      "descPlaceholder": "模板简介",
+      "scenarioPlaceholder": "适用场景",
+      "sourcePlaceholder": "来源项目",
+      "inputPlaceholder": "输入要求，每行一项",
+      "outputPlaceholder": "输出说明",
+      "cancel": "取消",
+      "save": "保存"
+    },
+    "list": {
+      "searchPlaceholder": "搜索模板",
+      "sortByName": "按名称",
+      "sortByUpdated": "按更新时间",
+      "sortBySource": "按来源项目",
+      "toggleView": "切换视图"
+    }
   },
   "search": {
     "title": "搜索",
@@ -172,7 +230,31 @@
     "paperSize": "纸张大小",
     "orientation": "方向",
     "portrait": "纵向",
-    "landscape": "横向"
+    "landscape": "横向",
+    "executeAction": "执行动作",
+    "batchRender": "批量渲染 ({{count}})",
+    "renderCurrentOnly": "仅渲染当前项目",
+    "dryRunPreview": "预览渲染结果",
+    "deleteOutput": "删除输出",
+    "deleteYaml": "删除 YAML",
+    "readyStatus": "准备状态",
+    "excelDesc": "项目配置表",
+    "templateDesc": "模板目录",
+    "paraDesc": "参数文件",
+    "outputDesc": "输出目录",
+    "yamlDesc": "YAML 文件",
+    "openPara": "打开 para",
+    "validateTemplate": "校验模板",
+    "validateData": "校验数据",
+    "validationResult": "校验结果",
+    "clear": "清除",
+    "readyHint": "请选择一个项目查看准备状态",
+    "outputSettings": "输出设置",
+    "scope": "目标范围",
+    "openProjectDir": "打开项目目录",
+    "scopeHint": "请在项目浏览器中选择一个项目",
+    "selectedCount": "已选 {{selected}} / {{total}} 个项目",
+    "processing": "处理中..."
   },
   "config": {
     "title": "配置",
@@ -241,7 +323,38 @@
     "labelPreview": "标签预览",
     "totalLabels": "共 {{count}} 个标签",
     "labelIndex": "标签 {{index}}",
-    "noPreviewData": "没有可预览的标签数据"
+    "noPreviewData": "没有可预览的标签数据",
+    "generateMarkdown": "生成Markdown标签",
+    "exportWord": "导出Word标签",
+    "exportPdf": "导出PDF标签"
+  },
+  "projectBatch": {
+    "selectAll": "全选",
+    "batchRender": "批量渲染",
+    "delete": "删除"
+  },
+  "projectList": {
+    "searchPlaceholder": "搜索项目",
+    "sortByName": "按名称排序",
+    "sortByDate": "按最近创建排序",
+    "newProject": "新建项目",
+    "saveAsTemplate": "当前项目另存为模板"
+  },
+  "excel": {
+    "loading": "正在加载 Excel 文件...",
+    "loadFailed": "读取 Excel 失败",
+    "retry": "重试",
+    "timeout": "读取 Excel 超时（10秒）",
+    "readFailedMsg": "读取 Excel 失败: {{message}}",
+    "saveSuccess": "已保存: {{name}}",
+    "saveFailed": "保存失败: {{message}}",
+    "noData": "无数据",
+    "rows": "{{count}}行"
+  },
+  "editor": {
+    "loading": "加载中...",
+    "saveSuccess": "已保存: {{name}}",
+    "saveFailed": "保存失败: {{message}}"
   },
   "render": {
     "title": "渲染",

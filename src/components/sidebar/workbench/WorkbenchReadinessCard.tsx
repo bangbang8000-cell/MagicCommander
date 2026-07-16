@@ -1,5 +1,6 @@
 import { FileCode, CheckCircle2, XCircle, AlertCircle, ShieldCheck, Check } from 'lucide-react'
 import clsx from 'clsx'
+import { useTranslation } from 'react-i18next'
 import type { ValidationResult } from '@/types/render'
 
 type WorkbenchReadinessCardProps = {
@@ -25,20 +26,21 @@ export function WorkbenchReadinessCard({
   onValidateExcel,
   onClearValidation,
 }: WorkbenchReadinessCardProps) {
+  const { t } = useTranslation('project')
   const structure = projectInfo?.structure
 
   const items = [
-    { key: 'excel', label: 'Excel', description: '项目配置表' },
-    { key: 'templates', label: 'Templates', description: '模板目录' },
-    { key: 'para', label: 'para.xlsx', description: '参数文件' },
-    { key: 'output', label: 'Output', description: '输出目录' },
-    { key: 'yaml', label: 'YAML', description: 'YAML 文件' },
+    { key: 'excel', label: 'Excel', description: t('workbench.excelDesc') },
+    { key: 'templates', label: 'Templates', description: t('workbench.templateDesc') },
+    { key: 'para', label: 'para.xlsx', description: t('workbench.paraDesc') },
+    { key: 'output', label: 'Output', description: t('workbench.outputDesc') },
+    { key: 'yaml', label: 'YAML', description: t('workbench.yamlDesc') },
   ]
 
   return (
     <div className="space-y-2">
       <h4 className={clsx('text-xs font-semibold flex items-center gap-1', isDark ? 'text-gray-200' : 'text-gray-700')}>
-        <AlertCircle size={12} /> 准备状态
+        <AlertCircle size={12} /> {t('workbench.readyStatus')}
       </h4>
 
       {selectedProject ? (
@@ -75,7 +77,7 @@ export function WorkbenchReadinessCard({
                 isDark ? 'text-gray-400 hover:text-gray-200 hover:bg-gray-700' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100',
               )}
             >
-              <FileCode size={10} /> 打开 para
+              <FileCode size={10} /> {t('workbench.openPara')}
             </button>
             <button
               onClick={onValidateTemplate}
@@ -85,7 +87,7 @@ export function WorkbenchReadinessCard({
                 isDark ? 'text-gray-400 hover:text-gray-200 hover:bg-gray-700' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100',
               )}
             >
-              <ShieldCheck size={10} /> 校验模板
+              <ShieldCheck size={10} /> {t('workbench.validateTemplate')}
             </button>
             <button
               onClick={onValidateExcel}
@@ -95,7 +97,7 @@ export function WorkbenchReadinessCard({
                 isDark ? 'text-gray-400 hover:text-gray-200 hover:bg-gray-700' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100',
               )}
             >
-              <ShieldCheck size={10} /> 校验数据
+              <ShieldCheck size={10} /> {t('workbench.validateData')}
             </button>
           </div>
 
@@ -103,13 +105,13 @@ export function WorkbenchReadinessCard({
             <div className="mt-2 space-y-1">
               <div className="flex items-center justify-between">
                 <span className={clsx('text-[10px] font-medium', isDark ? 'text-gray-400' : 'text-gray-500')}>
-                  校验结果
+                  {t('workbench.validationResult')}
                 </span>
                 <button
                   onClick={onClearValidation}
                   className={clsx('text-[10px]', isDark ? 'text-gray-500 hover:text-gray-300' : 'text-gray-400 hover:text-gray-600')}
                 >
-                  清除
+                  {t('workbench.clear')}
                 </button>
               </div>
               {validationResults.map((r, i) => (
@@ -153,7 +155,7 @@ export function WorkbenchReadinessCard({
           )}
         </div>
       ) : (
-        <div className={isDark ? 'text-xs text-gray-500' : 'text-xs text-gray-400'}>请选择一个项目查看准备状态</div>
+        <div className={isDark ? 'text-xs text-gray-500' : 'text-xs text-gray-400'}>{t('workbench.readyHint')}</div>
       )}
     </div>
   )

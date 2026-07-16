@@ -2,7 +2,7 @@
 
 **批量生成网络设备配置 | Network Device Configuration Automation**
 
-[![Version](https://img.shields.io/badge/version-3.0.4-blue)](https://github.com/bangbang8000-cell/MagicCommander)
+[![Version](https://img.shields.io/badge/version-3.1.0-blue)](https://github.com/bangbang8000-cell/MagicCommander)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![Windows](https://img.shields.io/badge/Windows-NSIS-blue)](https://github.com/bangbang8000-cell/MagicCommander/releases)
 [![macOS](https://img.shields.io/badge/macOS-DMG-silver)](https://github.com/bangbang8000-cell/MagicCommander/releases)
@@ -69,6 +69,14 @@ MagicCommander 是本地桌面软件（Electron + React + TypeScript），所有
 ### 专业 Jinja2 编辑器
 
 内建 Monaco Editor（VS Code 同款编辑器），支持 Jinja2 语法高亮、代码补全、多标签页管理，模板编写体验不输专业 IDE。
+
+### 模板中心，快速启动项目
+
+从内置示例模板（交换机 ASW/PSW/DOA 配置）一键创建新项目，自动生成标准目录结构（templates / excel / output / yaml）。也可以将现有项目保存为模板，团队复用。
+
+### 渲染预演与校验，配置零差错
+
+渲染前支持 **dry-run 预演**——预览生成结果但不写入文件，确认无误再正式渲染。内置 **Jinja2 语法校验**和 **Excel 数据校验**，提前发现模板错误和参数缺失，避免渲染到一半才报错。渲染结果支持 **diff 对比**，变更一目了然。
 
 ---
 
@@ -155,6 +163,7 @@ Electron 28 · React 18 · TypeScript 5 · Vite 5 · TailwindCSS 3 · Zustand 4 
 
 | 版本 | 日期 | 更新内容 |
 |------|------|---------|
+| **3.1.0 Build 26071702** | 2026-07-17 | Phase 1 体验升级：模板中心（示例模板 + 从模板创建项目）、dry-run 渲染预演、Jinja2 语法校验、Excel 数据校验、diff 对比、搜索增强（输出文件类型过滤）、ResizeHandle 拖拽修复 |
 | **3.0.4 Build 26071602** | 2026-07-16 | Phase 0 质量基线：Jinja2 语法高亮（Monaco Editor + vscode-textmate）、Markdown 标签生成与 PDF 导出、输出目录统一重构（output-label/时间戳/）、搜索面板 Markdown 类型过滤、中栏项目浏览器布局优化（多选批量操作、拖拽分栏、排序切换） |
 | **3.0.3 Build 26071601** | 2026-07-16 | 完成 Phase 0 质量基线：渲染缓存/撤销、Python CLI 统一入口、结构化日志、ESLint/Prettier 配置、26 个自动化测试 |
 | **3.0.1 Build 26071402** | 2026-07-14 | 修复文件菜单新建项目弹窗触发、示例模板列表、项目渲染 Python 失败、另存为示例 API 缺失等问题，并同步 Electron 构建产物 |

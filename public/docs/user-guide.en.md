@@ -59,8 +59,22 @@ MagicCommander is a professional network device configuration management tool th
 ### Project Management
 
 - Create new projects
+- Create from template (Template Center)
 - Open/delete projects
 - Open project directory in file manager
+- Save project as template
+
+### Template Center
+
+The Template Center provides built-in example templates to help you quickly start projects:
+
+1. Click the activity bar to switch to **Template Center**
+2. Browse available templates (e.g. ASW/PSW/DOA switch configuration templates)
+3. Click "Create Project from Template" and enter a project name
+4. The system automatically generates the standard directory structure (templates / excel / output / yaml)
+
+You can also save existing projects as templates for team reuse:
+- Right-click a project → **Save as Template**
 
 ### Parameter Configuration
 
@@ -85,6 +99,30 @@ Supported variables:
 - `{% for item in list %}...{% endfor %}` - Loop
 - `{% if condition %}...{% endif %}` - Conditional
 
+### Dry-Run Preview
+
+Preview generated results before actual rendering:
+
+1. In the **Workbench** panel, click the **eye icon** next to a project
+2. The system renders templates without writing files, showing the configuration content for each device in real-time
+3. After confirming, click **Start Rendering** for actual output
+
+### Template & Data Validation
+
+Check template and data quality before rendering:
+
+- **Jinja2 Template Validation**: Click the **Validate Template** button in the Workbench. The system parses all `.j2` template files to detect syntax errors early
+- **Excel Data Validation**: Click **Validate Parameters** to check Excel file existence, empty sheets, and column naming
+- Results are color-coded: green (pass) / yellow (warning) / red (error)
+
+### Diff Comparison
+
+Compare dry-run results with existing output files:
+
+1. After running dry-run, expand device entries in the results
+2. Click the **Diff** button
+3. The system displays differences in unified diff format (green=added, red=deleted)
+
 ### Output Types
 
 | Type | Description |
@@ -93,6 +131,23 @@ Supported variables:
 | SN Config | Configuration with serial number |
 | YAML Output | YAML format configuration |
 | YAML+SN | YAML format with serial number |
+
+### Search & Filtering
+
+- **Global Search** (Ctrl+Shift+F): Search project files by name and content
+- **File Type Filtering**: Filter by output files (.txt/.cfg), text files (.csv/.json/.html/.py/.log), etc.
+- Search results support click-to-navigate to file editing
+
+### Label Printing
+
+Automatically generate device labels from parameter tables:
+
+1. Switch to the **Label Print** panel
+2. Select the project for label generation
+3. Click **Generate Labels**, the system outputs:
+   - Markdown format labels (`output-label-md/`)
+   - Word format labels (`output-label/`)
+4. Supports exporting to Word (.docx) and PDF formats
 
 ---
 

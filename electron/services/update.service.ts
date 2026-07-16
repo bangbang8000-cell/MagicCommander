@@ -21,7 +21,7 @@ export class UpdateService {
   }
 
   private setupAutoUpdater(): void {
-    autoUpdater.autoDownload = false
+    autoUpdater.autoDownload = true
     autoUpdater.autoInstallOnAppQuit = true
     autoUpdater.allowPrerelease = false
 

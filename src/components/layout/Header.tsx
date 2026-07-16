@@ -24,8 +24,9 @@ import {
   Languages,
 } from 'lucide-react'
 import clsx from 'clsx'
-import { Modal } from '@/components/ui/Modal'
 import { MarkdownViewer } from '@/components/common/MarkdownViewer'
+import { AboutDialog } from '@/components/dialogs/AboutDialog'
+import { Modal } from '@/components/ui/Modal'
 import type { UpdateStatus } from '@/types/ipc'
 
 interface MenuItem {
@@ -64,6 +65,7 @@ export function Header() {
   const [langMenuOpen, setLangMenuOpen] = useState(false)
   const [updateStatus, setUpdateStatus] = useState<UpdateStatus | null>(null)
   const [updateBusy, setUpdateBusy] = useState(false)
+  const [restartPromptOpen, setRestartPromptOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
   const langMenuRef = useRef<HTMLDivElement>(null)
 
@@ -72,6 +74,10 @@ export function Header() {
     return window.electron.app.onUpdateStatus((status) => {
       setUpdateStatus(status)
       setUpdateBusy(status.status === 'checking' || status.status === 'downloading')
+      // 自动下载完成后，弹出重启提示
+      if (status.status === 'downloaded') {
+        setRestartPromptOpen(true)
+      }
     })
   }, [])
 
@@ -138,26 +144,6 @@ export function Header() {
   const handleInstallUpdate = async () => {
     if (!window.electron?.app?.quitAndInstall) return
     await window.electron.app.quitAndInstall()
-  }
-
-  const getUpdateMessage = () => {
-    if (!updateStatus) return t('updates.idle')
-    switch (updateStatus.status) {
-      case 'checking':
-        return t('updates.checking')
-      case 'available':
-        return t('updates.available', { version: updateStatus.version || '' })
-      case 'not-available':
-        return t('updates.notAvailable')
-      case 'downloading':
-        return t('updates.downloading', { progress: updateStatus.progress ?? 0 })
-      case 'downloaded':
-        return t('updates.downloaded')
-      case 'error':
-        return t('updates.error', { error: updateStatus.error || t('updates.unknownError') })
-      default:
-        return t('updates.idle')
-    }
   }
 
   const handleNewProject = () => {
@@ -425,122 +411,48 @@ export function Header() {
       </div>
 
       {/* 关于弹窗 */}
-      <Modal
+      <AboutDialog
         open={aboutOpen}
         onClose={() => setAboutOpen(false)}
-        title={t('app.about')}
-        width="420px"
+        version={version}
+        displayVersion={buildInfo.displayVersion}
+        build={buildInfo.build}
+        updateStatus={updateStatus}
+        updateBusy={updateBusy}
+        onCheckUpdate={handleCheckUpdate}
+        onDownloadUpdate={handleDownloadUpdate}
+        onInstallUpdate={handleInstallUpdate}
+      />
+
+      {/* 更新下载完成重启提示 */}
+      <Modal
+        open={restartPromptOpen}
+        onClose={() => setRestartPromptOpen(false)}
+        title={t('updates.title')}
+        width="360px"
         footer={
-          <button
-            onClick={() => setAboutOpen(false)}
-            className="px-4 py-1.5 text-sm rounded-md border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-          >
-            {t('app.close')}
-          </button>
+          <div className="flex gap-2 justify-end">
+            <button
+              onClick={() => setRestartPromptOpen(false)}
+              className="px-3 py-1.5 text-sm rounded-md border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+            >
+              {t('updates.later')}
+            </button>
+            <button
+              onClick={handleInstallUpdate}
+              className="px-3 py-1.5 text-sm rounded-md bg-primary-500 text-white hover:bg-primary-600 transition-colors"
+            >
+              {t('updates.restart')}
+            </button>
+          </div>
         }
       >
-        <div className="space-y-4">
-          {/* Logo 和标题 */}
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-lg flex items-center justify-center text-xl font-bold bg-primary-500 text-white">
-              M
-            </div>
-            <div>
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">MagicCommander</h2>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                {t('app.version')} {buildInfo.displayVersion || version}
-              </p>
-            </div>
-          </div>
-
-          {/* 简介 */}
-          <p className="text-sm leading-relaxed text-gray-600 dark:text-gray-300">{t('about.description')}</p>
-
-          {/* 功能特性 */}
-          <div className="space-y-2">
-            <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">{t('about.keyFeatures')}</h3>
-            <ul className="text-sm space-y-1.5 text-gray-600 dark:text-gray-400">
-              <li className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-primary-500 shrink-0"></span>
-                {t('about.feature1')}
-              </li>
-              <li className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-primary-500 shrink-0"></span>
-                {t('about.feature2')}
-              </li>
-              <li className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-primary-500 shrink-0"></span>
-                {t('about.feature3')}
-              </li>
-              <li className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-primary-500 shrink-0"></span>
-                {t('about.feature4')}
-              </li>
-              <li className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-primary-500 shrink-0"></span>
-                {t('about.feature5')}
-              </li>
-            </ul>
-          </div>
-
-          {/* 更新检查 */}
-          <div className="space-y-3 pt-3 border-t border-gray-200 dark:border-gray-700">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">{t('updates.title')}</h3>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{getUpdateMessage()}</p>
-              </div>
-              <button
-                onClick={handleCheckUpdate}
-                disabled={updateBusy}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-md border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                <RefreshCw size={13} className={clsx(updateBusy && 'animate-spin')} />
-                {t('updates.checkButton')}
-              </button>
-            </div>
-
-            {updateStatus?.status === 'downloading' && (
-              <div className="h-2 rounded-full bg-gray-100 dark:bg-gray-700 overflow-hidden">
-                <div
-                  className="h-full bg-primary-500 transition-all"
-                  style={{ width: `${Math.min(100, Math.max(0, updateStatus.progress ?? 0))}%` }}
-                />
-              </div>
-            )}
-
-            {updateStatus?.status === 'available' && (
-              <button
-                onClick={handleDownloadUpdate}
-                className="w-full px-3 py-1.5 text-xs rounded-md bg-primary-500 text-white hover:bg-primary-600 transition-colors"
-              >
-                {t('updates.downloadButton')}
-              </button>
-            )}
-
-            {updateStatus?.status === 'downloaded' && (
-              <button
-                onClick={handleInstallUpdate}
-                className="w-full px-3 py-1.5 text-xs rounded-md bg-green-600 text-white hover:bg-green-700 transition-colors"
-              >
-                {t('updates.installButton')}
-              </button>
-            )}
-
-            {updateStatus?.status === 'available' && updateStatus.releaseNotes && (
-              <div className="max-h-24 overflow-auto rounded-md bg-gray-50 dark:bg-gray-800 px-3 py-2 text-xs text-gray-600 dark:text-gray-300 whitespace-pre-wrap">
-                {Array.isArray(updateStatus.releaseNotes)
-                  ? updateStatus.releaseNotes.join('\n')
-                  : updateStatus.releaseNotes}
-              </div>
-            )}
-          </div>
-
-          {/* 技术栈 */}
-          <div className="text-xs text-center pt-3 border-t border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400">
-            Electron + React + TypeScript + Vite + Zustand
-          </div>
-        </div>
+        <p className="text-sm text-gray-600 dark:text-gray-300">
+          {t('updates.downloaded')}
+        </p>
+        <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+          {t('updates.restartHint')}
+        </p>
       </Modal>
 
       {/* 使用指南弹窗 */}

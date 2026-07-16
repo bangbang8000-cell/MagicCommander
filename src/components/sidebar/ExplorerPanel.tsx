@@ -80,7 +80,7 @@ export function ExplorerPanel() {
       setExampleTemplates([])
       setSelectedExampleTemplate('')
       setTemplateOption('empty')
-      showError(`读取示例模板失败: ${(err as Error).message}`)
+      showError(t('explorer.readExampleFailed', { message: (err as Error).message }))
     }
     setCreateOpen(true)
   }
@@ -193,7 +193,7 @@ export function ExplorerPanel() {
     if (selectedIds.size === 0) return
     try {
       await deleteProjects(Array.from(selectedIds).map(String))
-      showSuccess(`已删除 ${selectedIds.size} 个项目`)
+      showSuccess(t('explorer.deletedProjects', { count: selectedIds.size }))
       await fetchProjects()
       setSelectedIdsLocal(new Set())
     } catch (err) {
@@ -234,7 +234,7 @@ export function ExplorerPanel() {
               : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300',
           )}
         >
-          模板中心
+          {t('explorer.templateCenter')}
         </button>
       </div>
 
@@ -467,7 +467,7 @@ export function ExplorerPanel() {
                     {t('explorer.useExampleTemplate')}
                   </div>
                   <div className="text-xs mt-0.5 text-gray-500 dark:text-gray-400">
-                    从 example 目录选择一个示例项目复制到 workspace
+                    <span dangerouslySetInnerHTML={{ __html: t('explorer.exampleDesc') }} />
                   </div>
                   <select
                     value={selectedExampleTemplate}
@@ -538,7 +538,7 @@ export function ExplorerPanel() {
       <Modal
         open={saveTemplateOpen}
         onClose={() => !saveTemplateLoading && setSaveTemplateOpen(false)}
-        title="存为模板"
+        title={t('explorer.saveAsTemplate')}
         width="400px"
         footer={
           <>
@@ -554,18 +554,15 @@ export function ExplorerPanel() {
               disabled={saveTemplateLoading}
               className="px-4 py-1.5 text-sm rounded-md bg-primary-600 text-white hover:bg-primary-700 disabled:opacity-50"
             >
-              保存
+              {t('explorer.saveAsTemplateButton')}
             </button>
           </>
         }
       >
         <div className="space-y-3">
-          <p className="text-sm text-gray-700 dark:text-gray-200">
-            将当前项目 <span className="font-semibold">{selectedProject?.name}</span> 保存到 template
-            目录，运行输出目录不会复制。
-          </p>
+          <span dangerouslySetInnerHTML={{ __html: t('explorer.saveAsTemplateDesc', { name: selectedProject?.name }) }} />
           <div>
-            <label className="block text-xs font-medium mb-1.5 text-gray-700 dark:text-gray-300">模板名称</label>
+            <label className="block text-xs font-medium mb-1.5 text-gray-700 dark:text-gray-300">{t('explorer.saveAsTemplateName')}</label>
             <input
               type="text"
               value={newTemplateName}

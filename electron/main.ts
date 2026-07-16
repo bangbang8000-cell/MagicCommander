@@ -21,6 +21,7 @@ class MagicCommanderApp {
     Menu.setApplicationMenu(null)
     setupIpcHandlers(this.mainWindow!)
     this.setupUpdateService()
+    this.startupUpdateCheck()
     this.registerAppEvents()
   }
 
@@ -52,6 +53,15 @@ class MagicCommanderApp {
         this.mainWindow.webContents.send('language-changed', lang)
       }
     })
+  }
+
+  private startupUpdateCheck(): void {
+    // 启动后延迟 3 秒自动静默检查更新
+    setTimeout(() => {
+      updateService.checkForUpdates().catch((err) => {
+        logger.debug('Startup update check failed:', err.message)
+      })
+    }, 3000)
   }
 
   private createMainWindow(): void {

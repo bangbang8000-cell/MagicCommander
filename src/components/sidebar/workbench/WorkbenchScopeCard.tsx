@@ -1,5 +1,6 @@
 import { FolderOpen, ExternalLink, X } from 'lucide-react'
 import clsx from 'clsx'
+import { useTranslation } from 'react-i18next'
 import type { ProjectInfo, ProjectStatus } from '@/types/project'
 
 type WorkbenchScopeCardProps = {
@@ -23,23 +24,24 @@ export function WorkbenchScopeCard({
   onToggleProject,
   onOpenFolder,
 }: WorkbenchScopeCardProps) {
+  const { t } = useTranslation('project')
   return (
     <div className="space-y-2">
       <h4 className={clsx('text-xs font-semibold flex items-center gap-1', isDark ? 'text-gray-200' : 'text-gray-700')}>
-        <FolderOpen size={12} /> 目标范围
+        <FolderOpen size={12} /> {t('workbench.scope')}
       </h4>
 
       {selectedProject ? (
         <div className={clsx('rounded border p-2 text-xs space-y-1', isDark ? 'bg-gray-800/60 border-gray-700' : 'bg-gray-50 border-gray-200')}>
           <div className="flex justify-between">
-            <span className={isDark ? 'text-gray-400' : 'text-gray-500'}>当前项目</span>
+            <span className={isDark ? 'text-gray-400' : 'text-gray-500'}>{t('workbench.currentProject')}</span>
             <span className={clsx('font-medium', isDark ? 'text-gray-200' : 'text-gray-700')}>
               {selectedProject.name}
             </span>
           </div>
           {projectInfo?.path && (
             <div className="flex justify-between">
-              <span className={isDark ? 'text-gray-400' : 'text-gray-500'}>路径</span>
+              <span className={isDark ? 'text-gray-400' : 'text-gray-500'}>{t('workbench.path')}</span>
               <span className={clsx('font-medium text-[10px] truncate max-w-[140px]', isDark ? 'text-gray-200' : 'text-gray-700')}>
                 {projectInfo.path}
               </span>
@@ -52,18 +54,18 @@ export function WorkbenchScopeCard({
               isDark ? 'text-gray-400 hover:text-gray-200 hover:bg-gray-700' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100',
             )}
           >
-            <ExternalLink size={10} /> 打开项目目录
+            <ExternalLink size={10} /> {t('workbench.openProjectDir')}
           </button>
         </div>
       ) : (
-        <div className={isDark ? 'text-xs text-gray-500' : 'text-xs text-gray-400'}>请在项目浏览器中选择一个项目</div>
+        <div className={isDark ? 'text-xs text-gray-500' : 'text-xs text-gray-400'}>{t('workbench.scopeHint')}</div>
       )}
 
       {projects.length > 0 && (
         <div className="space-y-1">
           <div className="flex items-center justify-between">
             <span className={clsx('text-[10px]', isDark ? 'text-gray-400' : 'text-gray-500')}>
-              已选 {selectedProjectIds.length} / {projects.length} 个项目
+              {t('workbench.selectedCount', { selected: selectedProjectIds.length, total: projects.length })}
             </span>
           </div>
           <div className={clsx('flex flex-wrap gap-1 max-h-24 overflow-auto', isDark ? 'text-gray-300' : 'text-gray-700')}>

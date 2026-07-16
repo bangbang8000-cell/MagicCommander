@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { Grid2X2, List, Search } from 'lucide-react'
 
 type TemplateListToolbarProps = {
@@ -17,6 +18,7 @@ export function TemplateListToolbar({
   onSortChange,
   onViewModeChange,
 }: TemplateListToolbarProps) {
+  const { t } = useTranslation('project')
   return (
     <div className="p-2 border-b border-gray-200 dark:border-gray-700 space-y-2">
       <div className="relative">
@@ -24,7 +26,7 @@ export function TemplateListToolbar({
         <input
           value={query}
           onChange={(event) => onQueryChange(event.target.value)}
-          placeholder="搜索模板"
+          placeholder={t('template.list.searchPlaceholder')}
           className="w-full pl-7 pr-2 py-1 text-xs rounded border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 outline-none focus:border-primary-400"
         />
       </div>
@@ -34,14 +36,14 @@ export function TemplateListToolbar({
           onChange={(event) => onSortChange(event.target.value as 'name' | 'updatedAt' | 'sourceProject')}
           className="flex-1 rounded border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-2 py-1"
         >
-          <option value="name">按名称</option>
-          <option value="updatedAt">按更新时间</option>
-          <option value="sourceProject">按来源项目</option>
+          <option value="name">{t('template.list.sortByName')}</option>
+          <option value="updatedAt">{t('template.list.sortByUpdated')}</option>
+          <option value="sourceProject">{t('template.list.sortBySource')}</option>
         </select>
         <button
           onClick={() => onViewModeChange(viewMode === 'card' ? 'compact' : 'card')}
           className="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
-          title="切换视图"
+          title={t('template.list.toggleView')}
         >
           {viewMode === 'card' ? <List size={14} /> : <Grid2X2 size={14} />}
         </button>

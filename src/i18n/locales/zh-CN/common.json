@@ -139,7 +139,10 @@
     "unknownError": "未知错误",
     "checkButton": "检查更新",
     "downloadButton": "下载更新",
-    "installButton": "立即重启安装"
+    "installButton": "立即重启安装",
+    "later": "稍后重启",
+    "restart": "立即重启",
+    "restartHint": "新版本将在下次启动时生效。"
   },
   "errorBoundary": {
     "title": "页面加载失败",

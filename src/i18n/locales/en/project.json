@@ -55,7 +55,65 @@
     "exampleTemplateDesc": "Start with example parameter files, includes common parameter templates",
     "emptyProject": "Empty Project",
     "emptyProjectDesc": "Create an empty project, start from scratch",
-    "deleteConfirmMessage": "Are you sure you want to delete project \"{{name}}\"? This action cannot be undone."
+    "deleteConfirmMessage": "Are you sure you want to delete project \"{{name}}\"? This action cannot be undone.",
+    "saveAsTemplate": "Save as Template",
+    "saveAsTemplateDesc": "Save current project <span>{{name}}</span> to template directory. Output directories will not be copied.",
+    "saveAsTemplateName": "Template Name",
+    "saveAsTemplateButton": "Save",
+    "templateCenter": "Template Center",
+    "noExampleAvailable": "No examples available",
+    "readExampleFailed": "Failed to read example templates: {{message}}",
+    "savedAsTemplate": "Saved as template: {{name}}",
+    "deletedProjects": "Deleted {{count}} projects",
+    "exampleDesc": "Select an example project from the example directory to copy to workspace"
+  },
+  "template": {
+    "noTemplates": "No templates",
+    "readFailed": "Failed to read templates: {{message}}",
+    "createFromTemplate": "Project created from template: {{name}}",
+    "updated": "Template info updated",
+    "confirmDelete": "Confirm delete template \"{{name}}\"?",
+    "deleted": "Template deleted",
+    "enterProjectName": "Enter new project name",
+    "card": {
+      "createProject": "Create Project from Template",
+      "editInfo": "Edit Template Info",
+      "deleteTemplate": "Delete Template",
+      "noScenario": "No scenario set",
+      "noDescription": "No description",
+      "sourceProject": "Source: {{name}}",
+      "unknown": "Unknown"
+    },
+    "detail": {
+      "selectHint": "Select a template to view details",
+      "noDescription": "No description",
+      "scenario": "Scenario",
+      "sourceProject": "Source Project",
+      "structure": "Structure Summary",
+      "inputRequirements": "Input Requirements",
+      "outputDescription": "Output Description",
+      "fileStructure": "File Structure",
+      "notSet": "Not set",
+      "unknown": "Unknown"
+    },
+    "edit": {
+      "title": "Edit Template Info",
+      "namePlaceholder": "Template Name",
+      "descPlaceholder": "Description",
+      "scenarioPlaceholder": "Scenario",
+      "sourcePlaceholder": "Source Project",
+      "inputPlaceholder": "Input requirements, one per line",
+      "outputPlaceholder": "Output Description",
+      "cancel": "Cancel",
+      "save": "Save"
+    },
+    "list": {
+      "searchPlaceholder": "Search templates",
+      "sortByName": "By Name",
+      "sortByUpdated": "By Updated",
+      "sortBySource": "By Source",
+      "toggleView": "Toggle View"
+    }
   },
   "search": {
     "title": "Search",
@@ -172,7 +230,31 @@
     "paperSize": "Paper Size",
     "orientation": "Orientation",
     "portrait": "Portrait",
-    "landscape": "Landscape"
+    "landscape": "Landscape",
+    "executeAction": "Actions",
+    "batchRender": "Batch Render ({{count}})",
+    "renderCurrentOnly": "Render Current Only",
+    "dryRunPreview": "Preview Render",
+    "deleteOutput": "Delete Output",
+    "deleteYaml": "Delete YAML",
+    "readyStatus": "Readiness",
+    "excelDesc": "Project config table",
+    "templateDesc": "Template directory",
+    "paraDesc": "Parameter file",
+    "outputDesc": "Output directory",
+    "yamlDesc": "YAML file",
+    "openPara": "Open para",
+    "validateTemplate": "Validate Template",
+    "validateData": "Validate Data",
+    "validationResult": "Validation Result",
+    "clear": "Clear",
+    "readyHint": "Select a project to view readiness",
+    "outputSettings": "Output Settings",
+    "scope": "Scope",
+    "openProjectDir": "Open Project Directory",
+    "scopeHint": "Please select a project from the project browser",
+    "selectedCount": "{{selected}} / {{total}} projects selected",
+    "processing": "Processing..."
   },
   "config": {
     "title": "Configuration",
@@ -241,7 +323,38 @@
     "labelPreview": "Label Preview",
     "totalLabels": "{{count}} labels in total",
     "labelIndex": "Label {{index}}",
-    "noPreviewData": "No label data to preview"
+    "noPreviewData": "No label data to preview",
+    "generateMarkdown": "Generate Markdown",
+    "exportWord": "Export Word",
+    "exportPdf": "Export PDF"
+  },
+  "projectBatch": {
+    "selectAll": "Select All",
+    "batchRender": "Batch Render",
+    "delete": "Delete"
+  },
+  "projectList": {
+    "searchPlaceholder": "Search projects",
+    "sortByName": "Sort by Name",
+    "sortByDate": "Sort by Date",
+    "newProject": "New Project",
+    "saveAsTemplate": "Save as Template"
+  },
+  "excel": {
+    "loading": "Loading Excel file...",
+    "loadFailed": "Failed to read Excel",
+    "retry": "Retry",
+    "timeout": "Read Excel timeout (10s)",
+    "readFailedMsg": "Failed to read Excel: {{message}}",
+    "saveSuccess": "Saved: {{name}}",
+    "saveFailed": "Save failed: {{message}}",
+    "noData": "No data",
+    "rows": "{{count}} rows"
+  },
+  "editor": {
+    "loading": "Loading...",
+    "saveSuccess": "Saved: {{name}}",
+    "saveFailed": "Save failed: {{message}}"
   },
   "render": {
     "title": "Render",

@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useEditorStore, type EditorTab } from '@/stores/editor.store'
 import { useUIStore } from '@/stores/ui.store'
 import { RefreshCw, AlertCircle } from 'lucide-react'
@@ -15,6 +16,7 @@ export function ExcelViewer({ tab }: { tab: EditorTab }) {
   const markDirty = useEditorStore((s) => s.markDirty)
   const registerSaveFn = useEditorStore((s) => s.registerSaveFn)
   const isDark = useUIStore((s) => s.isDark)
+  const { t } = useTranslation('project')
 
   const [sheets, setSheets] = useState<SheetData[]>([])
   const [activeSheet, setActiveSheet] = useState<string>('')
@@ -43,7 +45,7 @@ export function ExcelViewer({ tab }: { tab: EditorTab }) {
     try {
       const result = await Promise.race([
         window.electron.project.readExcel(tab.projectId, tab.filePath, tab.projectName),
-        new Promise<never>((_, reject) => setTimeout(() => reject(new Error('读取 Excel 超时（10秒）')), 10000)),
+        new Promise<never>((_, reject) => setTimeout(() => reject(new Error(t('excel.timeout'))), 10000)),
       ])
 
       if (!isMountedRef.current) return
@@ -63,7 +65,7 @@ export function ExcelViewer({ tab }: { tab: EditorTab }) {
       if (!isMountedRef.current) return
       const msg = err instanceof Error ? err.message : String(err)
       setError(msg)
-      showError(`读取 Excel 失败: ${msg}`)
+      showError(t('excel.readFailedMsg', { message: msg }))
     } finally {
       if (isMountedRef.current) {
         setLoading(false)
@@ -81,9 +83,9 @@ export function ExcelViewer({ tab }: { tab: EditorTab }) {
         tab.projectName,
       )
       markDirty(tab.id, false)
-      showSuccess(`已保存: ${tab.title}`)
+      showSuccess(t('excel.saveSuccess', { name: tab.title }))
     } catch (err) {
-      showError(`保存失败: ${(err as Error).message}`)
+      showError(t('excel.saveFailed', { message: (err as Error).message }))
     }
   }, [tab.id, tab.filePath, tab.projectId, tab.title, sheets, markDirty])
 
@@ -156,7 +158,7 @@ export function ExcelViewer({ tab }: { tab: EditorTab }) {
         className={`absolute inset-0 flex flex-col items-center justify-center gap-2 ${isDark ? 'text-gray-400' : 'text-gray-400'}`}
       >
         <div className="w-6 h-6 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" />
-        <span className="text-sm">正在加载 Excel 文件...</span>
+        <span className="text-sm">{t('excel.loading')}</span>
         <span className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>{tab.filePath}</span>
       </div>
     )
@@ -168,7 +170,7 @@ export function ExcelViewer({ tab }: { tab: EditorTab }) {
         className={`absolute inset-0 flex flex-col items-center justify-center gap-3 p-6 ${isDark ? 'text-red-400' : 'text-red-500'}`}
       >
         <AlertCircle size={32} />
-        <span className="font-medium">读取 Excel 失败</span>
+        <span className="font-medium">{t('excel.loadFailed')}</span>
         <span className="text-sm text-center max-w-md">{error}</span>
         <button
           onClick={loadData}
@@ -177,7 +179,7 @@ export function ExcelViewer({ tab }: { tab: EditorTab }) {
           }`}
         >
           <RefreshCw size={12} />
-          重试
+          {t('excel.retry')}
         </button>
       </div>
     )
@@ -204,7 +206,7 @@ export function ExcelViewer({ tab }: { tab: EditorTab }) {
             }`}
           >
             {s.name}
-            <span className={`ms-1 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>({s.rows.length}行)</span>
+            <span className={`ms-1 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>({t('excel.rows', { count: s.rows.length })})</span>
           </button>
         ))}
         <div className="flex-1" />
@@ -285,7 +287,7 @@ export function ExcelViewer({ tab }: { tab: EditorTab }) {
           <div
             className={`flex items-center justify-center h-full text-sm ${isDark ? 'text-gray-500' : 'text-gray-400'}`}
           >
-            无数据
+            {t('excel.noData')}
           </div>
         )}
       </div>
