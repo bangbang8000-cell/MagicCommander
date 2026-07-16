@@ -43,11 +43,17 @@ const api = {
     projectSn: (ids: string[]) => ipcRenderer.invoke('render:project-sn', ids),
     yamlSn: (ids: string[]) => ipcRenderer.invoke('render:yaml-sn', ids),
     undo: (ids: string[]) => ipcRenderer.invoke('render:undo', ids),
+    dryRun: (ids: string[], format?: 'device_name' | 'device_sn') =>
+      ipcRenderer.invoke('render:dry-run', ids, format),
     onProgress: (callback: (progress: unknown) => void) => {
       const handler = (_e: unknown, data: unknown) => callback(data)
       ipcRenderer.on('render:progress', handler)
       return () => ipcRenderer.removeListener('render:progress', handler)
     },
+    validateTemplate: (ids: string[]) => ipcRenderer.invoke('validate:template', ids),
+    validateExcel: (ids: string[]) => ipcRenderer.invoke('validate:excel', ids),
+    diffCompare: (project: string, device: string, content: string, format: string) =>
+      ipcRenderer.invoke('diff:compare', project, device, content, format),
   },
   delete: {
     output: (ids: string[]) => ipcRenderer.invoke('delete:output', ids),

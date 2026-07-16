@@ -102,6 +102,10 @@ export interface RenderIpcApi {
   projectSn: (ids: string[]) => Promise<void>
   yamlSn: (ids: string[]) => Promise<void>
   undo: (ids: string[]) => Promise<void>
+  dryRun: (ids: string[], format?: 'device_name' | 'device_sn') => Promise<unknown>
+  validateTemplate: (ids: string[]) => Promise<unknown>
+  validateExcel: (ids: string[]) => Promise<unknown>
+  diffCompare: (project: string, device: string, content: string, format: string) => Promise<unknown>
   onProgress: (callback: (data: unknown) => void) => () => void
 }
 

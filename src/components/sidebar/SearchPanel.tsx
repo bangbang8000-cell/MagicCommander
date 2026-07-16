@@ -16,10 +16,11 @@ const FILE_TYPE_FILTERS: { key: string; label: string; exts: string[] }[] = [
   { key: 'template', label: 'search.fileType.template', exts: ['j2', 'jinja', 'jinja2'] },
   { key: 'markdown', label: 'search.fileType.markdown', exts: ['md', 'markdown'] },
   { key: 'excel', label: 'search.fileType.excel', exts: ['xlsx', 'xls'] },
+  { key: 'output', label: 'search.fileType.output', exts: ['txt', 'cfg'] },
   {
     key: 'txt',
     label: 'search.fileType.txt',
-    exts: ['txt', 'csv', 'json', 'html', 'py', 'log', 'conf', 'cfg', 'ini'],
+    exts: ['csv', 'json', 'html', 'py', 'log', 'conf', 'ini'],
   },
 ]
 

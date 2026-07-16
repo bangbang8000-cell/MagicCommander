@@ -1,18 +1,21 @@
 import { create } from 'zustand'
-import type { LabelPrintConfig, RenderConfig } from '@/types/render'
+import type { LabelPrintConfig, RenderConfig, DryRunDeviceResult, DryRunResponse, ValidationResult } from '@/types/render'
 
-type RenderTaskType = 'project' | 'yaml' | 'label' | 'general'
+type RenderTaskType = 'project' | 'yaml' | 'label' | 'general' | 'validate'
 
 interface RenderState {
   isRendering: boolean
   isProjectRendering: boolean
   isYamlRendering: boolean
   isLabelPrinting: boolean
+  isValidationRunning: boolean
   progress: number
   currentMessage: string
   errors: string[]
   selectedProjectIds: string[]
   config: RenderConfig
+  dryRunResults: DryRunDeviceResult[]
+  validationResults: ValidationResult[] | null
 
   setConfig: (config: Partial<RenderConfig>) => void
   setSelectedIds: (ids: string[]) => void
@@ -34,6 +37,11 @@ interface RenderState {
   deleteYaml: (ids: string[]) => Promise<void>
   deleteYamlSn: (ids: string[]) => Promise<void>
   undoRender: (ids: string[]) => Promise<void>
+  dryRun: (ids: string[], format?: 'device_name' | 'device_sn') => Promise<void>
+  clearDryRunResults: () => void
+  validateTemplate: (ids: string[]) => Promise<void>
+  validateExcel: (ids: string[]) => Promise<void>
+  clearValidationResults: () => void
   subscribeProgress: () => () => void
 }
 
@@ -42,6 +50,7 @@ const taskFlags = (type: RenderTaskType, rendering: boolean) => ({
   ...(type === 'project' && { isProjectRendering: rendering }),
   ...(type === 'yaml' && { isYamlRendering: rendering }),
   ...(type === 'label' && { isLabelPrinting: rendering }),
+  ...(type === 'validate' && { isValidationRunning: rendering }),
 })
 
 const clearTaskFlags = () => ({
@@ -49,6 +58,7 @@ const clearTaskFlags = () => ({
   isProjectRendering: false,
   isYamlRendering: false,
   isLabelPrinting: false,
+  isValidationRunning: false,
 })
 
 const errorMessage = (err: unknown) => (err instanceof Error ? err.message : String(err))
@@ -104,6 +114,9 @@ export const useRenderStore = create<RenderState>((set, get) => {
       outputFormat: 'device_name',
       renderType: 'project',
     },
+    dryRunResults: [],
+    validationResults: null,
+    isValidationRunning: false,
 
     setConfig: (newConfig) =>
       set((state) => ({
@@ -239,6 +252,90 @@ export const useRenderStore = create<RenderState>((set, get) => {
         failurePrefix: '撤销渲染失败',
         action: () => window.electron.render.undo(ids),
       }),
+
+    dryRun: async (ids, format = 'device_name') => {
+      if (ids.length === 0) return
+      set({
+        ...taskFlags('general', true),
+        progress: 0,
+        currentMessage: '渲染预览中...',
+        errors: [],
+        dryRunResults: [],
+      })
+      try {
+        const data = await window.electron.render.dryRun(ids, format) as DryRunResponse | null
+        const results = (data?.results ?? []) as DryRunDeviceResult[]
+        set({
+          ...clearTaskFlags(),
+          progress: 100,
+          currentMessage: `预览完成，共 ${results.length} 个设备`,
+          dryRunResults: results,
+        })
+      } catch (err) {
+        set({
+          ...clearTaskFlags(),
+          progress: 0,
+          currentMessage: `预览失败: ${errorMessage(err)}`,
+          errors: [errorMessage(err)],
+        })
+      }
+    },
+
+    clearDryRunResults: () => set({ dryRunResults: [] }),
+
+    validateTemplate: async (ids) => {
+      if (ids.length === 0) return
+      set({
+        ...taskFlags('validate', true),
+        progress: 0,
+        currentMessage: '校验模板中...',
+        errors: [],
+        validationResults: null,
+      })
+      try {
+        const data = await window.electron.render.validateTemplate(ids) as { results: ValidationResult[] } | null
+        const results = (data?.results ?? []) as ValidationResult[]
+        set({
+          ...clearTaskFlags(),
+          progress: 100,
+          currentMessage: `模板校验完成`,
+          validationResults: results,
+        })
+      } catch (err) {
+        set({
+          ...clearTaskFlags(),
+          errors: [errorMessage(err)],
+        })
+      }
+    },
+
+    validateExcel: async (ids) => {
+      if (ids.length === 0) return
+      set({
+        ...taskFlags('validate', true),
+        progress: 0,
+        currentMessage: '校验 Excel 数据中...',
+        errors: [],
+        validationResults: null,
+      })
+      try {
+        const data = await window.electron.render.validateExcel(ids) as { results: ValidationResult[] } | null
+        const results = (data?.results ?? []) as ValidationResult[]
+        set({
+          ...clearTaskFlags(),
+          progress: 100,
+          currentMessage: `Excel 数据校验完成`,
+          validationResults: results,
+        })
+      } catch (err) {
+        set({
+          ...clearTaskFlags(),
+          errors: [errorMessage(err)],
+        })
+      }
+    },
+
+    clearValidationResults: () => set({ validationResults: null }),
 
     subscribeProgress: () => {
       if (!window.electron || !window.electron.render) {

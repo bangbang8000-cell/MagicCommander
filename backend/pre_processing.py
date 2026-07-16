@@ -555,6 +555,228 @@ feature [label-print | label-delete] 项目代号/项目代号/项目代号··�
             }
         }, ensure_ascii=False))
 
+    def execute_dry_run(self, word: str, out_name_type: str):
+        """执行渲染预览：不写文件，仅返回渲染输出内容"""
+        self.target_project_name = []
+        self.target_project_num = []
+        self.project_para = []
+        self.process_project_num(word)
+
+        for name in self.project_name:
+            self.read_project_para(name, 'para.xlsx')
+
+        total_steps = self._calc_render_steps(include_template_render=True)
+        current_step = 0
+        results = []
+
+        for i in range(0, len(self.target_project_name)):
+            name = self.target_project_name[i]
+            ba = Base(self.workspace)
+            para = self.project_para[self.target_project_num[i]][name]
+
+            for p in para:
+                project_excel_name = p[0]['工作簿名称']
+                project_sheet_name = p[1]['工作表名称']
+                project_sheet_type = p[2]['工作表类型']
+                project_sheet_assign_num = int(str(p[3]['对称列数']).strip())
+                project_sheet_key_num = int(str(p[4]['key列数']).strip())
+
+                if project_sheet_type == '赋值表':
+                    ba.read_assign_table(project_excel_name, project_sheet_name, 'excel', name, project_sheet_key_num)
+                elif project_sheet_type == '对称表':
+                    ba.read_symmetrice_table(project_excel_name, project_sheet_name, 'excel', name, project_sheet_assign_num, project_sheet_key_num)
+                elif project_sheet_type == '参数表':
+                    ba.read_para(project_excel_name, project_sheet_name, 'excel', name)
+
+                current_step += 1
+                self._emit_progress(
+                    current_step,
+                    total_steps,
+                    f'完成{project_excel_name} {project_sheet_name} 的数据提取',
+                    project=name,
+                    excel=project_excel_name,
+                    sheet=project_sheet_name,
+                    type=project_sheet_type,
+                    action='extract_sheet',
+                )
+
+            # 只渲染不写文件
+            device_results = ba.render_dry_run('templates', name, out_name_type)
+            current_step += 1
+            self._emit_progress(
+                current_step,
+                total_steps,
+                f'项目 {name} 渲染预览完成（{len(device_results)} 个设备）',
+                project=name,
+                action='dry_run',
+            )
+            results.extend(device_results)
+
+        print(json.dumps({
+            'status': 'complete',
+            'message': f'渲染预览完成，共 {len(results)} 个设备',
+            'data': {
+                'totalSteps': total_steps,
+                'completedSteps': total_steps,
+                'progress': 100,
+                'results': results,
+            }
+        }, ensure_ascii=False))
+
+    def validate_template(self, word: str):
+        """校验 Jinja2 模板语法"""
+        self.target_project_name = []
+        self.target_project_num = []
+        self.process_project_num(word)
+
+        results = []
+        for name in self.target_project_name:
+            templates_dir = os.path.join(self.workspace, name, 'templates')
+            if not os.path.isdir(templates_dir):
+                results.append({
+                    'project': name,
+                    'status': 'warning',
+                    'message': '模板目录不存在',
+                    'errors': [],
+                })
+                continue
+
+            errors = []
+            try:
+                from jinja2 import Environment, FileSystemLoader, TemplateSyntaxError
+                env = Environment(loader=FileSystemLoader(templates_dir))
+                for fname in sorted(os.listdir(templates_dir)):
+                    if not fname.endswith('.j2'):
+                        continue
+                    fpath = os.path.join(templates_dir, fname)
+                    try:
+                        with open(fpath, 'r', encoding='utf-8') as f:
+                            source = f.read()
+                        env.parse(source)
+                    except TemplateSyntaxError as e:
+                        errors.append({
+                            'file': fname,
+                            'line': e.lineno,
+                            'message': e.message,
+                        })
+                    except Exception as e:
+                        errors.append({
+                            'file': fname,
+                            'line': 0,
+                            'message': f'读取失败: {e}',
+                        })
+            except Exception as e:
+                errors.append({
+                    'file': '',
+                    'line': 0,
+                    'message': f'初始化校验环境失败: {e}',
+                })
+
+            results.append({
+                'project': name,
+                'status': 'pass' if len(errors) == 0 else 'fail',
+                'message': f'校验完成: {len(errors)} 个错误' if errors else '所有模板语法正确',
+                'errors': errors,
+            })
+
+        print(json.dumps({
+            'status': 'success',
+            'message': f'模板校验完成，共 {len(results)} 个项目',
+            'data': {'results': results},
+        }, ensure_ascii=False))
+
+    def validate_excel(self, word: str):
+        """校验 Excel 数据完整性"""
+        self.target_project_name = []
+        self.target_project_num = []
+        self.process_project_num(word)
+
+        results = []
+        for name in self.target_project_name:
+            project_dir = os.path.join(self.workspace, name)
+            warnings = []
+
+            para_path = os.path.join(project_dir, 'para.xlsx')
+            if not os.path.exists(para_path):
+                results.append({
+                    'project': name,
+                    'status': 'fail',
+                    'message': '缺少 para.xlsx 参数文件',
+                    'warnings': [],
+                })
+                continue
+
+            try:
+                df = pd.read_excel(para_path, sheet_name=None, keep_default_na=False)
+                if 'project_para' not in df:
+                    warnings.append({
+                        'type': 'missing_sheet',
+                        'message': 'para.xlsx 缺少 project_para 工作表',
+                    })
+                else:
+                    sheet = df['project_para']
+                    for idx, row in sheet.iterrows():
+                        workbook = str(row.get('工作簿名称', '')).strip()
+                        sheet_name_excel = str(row.get('工作表名称', '')).strip()
+                        if workbook and sheet_name_excel:
+                            excel_path = os.path.join(project_dir, 'excel', workbook)
+                            if not os.path.exists(excel_path):
+                                warnings.append({
+                                    'type': 'missing_excel',
+                                    'file': workbook,
+                                    'message': f'Excel 文件不存在: {workbook}',
+                                })
+                            else:
+                                try:
+                                    edf = pd.read_excel(excel_path, sheet_name=None, keep_default_na=False)
+                                    if sheet_name_excel not in edf:
+                                        warnings.append({
+                                            'type': 'missing_sheet',
+                                            'file': workbook,
+                                            'sheet': sheet_name_excel,
+                                            'message': f'工作表 "{sheet_name_excel}" 在 {workbook} 中不存在',
+                                        })
+                                    elif len(edf[sheet_name_excel]) == 0:
+                                        warnings.append({
+                                            'type': 'empty_sheet',
+                                            'file': workbook,
+                                            'sheet': sheet_name_excel,
+                                            'message': f'工作表 "{sheet_name_excel}" 在 {workbook} 中为空',
+                                        })
+                                except Exception as e:
+                                    warnings.append({
+                                        'type': 'read_error',
+                                        'file': workbook,
+                                        'message': f'无法读取 {workbook}: {e}',
+                                    })
+
+                has_templates = any(os.path.isdir(os.path.join(project_dir, d)) and d == 'templates'
+                                    for d in (os.listdir(project_dir) if os.path.isdir(project_dir) else []))
+                if not has_templates:
+                    warnings.append({
+                        'type': 'missing_dir',
+                        'message': '缺少 templates 目录',
+                    })
+
+            except Exception as e:
+                warnings.append({
+                    'type': 'read_error',
+                    'message': f'无法读取 para.xlsx: {e}',
+                })
+
+            results.append({
+                'project': name,
+                'status': 'pass' if len(warnings) == 0 else 'warn',
+                'message': f'校验完成: {len(warnings)} 个警告' if warnings else '所有数据完整',
+                'warnings': warnings,
+            })
+
+        print(json.dumps({
+            'status': 'success',
+            'message': f'Excel 数据校验完成，共 {len(results)} 个项目',
+            'data': {'results': results},
+        }, ensure_ascii=False))
+
     def execute_yaml(self, word: str):
         """执行选中项目的yaml创建"""
         time_str = strftime("%Y_%m_%d_%H_%M_%S", localtime())

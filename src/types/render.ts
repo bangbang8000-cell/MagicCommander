@@ -78,6 +78,43 @@ export interface RenderSummary {
 export type DeleteTarget = 'output' | 'output-sn' | 'yaml' | 'yaml-sn'
 
 /** 渲染错误分类 */
+
+/** Dry-run 单设备结果 */
+export interface DryRunDeviceResult {
+  project: string
+  device: string
+  role: string
+  filename: string
+  content: string
+}
+
+/** Dry-run 响应 */
+export interface DryRunResponse {
+  results: DryRunDeviceResult[]
+}
+
+/** 校验结果 */
+export interface ValidationError {
+  file: string
+  line: number
+  message: string
+}
+
+export interface ValidationWarning {
+  type: string
+  file?: string
+  sheet?: string
+  message: string
+}
+
+export interface ValidationResult {
+  project: string
+  status: 'pass' | 'fail' | 'warn'
+  message: string
+  errors?: ValidationError[]
+  warnings?: ValidationWarning[]
+}
+
 export interface RenderError {
   code: RenderErrorCode
   message: string

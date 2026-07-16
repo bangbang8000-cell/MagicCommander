@@ -231,3 +231,45 @@ class Base:
             output_path = os.path.join(output_base, role, output_filename)
             with open(output_path, 'w', encoding='utf-8') as f:
                 f.write(output)
+
+    def render_dry_run(self, templates: str, project_name: str, out_name_type: str) -> list[dict]:
+        """渲染预览：不写文件，返回渲染输出内容列表"""
+        template_path = os.path.join(self.workspace, project_name, templates)
+
+        if out_name_type == 'device_name':
+            name_key = '设备名'
+        elif out_name_type == 'device_sn':
+            name_key = 'SN'
+        else:
+            return []
+
+        env = Environment(loader=FileSystemLoader(template_path))
+        results = []
+
+        for info in self.devices.values():
+            hostname_now = info['设备名']
+            role = info.get('角色', '')
+            if not role:
+                continue
+            try:
+                template = env.get_template(f"{role}.j2")
+                output = template.render(hostname=hostname_now, info=info)
+            except Exception as e:
+                output = f'[渲染错误] {e}'
+
+            if out_name_type == 'device_name':
+                output_filename = f"{hostname_now}.txt"
+                device_id = hostname_now
+            else:
+                output_filename = f"conf_{info['SN']}.cfg"
+                device_id = info.get('SN', hostname_now)
+
+            results.append({
+                'project': project_name,
+                'device': device_id,
+                'role': role,
+                'filename': output_filename,
+                'content': output,
+            })
+
+        return results

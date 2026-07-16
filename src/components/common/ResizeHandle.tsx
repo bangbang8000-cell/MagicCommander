@@ -9,6 +9,8 @@ type ResizeHandleProps = {
 
 export function ResizeHandle({ direction, onResize, className }: ResizeHandleProps) {
   const startRef = useRef<number | null>(null)
+  const onResizeRef = useRef(onResize)
+  onResizeRef.current = onResize
 
   const onMouseDown = useCallback(
     (event: React.MouseEvent<HTMLDivElement>) => {
@@ -16,7 +18,7 @@ export function ResizeHandle({ direction, onResize, className }: ResizeHandlePro
       const handleMove = (moveEvent: MouseEvent) => {
         if (startRef.current === null) return
         const next = direction === 'vertical' ? moveEvent.clientX : moveEvent.clientY
-        onResize(next - startRef.current)
+        onResizeRef.current(next - startRef.current)
         startRef.current = next
       }
       const handleUp = () => {
@@ -27,7 +29,7 @@ export function ResizeHandle({ direction, onResize, className }: ResizeHandlePro
       window.addEventListener('mousemove', handleMove)
       window.addEventListener('mouseup', handleUp)
     },
-    [direction, onResize],
+    [direction],
   )
 
   return (

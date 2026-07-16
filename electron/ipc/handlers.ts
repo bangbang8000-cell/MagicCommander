@@ -540,6 +540,27 @@ export function setupIpcHandlers(window: BrowserWindow): void {
     return await renderHandler.runPythonCommand(['render', 'undo', ids.join(',')])
   })
 
+  // 渲染预览
+  ipcMain.handle('render:dry-run', async (_e, ids: string[], format?: 'device_name' | 'device_sn'): Promise<any> => {
+    const args = ['render', 'dry-run', ids.join(',')]
+    if (format === 'device_sn') args.push('--format', 'device_sn')
+    return await renderHandler.runPythonCommand(args, true)
+  })
+
+  // 校验
+  ipcMain.handle('validate:template', async (_e, ids: string[]): Promise<any> => {
+    return await renderHandler.runPythonCommand(['validate', 'template', ids.join(',')], true)
+  })
+
+  ipcMain.handle('validate:excel', async (_e, ids: string[]): Promise<any> => {
+    return await renderHandler.runPythonCommand(['validate', 'excel', ids.join(',')], true)
+  })
+
+  // Diff 对比
+  ipcMain.handle('diff:compare', async (_e, project: string, device: string, content: string, format: string): Promise<any> => {
+    return await renderHandler.runPythonCommand(['diff', project, device, content, '--format', format], true)
+  })
+
   // 删除操作 API（通过 Python 后端执行）
   ipcMain.handle('delete:output', async (_e, ids: string[]): Promise<void> => {
     return await renderHandler.deleteOutput(ids)

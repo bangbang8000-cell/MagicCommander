@@ -104,6 +104,30 @@ def main():
     render_undo_parser = render_subparsers.add_parser('undo', help='撤销渲染 (恢复最近一次备份)')
     render_undo_parser.add_argument('ids', help='项目ID (使用,分隔多个ID)')
 
+    # 渲染预览
+    render_dryrun_parser = render_subparsers.add_parser('dry-run', help='渲染预览 (不写文件，仅返回输出内容)')
+    render_dryrun_parser.add_argument('ids', help='项目ID (使用,分隔多个ID)')
+    render_dryrun_parser.add_argument('--format', choices=['device_name', 'device_sn'], default='device_name', help='输出格式')
+
+    # 校验命令
+    validate_parser = subparsers.add_parser('validate', help='校验操作')
+    validate_subparsers = validate_parser.add_subparsers(title='校验操作', dest='subcommand', help='校验子命令')
+
+    # 校验模板
+    validate_template_parser = validate_subparsers.add_parser('template', help='校验 Jinja2 模板语法')
+    validate_template_parser.add_argument('ids', help='项目ID (使用,分隔多个ID)')
+
+    # 校验 Excel
+    validate_excel_parser = validate_subparsers.add_parser('excel', help='校验 Excel 数据完整性')
+    validate_excel_parser.add_argument('ids', help='项目ID (使用,分隔多个ID)')
+
+    # Diff 对比
+    diff_parser = subparsers.add_parser('diff', help='对比渲染输出')
+    diff_parser.add_argument('project', help='项目名称')
+    diff_parser.add_argument('device', help='设备标识')
+    diff_parser.add_argument('content', help='dry-run 渲染内容')
+    diff_parser.add_argument('--format', choices=['device_name', 'device_sn'], default='device_name', help='输出格式')
+
     # 标签功能命令
     label_parser = subparsers.add_parser('label', help='标签功能操作')
     label_subparsers = label_parser.add_subparsers(title='标签操作', dest='subcommand', help='标签子命令')
@@ -189,6 +213,10 @@ def main():
             handle_label_command(processor, args)
         elif args.command == 'file':
             handle_file_command(processor, args)
+        elif args.command == 'validate':
+            handle_validate_command(processor, args)
+        elif args.command == 'diff':
+            handle_diff_command(processor, args)
         else:
             print_error(f'未知命令: {args.command}')
             sys.exit(1)
@@ -546,6 +574,11 @@ def handle_render_command(processor, args):
                 restored += 1
         print_success(f'已恢复 {restored} 个项目的渲染输出')
 
+    elif args.subcommand == 'dry-run':
+        # 渲染预览：不写文件，返回输出内容
+        format_type = 'device_sn' if args.format == 'device_sn' else 'device_name'
+        processor.execute_dry_run(target_str, format_type)
+
 
 def handle_label_command(processor, args):
     """处理标签功能命令"""
@@ -576,6 +609,59 @@ def handle_label_command(processor, args):
         processor.execute_feature('label-delete', target_str)
         print_success('标签删除完成')
 
+
+def handle_validate_command(processor, args):
+    """处理校验命令"""
+    target_ids = process_project_ids(args.ids, processor.project_name)
+    target_str = convert_to_project_string(target_ids)
+
+    if args.subcommand == 'template':
+        processor.validate_template(target_str)
+    elif args.subcommand == 'excel':
+        processor.validate_excel(target_str)
+
+def handle_diff_command(processor, args):
+    """对比 dry-run 输出与已有输出文件"""
+    import difflib
+    project_dir = os.path.join(WORKSPACE_DIR, args.project)
+
+    if args.format == 'device_sn':
+        existing_path = os.path.join(project_dir, 'output-sn', f'conf_{args.device}.cfg')
+    else:
+        existing_path = os.path.join(project_dir, 'output', f'{args.device}.txt')
+
+    existing_content = ''
+    if os.path.exists(existing_path):
+        try:
+            with open(existing_path, 'r', encoding='utf-8') as f:
+                existing_content = f.read()
+        except:
+            pass
+
+    new_content = args.content
+    if not existing_content:
+        diff_lines = [f'[新增] 文件不存在: {existing_path}']
+    else:
+        differ = difflib.unified_diff(
+            existing_content.splitlines(keepends=True),
+            new_content.splitlines(keepends=True),
+            fromfile=f'现有输出/{args.device}.txt',
+            tofile=f'Dry-run 预览/{args.device}.txt',
+            lineterm='',
+        )
+        diff_lines = list(differ)
+        if not diff_lines:
+            diff_lines = ['(无差异)']
+
+    print(json.dumps({
+        'status': 'success',
+        'message': '对比完成',
+        'data': {
+            'diff': diff_lines,
+            'hasExisting': bool(existing_content),
+            'hasChanges': len(diff_lines) > 0 and diff_lines[0] != '(无差异)',
+        },
+    }, ensure_ascii=False))
 
 def handle_file_command(processor, args):
     """处理文件操作命令"""

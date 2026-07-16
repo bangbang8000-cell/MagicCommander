@@ -106,7 +106,9 @@ export function initializeWorkspace(): void {
   }
 
   const templateDir = getTemplateDir()
-  if (!fs.existsSync(templateDir)) {
+  const templateExists = fs.existsSync(templateDir)
+  const templateEmpty = templateExists && fs.readdirSync(templateDir).length === 0
+  if (!templateExists || templateEmpty) {
     fs.mkdirSync(templateDir, { recursive: true })
     const bundledTemplate = path.join(process.resourcesPath, 'template')
     const bundledExample = path.join(process.resourcesPath, 'example')
@@ -114,6 +116,12 @@ export function initializeWorkspace(): void {
       copyDirRecursive(bundledTemplate, templateDir)
     } else if (fs.existsSync(bundledExample)) {
       copyDirRecursive(bundledExample, templateDir)
+    } else {
+      // 开发模式：从项目根目录的 example/ 复制示例模板
+      const devExample = path.join(process.cwd(), 'example')
+      if (fs.existsSync(devExample)) {
+        copyDirRecursive(devExample, templateDir)
+      }
     }
   }
 
@@ -292,8 +300,8 @@ export const APP_CONFIG = {
   // 版本信息
   VERSION: {
     CURRENT: '3.1.0',
-    BUILD: '26071701',
-    DISPLAY: 'V3.1.0 Build 26071701',
+    BUILD: '26071702',
+    DISPLAY: 'V3.1.0 Build 26071702',
     MIN_SUPPORTED_PYTHON: '3.8',
   },
 }

@@ -10,6 +10,7 @@ import { WorkbenchScopeCard } from './workbench/WorkbenchScopeCard'
 import { WorkbenchReadinessCard } from './workbench/WorkbenchReadinessCard'
 import { WorkbenchOutputCard } from './workbench/WorkbenchOutputCard'
 import { WorkbenchActionCard } from './workbench/WorkbenchActionCard'
+import { WorkbenchDryRunResults } from './workbench/WorkbenchDryRunResults'
 import { WorkbenchResultCard } from './workbench/WorkbenchResultCard'
 
 export const WorkbenchPanel = React.memo(function WorkbenchPanel() {
@@ -33,6 +34,14 @@ export const WorkbenchPanel = React.memo(function WorkbenchPanel() {
   const progress = useRenderStore((s) => s.progress)
   const currentMessage = useRenderStore((s) => s.currentMessage)
   const errors = useRenderStore((s) => s.errors)
+  const dryRun = useRenderStore((s) => s.dryRun)
+  const dryRunResults = useRenderStore((s) => s.dryRunResults)
+  const clearDryRunResults = useRenderStore((s) => s.clearDryRunResults)
+  const validateTemplate = useRenderStore((s) => s.validateTemplate)
+  const validateExcel = useRenderStore((s) => s.validateExcel)
+  const validationResults = useRenderStore((s) => s.validationResults)
+  const isValidationRunning = useRenderStore((s) => s.isValidationRunning)
+  const clearValidationResults = useRenderStore((s) => s.clearValidationResults)
   const openFile = useEditorStore((s) => s.openFile)
   const isDark = useUIStore((s) => s.isDark)
 
@@ -95,6 +104,22 @@ export const WorkbenchPanel = React.memo(function WorkbenchPanel() {
     else await deleteYamlSn(ids)
   }
 
+  const handleDryRun = async () => {
+    if (!selectedProject) return
+    const ids = [String(selectedProject.id)]
+    await dryRun(ids, config.outputFormat)
+  }
+
+  const handleValidateTemplate = async () => {
+    if (!selectedProject) return
+    await validateTemplate([String(selectedProject.id)])
+  }
+
+  const handleValidateExcel = async () => {
+    if (!selectedProject) return
+    await validateExcel([String(selectedProject.id)])
+  }
+
   const openParaConfig = () => {
     if (!selectedProject) return
     const tab: EditorTab = {
@@ -141,8 +166,13 @@ export const WorkbenchPanel = React.memo(function WorkbenchPanel() {
         <WorkbenchReadinessCard
           projectInfo={projectInfo}
           isDark={isDark}
-          onOpenParaConfig={openParaConfig}
           selectedProject={selectedProject !== null}
+          isValidationRunning={isValidationRunning}
+          validationResults={validationResults}
+          onOpenParaConfig={openParaConfig}
+          onValidateTemplate={handleValidateTemplate}
+          onValidateExcel={handleValidateExcel}
+          onClearValidation={clearValidationResults}
         />
 
         <div className={clsx('border-t', isDark ? 'border-gray-700' : 'border-gray-200')} />
@@ -164,9 +194,21 @@ export const WorkbenchPanel = React.memo(function WorkbenchPanel() {
           isDark={isDark}
           onBatchRender={handleRenderBatch}
           onSingleRender={handleRenderSingle}
+          onDryRun={handleDryRun}
           onDeleteOutput={handleDeleteOutput}
           onDeleteYaml={handleDeleteYaml}
         />
+
+        {dryRunResults.length > 0 && (
+          <>
+            <div className={clsx('border-t', isDark ? 'border-gray-700' : 'border-gray-200')} />
+            <WorkbenchDryRunResults
+              results={dryRunResults}
+              isDark={isDark}
+              onClear={clearDryRunResults}
+            />
+          </>
+        )}
 
         {(isRendering || errors.length > 0) && (
           <>

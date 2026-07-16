@@ -1,18 +1,29 @@
-import { FileCode, CheckCircle2, XCircle, AlertCircle } from 'lucide-react'
+import { FileCode, CheckCircle2, XCircle, AlertCircle, ShieldCheck, Check } from 'lucide-react'
 import clsx from 'clsx'
+import type { ValidationResult } from '@/types/render'
 
 type WorkbenchReadinessCardProps = {
   projectInfo: any
   isDark: boolean
-  onOpenParaConfig: () => void
   selectedProject: boolean
+  isValidationRunning: boolean
+  validationResults: ValidationResult[] | null
+  onOpenParaConfig: () => void
+  onValidateTemplate: () => void
+  onValidateExcel: () => void
+  onClearValidation: () => void
 }
 
 export function WorkbenchReadinessCard({
   projectInfo,
   isDark,
-  onOpenParaConfig,
   selectedProject,
+  isValidationRunning,
+  validationResults,
+  onOpenParaConfig,
+  onValidateTemplate,
+  onValidateExcel,
+  onClearValidation,
 }: WorkbenchReadinessCardProps) {
   const structure = projectInfo?.structure
 
@@ -56,15 +67,90 @@ export function WorkbenchReadinessCard({
               </div>
             )
           })}
-          <button
-            onClick={onOpenParaConfig}
-            className={clsx(
-              'flex items-center gap-1 px-2 py-1 mt-1 text-[10px] rounded transition-colors w-full',
-              isDark ? 'text-gray-400 hover:text-gray-200 hover:bg-gray-700' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100',
-            )}
-          >
-            <FileCode size={10} /> 打开 para.xlsx
-          </button>
+          <div className="flex gap-1 mt-1">
+            <button
+              onClick={onOpenParaConfig}
+              className={clsx(
+                'flex items-center gap-1 px-2 py-1 text-[10px] rounded transition-colors',
+                isDark ? 'text-gray-400 hover:text-gray-200 hover:bg-gray-700' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100',
+              )}
+            >
+              <FileCode size={10} /> 打开 para
+            </button>
+            <button
+              onClick={onValidateTemplate}
+              disabled={isValidationRunning}
+              className={clsx(
+                'flex items-center gap-1 px-2 py-1 text-[10px] rounded transition-colors',
+                isDark ? 'text-gray-400 hover:text-gray-200 hover:bg-gray-700' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100',
+              )}
+            >
+              <ShieldCheck size={10} /> 校验模板
+            </button>
+            <button
+              onClick={onValidateExcel}
+              disabled={isValidationRunning}
+              className={clsx(
+                'flex items-center gap-1 px-2 py-1 text-[10px] rounded transition-colors',
+                isDark ? 'text-gray-400 hover:text-gray-200 hover:bg-gray-700' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100',
+              )}
+            >
+              <ShieldCheck size={10} /> 校验数据
+            </button>
+          </div>
+
+          {validationResults && validationResults.length > 0 && (
+            <div className="mt-2 space-y-1">
+              <div className="flex items-center justify-between">
+                <span className={clsx('text-[10px] font-medium', isDark ? 'text-gray-400' : 'text-gray-500')}>
+                  校验结果
+                </span>
+                <button
+                  onClick={onClearValidation}
+                  className={clsx('text-[10px]', isDark ? 'text-gray-500 hover:text-gray-300' : 'text-gray-400 hover:text-gray-600')}
+                >
+                  清除
+                </button>
+              </div>
+              {validationResults.map((r, i) => (
+                <div
+                  key={i}
+                  className={clsx(
+                    'text-[10px] px-2 py-1 rounded',
+                    r.status === 'pass'
+                      ? isDark ? 'bg-green-900/30 text-green-300' : 'bg-green-50 text-green-700'
+                      : r.status === 'warn'
+                        ? isDark ? 'bg-yellow-900/30 text-yellow-300' : 'bg-yellow-50 text-yellow-700'
+                        : isDark ? 'bg-red-900/30 text-red-300' : 'bg-red-50 text-red-700',
+                  )}
+                >
+                  <div className="flex items-center gap-1">
+                    {r.status === 'pass' ? <Check size={10} /> : <AlertCircle size={10} />}
+                    <span className="font-medium">{r.project}</span>
+                    <span>{r.message}</span>
+                  </div>
+                  {r.errors && r.errors.length > 0 && (
+                    <div className="mt-1 space-y-0.5 ml-4">
+                      {r.errors.map((e, j) => (
+                        <div key={j} className="text-[10px]">
+                          {e.file}:{e.line} - {e.message}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {r.warnings && r.warnings.length > 0 && (
+                    <div className="mt-1 space-y-0.5 ml-4">
+                      {r.warnings.map((w, j) => (
+                        <div key={j} className="text-[10px]">
+                          {w.message}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       ) : (
         <div className={isDark ? 'text-xs text-gray-500' : 'text-xs text-gray-400'}>请选择一个项目查看准备状态</div>

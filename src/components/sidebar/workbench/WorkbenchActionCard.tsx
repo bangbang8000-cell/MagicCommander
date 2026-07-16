@@ -1,4 +1,4 @@
-import { Play, FileOutput, FileCode } from 'lucide-react'
+import { Play, FileOutput, FileCode, Eye } from 'lucide-react'
 import clsx from 'clsx'
 
 type WorkbenchActionCardProps = {
@@ -8,6 +8,7 @@ type WorkbenchActionCardProps = {
   isDark: boolean
   onBatchRender: () => void
   onSingleRender: () => void
+  onDryRun: () => void
   onDeleteOutput: () => void
   onDeleteYaml: () => void
 }
@@ -19,6 +20,7 @@ export function WorkbenchActionCard({
   isDark,
   onBatchRender,
   onSingleRender,
+  onDryRun,
   onDeleteOutput,
   onDeleteYaml,
 }: WorkbenchActionCardProps) {
@@ -48,6 +50,16 @@ export function WorkbenchActionCard({
         >
           <Play size={12} />
           仅渲染当前项目
+        </button>
+      </div>
+      <div className="flex flex-col gap-1">
+        <button
+          onClick={onDryRun}
+          disabled={isRendering || !selectedProject}
+          className={clsx(btnBase, isDark ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-600 hover:bg-gray-100')}
+        >
+          <Eye size={12} />
+          预览渲染结果
         </button>
       </div>
       <div className="flex flex-col gap-1">
