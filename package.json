@@ -1,6 +1,6 @@
 {
   "name": "magiccommander",
-  "version": "3.0.3",
+  "version": "3.0.4",
   "description": "MagicCommander - 网络设备配置管理工具",
   "main": "dist-electron/main.js",
   "author": "Magic Commander Team",
@@ -45,6 +45,8 @@
     "react-markdown": "^10.1.0",
     "react-resizable-panels": "^4.11.2",
     "remark-gfm": "^4.0.1",
+    "vscode-oniguruma": "^2.0.1",
+    "vscode-textmate": "^9.3.2",
     "xlsx": "^0.18.5",
     "zustand": "^4.5.0"
   },

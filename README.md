@@ -2,7 +2,7 @@
 
 **批量生成网络设备配置 | Network Device Configuration Automation**
 
-[![Version](https://img.shields.io/badge/version-3.0.1-blue)](https://github.com/bangbang8000-cell/MagicCommander)
+[![Version](https://img.shields.io/badge/version-3.0.4-blue)](https://github.com/bangbang8000-cell/MagicCommander)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![Windows](https://img.shields.io/badge/Windows-NSIS-blue)](https://github.com/bangbang8000-cell/MagicCommander/releases)
 [![macOS](https://img.shields.io/badge/macOS-DMG-silver)](https://github.com/bangbang8000-cell/MagicCommander/releases)
@@ -56,7 +56,7 @@ interface {{ interface_name }}
 
 ### 设备标签自动生成，直接打印
 
-从 hostname 表格自动提取设备名、SN、型号、机柜位置、管理 IP 等信息，生成 Word 格式的标签文档，支持 A4/A5 纸张、横纵向打印、自定义每页标签数量。
+从 hostname 表格自动提取设备名、SN、型号、机柜位置、管理 IP 等信息，生成 Word 格式的标签文档，支持 A4/A5 纸张、横纵向打印、自定义每页标签数量。同时支持 Markdown 预览和 PDF 导出，满足不同场景需求。
 
 ### 12 种语言，全球团队可用
 
@@ -105,7 +105,11 @@ npm run dev:all
 ├── excel/           # 设备参数表 (.xlsx)
 ├── output/          # 生成的配置文件 (.txt)
 ├── yaml/            # 生成的 YAML 中间文件
-└── output-label/    # 生成的设备标签文档 (.docx)
+└── output-label/    # 生成的设备标签 (.docx / .md / .pdf)
+    └── 2026_07_16_01_02_03/   # 按时间戳组织
+        ├── xxx_label.docx
+        ├── xxx_label.md
+        └── xxx_label.pdf
 ```
 
 ---
@@ -151,6 +155,8 @@ Electron 28 · React 18 · TypeScript 5 · Vite 5 · TailwindCSS 3 · Zustand 4 
 
 | 版本 | 日期 | 更新内容 |
 |------|------|---------|
+| **3.0.4 Build 26071602** | 2026-07-16 | Phase 0 质量基线：Jinja2 语法高亮（Monaco Editor + vscode-textmate）、Markdown 标签生成与 PDF 导出、输出目录统一重构（output-label/时间戳/）、搜索面板 Markdown 类型过滤、中栏项目浏览器布局优化（多选批量操作、拖拽分栏、排序切换） |
+| **3.0.3 Build 26071601** | 2026-07-16 | 完成 Phase 0 质量基线：渲染缓存/撤销、Python CLI 统一入口、结构化日志、ESLint/Prettier 配置、26 个自动化测试 |
 | **3.0.1 Build 26071402** | 2026-07-14 | 修复文件菜单新建项目弹窗触发、示例模板列表、项目渲染 Python 失败、另存为示例 API 缺失等问题，并同步 Electron 构建产物 |
 | **3.0.0 Build 26071401** | 2026-07-14 | V3.0 正式版：采用 `V{MAJOR}.{MINOR}.{PATCH} Build {YYMMDDNN}` 版本规则；新增发布版检查更新/下载/重启安装入口，优化终端 help 布局与右键复制，完善日志分类展示，并将 Actions 发布流程调整为仅在版本 tag 推送后触发编译发布 |
 | 2.9.9 | 2026-07-13 | 完善日志与终端体验：日志接入后台命令输出，支持信息/成功/警告/错误分类、搜索和来源标签；终端首次打开自动显示 help，并增强多语言支持 |
