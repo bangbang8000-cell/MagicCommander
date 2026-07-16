@@ -76,6 +76,7 @@
     "fileType.template": "Template",
     "fileType.excel": "Excel",
     "fileType.txt": "Texto",
+    "fileType.markdown": "MD",
     "filenamePlaceholder": "Pesquisar nome do arquivo (separe palavras-chave com espaços)",
     "contentPlaceholder": "Pesquisar conteúdo do arquivo (separe palavras-chave com espaços)",
     "searchButton": "Pesquisar",

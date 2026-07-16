@@ -4,7 +4,7 @@ import { useProjectStore } from '@/stores/project.store'
 import { useRenderStore } from '@/stores/render.store'
 import { useUIStore } from '@/stores/ui.store'
 import { Button } from '@/components/ui/Button'
-import { Printer, Settings, Trash2 } from 'lucide-react'
+import { FileDown, FileText, Printer, Settings, Trash2 } from 'lucide-react'
 import clsx from 'clsx'
 import type { LabelPrintConfig } from '@/types/render'
 import { DEFAULT_LABEL_CONFIG } from '@/types/render'
@@ -18,6 +18,8 @@ export const LabelPanel = React.memo(function LabelPanel() {
   const selectProject = useProjectStore((s) => s.selectProject)
   const isLabelPrinting = useRenderStore((s) => s.isLabelPrinting)
   const labelPrint = useRenderStore((s) => s.labelPrint)
+  const labelMarkdown = useRenderStore((s) => s.labelMarkdown)
+  const labelPdf = useRenderStore((s) => s.labelPdf)
   const labelDelete = useRenderStore((s) => s.labelDelete)
   const progress = useRenderStore((s) => s.progress)
   const currentMessage = useRenderStore((s) => s.currentMessage)
@@ -26,11 +28,20 @@ export const LabelPanel = React.memo(function LabelPanel() {
   const [showConfig, setShowConfig] = useState(false)
   const [printConfig, setPrintConfig] = useState<LabelPrintConfig>(DEFAULT_LABEL_CONFIG)
 
-  // M4: 打印时将配置参数透传给后端
+  const handleMarkdown = useCallback(async () => {
+    if (!selectedProject) return
+    await labelMarkdown([String(selectedProject.id)], printConfig)
+  }, [selectedProject, labelMarkdown, printConfig])
+
   const handlePrint = useCallback(async () => {
     if (!selectedProject) return
     await labelPrint([String(selectedProject.id)], printConfig)
   }, [selectedProject, labelPrint, printConfig])
+
+  const handlePdf = useCallback(async () => {
+    if (!selectedProject) return
+    await labelPdf([String(selectedProject.id)], printConfig)
+  }, [selectedProject, labelPdf, printConfig])
 
   const handleDelete = useCallback(async () => {
     if (!selectedProject) return
@@ -71,13 +82,33 @@ export const LabelPanel = React.memo(function LabelPanel() {
         <Button
           variant="primary"
           size="sm"
-          icon={<Printer size={12} />}
-          onClick={handlePrint}
+          icon={<FileText size={12} />}
+          onClick={handleMarkdown}
           disabled={!selectedProject || isLabelPrinting}
           loading={isLabelPrinting}
           className="w-full justify-start"
         >
-          {t('label.printLabels')}
+          生成Markdown标签
+        </Button>
+        <Button
+          variant="secondary"
+          size="sm"
+          icon={<Printer size={12} />}
+          onClick={handlePrint}
+          disabled={!selectedProject || isLabelPrinting}
+          className="w-full justify-start"
+        >
+          导出Word标签
+        </Button>
+        <Button
+          variant="secondary"
+          size="sm"
+          icon={<FileDown size={12} />}
+          onClick={handlePdf}
+          disabled={!selectedProject || isLabelPrinting}
+          className="w-full justify-start"
+        >
+          导出PDF标签
         </Button>
         <Button
           variant="secondary"

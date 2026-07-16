@@ -37,7 +37,7 @@ function copyDirRecursive(src: string, dest: string, options?: { skipRuntimeDirs
   const entries = fs.readdirSync(src, { withFileTypes: true })
   for (const entry of entries) {
     if (entry.name.startsWith('.') || entry.name === '__pycache__') continue
-    if (options?.skipRuntimeDirs && ['output', 'yaml', 'output-label'].includes(entry.name)) continue
+    if (options?.skipRuntimeDirs && ['output', 'yaml', 'output-label', 'output-label-md', 'output-label-pdf'].includes(entry.name)) continue
     const srcPath = path.join(src, entry.name)
     const destPath = path.join(dest, entry.name)
     if (entry.isDirectory()) copyDirRecursive(srcPath, destPath, options)
@@ -54,6 +54,101 @@ function listExampleProjects(): string[] {
     .map((entry) => entry.name)
     .filter((name) => isProjectLikeDir(path.join(exampleDir, name)))
     .sort((a, b) => a.localeCompare(b))
+}
+
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+}
+
+function markdownToPrintableHtml(markdown: string): string {
+  const lines = markdown.split(/\r?\n/)
+  const html: string[] = []
+  let inTable = false
+
+  for (const line of lines) {
+    if (/^\|.+\|$/.test(line.trim())) {
+      const cells = line
+        .trim()
+        .slice(1, -1)
+        .split('|')
+        .map((cell) => escapeHtml(cell.trim()))
+      if (cells.every((cell) => /^-+$/.test(cell))) continue
+      if (!inTable) {
+        html.push('<table>')
+        inTable = true
+      }
+      const tag = html[html.length - 1] === '<table>' ? 'th' : 'td'
+      html.push(`<tr>${cells.map((cell) => `<${tag}>${cell}</${tag}>`).join('')}</tr>`)
+      continue
+    }
+
+    if (inTable) {
+      html.push('</table>')
+      inTable = false
+    }
+
+    if (line.startsWith('# ')) html.push(`<h1>${escapeHtml(line.slice(2))}</h1>`)
+    else if (line.startsWith('## ')) html.push(`<h2>${escapeHtml(line.slice(3))}</h2>`)
+    else if (line.startsWith('> ')) html.push(`<blockquote>${escapeHtml(line.slice(2))}</blockquote>`)
+    else if (line.trim() === '---') html.push('<hr />')
+    else if (line.trim()) html.push(`<p>${escapeHtml(line)}</p>`)
+  }
+
+  if (inTable) html.push('</table>')
+
+  return `<!doctype html><html><head><meta charset="utf-8"><style>
+    body { font-family: "Microsoft YaHei", "Segoe UI", sans-serif; padding: 24px; color: #111827; }
+    h1 { font-size: 24px; border-bottom: 1px solid #e5e7eb; padding-bottom: 8px; }
+    h2 { font-size: 18px; margin-top: 24px; }
+    table { width: 100%; border-collapse: collapse; margin: 12px 0 18px; page-break-inside: avoid; }
+    th, td { border: 1px solid #d1d5db; padding: 8px 10px; text-align: left; }
+    th { background: #f3f4f6; font-weight: 700; }
+    blockquote { color: #6b7280; border-left: 4px solid #d1d5db; padding-left: 12px; }
+    hr { border: none; border-top: 1px dashed #d1d5db; margin: 20px 0; }
+  </style></head><body>${html.join('\n')}</body></html>`
+}
+
+async function exportMarkdownFileToPdf(markdownPath: string, pdfPath: string): Promise<void> {
+  const markdown = fs.readFileSync(markdownPath, 'utf-8')
+  const html = markdownToPrintableHtml(markdown)
+  const win = new BrowserWindow({ show: false, webPreferences: { sandbox: true } })
+
+  try {
+    await win.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(html)}`)
+    const data = await win.webContents.printToPDF({ printBackground: true, pageSize: 'A4' })
+    fs.mkdirSync(path.dirname(pdfPath), { recursive: true })
+    fs.writeFileSync(pdfPath, data)
+  } finally {
+    win.destroy()
+  }
+}
+
+function findLatestMarkdownLabel(projectDir: string): string | null {
+  const labelDir = path.join(projectDir, 'output-label')
+  if (!fs.existsSync(labelDir)) return null
+
+  const mdFiles: string[] = []
+  const walkDir = (dir: string) => {
+    const entries = fs.readdirSync(dir, { withFileTypes: true })
+    for (const entry of entries) {
+      const fullPath = path.join(dir, entry.name)
+      if (entry.isDirectory()) {
+        walkDir(fullPath)
+      } else if (entry.name.toLowerCase().endsWith('.md')) {
+        mdFiles.push(fullPath)
+      }
+    }
+  }
+  walkDir(labelDir)
+
+  if (mdFiles.length === 0) return null
+  mdFiles.sort((a, b) => fs.statSync(b).mtimeMs - fs.statSync(a).mtimeMs)
+  return mdFiles[0]
 }
 
 export function setupIpcHandlers(window: BrowserWindow): void {
@@ -396,6 +491,29 @@ export function setupIpcHandlers(window: BrowserWindow): void {
   // 功能 API（标签打印/删除，通过 Python 后端执行）
   ipcMain.handle('feature:label-print', async (_e, ids: string[], config?: unknown): Promise<void> => {
     return await renderHandler.labelPrint(ids, config)
+  })
+
+  ipcMain.handle('feature:label-markdown', async (_e, ids: string[], config?: unknown): Promise<void> => {
+    return await renderHandler.labelMarkdown(ids, config)
+  })
+
+  ipcMain.handle('feature:label-pdf', async (_e, ids: string[], config?: unknown): Promise<string[]> => {
+    await renderHandler.labelMarkdown(ids, config)
+
+    const pdfPaths: string[] = []
+    for (const id of ids) {
+      const project = await resolveProjectById(id)
+      const projectDir = path.join(getWorkspaceDir(), project.name)
+      const markdownPath = findLatestMarkdownLabel(projectDir)
+      if (!markdownPath) throw new Error(`未找到 ${project.name} 的 Markdown 标签文件`)
+
+      const timestampDir = path.dirname(markdownPath)
+      const pdfPath = path.join(timestampDir, path.basename(markdownPath).replace(/_label\.md$/i, '_label.pdf'))
+      await exportMarkdownFileToPdf(markdownPath, pdfPath)
+      pdfPaths.push(pdfPath)
+    }
+
+    return pdfPaths
   })
 
   ipcMain.handle('feature:label-delete', async (_e, ids: string[]): Promise<void> => {

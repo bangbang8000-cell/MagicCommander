@@ -76,6 +76,7 @@
     "fileType.template": "テンプレート",
     "fileType.excel": "Excel",
     "fileType.txt": "テキスト",
+    "fileType.markdown": "MD",
     "filenamePlaceholder": "ファイル名を検索（スペース区切りで複数キーワード）",
     "contentPlaceholder": "ファイル内容を検索（スペース区切りで複数キーワード）",
     "searchButton": "検索",

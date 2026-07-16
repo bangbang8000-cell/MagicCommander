@@ -76,6 +76,7 @@
     "fileType.template": "Mẫu",
     "fileType.excel": "Excel",
     "fileType.txt": "Văn bản",
+    "fileType.markdown": "MD",
     "filenamePlaceholder": "Tìm kiếm tên tệp (cách nhau bởi dấu cách cho nhiều từ khóa)",
     "contentPlaceholder": "Tìm kiếm nội dung tệp (cách nhau bởi dấu cách cho nhiều từ khóa)",
     "searchButton": "Tìm kiếm",

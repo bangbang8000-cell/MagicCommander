@@ -4,6 +4,7 @@
  */
 
 import type { ProjectInfo } from '@/types/project'
+import type { LabelPrintConfig } from '@/types'
 
 const electron = window.electron
 
@@ -24,7 +25,9 @@ export interface ProjectService {
   renderYaml(ids: string[]): Promise<void>
   renderProjectSn(ids: string[]): Promise<void>
   renderYamlSn(ids: string[]): Promise<void>
-  labelPrint(ids: string[], config?: unknown): Promise<void>
+  labelPrint(ids: string[], config?: LabelPrintConfig): Promise<void>
+  labelMarkdown(ids: string[], config?: LabelPrintConfig): Promise<void>
+  labelPdf(ids: string[], config?: LabelPrintConfig): Promise<string[]>
   labelDelete(ids: string[]): Promise<void>
   deleteOutput(ids: string[]): Promise<void>
   deleteOutputSn(ids: string[]): Promise<void>
@@ -180,11 +183,29 @@ class ProjectServiceImpl implements ProjectService {
     }
   }
 
-  async labelPrint(ids: string[], config?: unknown): Promise<void> {
+  async labelPrint(ids: string[], config?: LabelPrintConfig): Promise<void> {
     try {
       await electron.feature.labelPrint(ids, config)
     } catch (error) {
       console.error('[ProjectService] labelPrint error:', error)
+      throw error
+    }
+  }
+
+  async labelMarkdown(ids: string[], config?: LabelPrintConfig): Promise<void> {
+    try {
+      await electron.feature.labelMarkdown(ids, config)
+    } catch (error) {
+      console.error('[ProjectService] labelMarkdown error:', error)
+      throw error
+    }
+  }
+
+  async labelPdf(ids: string[], config?: LabelPrintConfig): Promise<string[]> {
+    try {
+      return await electron.feature.labelPdf(ids, config)
+    } catch (error) {
+      console.error('[ProjectService] labelPdf error:', error)
       throw error
     }
   }

@@ -76,6 +76,7 @@
     "fileType.template": "Plantilla",
     "fileType.excel": "Excel",
     "fileType.txt": "Texto",
+    "fileType.markdown": "MD",
     "filenamePlaceholder": "Buscar nombre de archivo (separar palabras clave con espacios)",
     "contentPlaceholder": "Buscar en contenido de archivo (separar palabras clave con espacios)",
     "searchButton": "Buscar",

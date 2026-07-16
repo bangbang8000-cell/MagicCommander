@@ -203,6 +203,7 @@
     "snConfig": "SN配置",
     "yamlOutput": "YAML输出",
     "yamlSn": "YAML+SN",
+    "labelOutput": "标签输出",
     "outputFiles": "输出文件",
     "selectProject": "选择项目...",
     "selectProjectHint": "请先选择项目查看输出文件",

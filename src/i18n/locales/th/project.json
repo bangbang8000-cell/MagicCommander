@@ -76,6 +76,7 @@
     "fileType.template": "เทมเพลต",
     "fileType.excel": "Excel",
     "fileType.txt": "ข้อความ",
+    "fileType.markdown": "MD",
     "filenamePlaceholder": "ค้นหาชื่อไฟล์ (คั่นหลายคำด้วยช่องว่าง)",
     "contentPlaceholder": "ค้นหาเนื้อหาไฟล์ (คั่นหลายคำด้วยช่องว่าง)",
     "searchButton": "ค้นหา",

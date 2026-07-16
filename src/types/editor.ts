@@ -3,7 +3,7 @@
 // ============================================================
 
 /** 编辑器文件类型 */
-export type FileType = 'excel' | 'yaml' | 'template' | 'output' | 'word' | 'text'
+export type FileType = 'excel' | 'yaml' | 'template' | 'output' | 'word' | 'text' | 'markdown'
 
 /** 编辑器 Tab 持久化元信息（不含内容与脏状态） */
 export interface EditorTabMeta {
@@ -91,8 +91,8 @@ export function getFileTypeFromPath(filePath: string): FileType {
     yaml: 'yaml',
     yml: 'yaml',
     j2: 'template',
-    md: 'text',
-    markdown: 'text',
+    md: 'markdown',
+    markdown: 'markdown',
     doc: 'word',
     docx: 'word',
     xls: 'excel',
@@ -115,5 +115,6 @@ export function getFileTypeFromPath(filePath: string): FileType {
 export function getMonacoLanguage(fileType: FileType): MonacoLanguage {
   if (fileType === 'yaml') return 'yaml'
   if (fileType === 'template') return 'jinja2'
+  if (fileType === 'markdown') return 'markdown'
   return 'plaintext'
 }

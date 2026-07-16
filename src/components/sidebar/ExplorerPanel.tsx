@@ -1,7 +1,7 @@
 import { useProjectStore } from '@/stores/project.store'
 import { useRenderStore } from '@/stores/render.store'
 import { ProjectExplorer } from '@/components/common/ProjectExplorer'
-import { Search, Plus, Trash2, FolderOpen, Star, Clock, Folder, Save } from 'lucide-react'
+import { Search, Plus, Trash2, FolderOpen, Star, Clock, Folder, Save, CheckSquare, Square, GripHorizontal, ArrowUpDown } from 'lucide-react'
 import clsx from 'clsx'
 import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -28,6 +28,10 @@ export function ExplorerPanel() {
   const clearCreateTrigger = useProjectStore((s) => s.clearCreateTrigger)
   const setSelectedIds = useRenderStore((s) => s.setSelectedIds)
   const [search, setSearch] = useState('')
+  const [sortBy, setSortBy] = useState<'name' | 'date'>('name')
+  const [projectListHeight, setProjectListHeight] = useState(40)
+  const [dragActive, setDragActive] = useState(false)
+  const [selectedIds, setSelectedIdsLocal] = useState<Set<number>>(new Set())
   const [createOpen, setCreateOpen] = useState(false)
   const [newProjectName, setNewProjectName] = useState('')
   const [templateOption, setTemplateOption] = useState<TemplateOption>('example')
@@ -139,23 +143,75 @@ export function ExplorerPanel() {
 
   const filtered = search ? projects.filter((p) => p.name.toLowerCase().includes(search.toLowerCase())) : projects
 
-  const favoriteList = filtered.filter((p) => favoriteProjects.includes(p.name))
-  const recentList = filtered.filter((p) => recentProjects.includes(p.name) && !favoriteProjects.includes(p.name))
-  const normalList = filtered.filter((p) => !favoriteProjects.includes(p.name) && !recentProjects.includes(p.name))
+  const sorted = sortBy === 'date'
+    ? [...filtered].sort((a, b) => (b.id ?? 0) - (a.id ?? 0))
+    : [...filtered].sort((a, b) => a.name.localeCompare(b.name))
+
+  const favoriteList = sorted.filter((p) => favoriteProjects.includes(p.name))
+  const recentList = sorted.filter((p) => recentProjects.includes(p.name) && !favoriteProjects.includes(p.name))
+  const normalList = sorted.filter((p) => !favoriteProjects.includes(p.name) && !recentProjects.includes(p.name))
+
+  const toggleSelect = (id: number) => {
+    setSelectedIdsLocal((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
+  const toggleSelectAll = () => {
+    const allIds = sorted.map((p) => p.id)
+    if (selectedIds.size === allIds.length) {
+      setSelectedIdsLocal(new Set())
+    } else {
+      setSelectedIdsLocal(new Set(allIds))
+    }
+  }
+
+  const batchDelete = async () => {
+    if (selectedIds.size === 0) return
+    try {
+      await deleteProjects(Array.from(selectedIds).map(String))
+      showSuccess(`已删除 ${selectedIds.size} 个项目`)
+      await fetchProjects()
+      setSelectedIdsLocal(new Set())
+    } catch (err) {
+      showError((err as Error).message)
+    }
+  }
+
+  const batchRender = () => {
+    if (selectedIds.size === 0) return
+    setSelectedIds(Array.from(selectedIds).map(String))
+  }
 
   const renderProjectItem = (p: ProjectInfo) => {
     const isSelected = selectedProject?.name === p.name
     const isFav = favoriteProjects.includes(p.name)
+    const isChecked = selectedIds.has(p.id)
     return (
       <div
         key={p.id}
         className={clsx(
-          'flex items-center gap-1 px-3 py-1.5 text-xs transition-colors cursor-pointer',
+          'flex items-center gap-1 px-2 py-1.5 text-xs transition-colors cursor-pointer',
           isSelected
             ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 font-medium'
             : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700',
         )}
       >
+        <button
+          onClick={(e) => {
+            e.stopPropagation()
+            toggleSelect(p.id)
+          }}
+          className={clsx(
+            'shrink-0 leading-none transition-colors',
+            isChecked ? 'text-primary-500' : 'text-gray-400 dark:text-gray-500 hover:text-primary-400',
+          )}
+        >
+          {isChecked ? <CheckSquare size={14} /> : <Square size={14} />}
+        </button>
         <button
           onClick={(e) => {
             e.stopPropagation()
@@ -211,7 +267,7 @@ export function ExplorerPanel() {
     )
   }
 
-  const showEmptyHint = filtered.length === 0
+  const showEmptyHint = sorted.length === 0
   const showAllGroups = !showEmptyHint && (favoriteList.length > 0 || recentList.length > 0 || normalList.length > 0)
 
   return (
@@ -236,10 +292,36 @@ export function ExplorerPanel() {
       </div>
 
       {/* 项目列表区域 */}
-      <div className="border-b flex-none overflow-auto max-h-[40%] border-gray-200 dark:border-gray-700">
+      <div className="border-b flex-none overflow-auto border-gray-200 dark:border-gray-700" style={{ maxHeight: `${projectListHeight}%` }}>
         <div className="px-3 py-1.5 text-xs font-semibold uppercase tracking-wider flex items-center justify-between bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-300">
-          <span>{t('explorer.projectList')}</span>
+          <div className="flex items-center gap-2">
+            <span>{t('explorer.projectList')}</span>
+            <span className={clsx(
+              'text-[10px] px-1.5 py-0.5 rounded-full font-normal',
+              'bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300',
+            )}>
+              {sorted.length}
+            </span>
+          </div>
           <div className="flex items-center gap-1">
+            <button
+              onClick={toggleSelectAll}
+              title={selectedIds.size === sorted.length ? '取消全选' : '全选'}
+              className="px-1 py-0.5 rounded text-[10px] font-normal text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600"
+            >
+              {selectedIds.size === sorted.length ? <CheckSquare size={12} /> : <Square size={12} />}
+            </button>
+            <button
+              onClick={() => setSortBy((s) => (s === 'name' ? 'date' : 'name'))}
+              title={sortBy === 'name' ? '按名称排序' : '按日期排序'}
+              className={clsx(
+                'px-1 py-0.5 rounded text-[10px] font-normal flex items-center gap-0.5',
+                'text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600',
+              )}
+            >
+              <ArrowUpDown size={10} />
+              {sortBy === 'name' ? '名称' : '日期'}
+            </button>
             <button
               onClick={openCreateDialog}
               title={t('explorer.newProject')}
@@ -275,6 +357,26 @@ export function ExplorerPanel() {
             </button>
           </div>
         </div>
+
+        {selectedIds.size > 0 && (
+          <div className="px-2 py-1 flex items-center gap-2 bg-primary-50 dark:bg-primary-900/20 border-b border-primary-200 dark:border-primary-800">
+            <span className="text-[10px] text-primary-700 dark:text-primary-300">
+              已选 {selectedIds.size} 个
+            </span>
+            <button
+              onClick={batchRender}
+              className="px-1.5 py-0.5 rounded text-[10px] bg-primary-500 text-white hover:bg-primary-600"
+            >
+              批量渲染
+            </button>
+            <button
+              onClick={batchDelete}
+              className="px-1.5 py-0.5 rounded text-[10px] bg-red-500 text-white hover:bg-red-600"
+            >
+              批量删除
+            </button>
+          </div>
+        )}
         {showEmptyHint ? (
           <div className="px-3 py-2 text-xs text-gray-400 dark:text-gray-500">
             {projectError ? (
@@ -306,6 +408,40 @@ export function ExplorerPanel() {
             )}
           </>
         )}
+      </div>
+
+      {/* 拖动调整项目列表高度 */}
+      <div
+        className={clsx(
+          'h-1 cursor-row-resize transition-colors flex items-center justify-center',
+          dragActive ? 'bg-primary-500' : 'bg-gray-200 dark:bg-gray-700 hover:bg-primary-400',
+        )}
+        onMouseDown={(e) => {
+          e.preventDefault()
+          setDragActive(true)
+          const startY = e.clientY
+          const container = (e.target as HTMLElement).parentElement!
+          const containerHeight = container.getBoundingClientRect().height
+          const startPercent = projectListHeight
+
+          const onMouseMove = (ev: MouseEvent) => {
+            const deltaY = ev.clientY - startY
+            const deltaPercent = (deltaY / containerHeight) * 100
+            const newPercent = Math.max(15, Math.min(70, startPercent + deltaPercent))
+            setProjectListHeight(newPercent)
+          }
+
+          const onMouseUp = () => {
+            setDragActive(false)
+            document.removeEventListener('mousemove', onMouseMove)
+            document.removeEventListener('mouseup', onMouseUp)
+          }
+
+          document.addEventListener('mousemove', onMouseMove)
+          document.addEventListener('mouseup', onMouseUp)
+        }}
+      >
+        <GripHorizontal size={12} className="text-gray-400 dark:text-gray-500" />
       </div>
 
       <div className="flex-1 overflow-hidden min-h-0">

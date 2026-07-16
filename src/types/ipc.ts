@@ -114,6 +114,8 @@ export interface DeleteIpcApi {
 
 export interface FeatureIpcApi {
   labelPrint: (ids: string[], config?: unknown) => Promise<void>
+  labelMarkdown: (ids: string[], config?: unknown) => Promise<void>
+  labelPdf: (ids: string[], config?: unknown) => Promise<string[]>
   labelDelete: (ids: string[]) => Promise<void>
 }
 

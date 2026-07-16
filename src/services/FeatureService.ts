@@ -6,13 +6,15 @@ import type { LabelPrintConfig } from '@/types'
 
 class FeatureServiceImpl {
   async labelPrint(ids: string[], config?: LabelPrintConfig): Promise<void> {
-    // M4: 将配置参数透传给后端
-    // 后端已扩展 label-print 支持 config 参数
-    if (config) {
-      await window.electron.feature.labelPrint(ids)
-    } else {
-      await window.electron.feature.labelPrint(ids)
-    }
+    await window.electron.feature.labelPrint(ids, config)
+  }
+
+  async labelMarkdown(ids: string[], config?: LabelPrintConfig): Promise<void> {
+    await window.electron.feature.labelMarkdown(ids, config)
+  }
+
+  async labelPdf(ids: string[], config?: LabelPrintConfig): Promise<string[]> {
+    return await window.electron.feature.labelPdf(ids, config)
   }
 
   async labelDelete(ids: string[]): Promise<void> {

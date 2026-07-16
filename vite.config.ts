@@ -34,6 +34,7 @@ export default defineConfig({
   },
   optimizeDeps: {
     include: ['react', 'react-dom', 'zustand', 'clsx', 'lucide-react'],
+    exclude: ['vscode-oniguruma', 'vscode-textmate'],
   },
   clearScreen: false,
   test: {

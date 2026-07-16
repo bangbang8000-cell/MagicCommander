@@ -76,6 +76,7 @@
     "fileType.template": "Vorlage",
     "fileType.excel": "Excel",
     "fileType.txt": "Text",
+    "fileType.markdown": "MD",
     "filenamePlaceholder": "Dateinamen suchen (Leerzeichen für mehrere Stichwörter)",
     "contentPlaceholder": "Dateiinhalt suchen (Leerzeichen für mehrere Stichwörter)",
     "searchButton": "Suchen",

@@ -50,6 +50,8 @@ const api = {
   },
   feature: {
     labelPrint: (ids: string[], config?: unknown) => ipcRenderer.invoke('feature:label-print', ids, config),
+    labelMarkdown: (ids: string[], config?: unknown) => ipcRenderer.invoke('feature:label-markdown', ids, config),
+    labelPdf: (ids: string[], config?: unknown) => ipcRenderer.invoke('feature:label-pdf', ids, config),
     labelDelete: (ids: string[]) => ipcRenderer.invoke('feature:label-delete', ids),
   },
   guide: {

@@ -78,6 +78,7 @@ export const FILE_TYPE_ICONS = {
   output: FileCheck, // 输出文件
   word: FileText, // Word 文件
   text: FileText, // 文本文件
+  markdown: FileText, // Markdown 文件
   config: Settings, // 配置文件
   unknown: FileText, // 未知文件
 } as const

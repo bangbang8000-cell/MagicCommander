@@ -76,6 +76,7 @@
     "fileType.template": "模板",
     "fileType.excel": "Excel",
     "fileType.txt": "文字",
+    "fileType.markdown": "MD",
     "filenamePlaceholder": "搜尋檔案名稱（空格分隔多個關鍵字）",
     "contentPlaceholder": "搜尋檔案內容（空格分隔多個關鍵字）",
     "searchButton": "搜尋",

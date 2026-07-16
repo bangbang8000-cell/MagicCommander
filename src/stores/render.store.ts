@@ -26,6 +26,8 @@ interface RenderState {
   renderProjectSn: (ids: string[]) => Promise<void>
   renderYamlSn: (ids: string[]) => Promise<void>
   labelPrint: (ids: string[], config?: LabelPrintConfig) => Promise<void>
+  labelMarkdown: (ids: string[], config?: LabelPrintConfig) => Promise<void>
+  labelPdf: (ids: string[], config?: LabelPrintConfig) => Promise<void>
   labelDelete: (ids: string[]) => Promise<void>
   deleteOutput: (ids: string[]) => Promise<void>
   deleteOutputSn: (ids: string[]) => Promise<void>
@@ -170,6 +172,24 @@ export const useRenderStore = create<RenderState>((set, get) => {
         successMessage: '标签打印完成',
         failurePrefix: '标签打印失败',
         action: () => window.electron.feature.labelPrint(ids, config),
+      }),
+
+    labelMarkdown: (ids, config) =>
+      runTask(ids, {
+        type: 'label',
+        successMessage: '标签Markdown生成完成',
+        failurePrefix: '标签Markdown生成失败',
+        action: () => window.electron.feature.labelMarkdown(ids, config),
+      }),
+
+    labelPdf: (ids, config) =>
+      runTask(ids, {
+        type: 'label',
+        successMessage: '标签PDF导出完成',
+        failurePrefix: '标签PDF导出失败',
+        action: async () => {
+          await window.electron.feature.labelPdf(ids, config)
+        },
       }),
 
     labelDelete: (ids) =>

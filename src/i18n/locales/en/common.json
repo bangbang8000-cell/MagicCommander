@@ -203,6 +203,7 @@
     "snConfig": "SN Config",
     "yamlOutput": "YAML Output",
     "yamlSn": "YAML+SN",
+    "labelOutput": "Label Output",
     "outputFiles": "Output Files",
     "selectProject": "Select project...",
     "selectProjectHint": "Please select a project to view output files",

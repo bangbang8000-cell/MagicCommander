@@ -7,6 +7,7 @@ import clsx from 'clsx'
 import { MonacoEditor } from './MonacoEditor'
 import { ExcelViewer } from './ExcelViewer'
 import { WordViewer } from './WordViewer'
+import { MarkdownViewer } from '@/components/common/MarkdownViewer'
 import { UnsupportedViewer } from './UnsupportedViewer'
 import { Modal } from '@/components/ui/Modal'
 import { getFileTypeIcon } from '@/config/icons'
@@ -69,6 +70,8 @@ export function EditorArea() {
         return <ExcelViewer key={tab.id} tab={tab} />
       case 'word':
         return <WordViewer key={tab.id} tab={tab} />
+      case 'markdown':
+        return <MarkdownViewer key={tab.id} tab={tab} inline />
       case 'yaml':
       case 'template':
       case 'output':

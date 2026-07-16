@@ -32,13 +32,14 @@ interface FileNode {
 }
 
 // 输出目录类型配置
-const OUTPUT_DIR_NAMES = ['output', 'output-sn', 'yaml', 'yaml-sn']
+const OUTPUT_DIR_NAMES = ['output', 'output-sn', 'yaml', 'yaml-sn', 'output-label']
 
 const OUTPUT_TYPE_KEY_MAP: Record<string, string> = {
   output: 'common:outputPanel.configOutput',
   'output-sn': 'common:outputPanel.snConfig',
   yaml: 'common:outputPanel.yamlOutput',
   'yaml-sn': 'common:outputPanel.yamlSn',
+  'output-label': 'common:outputPanel.labelOutput',
 }
 
 const OUTPUT_TYPE_ICON_MAP: Record<string, LucideIcon> = {
@@ -46,6 +47,7 @@ const OUTPUT_TYPE_ICON_MAP: Record<string, LucideIcon> = {
   'output-sn': Tag,
   yaml: FileCode,
   'yaml-sn': FileCheck,
+  'output-label': Tag,
 }
 
 async function openInExplorer(projectName: string, relativePath: string) {

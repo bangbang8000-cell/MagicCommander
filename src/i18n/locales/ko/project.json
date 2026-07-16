@@ -76,6 +76,7 @@
     "fileType.template": "템플릿",
     "fileType.excel": "Excel",
     "fileType.txt": "텍스트",
+    "fileType.markdown": "MD",
     "filenamePlaceholder": "파일 이름 검색 (공백으로 여러 키워드 구분)",
     "contentPlaceholder": "파일 내용 검색 (공백으로 여러 키워드 구분)",
     "searchButton": "검색",

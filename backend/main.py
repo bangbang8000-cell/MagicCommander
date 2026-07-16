@@ -113,6 +113,11 @@ def main():
     label_print_parser.add_argument('ids', help='项目ID (使用,分隔多个ID)')
     label_print_parser.add_argument('--config', help='JSON格式的打印配置 (纸张/方向/边距/每页数量/标签尺寸)', default=None)
 
+    # 生成 Markdown 标签
+    label_md_parser = label_subparsers.add_parser('md', help='生成Markdown标签')
+    label_md_parser.add_argument('ids', help='项目ID (使用,分隔多个ID)')
+    label_md_parser.add_argument('--config', help='JSON格式的标签配置', default=None)
+
     # 删除标签
     label_delete_parser = label_subparsers.add_parser('delete', help='删除标签')
     label_delete_parser.add_argument('ids', help='项目ID (使用,分隔多个ID)')
@@ -562,6 +567,10 @@ def handle_label_command(processor, args):
     if args.subcommand == 'print':
         processor.execute_feature('label-print', target_str, label_config)
         print_success('标签打印完成')
+
+    elif args.subcommand == 'md':
+        processor.execute_feature('label-md', target_str, label_config)
+        print_success('标签Markdown生成完成')
 
     elif args.subcommand == 'delete':
         processor.execute_feature('label-delete', target_str)

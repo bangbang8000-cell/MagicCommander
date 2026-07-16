@@ -84,7 +84,7 @@ def exceltolabel(target_list: list, time_str: str, config=None):
         labels_per_page = int(config.get('labelsPerPage', 5))
 
     for target in target_list:
-        output_dir = os.path.join(mid_path, target, 'output-label')
+        output_dir = os.path.join(mid_path, target, 'output-label', time_str)
         os.makedirs(output_dir, exist_ok=True)
 
         excel_path = os.path.join(mid_path, target, 'excel', excel_name)
@@ -155,3 +155,72 @@ def exceltolabel(target_list: list, time_str: str, config=None):
             d.save(word_path)
 
         logger.info(f'完成 {target} 的标签卡转换')
+
+
+def exceltomarkdown(target_list: list, time_str: str, config=None):
+    """把项目的主机表 Excel 转换为 Markdown 标签文件
+
+    :param target_list: 项目名称列表
+    :param time_str: 时间字符串（用于命名输出文件）
+    :param config: 可选 dict，保留接口兼容性
+    """
+    mid_path = WORKSPACE_DIR
+    sheet_name = '主机表'
+    excel_name = 'hostname.xlsx'
+    md_name = time_str + '_label.md'
+
+    header = ['设备名', 'SN', '型号', '角色', '楼层', '机柜', 'U数', '管理IP', '管理接口']
+
+    for target in target_list:
+        output_dir = os.path.join(mid_path, target, 'output-label', time_str)
+        os.makedirs(output_dir, exist_ok=True)
+
+        excel_path = os.path.join(mid_path, target, 'excel', excel_name)
+        if not os.path.exists(excel_path):
+            logger.warning(f'{target} 的 excel 中没有 hostname.xlsx 文件，本次不处理该项目')
+            continue
+
+        md_path = os.path.join(output_dir, md_name)
+        data = read_excel(excel_path, sheet_name=None, keep_default_na=False)
+
+        ans_dict = {}
+        for sheet1, value in data.items():
+            if sheet1 != sheet_name:
+                continue
+            for i in value.index.values:
+                tmp_dict = {}
+                for h in header:
+                    tmp_dict[h] = str(value[h][i]).strip()
+                ans_dict[str(value[header[0]][i]).strip()] = tmp_dict
+
+        lines = []
+        lines.append(f'# 设备标签 - {target}')
+        lines.append('')
+        lines.append(f'> 生成时间：{time_str}')
+        lines.append('')
+        lines.append('---')
+        lines.append('')
+
+        for key in ans_dict:
+            device = ans_dict[key]
+            lines.append(f'## {device["设备名"]} ({device["角色"]})')
+            lines.append('')
+            lines.append('| 属性 | 值 |')
+            lines.append('|------|----|')
+            lines.append(f'| 设备名 | {device["设备名"]} |')
+            lines.append(f'| SN | {device["SN"]} |')
+            lines.append(f'| 型号 | {device["型号"]} |')
+            lines.append(f'| 角色 | {device["角色"]} |')
+            lines.append(f'| 楼层 | {device["楼层"]} |')
+            lines.append(f'| 机柜 | {device["机柜"]} |')
+            lines.append(f'| U数 | {device["U数"]} |')
+            lines.append(f'| 管理IP | {device["管理IP"]} |')
+            lines.append(f'| 管理接口 | {device["管理接口"]} |')
+            lines.append('')
+            lines.append('---')
+            lines.append('')
+
+        with open(md_path, 'w', encoding='utf-8') as f:
+            f.write('\n'.join(lines))
+
+        logger.info(f'完成 {target} 的标签 MD 转换')

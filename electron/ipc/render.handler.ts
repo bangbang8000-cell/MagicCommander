@@ -142,6 +142,15 @@ export class RenderHandler {
     await this.runPythonCommand(args)
   }
 
+  async labelMarkdown(ids: string[], config?: unknown): Promise<void> {
+    const target = ids.join(',')
+    const args: string[] = ['label', 'md', target]
+    if (config) {
+      args.push('--config', JSON.stringify(config))
+    }
+    await this.runPythonCommand(args)
+  }
+
   async labelDelete(ids: string[]): Promise<void> {
     const target = ids.join(',')
     await this.runPythonCommand(['label', 'delete', target])

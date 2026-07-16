@@ -76,6 +76,7 @@
     "fileType.template": "قالب",
     "fileType.excel": "Excel",
     "fileType.txt": "نص",
+    "fileType.markdown": "MD",
     "filenamePlaceholder": "البحث عن اسم ملف (افصل الكلمات المفتاحية بمسافات)",
     "contentPlaceholder": "البحث في محتوى الملف (افصل الكلمات المفتاحية بمسافات)",
     "searchButton": "بحث",

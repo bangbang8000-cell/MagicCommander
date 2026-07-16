@@ -4,6 +4,7 @@ import { useEditorStore, type EditorTab } from '@/stores/editor.store'
 import { useUIStore } from '@/stores/ui.store'
 import { showError, showSuccess } from '@/components/ui/Toast'
 
+
 const EXT_MAP: Record<string, string> = {
   '.yaml': 'yaml',
   '.yml': 'yaml',
@@ -176,108 +177,15 @@ export function MonacoEditor({ tab }: MonacoEditorProps) {
     if (language === 'jinja') {
       try {
         monaco.languages.register({ id: 'jinja' })
-        monaco.languages.setMonarchTokensProvider('jinja', {
-          defaultToken: 'text',
-          tokenPostfix: '.jinja',
-          brackets: [
-            { open: '{', close: '}', token: 'delimiter.curly' },
-            { open: '[', close: ']', token: 'delimiter.square' },
-            { open: '(', close: ')', token: 'delimiter.parenthesis' },
-            { open: '<', close: '>', token: 'delimiter.angle' },
-          ],
-          keywords: [
-            'if',
-            'else',
-            'elif',
-            'for',
-            'endfor',
-            'endif',
-            'set',
-            'block',
-            'endblock',
-            'extends',
-            'include',
-            'macro',
-            'endmacro',
-            'import',
-            'from',
-            'as',
-            'with',
-            'endwith',
-            'autoescape',
-            'endautoescape',
-            'raw',
-            'endraw',
-            'filter',
-            'endfilter',
-            'true',
-            'false',
-            'none',
-            'True',
-            'False',
-            'None',
-          ],
-          operators: ['==', '!=', '<=', '>=', '&&', '||', '~', 'is', 'in', 'not', 'and', 'or'],
-          symbols: /[=><!~?:&|+\-*/^%]+/,
-          escapes: /\\(?:[btnfr\\']|\\|[0-7]{1,3}|x[0-9A-Fa-f]{1,2}|u[0-9A-Fa-f]{4}|U[0-9A-Fa-f]{8})/,
-          tokenizer: {
-            root: [{ include: '@jinjaBlocks' }, { include: '@html' }],
-            jinjaBlocks: [
-              [/\{#/, 'comment', '@jinjaComment'],
-              [/\{\%/, 'keyword', '@jinjaTag'],
-              [/\{\{/, 'variable', '@jinjaExpr'],
-            ],
-            jinjaComment: [
-              [/[^{}]+/, 'comment'],
-              [/#\}/, 'comment', '@pop'],
-              [/[{}]/, 'comment'],
-            ],
-            jinjaTag: [
-              [/\%\}/, 'keyword', '@pop'],
-              [/\b(in|is|not|and|or)\b/, 'keyword'],
-              [/\b(true|false|none|True|False|None)\b/, 'keyword'],
-              [/\b([a-zA-Z_][a-zA-Z0-9_]*)\b/, 'identifier'],
-              [/"([^"\\]|\\.)*"/, 'string'],
-              [/'([^'\\]|\\.)*'/, 'string'],
-              [/@symbols/, 'operator'],
-              [/\d+/, 'number'],
-              [/\s+/, ''],
-            ],
-            jinjaExpr: [
-              [/\}\}/, 'variable', '@pop'],
-              [/\|/, 'delimiter'],
-              [/\b([a-zA-Z_][a-zA-Z0-9_]*)\b/, 'identifier'],
-              [/"([^"\\]|\\.)*"/, 'string'],
-              [/'([^'\\]|\\.)*'/, 'string'],
-              [/\d+/, 'number'],
-              [/[+\-*/%<>=!]/, 'operator'],
-              [/[().,\[\]:]/, 'delimiter'],
-              [/\s+/, ''],
-            ],
-            html: [
-              [/<!DOCTYPE/, 'metatag', '@doctype'],
-              [/<!--/, 'comment', '@comment'],
-              [/(<)(\w+)(\/)?/, ['delimiter', { token: 'tag', next: '@tag' }]],
-              [/(<\/)(\w+)/, ['delimiter', { token: 'tag', next: '@tag' }]],
-              [/</, 'delimiter'],
-              [/[^<{]+/, ''],
-            ],
-            doctype: [
-              [/[^>]+/, 'metatag.content'],
-              [/>/, 'metatag', '@pop'],
-            ],
-            comment: [
-              [/[^-]+/, 'comment.content'],
-              [/-->/, 'comment', '@pop'],
-              [/-/, 'comment.content'],
-            ],
-            tag: [
-              [/\s+/, ''],
-              [/([a-zA-Z\-]+)(\s*=\s*)(".*?"|'.*?'|[^'">\s]+)?/, ['attribute', 'delimiter', 'string']],
-              [/\/?>/, 'delimiter', '@pop'],
-            ],
-          },
+
+        import('@/editor/jinja-textmate').then((module) => {
+          return module.createJinjaTokensProvider()
+        }).then((provider) => {
+          monaco.languages.setTokensProvider('jinja', provider)
+        }).catch(() => {
+          // silently fallback
         })
+
         monaco.languages.setLanguageConfiguration('jinja', {
           comments: { blockComment: ['{#', '#}'] },
           brackets: [

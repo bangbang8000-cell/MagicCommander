@@ -76,6 +76,7 @@
     "fileType.template": "Шаблон",
     "fileType.excel": "Excel",
     "fileType.txt": "Текст",
+    "fileType.markdown": "MD",
     "filenamePlaceholder": "Поиск по имени файла (ключевые слова через пробел)",
     "contentPlaceholder": "Поиск по содержимому (ключевые слова через пробел)",
     "searchButton": "Поиск",
