@@ -1,3 +1,5 @@
+import type { TemplateInfo, TemplateMeta, WorkspaceIndex } from './project'
+
 // ============================================================
 // IPC 协议类型 - 所有 IPC 消息的请求 / 响应 / 事件类型
 // ============================================================
@@ -61,8 +63,14 @@ declare global {
 export interface ProjectIpcApi {
   list: () => Promise<unknown[]>
   listExamples: () => Promise<string[]>
+  listTemplates: () => Promise<TemplateInfo[]>
+  getTemplate: (id: string) => Promise<TemplateInfo>
   create: (name: string, options?: { template?: string; empty?: boolean }) => Promise<void>
   saveAsExample: (projectName: string, exampleName: string) => Promise<void>
+  saveAsTemplate: (projectName: string, templateName: string, meta: Partial<TemplateMeta>) => Promise<void>
+  updateTemplateMeta: (id: string, meta: Partial<TemplateMeta>) => Promise<void>
+  deleteTemplate: (id: string) => Promise<void>
+  getWorkspaceIndex: () => Promise<WorkspaceIndex>
   delete: (ids: string[]) => Promise<void>
   getStructure: (name: string) => Promise<unknown[]>
   parameters: (id: string) => Promise<unknown>

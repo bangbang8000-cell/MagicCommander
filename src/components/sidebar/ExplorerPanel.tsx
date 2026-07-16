@@ -1,15 +1,22 @@
+import { useState, useEffect, useRef } from 'react'
 import { useProjectStore } from '@/stores/project.store'
 import { useRenderStore } from '@/stores/render.store'
+import { useUIStore } from '@/stores/ui.store'
 import { ProjectExplorer } from '@/components/common/ProjectExplorer'
-import { Search, Plus, Trash2, FolderOpen, Star, Clock, Folder, Save, CheckSquare, Square, GripHorizontal, ArrowUpDown } from 'lucide-react'
-import clsx from 'clsx'
-import { useState, useEffect } from 'react'
-import { useTranslation } from 'react-i18next'
+import { ResizeHandle } from '@/components/common/ResizeHandle'
 import { Modal } from '@/components/ui/Modal'
 import { showError, showSuccess } from '@/components/ui/Toast'
-import type { ProjectInfo } from '@/types/project'
+import { ProjectListToolbar } from './project/ProjectListToolbar'
+import { ProjectListItem } from './project/ProjectListItem'
+import { ProjectBatchBar } from './project/ProjectBatchBar'
+import { TemplateCenterPanel } from './template/TemplateCenterPanel'
+import { Star, Clock, Folder } from 'lucide-react'
+import clsx from 'clsx'
+import { useTranslation } from 'react-i18next'
+
 
 type TemplateOption = 'example' | 'empty'
+type ExplorerTab = 'projects' | 'templates'
 
 export function ExplorerPanel() {
   const projects = useProjectStore((s) => s.projects)
@@ -17,7 +24,7 @@ export function ExplorerPanel() {
   const selectProject = useProjectStore((s) => s.selectProject)
   const createProject = useProjectStore((s) => s.createProject)
   const listExamples = useProjectStore((s) => s.listExamples)
-  const saveAsExample = useProjectStore((s) => s.saveAsExample)
+  const saveAsTemplate = useProjectStore((s) => s.saveAsTemplate)
   const fetchProjects = useProjectStore((s) => s.fetchProjects)
   const deleteProjects = useProjectStore((s) => s.deleteProjects)
   const projectError = useProjectStore((s) => s.error)
@@ -27,10 +34,13 @@ export function ExplorerPanel() {
   const pendingCreateDialog = useProjectStore((s) => s.pendingCreateDialog)
   const clearCreateTrigger = useProjectStore((s) => s.clearCreateTrigger)
   const setSelectedIds = useRenderStore((s) => s.setSelectedIds)
+  const projectStatuses = useProjectStore((s) => s.projectStatuses)
+  const explorerProjectListHeight = useUIStore((s) => s.explorerProjectListHeight)
+  const setExplorerProjectListHeight = useUIStore((s) => s.setExplorerProjectListHeight)
+
+  const [activeTab, setActiveTab] = useState<ExplorerTab>('projects')
   const [search, setSearch] = useState('')
   const [sortBy, setSortBy] = useState<'name' | 'date'>('name')
-  const [projectListHeight, setProjectListHeight] = useState(40)
-  const [dragActive, setDragActive] = useState(false)
   const [selectedIds, setSelectedIdsLocal] = useState<Set<number>>(new Set())
   const [createOpen, setCreateOpen] = useState(false)
   const [newProjectName, setNewProjectName] = useState('')
@@ -40,9 +50,9 @@ export function ExplorerPanel() {
   const [createLoading, setCreateLoading] = useState(false)
   const [createError, setCreateError] = useState('')
   const [deleteOpen, setDeleteOpen] = useState(false)
-  const [saveExampleOpen, setSaveExampleOpen] = useState(false)
-  const [newExampleName, setNewExampleName] = useState('')
-  const [saveExampleLoading, setSaveExampleLoading] = useState(false)
+  const [saveTemplateOpen, setSaveTemplateOpen] = useState(false)
+  const [newTemplateName, setNewTemplateName] = useState('')
+  const [saveTemplateLoading, setSaveTemplateLoading] = useState(false)
 
   const { t } = useTranslation(['project', 'common'])
 
@@ -75,13 +85,15 @@ export function ExplorerPanel() {
     setCreateOpen(true)
   }
 
-  // 从菜单或外部触发创建项目对话框
+  const openCreateDialogRef = useRef(openCreateDialog)
+  openCreateDialogRef.current = openCreateDialog
+
   useEffect(() => {
     if (pendingCreateDialog) {
-      openCreateDialog()
+      openCreateDialogRef.current()
       clearCreateTrigger()
     }
-  }, [pendingCreateDialog, clearCreateTrigger, createOpen])
+  }, [pendingCreateDialog, clearCreateTrigger])
 
   const handleCreateProject = async () => {
     const trimmed = newProjectName.trim()
@@ -107,24 +119,32 @@ export function ExplorerPanel() {
     }
   }
 
-  const handleSaveAsExample = async () => {
+  const handleSaveAsTemplate = async () => {
     if (!selectedProject) return
-    const exampleName = newExampleName.trim()
-    const error = validateName(exampleName)
+    const templateName = newTemplateName.trim()
+    const error = validateName(templateName)
     if (error) {
       showError(error)
       return
     }
-    setSaveExampleLoading(true)
+    setSaveTemplateLoading(true)
     try {
-      await saveAsExample(selectedProject.name, exampleName)
-      showSuccess(`已保存为示例: ${exampleName}`)
-      setNewExampleName('')
-      setSaveExampleOpen(false)
+      await saveAsTemplate(selectedProject.name, templateName, {
+        name: templateName,
+        description: '',
+        scenario: '',
+        sourceProject: selectedProject.name,
+        updatedAt: new Date().toISOString(),
+        inputRequirements: [],
+        outputDescription: '',
+      })
+      showSuccess(`已保存为模板: ${templateName}`)
+      setNewTemplateName('')
+      setSaveTemplateOpen(false)
     } catch (err) {
       showError((err as Error).message)
     } finally {
-      setSaveExampleLoading(false)
+      setSaveTemplateLoading(false)
     }
   }
 
@@ -186,269 +206,199 @@ export function ExplorerPanel() {
     setSelectedIds(Array.from(selectedIds).map(String))
   }
 
-  const renderProjectItem = (p: ProjectInfo) => {
-    const isSelected = selectedProject?.name === p.name
-    const isFav = favoriteProjects.includes(p.name)
-    const isChecked = selectedIds.has(p.id)
-    return (
-      <div
-        key={p.id}
-        className={clsx(
-          'flex items-center gap-1 px-2 py-1.5 text-xs transition-colors cursor-pointer',
-          isSelected
-            ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 font-medium'
-            : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700',
-        )}
-      >
-        <button
-          onClick={(e) => {
-            e.stopPropagation()
-            toggleSelect(p.id)
-          }}
-          className={clsx(
-            'shrink-0 leading-none transition-colors',
-            isChecked ? 'text-primary-500' : 'text-gray-400 dark:text-gray-500 hover:text-primary-400',
-          )}
-        >
-          {isChecked ? <CheckSquare size={14} /> : <Square size={14} />}
-        </button>
-        <button
-          onClick={(e) => {
-            e.stopPropagation()
-            toggleFavorite(p.name)
-          }}
-          title={isFav ? t('explorer.unfavorite') : t('explorer.favorite')}
-          className={clsx(
-            'shrink-0 leading-none transition-colors',
-            isFav ? 'text-yellow-500' : 'text-gray-400 dark:text-gray-500 hover:text-yellow-500',
-          )}
-        >
-          {isFav ? '★' : '☆'}
-        </button>
-        <button
-          onClick={() => {
-            const wasSelected = selectedProject?.name === p.name
-            selectProject(p)
-            if (!wasSelected) {
-              setSelectedIds([String(p.id)])
-            }
-          }}
-          className="flex items-center gap-1.5 flex-1 text-start min-w-0"
-        >
-          <span className="w-1.5 h-1.5 rounded-full bg-primary-500 shrink-0" />
-          <span className="truncate">{p.name}</span>
-        </button>
-        <button
-          onClick={(e) => {
-            e.stopPropagation()
-            window.electron.app
-              .getPath('workspace')
-              .then((workspacePath) => window.electron.shell.showItemInFolder(`${workspacePath}/${p.name}`))
-          }}
-          className="p-0.5 rounded shrink-0 leading-none text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
-          title={t('explorer.openInExplorer')}
-        >
-          <FolderOpen size={11} />
-        </button>
-      </div>
-    )
-  }
-
-  const renderGroup = (title: string, icon: React.ReactNode, items: ProjectInfo[]) => {
-    if (items.length === 0) return null
-    return (
-      <div key={title}>
-        <div className="px-3 py-1 text-[10px] font-semibold uppercase tracking-wider flex items-center gap-1 bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400">
-          {icon}
-          {title}
-        </div>
-        {items.map(renderProjectItem)}
-      </div>
-    )
-  }
+  const toggleSort = () => setSortBy((s) => (s === 'name' ? 'date' : 'name'))
 
   const showEmptyHint = sorted.length === 0
   const showAllGroups = !showEmptyHint && (favoriteList.length > 0 || recentList.length > 0 || normalList.length > 0)
 
   return (
     <div className="flex flex-col h-full">
-      {/* 搜索框 */}
-      <div className="px-3 py-2 border-b border-gray-200 dark:border-gray-700">
-        <div className="relative">
-          <Search size={12} className="absolute start-2 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500" />
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder={t('explorer.searchProjects')}
-            className={clsx(
-              'w-full ps-6 pe-2 py-1.5 text-xs border rounded-md transition-colors',
-              'bg-white dark:bg-gray-900 border-gray-300 dark:border-gray-600',
-              'text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500',
-              'focus:outline-none focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 focus:border-transparent',
-            )}
+      <div className="flex border-b border-gray-200 dark:border-gray-700">
+        <button
+          onClick={() => setActiveTab('projects')}
+          className={clsx(
+            'flex-1 py-1.5 text-xs font-medium text-center transition-colors',
+            activeTab === 'projects'
+              ? 'text-primary-600 dark:text-primary-400 border-b-2 border-primary-500'
+              : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300',
+          )}
+        >
+          {t('explorer.projectList')}
+        </button>
+        <button
+          onClick={() => setActiveTab('templates')}
+          className={clsx(
+            'flex-1 py-1.5 text-xs font-medium text-center transition-colors',
+            activeTab === 'templates'
+              ? 'text-primary-600 dark:text-primary-400 border-b-2 border-primary-500'
+              : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300',
+          )}
+        >
+          模板中心
+        </button>
+      </div>
+
+      {activeTab === 'templates' ? (
+        <div className="flex-1 min-h-0">
+          <TemplateCenterPanel />
+        </div>
+      ) : (
+        <>
+          <ProjectListToolbar
+            search={search}
+            sortBy={sortBy}
+            canSaveTemplate={selectedProject !== null}
+            onSearchChange={setSearch}
+            onToggleSort={toggleSort}
+            onCreate={openCreateDialog}
+            onSaveTemplate={() => {
+              if (selectedProject) {
+                setNewTemplateName(`${selectedProject.name}_template`)
+                setSaveTemplateOpen(true)
+              }
+            }}
           />
-        </div>
-      </div>
 
-      {/* 项目列表区域 */}
-      <div className="border-b flex-none overflow-auto border-gray-200 dark:border-gray-700" style={{ maxHeight: `${projectListHeight}%` }}>
-        <div className="px-3 py-1.5 text-xs font-semibold uppercase tracking-wider flex items-center justify-between bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-300">
-          <div className="flex items-center gap-2">
-            <span>{t('explorer.projectList')}</span>
-            <span className={clsx(
-              'text-[10px] px-1.5 py-0.5 rounded-full font-normal',
-              'bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300',
-            )}>
-              {sorted.length}
-            </span>
-          </div>
-          <div className="flex items-center gap-1">
-            <button
-              onClick={toggleSelectAll}
-              title={selectedIds.size === sorted.length ? '取消全选' : '全选'}
-              className="px-1 py-0.5 rounded text-[10px] font-normal text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600"
-            >
-              {selectedIds.size === sorted.length ? <CheckSquare size={12} /> : <Square size={12} />}
-            </button>
-            <button
-              onClick={() => setSortBy((s) => (s === 'name' ? 'date' : 'name'))}
-              title={sortBy === 'name' ? '按名称排序' : '按日期排序'}
-              className={clsx(
-                'px-1 py-0.5 rounded text-[10px] font-normal flex items-center gap-0.5',
-                'text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600',
+          <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
+            <div className="overflow-auto" style={{ maxHeight: `${explorerProjectListHeight}px` }}>
+              <div className="px-3 py-1.5 text-xs font-semibold uppercase tracking-wider flex items-center justify-between bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-300">
+                <div className="flex items-center gap-2">
+                  <span>{t('explorer.projectList')}</span>
+                  <span className={clsx(
+                    'text-[10px] px-1.5 py-0.5 rounded-full font-normal',
+                    'bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300',
+                  )}>
+                    {sorted.length}
+                  </span>
+                </div>
+              </div>
+
+              {selectedIds.size > 0 && (
+                <ProjectBatchBar
+                  selectedCount={selectedIds.size}
+                  allSelected={selectedIds.size === sorted.length}
+                  onToggleAll={toggleSelectAll}
+                  onRender={batchRender}
+                  onDelete={batchDelete}
+                />
               )}
-            >
-              <ArrowUpDown size={10} />
-              {sortBy === 'name' ? '名称' : '日期'}
-            </button>
-            <button
-              onClick={openCreateDialog}
-              title={t('explorer.newProject')}
-              className="px-1.5 py-0.5 rounded border text-[10px] font-normal flex items-center gap-0.5 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600"
-            >
-              <Plus size={10} />
-              {t('explorer.newButton')}
-            </button>
-            <button
-              onClick={() => {
-                if (selectedProject) {
-                  setNewExampleName(`${selectedProject.name}_example`)
-                  setSaveExampleOpen(true)
-                }
-              }}
-              disabled={!selectedProject}
-              title="存为示例"
-              className="px-1.5 py-0.5 rounded border text-[10px] font-normal flex items-center gap-0.5 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-blue-900/30 disabled:opacity-50"
-            >
-              <Save size={10} />
-              存为示例
-            </button>
-            <button
-              onClick={() => {
-                if (selectedProject) setDeleteOpen(true)
-              }}
-              disabled={!selectedProject}
-              title={t('explorer.deleteCurrentProject')}
-              className="px-1.5 py-0.5 rounded border text-[10px] font-normal flex items-center gap-0.5 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-red-50 dark:hover:bg-red-900/30 disabled:opacity-50"
-            >
-              <Trash2 size={10} />
-              {t('common:app.delete')}
-            </button>
+
+              {showEmptyHint ? (
+                <div className="px-3 py-2 text-xs text-gray-400 dark:text-gray-500">
+                  {projectError ? (
+                    <span className="text-red-500">
+                      {t('explorer.loadFailed')}: {projectError}
+                    </span>
+                  ) : search ? (
+                    t('explorer.noMatchingProjects')
+                  ) : (
+                    t('explorer.noProjects')
+                  )}
+                </div>
+              ) : (
+                showAllGroups && (
+                  <>
+                    {favoriteList.length > 0 && (
+                      <div>
+                        <div className="px-3 py-1 text-[10px] font-semibold uppercase tracking-wider flex items-center gap-1 bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400">
+                          <Star size={10} className="text-yellow-500" />
+                          {t('explorer.favorites')}
+                        </div>
+                        {favoriteList.map((p) => (
+                          <ProjectListItem
+                            key={p.id}
+                            project={p}
+                            status={projectStatuses[p.name]}
+                            selected={selectedProject?.name === p.name}
+                            checked={selectedIds.has(p.id)}
+                            favorite={true}
+                            onToggleCheck={() => toggleSelect(p.id)}
+                            onToggleFavorite={() => toggleFavorite(p.name)}
+                            onSelect={() => {
+                              selectProject(p)
+                              setSelectedIds([String(p.id)])
+                            }}
+                            onOpenFolder={async () => {
+                              const workspacePath = await window.electron.app.getPath('workspace')
+                              window.electron.shell.showItemInFolder(`${workspacePath}/${p.name}`)
+                            }}
+                          />
+                        ))}
+                      </div>
+                    )}
+                    {recentList.length > 0 && (
+                      <div>
+                        <div className="px-3 py-1 text-[10px] font-semibold uppercase tracking-wider flex items-center gap-1 bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400">
+                          <Clock size={10} className="text-gray-400 dark:text-gray-500" />
+                          {t('explorer.recent')}
+                        </div>
+                        {recentList.map((p) => (
+                          <ProjectListItem
+                            key={p.id}
+                            project={p}
+                            status={projectStatuses[p.name]}
+                            selected={selectedProject?.name === p.name}
+                            checked={selectedIds.has(p.id)}
+                            favorite={false}
+                            onToggleCheck={() => toggleSelect(p.id)}
+                            onToggleFavorite={() => toggleFavorite(p.name)}
+                            onSelect={() => {
+                              selectProject(p)
+                              setSelectedIds([String(p.id)])
+                            }}
+                            onOpenFolder={async () => {
+                              const workspacePath = await window.electron.app.getPath('workspace')
+                              window.electron.shell.showItemInFolder(`${workspacePath}/${p.name}`)
+                            }}
+                          />
+                        ))}
+                      </div>
+                    )}
+                    {normalList.length > 0 && (
+                      <div>
+                        <div className="px-3 py-1 text-[10px] font-semibold uppercase tracking-wider flex items-center gap-1 bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400">
+                          <Folder size={10} className="text-gray-400 dark:text-gray-500" />
+                          {t('explorer.allProjectsGroup')}
+                        </div>
+                        {normalList.map((p) => (
+                          <ProjectListItem
+                            key={p.id}
+                            project={p}
+                            status={projectStatuses[p.name]}
+                            selected={selectedProject?.name === p.name}
+                            checked={selectedIds.has(p.id)}
+                            favorite={false}
+                            onToggleCheck={() => toggleSelect(p.id)}
+                            onToggleFavorite={() => toggleFavorite(p.name)}
+                            onSelect={() => {
+                              selectProject(p)
+                              setSelectedIds([String(p.id)])
+                            }}
+                            onOpenFolder={async () => {
+                              const workspacePath = await window.electron.app.getPath('workspace')
+                              window.electron.shell.showItemInFolder(`${workspacePath}/${p.name}`)
+                            }}
+                          />
+                        ))}
+                      </div>
+                    )}
+                  </>
+                )
+              )}
+            </div>
+
+            <ResizeHandle
+              direction="vertical"
+              onResize={(delta) => setExplorerProjectListHeight(explorerProjectListHeight + delta)}
+            />
+
+            <div className="flex-1 overflow-hidden min-h-0">
+              <ProjectExplorer />
+            </div>
           </div>
-        </div>
+        </>
+      )}
 
-        {selectedIds.size > 0 && (
-          <div className="px-2 py-1 flex items-center gap-2 bg-primary-50 dark:bg-primary-900/20 border-b border-primary-200 dark:border-primary-800">
-            <span className="text-[10px] text-primary-700 dark:text-primary-300">
-              已选 {selectedIds.size} 个
-            </span>
-            <button
-              onClick={batchRender}
-              className="px-1.5 py-0.5 rounded text-[10px] bg-primary-500 text-white hover:bg-primary-600"
-            >
-              批量渲染
-            </button>
-            <button
-              onClick={batchDelete}
-              className="px-1.5 py-0.5 rounded text-[10px] bg-red-500 text-white hover:bg-red-600"
-            >
-              批量删除
-            </button>
-          </div>
-        )}
-        {showEmptyHint ? (
-          <div className="px-3 py-2 text-xs text-gray-400 dark:text-gray-500">
-            {projectError ? (
-              <span className="text-red-500">
-                {t('explorer.loadFailed')}: {projectError}
-              </span>
-            ) : search ? (
-              t('explorer.noMatchingProjects')
-            ) : (
-              t('explorer.noProjects')
-            )}
-          </div>
-        ) : (
-          <>
-            {showAllGroups && (
-              <>
-                {renderGroup(t('explorer.favorites'), <Star size={10} className="text-yellow-500" />, favoriteList)}
-                {renderGroup(
-                  t('explorer.recent'),
-                  <Clock size={10} className="text-gray-400 dark:text-gray-500" />,
-                  recentList,
-                )}
-                {renderGroup(
-                  t('explorer.allProjectsGroup'),
-                  <Folder size={10} className="text-gray-400 dark:text-gray-500" />,
-                  normalList,
-                )}
-              </>
-            )}
-          </>
-        )}
-      </div>
-
-      {/* 拖动调整项目列表高度 */}
-      <div
-        className={clsx(
-          'h-1 cursor-row-resize transition-colors flex items-center justify-center',
-          dragActive ? 'bg-primary-500' : 'bg-gray-200 dark:bg-gray-700 hover:bg-primary-400',
-        )}
-        onMouseDown={(e) => {
-          e.preventDefault()
-          setDragActive(true)
-          const startY = e.clientY
-          const container = (e.target as HTMLElement).parentElement!
-          const containerHeight = container.getBoundingClientRect().height
-          const startPercent = projectListHeight
-
-          const onMouseMove = (ev: MouseEvent) => {
-            const deltaY = ev.clientY - startY
-            const deltaPercent = (deltaY / containerHeight) * 100
-            const newPercent = Math.max(15, Math.min(70, startPercent + deltaPercent))
-            setProjectListHeight(newPercent)
-          }
-
-          const onMouseUp = () => {
-            setDragActive(false)
-            document.removeEventListener('mousemove', onMouseMove)
-            document.removeEventListener('mouseup', onMouseUp)
-          }
-
-          document.addEventListener('mousemove', onMouseMove)
-          document.addEventListener('mouseup', onMouseUp)
-        }}
-      >
-        <GripHorizontal size={12} className="text-gray-400 dark:text-gray-500" />
-      </div>
-
-      <div className="flex-1 overflow-hidden min-h-0">
-        <ProjectExplorer />
-      </div>
-
-      {/* 新建项目对话框 */}
       <Modal
         open={createOpen}
         onClose={() => !createLoading && setCreateOpen(false)}
@@ -558,7 +508,6 @@ export function ExplorerPanel() {
         </div>
       </Modal>
 
-      {/* 删除项目对话框 */}
       <Modal
         open={deleteOpen}
         onClose={() => setDeleteOpen(false)}
@@ -586,24 +535,23 @@ export function ExplorerPanel() {
         </p>
       </Modal>
 
-      {/* 存为示例对话框 */}
       <Modal
-        open={saveExampleOpen}
-        onClose={() => !saveExampleLoading && setSaveExampleOpen(false)}
-        title="存为示例"
+        open={saveTemplateOpen}
+        onClose={() => !saveTemplateLoading && setSaveTemplateOpen(false)}
+        title="存为模板"
         width="400px"
         footer={
           <>
             <button
-              onClick={() => setSaveExampleOpen(false)}
-              disabled={saveExampleLoading}
+              onClick={() => setSaveTemplateOpen(false)}
+              disabled={saveTemplateLoading}
               className="px-4 py-1.5 text-sm rounded-md border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50"
             >
               {t('common:app.cancel')}
             </button>
             <button
-              onClick={handleSaveAsExample}
-              disabled={saveExampleLoading}
+              onClick={handleSaveAsTemplate}
+              disabled={saveTemplateLoading}
               className="px-4 py-1.5 text-sm rounded-md bg-primary-600 text-white hover:bg-primary-700 disabled:opacity-50"
             >
               保存
@@ -613,15 +561,15 @@ export function ExplorerPanel() {
       >
         <div className="space-y-3">
           <p className="text-sm text-gray-700 dark:text-gray-200">
-            将当前项目 <span className="font-semibold">{selectedProject?.name}</span> 保存到 example
+            将当前项目 <span className="font-semibold">{selectedProject?.name}</span> 保存到 template
             目录，运行输出目录不会复制。
           </p>
           <div>
-            <label className="block text-xs font-medium mb-1.5 text-gray-700 dark:text-gray-300">示例名称</label>
+            <label className="block text-xs font-medium mb-1.5 text-gray-700 dark:text-gray-300">模板名称</label>
             <input
               type="text"
-              value={newExampleName}
-              onChange={(e) => setNewExampleName(e.target.value)}
+              value={newTemplateName}
+              onChange={(e) => setNewTemplateName(e.target.value)}
               className="w-full px-3 py-1.5 text-sm border rounded-md bg-white dark:bg-gray-900 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400"
             />
           </div>

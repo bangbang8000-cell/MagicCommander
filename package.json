@@ -1,6 +1,6 @@
 {
   "name": "magiccommander",
-  "version": "3.0.4",
+  "version": "3.1.0",
   "description": "MagicCommander - 网络设备配置管理工具",
   "main": "dist-electron/main.js",
   "author": "Magic Commander Team",
@@ -106,6 +106,10 @@
       {
         "from": "example",
         "to": "example"
+      },
+      {
+        "from": "template",
+        "to": "template"
       },
       {
         "from": "resources/python",

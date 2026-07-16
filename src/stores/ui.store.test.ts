@@ -25,4 +25,15 @@ describe('ui.store', () => {
     useUIStore.getState().setActiveActivity('workbench')
     expect(useUIStore.getState().activeActivity).toBe('workbench')
   })
+
+  it('clamps layout sizes', () => {
+    useUIStore.getState().setSidebarPx(100)
+    useUIStore.getState().setBottomPx(50)
+    useUIStore.getState().setExplorerProjectListHeight(80)
+    useUIStore.getState().setTemplateListHeight(80)
+    expect(useUIStore.getState().sidebarPx).toBeGreaterThanOrEqual(400)
+    expect(useUIStore.getState().bottomPx).toBeGreaterThanOrEqual(180)
+    expect(useUIStore.getState().explorerProjectListHeight).toBeGreaterThanOrEqual(160)
+    expect(useUIStore.getState().templateListHeight).toBeGreaterThanOrEqual(160)
+  })
 })

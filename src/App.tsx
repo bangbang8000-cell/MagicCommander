@@ -9,6 +9,7 @@ import { useHotkey } from './hooks/useHotkey'
 import { Header } from './components/layout/Header'
 import { ActivityBar } from './components/layout/ActivityBar'
 import { StatusBar } from './components/layout/StatusBar'
+import { ResizableAppLayout } from './components/layout/ResizableAppLayout'
 import { ExplorerPanel } from './components/sidebar/ExplorerPanel'
 import { WorkbenchPanel } from './components/sidebar/WorkbenchPanel'
 import { LabelPanel } from './components/sidebar/LabelPanel'
@@ -277,33 +278,14 @@ export default function App() {
         <Header />
         <div className="flex-1 flex overflow-hidden">
           <ActivityBar />
-          <div className="flex-1 flex overflow-hidden">
-            {sidebarVisible && (
-              <div
-                className={clsx(
-                  'w-80 flex-shrink-0 overflow-hidden',
-                  isDark ? 'bg-gray-800 border-r border-gray-700' : 'bg-white border-r border-gray-200',
-                )}
-              >
-                {renderSidebarContent()}
-              </div>
-            )}
-            <div className="flex-1 flex flex-col overflow-hidden min-h-0">
-              <div className={clsx('flex-1 overflow-hidden min-h-0', isDark ? 'bg-gray-900' : 'bg-white')}>
-                <EditorArea />
-              </div>
-              {panelVisible && (
-                <div
-                  className={clsx(
-                    'h-48 overflow-hidden border-t',
-                    isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200',
-                  )}
-                >
-                  <PanelArea />
-                </div>
-              )}
-            </div>
-          </div>
+          <ResizableAppLayout
+            isDark={isDark}
+            sidebarVisible={sidebarVisible}
+            panelVisible={panelVisible}
+            sidebar={renderSidebarContent()}
+            editor={<EditorArea />}
+            bottomPanel={<PanelArea />}
+          />
         </div>
         <StatusBar />
         <ToastContainer />

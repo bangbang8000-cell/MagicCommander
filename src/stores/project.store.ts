@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import type { FileNode, ProjectInfo } from '@/types/project'
+import { templateService } from '@/services/templateService'
+import type { FileNode, ProjectInfo, ProjectStatus, TemplateInfo, TemplateMeta } from '@/types/project'
 
 interface ProjectState {
   projects: ProjectInfo[]
@@ -8,6 +9,8 @@ interface ProjectState {
   selectedProjectId: number | null
   selectedProjectName: string | null
   projectStructure: FileNode[]
+  templates: TemplateInfo[]
+  projectStatuses: Record<string, ProjectStatus>
   isLoading: boolean
   error: string | null
   favoriteProjects: string[]
@@ -16,8 +19,12 @@ interface ProjectState {
 
   fetchProjects: () => Promise<void>
   listExamples: () => Promise<string[]>
+  fetchTemplates: () => Promise<void>
   createProject: (name: string, options?: { template?: string; empty?: boolean }) => Promise<void>
   saveAsExample: (projectName: string, exampleName: string) => Promise<void>
+  saveAsTemplate: (projectName: string, templateName: string, meta: Partial<TemplateMeta>) => Promise<void>
+  updateTemplateMeta: (id: string, meta: Partial<TemplateMeta>) => Promise<void>
+  deleteTemplate: (id: string) => Promise<void>
   deleteProjects: (ids: string[]) => Promise<void>
   selectProject: (project: ProjectInfo | null) => void
   loadStructure: (name: string) => Promise<void>
@@ -44,6 +51,8 @@ export const useProjectStore = create<ProjectState>()(
       selectedProjectId: null,
       selectedProjectName: null,
       projectStructure: [],
+      templates: [],
+      projectStatuses: {},
       isLoading: false,
       error: null,
       favoriteProjects: [],
@@ -58,6 +67,10 @@ export const useProjectStore = create<ProjectState>()(
             return
           }
           const projects = normalizeProjects(await window.electron.project.list())
+          const workspaceIndex = await window.electron.project.getWorkspaceIndex().catch(() => null)
+          const projectStatuses = Object.fromEntries(
+            (workspaceIndex?.projects ?? []).map((project) => [project.name, project.status]),
+          )
           const validNames = new Set(projects.map((p) => p.name))
           const selectedProjectName = get().selectedProjectName
           const selectedProject = selectedProjectName
@@ -65,6 +78,7 @@ export const useProjectStore = create<ProjectState>()(
             : null
           set((state) => ({
             projects,
+            projectStatuses,
             selectedProject,
             selectedProjectId: selectedProject?.id ?? null,
             selectedProjectName: selectedProject?.name ?? null,
@@ -84,6 +98,11 @@ export const useProjectStore = create<ProjectState>()(
         return await window.electron.project.listExamples()
       },
 
+      fetchTemplates: async () => {
+        const templates = await templateService.listTemplates()
+        set({ templates })
+      },
+
       createProject: async (name: string, options?: { template?: string; empty?: boolean }) => {
         await window.electron.project.create(name, options)
         await get().fetchProjects()
@@ -91,6 +110,22 @@ export const useProjectStore = create<ProjectState>()(
 
       saveAsExample: async (projectName: string, exampleName: string) => {
         await window.electron.project.saveAsExample(projectName, exampleName)
+        await get().fetchTemplates()
+      },
+
+      saveAsTemplate: async (projectName: string, templateName: string, meta: Partial<TemplateMeta>) => {
+        await templateService.saveAsTemplate(projectName, templateName, meta)
+        await get().fetchTemplates()
+      },
+
+      updateTemplateMeta: async (id: string, meta: Partial<TemplateMeta>) => {
+        await templateService.updateTemplateMeta(id, meta)
+        await get().fetchTemplates()
+      },
+
+      deleteTemplate: async (id: string) => {
+        await templateService.deleteTemplate(id)
+        await get().fetchTemplates()
       },
 
       deleteProjects: async (ids: string[]) => {
@@ -101,6 +136,10 @@ export const useProjectStore = create<ProjectState>()(
         )
         await window.electron.project.delete(ids)
         const projects = normalizeProjects(await window.electron.project.list())
+        const workspaceIndex = await window.electron.project.getWorkspaceIndex().catch(() => null)
+        const projectStatuses = Object.fromEntries(
+          (workspaceIndex?.projects ?? []).map((project) => [project.name, project.status]),
+        )
         const validNames = new Set(projects.map((p) => p.name))
         const selectedProjectName = get().selectedProjectName
         const selectedProject =
@@ -109,6 +148,7 @@ export const useProjectStore = create<ProjectState>()(
             : null
         set((state) => ({
           projects,
+          projectStatuses,
           isLoading: false,
           error: null,
           favoriteProjects: state.favoriteProjects.filter((name) => validNames.has(name)),

@@ -66,3 +66,46 @@ export interface ProjectFile {
   isDirectory: boolean
   children?: ProjectFile[]
 }
+
+export interface ProjectStatus {
+  hasExcel: boolean
+  hasTemplates: boolean
+  hasPara: boolean
+  hasOutput: boolean
+  hasYaml: boolean
+  hasLabelOutput: boolean
+}
+
+export interface WorkspaceProjectInfo extends ProjectInfo {
+  path: string
+  createdAt?: string
+  updatedAt?: string
+  lastOpenedAt?: string
+  status: ProjectStatus
+}
+
+export interface TemplateStructureSummary extends ProjectStatus {}
+
+export interface TemplateMeta {
+  name: string
+  description: string
+  scenario: string
+  sourceProject: string
+  updatedAt: string
+  inputRequirements: string[]
+  outputDescription: string
+}
+
+export interface TemplateInfo extends TemplateMeta {
+  id: string
+  path: string
+  structure: TemplateStructureSummary
+  files: FileNode[]
+}
+
+export interface WorkspaceIndex {
+  version: 1
+  updatedAt: string
+  projects: WorkspaceProjectInfo[]
+  templates: TemplateInfo[]
+}

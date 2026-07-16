@@ -11,7 +11,14 @@ import {
   validateProjectName,
 } from '../utils/security'
 import { logger } from '../utils/logger'
-import { getBackendDir, getExampleDir, getWorkspaceDir, APP_CONFIG } from '../config'
+import { getBackendDir, getExampleDir, getTemplateDir, getWorkspaceDir, APP_CONFIG } from '../config'
+import {
+  listTemplateInfosFromDir,
+  readTemplateMeta,
+  writeTemplateMeta,
+  type TemplateMeta,
+} from '../services/template.service'
+import { readWorkspaceIndex, refreshWorkspaceIndex } from '../services/workspace-index.service'
 
 function readExcelByPath(filePath: string): { name: string; headers: string[]; rows: Record<string, any>[] }[] {
   if (!fs.existsSync(filePath)) {
@@ -46,6 +53,10 @@ function copyDirRecursive(src: string, dest: string, options?: { skipRuntimeDirs
 }
 
 function listExampleProjects(): string[] {
+  const templateDir = getTemplateDir()
+  const templateNames = listTemplateInfosFromDir(templateDir).map((item) => item.id)
+  if (templateNames.length > 0) return templateNames
+
   const exampleDir = getExampleDir()
   if (!fs.existsSync(exampleDir)) return []
   return fs
@@ -54,6 +65,17 @@ function listExampleProjects(): string[] {
     .map((entry) => entry.name)
     .filter((name) => isProjectLikeDir(path.join(exampleDir, name)))
     .sort((a, b) => a.localeCompare(b))
+}
+
+function ensureTemplateForPython(templateName: string): void {
+  const templatePath = path.join(getTemplateDir(), templateName)
+  const examplePath = path.join(getExampleDir(), templateName)
+  if (!fs.existsSync(templatePath) || fs.existsSync(examplePath)) return
+  copyDirRecursive(templatePath, examplePath, { skipRuntimeDirs: true })
+}
+
+function refreshWorkspace(): void {
+  refreshWorkspaceIndex(getWorkspaceDir())
 }
 
 function escapeHtml(value: string): string {
@@ -182,9 +204,19 @@ export function setupIpcHandlers(window: BrowserWindow): void {
 
   ipcMain.handle('project:listExamples', async (): Promise<string[]> => {
     const examples = listExampleProjects()
-    logger.info('[project:listExamples]', { dir: getExampleDir(), examples })
+    logger.info('[project:listExamples]', { dir: getTemplateDir(), examples })
     return examples
   })
+
+  ipcMain.handle('project:listTemplates', async () => listTemplateInfosFromDir(getTemplateDir()))
+
+  ipcMain.handle('project:getTemplate', async (_e, id: string) => {
+    const template = listTemplateInfosFromDir(getTemplateDir()).find((item) => item.id === id)
+    if (!template) throw new Error(`模板不存在: ${id}`)
+    return template
+  })
+
+  ipcMain.handle('project:getWorkspaceIndex', async () => readWorkspaceIndex(getWorkspaceDir()))
 
   ipcMain.handle(
     'project:create',
@@ -208,10 +240,44 @@ export function setupIpcHandlers(window: BrowserWindow): void {
         if (!examples.includes(template)) {
           throw new Error(`示例模板 "${template}" 不存在，可用模板: ${examples.join(', ') || '无'}`)
         }
+        ensureTemplateForPython(template)
         await renderHandler.runPythonCommand(['project', 'create', name, '--template', template])
       }
+      refreshWorkspace()
     },
   )
+
+  ipcMain.handle('project:saveAsTemplate', async (_e, projectName: string, templateName: string, meta: Partial<TemplateMeta>): Promise<void> => {
+    const projectPath = path.join(getWorkspaceDir(), projectName)
+    if (!fs.existsSync(projectPath) || !isProjectLikeDir(projectPath)) {
+      throw new Error(`项目不存在或结构无效: ${projectName}`)
+    }
+    const nameValidation = validateFilePath(templateName)
+    if (!nameValidation.valid || templateName.includes('/') || templateName.includes('\\')) {
+      throw new Error('模板名称无效')
+    }
+    const templateDir = getTemplateDir()
+    const targetPath = path.join(templateDir, templateName)
+    if (fs.existsSync(targetPath)) throw new Error(`模板已存在: ${templateName}`)
+    copyDirRecursive(projectPath, targetPath, { skipRuntimeDirs: true })
+    writeTemplateMeta(targetPath, { ...meta, name: meta.name || templateName, sourceProject: projectName })
+    refreshWorkspace()
+  })
+
+  ipcMain.handle('project:updateTemplateMeta', async (_e, id: string, meta: Partial<TemplateMeta>): Promise<void> => {
+    const targetPath = path.join(getTemplateDir(), id)
+    if (!fs.existsSync(targetPath)) throw new Error(`模板不存在: ${id}`)
+    const current = readTemplateMeta(targetPath, id)
+    writeTemplateMeta(targetPath, { ...current, ...meta })
+    refreshWorkspace()
+  })
+
+  ipcMain.handle('project:deleteTemplate', async (_e, id: string): Promise<void> => {
+    const targetPath = path.join(getTemplateDir(), id)
+    if (!fs.existsSync(targetPath)) throw new Error(`模板不存在: ${id}`)
+    fs.rmSync(targetPath, { recursive: true, force: true })
+    refreshWorkspace()
+  })
 
   ipcMain.handle('project:saveAsExample', async (_e, projectName: string, exampleName: string): Promise<void> => {
     const projectPath = path.join(getWorkspaceDir(), projectName)
@@ -222,14 +288,17 @@ export function setupIpcHandlers(window: BrowserWindow): void {
     if (!nameValidation.valid || exampleName.includes('/') || exampleName.includes('\\')) {
       throw new Error('示例名称无效')
     }
-    const exampleDir = getExampleDir()
-    const targetPath = path.join(exampleDir, exampleName)
+    const templateDir = getTemplateDir()
+    const targetPath = path.join(templateDir, exampleName)
     if (fs.existsSync(targetPath)) throw new Error(`示例已存在: ${exampleName}`)
     copyDirRecursive(projectPath, targetPath, { skipRuntimeDirs: true })
+    writeTemplateMeta(targetPath, { name: exampleName, sourceProject: projectName })
+    refreshWorkspace()
   })
 
   ipcMain.handle('project:delete', async (_e, ids: string[]): Promise<void> => {
     await renderHandler.deleteProject(ids)
+    refreshWorkspace()
   })
 
   ipcMain.handle('project:structure', async (_e, name: string): Promise<any[]> => {

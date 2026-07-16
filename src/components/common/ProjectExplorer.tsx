@@ -25,10 +25,13 @@ async function openInExplorer(projectName: string, relativePath: string) {
   }
 }
 
-export function ProjectExplorer() {
+type ProjectExplorerProps = {
+  structure?: FileNode[]
+}
+
+export function ProjectExplorer({ structure: externalStructure }: ProjectExplorerProps = {}) {
   const { t } = useTranslation(['common', 'project'])
   const selectedProject = useProjectStore((s) => s.selectedProject)
-  const selectedProjectId = useProjectStore((s) => s.selectedProjectId)
   const projectStructure = useProjectStore((s) => s.projectStructure)
   const isLoading = useProjectStore((s) => s.isLoading)
   const error = useProjectStore((s) => s.error)
@@ -40,11 +43,13 @@ export function ProjectExplorer() {
   const loadStructureRef = useRef(loadStructure)
   loadStructureRef.current = loadStructure
 
+  const effectiveStructure = externalStructure ?? projectStructure
+
   useEffect(() => {
-    if (selectedProject) {
+    if (selectedProject && !externalStructure) {
       loadStructureRef.current(selectedProject.name)
     }
-  }, [selectedProject])
+  }, [selectedProject, externalStructure])
 
   const toggle = (path: string) => {
     setExpanded((prev) => {
@@ -116,16 +121,18 @@ export function ProjectExplorer() {
               <FolderOpen size={12} />
             </button>
           )}
-          <button
-            onClick={() => fetchProjects()}
-            className={clsx(
-              'p-1 rounded',
-              isDark ? 'hover:bg-gray-700 text-gray-400' : 'hover:bg-gray-100 text-gray-500',
-            )}
-            title={t('common:explorer.refresh')}
-          >
-            <RefreshCw size={12} />
-          </button>
+          {!externalStructure && (
+            <button
+              onClick={() => fetchProjects()}
+              className={clsx(
+                'p-1 rounded',
+                isDark ? 'hover:bg-gray-700 text-gray-400' : 'hover:bg-gray-100 text-gray-500',
+              )}
+              title={t('common:explorer.refresh')}
+            >
+              <RefreshCw size={12} />
+            </button>
+          )}
         </div>
       </div>
 
@@ -169,7 +176,7 @@ export function ProjectExplorer() {
             {t('common:explorer.retry')}
           </button>
         </div>
-      ) : projectStructure.length === 0 ? (
+      ) : effectiveStructure.length === 0 ? (
         <div
           className={clsx(
             'flex-1 flex items-center justify-center text-xs p-4 text-center',
@@ -180,7 +187,7 @@ export function ProjectExplorer() {
         </div>
       ) : (
         <div className="flex-1 overflow-auto py-1">
-          {projectStructure.map((node) => (
+          {effectiveStructure.map((node) => (
             <TreeItem
               key={node.path}
               node={node}

@@ -5,10 +5,17 @@ const api = {
   project: {
     list: () => ipcRenderer.invoke('project:list'),
     listExamples: () => ipcRenderer.invoke('project:listExamples'),
+    listTemplates: () => ipcRenderer.invoke('project:listTemplates'),
+    getTemplate: (id: string) => ipcRenderer.invoke('project:getTemplate', id),
     create: (name: string, options?: { template?: string; empty?: boolean }) =>
       ipcRenderer.invoke('project:create', name, options),
     saveAsExample: (projectName: string, exampleName: string) =>
       ipcRenderer.invoke('project:saveAsExample', projectName, exampleName),
+    saveAsTemplate: (projectName: string, templateName: string, meta: unknown) =>
+      ipcRenderer.invoke('project:saveAsTemplate', projectName, templateName, meta),
+    updateTemplateMeta: (id: string, meta: unknown) => ipcRenderer.invoke('project:updateTemplateMeta', id, meta),
+    deleteTemplate: (id: string) => ipcRenderer.invoke('project:deleteTemplate', id),
+    getWorkspaceIndex: () => ipcRenderer.invoke('project:getWorkspaceIndex'),
     delete: (ids: string[]) => ipcRenderer.invoke('project:delete', ids),
     getStructure: (name: string) => ipcRenderer.invoke('project:structure', name),
     parameters: (name: string) => ipcRenderer.invoke('project:parameters', name),

@@ -58,6 +58,20 @@ export function getWorkspaceDir(): string {
   )
 }
 
+export function getTemplateDir(): string {
+  const userTemplate = path.join(getUserDataDir(), 'template')
+  return resolveExistingDir(
+    [
+      path.join(getRepoRootDir(), 'template'),
+      path.join(process.cwd(), 'template'),
+      path.join(app.getAppPath(), 'template'),
+      path.join(process.resourcesPath, 'template'),
+      userTemplate,
+    ],
+    userTemplate,
+  )
+}
+
 /**
  * 获取示例项目目录路径
  */
@@ -88,6 +102,18 @@ export function initializeWorkspace(): void {
     const bundledWorkspace = path.join(process.resourcesPath, 'workspace')
     if (fs.existsSync(bundledWorkspace)) {
       copyDirRecursive(bundledWorkspace, workspaceDir)
+    }
+  }
+
+  const templateDir = getTemplateDir()
+  if (!fs.existsSync(templateDir)) {
+    fs.mkdirSync(templateDir, { recursive: true })
+    const bundledTemplate = path.join(process.resourcesPath, 'template')
+    const bundledExample = path.join(process.resourcesPath, 'example')
+    if (fs.existsSync(bundledTemplate)) {
+      copyDirRecursive(bundledTemplate, templateDir)
+    } else if (fs.existsSync(bundledExample)) {
+      copyDirRecursive(bundledExample, templateDir)
     }
   }
 
@@ -265,9 +291,9 @@ export const APP_CONFIG = {
 
   // 版本信息
   VERSION: {
-    CURRENT: '3.0.4',
-    BUILD: '26071602',
-    DISPLAY: 'V3.0.4 Build 26071602',
+    CURRENT: '3.1.0',
+    BUILD: '26071701',
+    DISPLAY: 'V3.1.0 Build 26071701',
     MIN_SUPPORTED_PYTHON: '3.8',
   },
 }

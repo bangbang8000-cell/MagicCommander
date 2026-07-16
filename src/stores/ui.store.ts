@@ -9,6 +9,9 @@ const LAYOUT_SIDEBAR_MIN = 400
 const LAYOUT_SIDEBAR_DEFAULT = 800
 const LAYOUT_BOTTOM_MIN = 180
 const LAYOUT_BOTTOM_DEFAULT = 320
+const LAYOUT_INTERNAL_MIN = 160
+const LAYOUT_PROJECT_LIST_DEFAULT = 280
+const LAYOUT_TEMPLATE_LIST_DEFAULT = 320
 
 interface UIState {
   activeActivity: ActivityType
@@ -50,6 +53,12 @@ interface UIState {
   // 底部面板高度（像素）
   bottomPx: number
   setBottomPx: (px: number) => void
+
+  explorerProjectListHeight: number
+  setExplorerProjectListHeight: (px: number) => void
+
+  templateListHeight: number
+  setTemplateListHeight: (px: number) => void
 
   resetPanelSizes: () => void
 
@@ -99,6 +108,12 @@ export const useUIStore = create<UIState>()(
       bottomPx: LAYOUT_BOTTOM_DEFAULT,
       setBottomPx: (px) => set({ bottomPx: Math.max(LAYOUT_BOTTOM_MIN, px) }),
 
+      explorerProjectListHeight: LAYOUT_PROJECT_LIST_DEFAULT,
+      setExplorerProjectListHeight: (px) => set({ explorerProjectListHeight: Math.max(LAYOUT_INTERNAL_MIN, px) }),
+
+      templateListHeight: LAYOUT_TEMPLATE_LIST_DEFAULT,
+      setTemplateListHeight: (px) => set({ templateListHeight: Math.max(LAYOUT_INTERNAL_MIN, px) }),
+
       resetPanelSizes: () => {
         if (typeof window !== 'undefined') {
           // 清除本地存储中的旧值，确保下一次启动使用新默认
@@ -106,7 +121,12 @@ export const useUIStore = create<UIState>()(
             localStorage.removeItem('mc-ui-state')
           } catch {}
         }
-        set({ sidebarPx: LAYOUT_SIDEBAR_DEFAULT, bottomPx: LAYOUT_BOTTOM_DEFAULT })
+        set({
+          sidebarPx: LAYOUT_SIDEBAR_DEFAULT,
+          bottomPx: LAYOUT_BOTTOM_DEFAULT,
+          explorerProjectListHeight: LAYOUT_PROJECT_LIST_DEFAULT,
+          templateListHeight: LAYOUT_TEMPLATE_LIST_DEFAULT,
+        })
       },
 
       language: 'zh-CN',
@@ -125,6 +145,8 @@ export const useUIStore = create<UIState>()(
         syncScroll: state.syncScroll,
         sidebarPx: state.sidebarPx,
         bottomPx: state.bottomPx,
+        explorerProjectListHeight: state.explorerProjectListHeight,
+        templateListHeight: state.templateListHeight,
         language: state.language,
       }),
       onRehydrateStorage: () => {
@@ -136,6 +158,12 @@ export const useUIStore = create<UIState>()(
             }
             if (!state.bottomPx || state.bottomPx < LAYOUT_BOTTOM_MIN) {
               state.bottomPx = LAYOUT_BOTTOM_DEFAULT
+            }
+            if (!state.explorerProjectListHeight || state.explorerProjectListHeight < LAYOUT_INTERNAL_MIN) {
+              state.explorerProjectListHeight = LAYOUT_PROJECT_LIST_DEFAULT
+            }
+            if (!state.templateListHeight || state.templateListHeight < LAYOUT_INTERNAL_MIN) {
+              state.templateListHeight = LAYOUT_TEMPLATE_LIST_DEFAULT
             }
           }
         }
