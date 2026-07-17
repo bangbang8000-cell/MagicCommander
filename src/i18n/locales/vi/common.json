@@ -62,7 +62,8 @@
     "about": "Giới thiệu",
     "guideLoadFailed": "# Tải thất bại\n\nKhông thể tải hướng dẫn sử dụng, vui lòng thử lại sau.",
     "switchToLight": "Chuyển sang chế độ sáng",
-    "switchToDark": "Chuyển sang chế độ tối"
+    "switchToDark": "Chuyển sang chế độ tối",
+    "switchToSystem": "Theo chủ đề hệ thống"
   },
   "sidebar": {
     "explorer": "Trình khám phá",

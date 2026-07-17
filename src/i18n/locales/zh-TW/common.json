@@ -62,7 +62,8 @@
     "about": "關於",
     "guideLoadFailed": "# 載入失敗\n\n無法載入使用指南，請稍後重試。",
     "switchToLight": "切換到淺色模式",
-    "switchToDark": "切換到深色模式"
+    "switchToDark": "切換到深色模式",
+    "switchToSystem": "切換到跟隨系統"
   },
   "sidebar": {
     "explorer": "資源管理器",

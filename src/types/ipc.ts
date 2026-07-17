@@ -40,6 +40,7 @@ export interface ElectronAPI {
   app: AppIpcApi
   log: LogIpcApi
   shell: { showItemInFolder: (path: string) => Promise<void> }
+  window: WindowIpcApi
   onMenuNewProject: (callback: () => void) => () => void
   versions: {
     node: string
@@ -194,4 +195,16 @@ export interface AppIpcApi {
 export interface LogIpcApi {
   onOutput: (callback: (data: { level: string; message: string; source?: string }) => void) => () => void
   write: (level: string, message: string) => Promise<void>
+}
+
+// ============================================================
+// Window API
+// ============================================================
+
+export interface WindowIpcApi {
+  minimize: () => Promise<void>
+  maximize: () => Promise<void>
+  close: () => Promise<void>
+  isMaximized: () => Promise<boolean>
+  onMaximizeChange: (callback: (maximized: boolean) => void) => () => void
 }

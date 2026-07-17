@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
-export type ActivityType = 'search' | 'explorer' | 'render' | 'label' | 'output' | 'workbench'
+export type ActivityType = 'search' | 'chat' | 'explorer' | 'render' | 'output' | 'workbench' | 'settings'
 export type PanelType = 'log' | 'terminal' | 'problems'
 
 // 布局尺寸基准（像素），与 App.tsx 保持一致
@@ -25,11 +25,13 @@ interface UIState {
   togglePanel: () => void
   setActivePanel: (panel: PanelType) => void
 
-  theme: 'light' | 'dark'
+  theme: 'light' | 'dark' | 'system'
   setTheme: (theme: UIState['theme']) => void
+  cycleTheme: () => void
 
   isDark: boolean
   toggleDark: () => void
+  syncSystemTheme: () => void
 
   activeProjectId: number | null
   setActiveProjectId: (id: number | null) => void
@@ -82,10 +84,30 @@ export const useUIStore = create<UIState>()(
       setActivePanel: (panel) => set({ activePanel: panel, panelVisible: true }),
 
       theme: 'light',
-      setTheme: (theme) => set({ theme }),
+      setTheme: (theme) => {
+        const isDark =
+          theme === 'system'
+            ? (typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches)
+            : theme === 'dark'
+        set({ theme, isDark })
+      },
+      cycleTheme: () =>
+        set((s) => {
+          const next = s.theme === 'light' ? 'dark' : s.theme === 'dark' ? 'system' : 'light'
+          const isDark =
+            next === 'system'
+              ? (typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches)
+              : next === 'dark'
+          return { theme: next, isDark }
+        }),
 
       isDark: false,
       toggleDark: () => set((s) => ({ isDark: !s.isDark, theme: s.isDark ? 'light' : 'dark' })),
+      syncSystemTheme: () =>
+        set((s) => {
+          if (s.theme !== 'system') return {}
+          return { isDark: typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches }
+        }),
 
       activeProjectId: null,
       setActiveProjectId: (id) => set({ activeProjectId: id }),

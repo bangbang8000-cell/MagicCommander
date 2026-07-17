@@ -62,7 +62,8 @@
     "about": "Über",
     "guideLoadFailed": "# Laden fehlgeschlagen\n\nDas Benutzerhandbuch konnte nicht geladen werden. Bitte versuchen Sie es später erneut.",
     "switchToLight": "Zum hellen Modus wechseln",
-    "switchToDark": "Zum dunklen Modus wechseln"
+    "switchToDark": "Zum dunklen Modus wechseln",
+    "switchToSystem": "System-Design verwenden"
   },
   "sidebar": {
     "explorer": "Explorer",

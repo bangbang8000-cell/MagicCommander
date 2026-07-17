@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import clsx from 'clsx'
 import { getRandomQuote, resetQuoteIndex } from '@/config/networkQuotes'
+import { AppLogo } from '@/components/common'
 
 interface LoadingScreenProps {
   isLoading: boolean
@@ -62,9 +63,7 @@ export function LoadingScreen({ isLoading, stage = 0 }: LoadingScreenProps) {
       <div className="relative flex flex-col items-center gap-6 max-w-md px-8">
         {/* Logo */}
         <div className="relative">
-          <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center shadow-xl shadow-primary-500/30 animate-pulse">
-            <span className="text-3xl font-bold text-white">M</span>
-          </div>
+          <AppLogo size={80} className="rounded-2xl" />
           {/* 呼吸光环 */}
           <div className="absolute inset-0 rounded-2xl bg-primary-500/20 animate-ping" />
         </div>

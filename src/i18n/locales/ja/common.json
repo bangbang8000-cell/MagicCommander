@@ -62,7 +62,8 @@
     "about": "バージョン情報",
     "guideLoadFailed": "# 読み込み失敗\n\nユーザーガイドを読み込めませんでした。しばらく経ってからもう一度お試しください。",
     "switchToLight": "ライトモードに切り替え",
-    "switchToDark": "ダークモードに切り替え"
+    "switchToDark": "ダークモードに切り替え",
+    "switchToSystem": "システムテーマに従う"
   },
   "sidebar": {
     "explorer": "エクスプローラー",

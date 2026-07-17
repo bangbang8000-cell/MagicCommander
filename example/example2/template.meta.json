@@ -1,0 +1,14 @@
+{
+  "name": "多角色交换机配置",
+  "description": "包含接入交换机(ASW)、核心交换机(PSW)、汇聚交换机(DOA)三种角色的模板项目。适用于需要管理多种交换机角色的网络环境。",
+  "scenario": "交换机/多角色",
+  "sourceProject": "example2",
+  "updatedAt": "2026-07-17T00:00:00.000Z",
+  "inputRequirements": [
+    "excel/hostname.xlsx - 设备名、角色（ASW/PSW/DOA）、管理IP、SN等",
+    "excel/connection.xlsx - 接入口信息",
+    "excel/ipaddress.xlsx - 管理接口和VLAN信息",
+    "excel/parameter.xlsx - 全局参数"
+  ],
+  "outputDescription": "根据设备角色自动选择对应模板生成配置文件。ASW 生成接入配置，PSW 生成核心配置，DOA 生成汇聚配置。"
+}

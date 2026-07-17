@@ -96,3 +96,47 @@ export function LoadingButton({
     </button>
   )
 }
+
+/**
+ * 骨架屏组件
+ * 用于内容加载时的占位展示
+ */
+interface SkeletonProps {
+  className?: string
+}
+
+export function Skeleton({ className = '' }: SkeletonProps) {
+  return (
+    <div
+      className={`animate-pulse bg-gray-200 dark:bg-gray-700 rounded ${className}`}
+    />
+  )
+}
+
+/** 文本骨架屏：多行占位 */
+export function SkeletonText({ lines = 3, className = '' }: { lines?: number; className?: string }) {
+  return (
+    <div className={`space-y-2 ${className}`}>
+      {Array.from({ length: lines }).map((_, i) => (
+        <Skeleton
+          key={i}
+          className={`h-3 ${i === lines - 1 ? 'w-3/4' : 'w-full'}`}
+        />
+      ))}
+    </div>
+  )
+}
+
+/** 卡片骨架屏 */
+export function SkeletonCard({ className = '' }: { className?: string }) {
+  return (
+    <div className={`rounded border border-gray-200 dark:border-gray-700 p-3 space-y-3 ${className}`}>
+      <Skeleton className="h-4 w-2/3" />
+      <SkeletonText lines={2} />
+      <div className="flex gap-2">
+        <Skeleton className="h-6 w-16 rounded" />
+        <Skeleton className="h-6 w-16 rounded" />
+      </div>
+    </div>
+  )
+}

@@ -116,6 +116,17 @@ const api = {
   shell: {
     showItemInFolder: (path: string) => ipcRenderer.invoke('shell:showItemInFolder', path),
   },
+  window: {
+    minimize: () => ipcRenderer.invoke('window:minimize'),
+    maximize: () => ipcRenderer.invoke('window:maximize'),
+    close: () => ipcRenderer.invoke('window:close'),
+    isMaximized: () => ipcRenderer.invoke('window:isMaximized'),
+    onMaximizeChange: (callback: (maximized: boolean) => void) => {
+      const handler = (_e: unknown, maximized: boolean) => callback(maximized)
+      ipcRenderer.on('window:maximizeChange', handler)
+      return () => ipcRenderer.removeListener('window:maximizeChange', handler)
+    },
+  },
   onMenuNewProject: (cb: () => void) => {
     const handler = () => cb()
     ipcRenderer.on('menu:newProject', handler)

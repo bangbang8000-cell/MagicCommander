@@ -1,0 +1,40 @@
+{
+  "title": "AI Chat",
+  "newChat": "New Chat",
+  "clearChat": "Clear Chat",
+  "role": {
+    "user": "You",
+    "assistant": "AI Assistant"
+  },
+  "mode": {
+    "template": "Template Helper",
+    "templateDesc": "Create and optimize project templates",
+    "config": "Config Q&A",
+    "configDesc": "Project configuration analysis and generation",
+    "general": "General Assistant",
+    "generalDesc": "Free Q&A and help"
+  },
+  "input": {
+    "placeholder": "Type a message... (Enter to send, Shift+Enter for new line)",
+    "send": "Send",
+    "attach": "Upload attachment",
+    "sending": "Sending..."
+  },
+  "attachment": {
+    "template": "Template file",
+    "excel": "Excel parameter table",
+    "yaml": "YAML config",
+    "config": "Config file",
+    "document": "Document",
+    "other": "Other file"
+  },
+  "empty": {
+    "title": "Start a conversation",
+    "desc": "Choose a chat mode, ask a question or upload an attachment to get started"
+  },
+  "session": {
+    "newChat": "New chat",
+    "delete": "Delete chat",
+    "noSessions": "No chat history"
+  }
+}

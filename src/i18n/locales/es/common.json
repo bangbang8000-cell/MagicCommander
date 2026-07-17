@@ -62,7 +62,8 @@
     "about": "Acerca de",
     "guideLoadFailed": "# Error al cargar\n\nNo se pudo cargar la guía de usuario. Inténtelo de nuevo más tarde.",
     "switchToLight": "Cambiar a modo claro",
-    "switchToDark": "Cambiar a modo oscuro"
+    "switchToDark": "Cambiar a modo oscuro",
+    "switchToSystem": "Usar tema del sistema"
   },
   "sidebar": {
     "explorer": "Explorador",

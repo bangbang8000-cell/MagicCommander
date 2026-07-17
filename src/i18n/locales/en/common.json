@@ -43,26 +43,38 @@
     "edit": "Edit",
     "view": "View",
     "tools": "Tools",
-    "window": "Window",
     "help": "Help",
     "newProject": "New Project",
     "openProject": "Open Project",
     "openProjectDir": "Open Project Directory",
-    "saveProject": "Save Project",
+    "saveFile": "Save File",
     "exit": "Exit",
     "projectExplorer": "Project Explorer",
     "renderOperations": "Render Operations",
-    "labelPrint": "Label Printing",
     "outputResults": "Output Results",
+    "chat": "AI Chat",
+    "workbench": "Workbench",
     "hideSidebar": "Hide Sidebar",
     "showSidebar": "Show Sidebar",
+    "hidePanel": "Hide Bottom Panel",
+    "showPanel": "Show Bottom Panel",
     "lightMode": "Light Mode",
     "darkMode": "Dark Mode",
+    "systemMode": "System Theme",
+    "undo": "Undo",
+    "redo": "Redo",
+    "copy": "Copy",
+    "paste": "Paste",
+    "cheatsheet": "Keyboard Shortcuts",
+    "checkUpdate": "Check for Updates",
+    "terminal": "Terminal",
+    "logViewer": "Log Viewer",
     "userGuide": "User Guide",
     "about": "About",
     "guideLoadFailed": "# Load Failed\n\nUnable to load the user guide. Please try again later.",
     "switchToLight": "Switch to Light Mode",
-    "switchToDark": "Switch to Dark Mode"
+    "switchToDark": "Switch to Dark Mode",
+    "switchToSystem": "Switch to System Theme"
   },
   "sidebar": {
     "explorer": "Explorer",
@@ -213,7 +225,18 @@
     "loadFailed": "Load failed",
     "noOutputFiles": "No output files",
     "renderHint": "Output files will appear here after rendering",
-    "openInExplorer": "Open in Explorer"
+    "openInExplorer": "Open in Explorer",
+    "tabs": {
+      "browse": "File Browser",
+      "export": "Batch Export"
+    },
+    "exportAll": "Export All",
+    "exportFormat": "Export Format",
+    "exportAsZip": "ZIP Archive",
+    "exportToDir": "Export to Folder",
+    "exportSuccess": "Export successful",
+    "exportFailed": "Export failed",
+    "exporting": "Exporting..."
   },
   "renderPanel": {
     "projectInfo": "Project Info",
@@ -250,6 +273,11 @@
     "config": "Config",
     "switchToMode": "Switch to {{mode}} Mode",
     "projectMode": "Project",
+    "tabs": {
+      "config": "Render Config",
+      "label": "Print Labels",
+      "cleanup": "Cleanup"
+    },
     "validation": {
       "emptyName": "Please enter a project name",
       "nameTooLong": "Project name cannot exceed 50 characters",
@@ -304,9 +332,10 @@
     "projectExplorer": "Project Explorer",
     "search": "Search",
     "projectConfig": "Project Config",
-    "labelPrint": "Label Printing",
     "renderOperations": "Render Operations",
-    "outputResults": "Output Results"
+    "outputResults": "Output Results",
+    "chat": "AI Chat",
+    "workbench": "Workbench"
   },
   "hotkeyCategories": {
     "file": "File",
@@ -322,6 +351,26 @@
     "emptyProject": "Project is empty, no files",
     "openProjectRoot": "Open project root in explorer",
     "refresh": "Refresh",
-    "openInExplorer": "Open in explorer"
+    "openInExplorer": "Open in Explorer"
+  },
+  "settings": {
+    "title": "Settings",
+    "ai": {
+      "title": "AI Configuration",
+      "desc": "Configure LLM Provider, API Key, model parameters"
+    },
+    "general": {
+      "title": "General",
+      "desc": "Language, auto-save, workspace path"
+    },
+    "appearance": {
+      "title": "Appearance",
+      "desc": "Theme, font size, layout"
+    },
+    "advanced": {
+      "title": "Advanced",
+      "desc": "Python path, debug mode, proxy settings"
+    },
+    "comingSoon": "Coming Soon"
   }
 }

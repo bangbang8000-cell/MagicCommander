@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import { useUIStore, type ActivityType } from '@/stores/ui.store'
-import { Search, FolderOpen, PlayCircle, Tag, FileOutput, PanelLeftClose, PanelLeft } from 'lucide-react'
+import { Search, FolderOpen, Zap, FileCheck, MessageSquare, Wrench, Settings, PanelLeftClose, PanelLeft } from 'lucide-react'
 import clsx from 'clsx'
 
 interface ActivityItem {
@@ -14,16 +14,20 @@ const ACTIVITY_LABEL_KEYS: Record<string, string> = {
   search: 'menu.projectExplorer',
   explorer: 'menu.projectExplorer',
   render: 'menu.renderOperations',
-  label: 'menu.labelPrint',
   output: 'menu.outputResults',
+  chat: 'chat:title',
+  workbench: 'menu.workbench',
+  settings: 'common:settings.title',
 }
 
 const activities: ActivityItem[] = [
   { id: 'search', icon: <Search size={20} />, labelKey: 'common:sidebar.search', shortcut: 'Ctrl+Shift+F' },
+  { id: 'chat', icon: <MessageSquare size={20} />, labelKey: 'chat:title', shortcut: 'Ctrl+Shift+H' },
   { id: 'explorer', icon: <FolderOpen size={20} />, labelKey: 'menu.projectExplorer', shortcut: 'Ctrl+Shift+E' },
-  { id: 'render', icon: <PlayCircle size={20} />, labelKey: 'menu.renderOperations', shortcut: 'Ctrl+Shift+R' },
-  { id: 'label', icon: <Tag size={20} />, labelKey: 'menu.labelPrint', shortcut: 'Ctrl+Shift+L' },
-  { id: 'output', icon: <FileOutput size={20} />, labelKey: 'menu.outputResults', shortcut: 'Ctrl+Shift+O' },
+  { id: 'render', icon: <Zap size={20} />, labelKey: 'menu.renderOperations', shortcut: 'Ctrl+Shift+R' },
+  { id: 'output', icon: <FileCheck size={20} />, labelKey: 'menu.outputResults', shortcut: 'Ctrl+Shift+O' },
+  { id: 'workbench', icon: <Wrench size={20} />, labelKey: 'menu.workbench', shortcut: 'Ctrl+Shift+W' },
+  { id: 'settings', icon: <Settings size={20} />, labelKey: 'common:settings.title', shortcut: 'Ctrl+,' },
 ]
 
 export function ActivityBar() {

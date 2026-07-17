@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next'
 import { RefreshCw, ExternalLink } from 'lucide-react'
 import clsx from 'clsx'
 import { Modal } from '@/components/ui/Modal'
+import { AppLogo } from '@/components/common'
 import type { UpdateStatus } from '@/types/ipc'
 
 interface AboutDialogProps {
@@ -72,9 +73,7 @@ export function AboutDialog({
       <div className="space-y-4">
         {/* Logo 和标题 */}
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-lg flex items-center justify-center text-xl font-bold bg-primary-500 text-white">
-            M
-          </div>
+          <AppLogo size={48} className="rounded-lg" />
           <div>
             <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">MagicCommander</h2>
             <p className="text-sm text-gray-500 dark:text-gray-400">

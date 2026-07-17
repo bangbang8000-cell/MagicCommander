@@ -8,9 +8,10 @@ const PANEL_TITLE_KEYS: Record<ActivityType, string> = {
   search: 'common:sidebar.search',
   explorer: 'menu.projectExplorer',
   render: 'menu.renderOperations',
-  label: 'menu.labelPrint',
   output: 'menu.outputResults',
   workbench: 'common:sidebar.workbench',
+  chat: 'chat:title',
+  settings: 'common:settings.title',
 }
 
 interface SidebarProps {

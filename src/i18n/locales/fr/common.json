@@ -62,7 +62,8 @@
     "about": "À propos",
     "guideLoadFailed": "# Échec du chargement\n\nImpossible de charger le guide d'utilisation, veuillez réessayer plus tard.",
     "switchToLight": "Passer au mode clair",
-    "switchToDark": "Passer au mode sombre"
+    "switchToDark": "Passer au mode sombre",
+    "switchToSystem": "Suivre le thème système"
   },
   "sidebar": {
     "explorer": "Explorateur",

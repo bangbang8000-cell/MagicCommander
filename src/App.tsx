@@ -12,10 +12,11 @@ import { StatusBar } from './components/layout/StatusBar'
 import { ResizableAppLayout } from './components/layout/ResizableAppLayout'
 import { ExplorerPanel } from './components/sidebar/ExplorerPanel'
 import { WorkbenchPanel } from './components/sidebar/WorkbenchPanel'
-import { LabelPanel } from './components/sidebar/LabelPanel'
 import { OutputPanel } from './components/sidebar/OutputPanel'
+import { SettingsPanel } from './components/sidebar/SettingsPanel'
 import { SearchPanel } from './components/sidebar/SearchPanel'
 import { RenderPanel } from './components/sidebar/RenderPanel'
+import { ChatPanel } from './components/chat'
 import { EditorArea } from './components/editor/EditorArea'
 import { PanelArea } from './components/panel/PanelArea'
 import { ErrorBoundary } from './components/ErrorBoundary'
@@ -36,6 +37,7 @@ export default function App() {
   const toggleSidebar = useUIStore((s) => s.toggleSidebar)
   const setActiveActivity = useUIStore((s) => s.setActiveActivity)
   const isDark = useUIStore((s) => s.isDark)
+  const theme = useUIStore((s) => s.theme)
   const openFile = useEditorStore((s) => s.openFile)
   const saveActiveTab = useEditorStore((s) => s.saveActiveTab)
   const closeTab = useEditorStore((s) => s.closeTab)
@@ -65,6 +67,16 @@ export default function App() {
     if (isDark) root.classList.add('dark')
     else root.classList.remove('dark')
   }, [isDark])
+
+  // 监听系统主题变化（当 theme === 'system' 时同步）
+  useEffect(() => {
+    const mq = window.matchMedia('(prefers-color-scheme: dark)')
+    const handler = () => {
+      useUIStore.getState().syncSystemTheme()
+    }
+    mq.addEventListener('change', handler)
+    return () => mq.removeEventListener('change', handler)
+  }, [])
 
   // RTL 语言方向切换
   useEffect(() => {
@@ -231,8 +243,10 @@ export default function App() {
   useHotkey('ctrl+shift+e', () => setActiveActivity('explorer'), [setActiveActivity])
   useHotkey('ctrl+shift+f', () => setActiveActivity('search'), [setActiveActivity])
   useHotkey('ctrl+shift+r', () => setActiveActivity('render'), [setActiveActivity])
-  useHotkey('ctrl+shift+l', () => setActiveActivity('label'), [setActiveActivity])
   useHotkey('ctrl+shift+o', () => setActiveActivity('output'), [setActiveActivity])
+  useHotkey('ctrl+shift+w', () => setActiveActivity('workbench'), [setActiveActivity])
+  useHotkey('ctrl+shift+h', () => setActiveActivity('chat'), [setActiveActivity])
+  useHotkey('ctrl+,', () => setActiveActivity('settings'), [setActiveActivity])
   useHotkey('ctrl+s', () => saveActiveTab(), [saveActiveTab])
   useHotkey('f5', () => window.location.reload(), [])
   useHotkey(
@@ -255,12 +269,14 @@ export default function App() {
         return <ExplorerPanel />
       case 'render':
         return <RenderPanel />
-      case 'label':
-        return <LabelPanel />
       case 'output':
         return <OutputPanel />
       case 'workbench':
         return <WorkbenchPanel />
+      case 'settings':
+        return <SettingsPanel />
+      case 'chat':
+        return <ChatPanel />
       default:
         return <SearchPanel />
     }
@@ -275,7 +291,7 @@ export default function App() {
           isDark ? 'dark bg-gray-900 text-gray-100' : 'bg-gray-50 text-gray-900',
         )}
       >
-        <Header />
+        <Header onCheatsheet={() => setCheatsheetOpen(true)} />
         <div className="flex-1 flex overflow-hidden">
           <ActivityBar />
           <ResizableAppLayout

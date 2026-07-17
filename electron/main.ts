@@ -42,6 +42,35 @@ class MagicCommanderApp {
       updateService.quitAndInstall()
     })
 
+    // 窗口控制 IPC
+    ipcMain.handle('window:minimize', () => {
+      this.mainWindow?.minimize()
+    })
+
+    ipcMain.handle('window:maximize', () => {
+      if (this.mainWindow?.isMaximized()) {
+        this.mainWindow.unmaximize()
+      } else {
+        this.mainWindow?.maximize()
+      }
+    })
+
+    ipcMain.handle('window:close', () => {
+      this.mainWindow?.close()
+    })
+
+    ipcMain.handle('window:isMaximized', () => {
+      return this.mainWindow?.isMaximized() ?? false
+    })
+
+    // 监听窗口最大化/还原，通知渲染进程
+    this.mainWindow.on('maximize', () => {
+      this.mainWindow?.webContents.send('window:maximizeChange', true)
+    })
+    this.mainWindow.on('unmaximize', () => {
+      this.mainWindow?.webContents.send('window:maximizeChange', false)
+    })
+
     // i18n 语言 IPC 处理器
     ipcMain.handle('app:getLanguage', () => {
       return electronI18n.language
@@ -65,13 +94,20 @@ class MagicCommanderApp {
   }
 
   private createMainWindow(): void {
+    const isWin = process.platform === 'win32'
+    const isMac = process.platform === 'darwin'
+    const isLinux = process.platform === 'linux'
+
     this.mainWindow = new BrowserWindow({
       width: 1400,
       height: 900,
       minWidth: 1100,
       minHeight: 700,
       title: 'MagicCommander',
+      icon: path.join(__dirname, '..', 'public', 'icons', 'icon.ico'),
       backgroundColor: '#f9fafb',
+      frame: isLinux,
+      titleBarStyle: isMac ? 'hidden' : 'default',
       show: false,
       webPreferences: {
         preload: path.join(__dirname, 'preload.js'),

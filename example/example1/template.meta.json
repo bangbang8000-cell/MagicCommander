@@ -1,0 +1,14 @@
+{
+  "name": "接入交换机配置 (ASW)",
+  "description": "用于生成接入交换机（Access Switch）开局配置的模板项目。包含设备基础信息、VLAN、接口、SSH、NTP、Syslog、SNMP 等常见配置。",
+  "scenario": "交换机/接入层",
+  "sourceProject": "example1",
+  "updatedAt": "2026-07-17T00:00:00.000Z",
+  "inputRequirements": [
+    "excel/hostname.xlsx - 设备名、角色、管理IP、SN等基础信息",
+    "excel/connection.xlsx - 接入口信息（接口名、终端名称、接入VLAN）",
+    "excel/ipaddress.xlsx - 管理接口和管理VLAN信息",
+    "excel/parameter.xlsx - 全局参数（账号、SSH、NTP、Syslog、默认路由）"
+  ],
+  "outputDescription": "生成设备的 CLI 配置文件，包含 sysname、VLAN、接口、路由、安全等配置。"
+}
