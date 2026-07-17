@@ -166,7 +166,7 @@
         }
       ],
       "icon": "public/icons/icon.png",
-      "artifactName": "${productName}-${version}-build.26071402-linux-${arch}.${ext}",
+      "artifactName": "${productName}-${version}-build.26071704-linux-${arch}.${ext}",
       "category": "Network",
       "maintainer": "Magic Commander Team"
     }
