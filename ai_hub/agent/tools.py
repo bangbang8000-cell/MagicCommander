@@ -755,6 +755,95 @@ async def _reverse_engineer_config(args: dict) -> str:
     return json.dumps(result, ensure_ascii=False)
 
 
+async def _recommend_template(args: dict) -> str:
+    """根据项目特征推荐合适的模板"""
+    device_type = args.get("deviceType", "")
+    vendor = args.get("vendor", "")
+    project_name = args.get("projectName", "")
+
+    # 预置模板目录
+    template_catalog = {
+        "华为交换机": {
+            "deviceType": "switch", "vendor": "huawei",
+            "template": "HUAWEI_SWITCH", "description": "华为交换机基础配置模板，包含管理接口、VLAN、SNMP、NTP、AAA、本地用户",
+            "features": ["VLAN配置", "聚合接口", "SNMP", "NTP", "AAA/TACACS", "SSH"],
+        },
+        "思科交换机": {
+            "deviceType": "switch", "vendor": "cisco",
+            "template": "CISCO_SWITCH", "description": "思科交换机基础配置模板，包含管理接口、VLAN、SNMP、NTP、AAA、本地用户",
+            "features": ["VLAN配置", "SNMP", "NTP", "TACACS+", "SSH"],
+        },
+        "H3C交换机": {
+            "deviceType": "switch", "vendor": "h3c",
+            "template": "H3C_SWITCH", "description": "H3C交换机基础配置模板，包含管理接口、VLAN、SNMP、NTP、AAA、本地用户",
+            "features": ["VLAN配置", "SNMP", "NTP", "AAA/TACACS", "SSH"],
+        },
+        "华为路由器": {
+            "deviceType": "router", "vendor": "huawei",
+            "template": "HUAWEI_ROUTER", "description": "华为路由器基础配置模板，支持OSPF/BGP路由协议",
+            "features": ["OSPF", "BGP", "SNMP", "NTP", "AAA", "SSH"],
+        },
+        "思科路由器": {
+            "deviceType": "router", "vendor": "cisco",
+            "template": "CISCO_ROUTER", "description": "思科路由器基础配置模板，支持OSPF/BGP路由协议",
+            "features": ["OSPF", "BGP", "SNMP", "NTP", "AAA", "SSH"],
+        },
+        "华为防火墙": {
+            "deviceType": "firewall", "vendor": "huawei",
+            "template": "HUAWEI_FIREWALL", "description": "华为防火墙基础配置模板，包含安全域、安全策略",
+            "features": ["安全域", "安全策略", "SNMP", "AAA", "SSH"],
+        },
+    }
+
+    # 根据用户输入匹配
+    recommendations = []
+    for name, info in template_catalog.items():
+        score = 0
+        if device_type and info["deviceType"] == device_type:
+            score += 3
+        if vendor and info["vendor"] == vendor:
+            score += 3
+        if not device_type and not vendor:
+            score += 1  # 如果没有指定条件，显示所有模板
+
+        if score > 0:
+            recommendations.append({
+                "name": name,
+                "score": score,
+                "deviceType": info["deviceType"],
+                "vendor": info["vendor"],
+                "description": info["description"],
+                "features": info["features"],
+            })
+
+    # 按匹配度排序
+    recommendations.sort(key=lambda x: -x["score"])
+
+    # 如果指定了项目名，分析项目现有模板
+    project_analysis = None
+    if project_name:
+        ws = _workspace_dir or "workspace"
+        project_dir = Path(ws) / project_name
+        if project_dir.exists():
+            templates_dir = project_dir / "templates"
+            if templates_dir.exists():
+                existing = list(templates_dir.glob("*.j2"))
+                if existing:
+                    project_analysis = {
+                        "existingTemplates": [f.name for f in existing],
+                        "suggestion": "现有模板可基于推荐模板进行对比和优化",
+                    }
+
+    result = {
+        "status": "ok",
+        "recommendations": recommendations[:5],
+        "totalAvailable": len(template_catalog),
+        "projectAnalysis": project_analysis,
+        "message": f"找到 {len(recommendations)} 个匹配的模板推荐" if recommendations else "未找到匹配的模板，请尝试指定设备类型和厂商",
+    }
+    return json.dumps(result, ensure_ascii=False)
+
+
 def init_tools():
     """初始化所有 Agent Tools"""
     register_tool(
@@ -934,6 +1023,21 @@ def init_tools():
             "required": ["configText", "projectName"],
         },
         _reverse_engineer_config,
+    )
+
+    register_tool(
+        "recommend_template",
+        "根据设备类型和厂商推荐合适的配置模板。可以查询所有可用模板，也可以根据项目名称分析现有模板并给出优化建议。支持华为/思科/H3C 的交换机/路由器/防火墙模板",
+        {
+            "type": "object",
+            "properties": {
+                "deviceType": {"type": "string", "description": "设备类型：switch/router/firewall（可选）", "enum": ["switch", "router", "firewall"]},
+                "vendor": {"type": "string", "description": "厂商：huawei/cisco/h3c（可选）", "enum": ["huawei", "cisco", "h3c"]},
+                "projectName": {"type": "string", "description": "项目名称（可选，用于分析现有模板）"},
+            },
+            "required": [],
+        },
+        _recommend_template,
     )
 
     logger.info(f"Initialized {len(_tools)} Agent tools")
