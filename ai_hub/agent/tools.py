@@ -519,6 +519,242 @@ ssh server enable
 """
 
 
+async def _reverse_engineer_config(args: dict) -> str:
+    """从已有网络设备配置反推模板和参数表"""
+    config_text = args["configText"]
+    project_name = args["projectName"]
+    vendor = args.get("vendor", "huawei")
+    device_type = args.get("deviceType", "switch")
+
+    ws = _workspace_dir or "workspace"
+    project_dir = Path(ws) / project_name
+
+    if project_dir.exists():
+        return json.dumps({
+            "error": f"项目 '{project_name}' 已存在，请使用其他名称",
+            "status": "exists",
+        }, ensure_ascii=False)
+
+    # 提取变量
+    import re
+    extracted = {}
+
+    # 提取设备名
+    hostname_patterns = [
+        (r'^sysname\s+(\S+)', '设备名'),
+        (r'^hostname\s+(\S+)', '设备名'),
+    ]
+    for pattern, key in hostname_patterns:
+        m = re.search(pattern, config_text, re.MULTILINE)
+        if m:
+            extracted[key] = m.group(1)
+            break
+
+    # 提取 IP 地址（管理接口）
+    ip_pattern = r'interface\s+\S+\s*\n\s*ip\s+address\s+(\d+\.\d+\.\d+\.\d+)\s+(\d+\.\d+\.\d+\.\d+)'
+    m = re.search(ip_pattern, config_text)
+    if m:
+        extracted["管理IP"] = m.group(1)
+        extracted["掩码"] = m.group(2)
+
+    # 提取 VLAN
+    vlan_pattern = r'vlan\s+(\d+)'
+    m = re.search(vlan_pattern, config_text, re.IGNORECASE)
+    if m:
+        extracted["VLAN"] = m.group(1)
+
+    # 提取网关 IP
+    gw_pattern = r'Vlanif\d+\s*\n.*\n\s*ip\s+address\s+(\d+\.\d+\.\d+\.\d+)\s+(\d+\.\d+\.\d+\.\d+)'
+    m = re.search(gw_pattern, config_text)
+    if not m:
+        gw_pattern = r'interface\s+Vlan\S*\s*\n.*\n\s*ip\s+address\s+(\d+\.\d+\.\d+\.\d+)\s+(\d+\.\d+\.\d+\.\d+)'
+        m = re.search(gw_pattern, config_text)
+    if m:
+        extracted["网关IP"] = m.group(1)
+        extracted["网关掩码"] = m.group(2)
+
+    # 提取 SNMP
+    snmp_patterns = [
+        r'snmp-agent\s+community\s+read\s+(\S+)',
+        r'snmp-server\s+community\s+(\S+)\s+RO',
+        r'snmp-server\s+community\s+(\S+)',
+    ]
+    for p in snmp_patterns:
+        m = re.search(p, config_text)
+        if m:
+            extracted["SNMP团体名"] = m.group(1)
+            break
+
+    snmp_host_patterns = [
+        r'snmp-agent\s+target-host\s+trap\s+address\s+udp-domain\s+(\S+)',
+        r'snmp-server\s+host\s+(\S+)',
+    ]
+    for p in snmp_host_patterns:
+        m = re.search(p, config_text)
+        if m:
+            extracted["SNMP地址"] = m.group(1)
+            break
+
+    # 提取 NTP
+    ntp_patterns = [
+        r'ntp-service\s+unicast-server\s+(\S+)',
+        r'ntp\s+server\s+(\S+)',
+    ]
+    for p in ntp_patterns:
+        m = re.search(p, config_text)
+        if m:
+            extracted["NTP地址"] = m.group(1)
+            break
+
+    # 提取日志服务器
+    log_patterns = [
+        r'info-center\s+loghost\s+(\S+)',
+        r'logging\s+host\s+(\S+)',
+    ]
+    for p in log_patterns:
+        m = re.search(p, config_text)
+        if m:
+            extracted["LOGHOST地址"] = m.group(1)
+            break
+
+    # 提取 AAA
+    tacacs_patterns = [
+        r'hwtacacs\s+scheme\s+(\S+)',
+        r'tacacs-server\s+host\s+(\S+)',
+    ]
+    for p in tacacs_patterns:
+        m = re.search(p, config_text)
+        if m:
+            if "AAA名称" not in extracted:
+                extracted["AAA名称"] = m.group(1)
+            else:
+                extracted.setdefault("AAA地址", m.group(1))
+
+    aaa_key_pattern = r'key\s+\S+\s+simple\s+(\S+)'
+    m = re.search(aaa_key_pattern, config_text)
+    if m:
+        extracted["AAA认证密钥"] = m.group(1)
+
+    aaa_ip_pattern = r'primary\s+\S+\s+(\S+)'
+    m = re.search(aaa_ip_pattern, config_text)
+    if m:
+        extracted["AAA地址"] = m.group(1)
+
+    nas_pattern = r'nas-ip\s+(\S+)'
+    m = re.search(nas_pattern, config_text)
+    if m:
+        extracted["NAS_IP"] = m.group(1)
+
+    # 提取 domain
+    domain_pattern = r'domain\s+(\S+)\s*\n'
+    m = re.search(domain_pattern, config_text)
+    if m:
+        extracted["domain名称"] = m.group(1)
+
+    # 提取本地用户
+    user_patterns = [
+        r'local-user\s+(\S+)\s+class\s+manage',
+        r'username\s+(\S+)\s+privilege',
+    ]
+    for p in user_patterns:
+        m = re.search(p, config_text)
+        if m:
+            extracted["本地用户名"] = m.group(1)
+            break
+
+    pass_patterns = [
+        r'password\s+simple\s+(\S+)',
+        r'password\s+(\S+)',
+        r'secret\s+(\S+)',
+    ]
+    for p in pass_patterns:
+        m = re.search(p, config_text)
+        if m:
+            extracted["本地用户密钥"] = m.group(1)
+            break
+
+    # 提取管理接口
+    mgmt_pattern = r'interface\s+(\S+)\s*\n\s*ip\s+address\s+'
+    m = re.search(mgmt_pattern, config_text)
+    if m:
+        extracted["管理接口"] = m.group(1)
+
+    # 提取 VLAN 网关接口
+    gw_if_pattern = r'interface\s+(Vlanif\d+|Vlan\d+)\s*\n'
+    m = re.search(gw_if_pattern, config_text)
+    if m:
+        extracted["网关接口"] = m.group(1)
+
+    if not extracted:
+        return json.dumps({
+            "status": "error",
+            "error": "未能从配置文本中提取到有效参数。请确认配置文本格式正确。",
+        }, ensure_ascii=False)
+
+    # 创建项目目录
+    (project_dir / "templates").mkdir(parents=True, exist_ok=True)
+    (project_dir / "excel").mkdir(parents=True, exist_ok=True)
+    (project_dir / "output").mkdir(parents=True, exist_ok=True)
+    (project_dir / "output-label").mkdir(parents=True, exist_ok=True)
+    (project_dir / "yaml").mkdir(parents=True, exist_ok=True)
+
+    # 生成模板（替换提取的值为 Jinja2 变量）
+    template_content = config_text
+    variable_map = []
+
+    # 按长度降序排序，避免短字符串先替换导致长字符串被破坏
+    replacements = []
+    for key, value in sorted(extracted.items(), key=lambda x: -len(x[1])):
+        var_name = key
+        if value and value in template_content:
+            template_content = template_content.replace(value, f"{{{{ info['{var_name}'] }}}}")
+            replacements.append({"变量名": var_name, "原值": value})
+
+    # 写模板文件
+    template_name = f"{device_type.upper()}_reversed.j2"
+    template_path = project_dir / "templates" / template_name
+    template_path.write_text(
+        f"{{# 从配置反向生成 - {project_name} #}}\n{template_content}",
+        encoding="utf-8",
+    )
+
+    # 创建 Excel 参数表
+    try:
+        import openpyxl
+        excel_path = project_dir / "excel" / "parameter.xlsx"
+        wb = openpyxl.Workbook()
+        ws = wb.active
+        ws.title = "主机表"
+
+        keys = list(extracted.keys())
+        for col, key in enumerate(keys, 1):
+            ws.cell(row=1, column=col, value=key)
+        for col, key in enumerate(keys, 1):
+            ws.cell(row=2, column=col, value=extracted.get(key, ""))
+
+        # 反向生成替换明细表
+        ws2 = wb.create_sheet("替换明细")
+        ws2.cell(row=1, column=1, value="变量名")
+        ws2.cell(row=1, column=2, value="原值")
+        for row, item in enumerate(replacements, 2):
+            ws2.cell(row=row, column=1, value=item["变量名"])
+            ws2.cell(row=row, column=2, value=item["原值"])
+
+        wb.save(str(excel_path))
+    except ImportError:
+        logger.warning("openpyxl not available, skipping Excel creation")
+
+    result = {
+        "status": "created",
+        "projectName": project_name,
+        "extractedVariables": {k: v for k, v in list(extracted.items())[:10]},
+        "totalVariables": len(extracted),
+        "templateName": template_name,
+        "message": f"从配置文本反向生成了项目 '{project_name}'，提取了 {len(extracted)} 个变量。模板已保存为 {template_name}。",
+    }
+    return json.dumps(result, ensure_ascii=False)
+
+
 def init_tools():
     """初始化所有 Agent Tools"""
     register_tool(
@@ -682,6 +918,22 @@ def init_tools():
             "required": ["projectName", "deviceType", "vendor"],
         },
         _create_project_intelligent,
+    )
+
+    register_tool(
+        "reverse_engineer_config",
+        "从已有网络设备配置文本反推 Jinja2 模板和 Excel 参数表。粘贴完整的设备配置（如 show run 输出），自动识别并提取变量（IP、主机名、VLAN、SNMP、AAA 等），生成模板和参数文件",
+        {
+            "type": "object",
+            "properties": {
+                "configText": {"type": "string", "description": "完整的设备配置文本（如 show running-config 或 display current-configuration 的输出）"},
+                "projectName": {"type": "string", "description": "新项目名称"},
+                "vendor": {"type": "string", "description": "厂商：huawei/cisco/h3c", "enum": ["huawei", "cisco", "h3c"]},
+                "deviceType": {"type": "string", "description": "设备类型：switch/router/firewall", "enum": ["switch", "router", "firewall"]},
+            },
+            "required": ["configText", "projectName"],
+        },
+        _reverse_engineer_config,
     )
 
     logger.info(f"Initialized {len(_tools)} Agent tools")
