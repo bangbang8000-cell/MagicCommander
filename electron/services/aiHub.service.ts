@@ -162,7 +162,7 @@ export class AIHubService extends EventEmitter {
         cwd: aiHubDir,
         env: {
           ...process.env,
-          PYTHONPATH: [backendDir, aiHubDir].join(path.delimiter),
+          PYTHONPATH: [backendDir, path.dirname(aiHubDir)].join(path.delimiter),
           PYTHONUNBUFFERED: '1',
         },
         stdio: ['pipe', 'pipe', 'pipe'],
