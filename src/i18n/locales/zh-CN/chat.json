@@ -1,7 +1,7 @@
 {
   "title": "AI 对话",
   "newChat": "新建对话",
-  "clearChat": "清空对话",
+  "clearChat": "清除对话",
   "role": {
     "user": "你",
     "assistant": "AI 助手"
@@ -36,5 +36,25 @@
     "newChat": "新对话",
     "delete": "删除对话",
     "noSessions": "暂无对话记录"
+  },
+  "aihub": {
+    "status": {
+      "starting": "AI 服务启动中...",
+      "running": "AI 服务运行中",
+      "stopped": "AI 服务未启动",
+      "error": "AI 服务异常"
+    },
+    "provider": {
+      "select": "选择模型",
+      "configure": "配置 AI → 设置",
+      "noProvider": "请先在设置中配置 API Key"
+    },
+    "error": {
+      "timeout": "请求超时，请重试",
+      "network": "网络错误，请检查网络连接",
+      "unknown": "发生未知错误",
+      "retry": "重试",
+      "cancel": "取消"
+    }
   }
 }

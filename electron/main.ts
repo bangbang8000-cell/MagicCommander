@@ -5,6 +5,7 @@ import { setupIpcHandlers } from './ipc/handlers'
 import { initializeAppDirs, initializeWorkspace, isDev } from './config'
 import { updateService } from './services/update.service'
 import { logger } from './utils/logger'
+import { aiHubService } from './services/aiHub.service'
 
 import electronI18n from './electron-i18n'
 
@@ -22,6 +23,7 @@ class MagicCommanderApp {
     setupIpcHandlers(this.mainWindow!)
     this.setupUpdateService()
     this.startupUpdateCheck()
+    this.startupAIHub()
     this.registerAppEvents()
   }
 
@@ -91,6 +93,15 @@ class MagicCommanderApp {
         logger.debug('Startup update check failed:', err.message)
       })
     }, 3000)
+  }
+
+  private startupAIHub(): void {
+    // 启动后延迟 2 秒启动 AI Hub（不阻塞 UI 渲染）
+    setTimeout(() => {
+      aiHubService.start().catch((err) => {
+        logger.warn('AI Hub startup failed:', err.message)
+      })
+    }, 2000)
   }
 
   private createMainWindow(): void {
@@ -174,6 +185,11 @@ class MagicCommanderApp {
       if (BrowserWindow.getAllWindows().length === 0) {
         this.createMainWindow()
       }
+    })
+
+    // 应用退出时清理 AI Hub 子进程
+    app.on('before-quit', () => {
+      aiHubService.stop().catch(() => {})
     })
   }
 }

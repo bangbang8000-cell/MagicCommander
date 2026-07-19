@@ -19,6 +19,7 @@ import {
   type TemplateMeta,
 } from '../services/template.service'
 import { readWorkspaceIndex, refreshWorkspaceIndex } from '../services/workspace-index.service'
+import { aiHubService, type AIHubStatus } from '../services/aiHub.service'
 
 function readExcelByPath(filePath: string): { name: string; headers: string[]; rows: Record<string, any>[] }[] {
   if (!fs.existsSync(filePath)) {
@@ -797,5 +798,73 @@ export function setupIpcHandlers(window: BrowserWindow): void {
   // Shell API
   ipcMain.handle('shell:showItemInFolder', async (_e, filePath: string): Promise<void> => {
     shell.showItemInFolder(filePath)
+  })
+
+  // ====== AI Hub IPC ======
+
+  // AI Hub 生命周期
+  ipcMain.handle('aihub:start', async (): Promise<void> => {
+    await aiHubService.start()
+  })
+
+  ipcMain.handle('aihub:stop', async (): Promise<void> => {
+    await aiHubService.stop()
+  })
+
+  ipcMain.handle('aihub:status', async (): Promise<AIHubStatus> => {
+    return aiHubService.getStatus()
+  })
+
+  ipcMain.handle('aihub:health', async (): Promise<boolean> => {
+    return await aiHubService.healthCheck()
+  })
+
+  // AI Hub 聊天
+  ipcMain.handle(
+    'aihub:chat',
+    async (
+      _e,
+      sessionId: string,
+      message: string,
+      mode?: string,
+      provider?: string,
+      attachments?: Array<{ id: string; name: string; type: string; path: string; size: number }>,
+    ): Promise<string> => {
+      let fullContent = ''
+      await aiHubService.sendChatMessage(
+        sessionId,
+        message,
+        mode,
+        provider,
+        attachments,
+        (chunk: string) => {
+          fullContent += chunk
+          if (!window.isDestroyed()) {
+            window.webContents.send('aihub:stream', { sessionId, chunk })
+          }
+        },
+      )
+      return fullContent
+    },
+  )
+
+  ipcMain.handle('aihub:clearSession', async (_e, sessionId: string): Promise<void> => {
+    await aiHubService.clearSession(sessionId)
+  })
+
+  // AI Hub Provider 管理
+  ipcMain.handle('aihub:getProviders', async (): Promise<Array<{ name: string; model: string; enabled: boolean; is_default: boolean }>> => {
+    return await aiHubService.getProviders()
+  })
+
+  ipcMain.handle(
+    'aihub:configureProvider',
+    async (_e, provider: string, apiKey: string, model?: string, baseUrl?: string): Promise<void> => {
+      await aiHubService.configureProvider(provider, apiKey, model, baseUrl)
+    },
+  )
+
+  ipcMain.handle('aihub:setDefaultProvider', async (_e, provider: string): Promise<void> => {
+    await aiHubService.setDefaultProvider(provider)
   })
 }

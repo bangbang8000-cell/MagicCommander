@@ -67,6 +67,22 @@ interface UIState {
   // i18n 语言偏好
   language: string
   setLanguage: (lang: string) => void
+
+  // AI 配置
+  aiConfig: AIConfig
+  setAIConfig: (config: Partial<AIConfig>) => void
+  setProviderConfig: (key: string, config: { apiKey?: string; model?: string; baseUrl?: string }) => void
+}
+
+export interface AIConfig {
+  defaultProvider: string
+  providers: Record<string, ProviderConfig>
+}
+
+export interface ProviderConfig {
+  apiKey: string
+  model: string
+  baseUrl: string
 }
 
 export const useUIStore = create<UIState>()(
@@ -153,6 +169,22 @@ export const useUIStore = create<UIState>()(
 
       language: 'zh-CN',
       setLanguage: (language) => set({ language }),
+
+      aiConfig: { defaultProvider: 'deepseek', providers: {} },
+      setAIConfig: (config) => set((s) => ({ aiConfig: { ...s.aiConfig, ...config } })),
+      setProviderConfig: (key, config) =>
+        set((s) => ({
+          aiConfig: {
+            ...s.aiConfig,
+            providers: {
+              ...s.aiConfig.providers,
+              [key]: {
+                ...s.aiConfig.providers[key],
+                ...config,
+              },
+            },
+          },
+        })),
     }),
     {
       name: 'mc-ui-state',
@@ -170,6 +202,7 @@ export const useUIStore = create<UIState>()(
         explorerProjectListHeight: state.explorerProjectListHeight,
         templateListHeight: state.templateListHeight,
         language: state.language,
+        aiConfig: state.aiConfig,
       }),
       onRehydrateStorage: () => {
         return (state) => {

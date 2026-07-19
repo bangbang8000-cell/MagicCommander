@@ -40,6 +40,7 @@ export interface ElectronAPI {
   app: AppIpcApi
   log: LogIpcApi
   shell: { showItemInFolder: (path: string) => Promise<void> }
+  aihub: AIHubIpcApi
   window: WindowIpcApi
   onMenuNewProject: (callback: () => void) => () => void
   versions: {
@@ -207,4 +208,57 @@ export interface WindowIpcApi {
   close: () => Promise<void>
   isMaximized: () => Promise<boolean>
   onMaximizeChange: (callback: (maximized: boolean) => void) => () => void
+}
+
+// ============================================================
+// AI Hub API
+// ============================================================
+
+export interface AIHubStatus {
+  running: boolean
+  port: number
+  lastError?: string
+  startTime?: number
+  installing?: boolean
+}
+
+export interface AIHubProvider {
+  key: string
+  name: string
+  model: string
+  models: string[]
+  enabled: boolean
+  is_default: boolean
+}
+
+export interface AIHubAttachment {
+  id: string
+  name: string
+  type: string
+  path: string
+  size: number
+}
+
+export interface AIHubStreamData {
+  sessionId: string
+  chunk: string
+}
+
+export interface AIHubIpcApi {
+  start: () => Promise<void>
+  stop: () => Promise<void>
+  status: () => Promise<AIHubStatus>
+  health: () => Promise<boolean>
+  chat: (
+    sessionId: string,
+    message: string,
+    mode?: string,
+    provider?: string,
+    attachments?: AIHubAttachment[],
+  ) => Promise<string>
+  clearSession: (sessionId: string) => Promise<void>
+  getProviders: () => Promise<AIHubProvider[]>
+  configureProvider: (provider: string, apiKey: string, model?: string, baseUrl?: string) => Promise<void>
+  setDefaultProvider: (provider: string) => Promise<void>
+  onStream: (callback: (data: AIHubStreamData) => void) => () => void
 }

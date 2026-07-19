@@ -36,5 +36,25 @@
     "newChat": "New chat",
     "delete": "Delete chat",
     "noSessions": "No chat history"
+  },
+  "aihub": {
+    "status": {
+      "starting": "AI service starting...",
+      "running": "AI service running",
+      "stopped": "AI service stopped",
+      "error": "AI service error"
+    },
+    "provider": {
+      "select": "Select model",
+      "configure": "Configure AI → Settings",
+      "noProvider": "Please configure API Key in Settings"
+    },
+    "error": {
+      "timeout": "Request timed out, please retry",
+      "network": "Network error, please check your connection",
+      "unknown": "An unknown error occurred",
+      "retry": "Retry",
+      "cancel": "Cancel"
+    }
   }
 }

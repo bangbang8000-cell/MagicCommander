@@ -116,6 +116,29 @@ const api = {
   shell: {
     showItemInFolder: (path: string) => ipcRenderer.invoke('shell:showItemInFolder', path),
   },
+  aihub: {
+    start: () => ipcRenderer.invoke('aihub:start'),
+    stop: () => ipcRenderer.invoke('aihub:stop'),
+    status: () => ipcRenderer.invoke('aihub:status'),
+    health: () => ipcRenderer.invoke('aihub:health'),
+    chat: (
+      sessionId: string,
+      message: string,
+      mode?: string,
+      provider?: string,
+      attachments?: Array<{ id: string; name: string; type: string; path: string; size: number }>,
+    ) => ipcRenderer.invoke('aihub:chat', sessionId, message, mode, provider, attachments),
+    clearSession: (sessionId: string) => ipcRenderer.invoke('aihub:clearSession', sessionId),
+    getProviders: () => ipcRenderer.invoke('aihub:getProviders'),
+    configureProvider: (provider: string, apiKey: string, model?: string, baseUrl?: string) =>
+      ipcRenderer.invoke('aihub:configureProvider', provider, apiKey, model, baseUrl),
+    setDefaultProvider: (provider: string) => ipcRenderer.invoke('aihub:setDefaultProvider', provider),
+    onStream: (callback: (data: { sessionId: string; chunk: string }) => void) => {
+      const handler = (_e: unknown, data: { sessionId: string; chunk: string }) => callback(data)
+      ipcRenderer.on('aihub:stream', handler)
+      return () => ipcRenderer.removeListener('aihub:stream', handler)
+    },
+  },
   window: {
     minimize: () => ipcRenderer.invoke('window:minimize'),
     maximize: () => ipcRenderer.invoke('window:maximize'),

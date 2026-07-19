@@ -6,10 +6,10 @@
 
 | 项目 | 内容 |
 |------|------|
-| 文档版本 | v1.2 |
+| 文档版本 | v1.4 |
 | 创建日期 | 2026-07-16 |
-| 当前状态 | Phase 1 全部完成并发布 v3.1.1；Chat UI 壳（含附件上传框架和 Agent Tool 接口预留）、品牌升级、模板库、UI/UX 优化（子页签、菜单栏重构、ActivityBar 精简）已实施。Phase 2 (AI Hub MVP) 已规划 Agent + 多 Provider 架构，等待用户批准。 |
-| 应用事实基线 | MagicCommander V3.1.1 Build 26071703 |
+| 当前状态 | Phase 0 + Phase 1 全部完成；Phase 2 (AI Hub MVP) 核心功能已完成：FastAPI 子进程生命周期管理、Agent 框架（11 个 Tool）、9 种 Provider 支持（DeepSeek V4/OpenAI/Claude/Gemini/Qwen/GLM/Grok/Ollama/自定义）、SSE 流式响应、Prompt 管理、密钥安全存储、AI 配置统一到设置页面、Provider 离线配置、依赖自动安装。Phase 2 MVP 已完成，后续可进入智能项目初始化等高级功能。 |
+| 应用事实基线 | MagicCommander V3.2.1 Build 26071704 |
 | 技术栈事实基线 | Electron 28、React 18、TypeScript 5.3、Vite 5、Zustand 4、Python 3 |
 | 计划来源 | `.trae/specs/evaluate-v3-roadmap/spec.md`、`.trae/specs/evaluate-v3-roadmap/tasks.md`、`.trae/specs/evaluate-v3-roadmap/checklist.md` |
 | 约束 | 用户批准前不修改业务代码；重大 Phase 完成后必须更新本文档并提醒发布到 GitHub |
@@ -596,7 +596,7 @@ AI Hub MVP 完成后，再按子阶段推进：
 | 2026-07-16 | Phase 0 代码实施 | 已完成 | 已完成项目创建权责统一、Python stdout JSON 协议与 logging 边界收口、核心测试门禁、前端关键错误处理、Electron dead code/console 清理。 |
 | 2026-07-16 | Phase 0 测试门禁 | 已通过 | `npm run lint` 通过，剩余历史 warning 不阻断；`npm run format:check` 通过；`npm run test` 通过；`npm run typecheck` 通过；`npm run build` 通过；`python -m pytest backend/tests/ -v` 45 项通过。 |
 | 2026-07-16 | Phase 0 遗留风险 | 已记录 | ESLint 9 flat config 已补齐并保持接近旧 `.eslintrc.cjs` 的门禁强度；Vite 仍提示 CJS Node API 与 package type warning；构建提示主包 chunk 超过 500k，后续可在 Phase 1/性能优化中处理。 |
-| 2026-07-16 | Phase 0 新增特性规划 | 待审批 | 完成 P0-6 (J2 渲染改进 - 重新评估为 Monaco + TextMate 方案)、P0-7 (标签 MD 渲染)、P0-8 (MD 文件查看与打印导出) 的详细分析与实施方案。P0-6 已重新评估：保留 Monaco Editor 框架，接入 Better Jinja 的 TextMate 语法文件，通过 vscode-textmate + vscode-oniguruma (WASM) 实现 VS Code 级 Jinja2 高亮。等待用户批准后执行。 |
+| 2026-07-16 | Phase 0 新增特性实施 | 已完成 | 完成 P0-6 (J2 渲染改进 - Monaco + TextMate + WASM 方案，接入 Better Jinja 的 `jinja.tmLanguage.json` 和 `jinja-html.tmLanguage.json`，通过 `vscode-textmate` + `vscode-oniguruma` 实现 VS Code 级 Jinja2 语法高亮)、P0-7 (标签 MD 渲染，新增 `exceltomarkdown()` 函数，生成 `output-label-md/` 目录下的 `.md` 标签文件)、P0-8 (MD 文件查看与打印导出，MarkdownViewer 支持 preview/source 模式切换，OutputPanel 支持 `output-label-md` 目录，LabelPanel 支持 Word/PDF 导出)。
 | 2026-07-17 | Phase 1-A 实施 | 已完成 | 完成项目中心、模板中心、工作流卡片、三列布局基础。 |
 | 2026-07-17 | Phase 1-B 实施 | 已完成 | 完成 dry-run（预演渲染，不写入文件）、Jinja2 模板语法校验（`env.parse()`）、Excel 数据校验（sheet/列/空值检查）、diff 对比（`unified_diff`）、搜索增强（输出文件类型过滤）。新增 IPC handler：`render:dry-run`、`validate:template`、`validate:excel`、`diff:compare`。 |
 | 2026-07-17 | Bug 修复 | 已完成 | 修复 ResizeHandle 拖拽抖动回弹（stale closure 问题，改用 `useRef` 模式）；修复模板中心不显示示例模板（`initializeWorkspace()` 开发模式下未从 `example/` 复制，且空目录导致跳过复制，改为检查目录为空时也触发复制）。 |
@@ -605,6 +605,9 @@ AI Hub MVP 完成后，再按子阶段推进：
 | 2026-07-17 | Phase 1-D 实施 | 已完成 | 完成 README 更新（v3.1.0 badge、新功能列表、版本历史）；使用指南中英文同步更新（补充模板中心、dry-run、校验、diff、搜索过滤、标签打印等新功能）；AboutDialog 从 Header.tsx 抽取为独立组件并补充 GitHub 链接和 MIT 许可；自动更新 upgrade：`autoDownload=true` + 启动时自动检查 + 下载完成弹出重启确认对话框。共 8 个文件变更。 |
 | 2026-07-17 | i18n 国际化修复 | 已完成 | 全面排查 16 个组件文件中约 90 处硬编码中文文本，全部替换为 react-i18next 调用。新增 i18n 键值：template、workbench、label、projectBatch、projectList、excel、editor 命名空间。修复后切换语言所有 UI 文本同步更新。 |
 | 2026-07-17 | UI/UX 优化重构 | 已完成 | <b>AI对话位置调整</b>：Chat 移至 ActivityBar 第 2 位（搜索和项目浏览器之间）；<b>标签打印合并</b>：LabelPanel 功能合并到 RenderPanel 的"打印标签"子页签，删除独立 LabelPanel.tsx；<b>RenderPanel 子页签</b>：参照 ExplorerPanel 模式，拆分为 渲染配置 / 打印标签 / 清理文件 三个子页签；<b>OutputPanel 子页签</b>：拆分为 文件浏览 / 批量导出 两个子页签，导出页签预留 ZIP 和目录导出功能；<b>菜单栏重构</b>：从 3 组（文件/视图/帮助）扩展为 5 组（文件/编辑/视图/工具/帮助），补充撤销/重做/复制/粘贴/快捷键列表/检查更新/终端/日志查看器/退出/保存文件等菜单项，移除已废弃的标签打印入口；<b>ActivityBar 精简</b>：从 7 项减至 6 项（搜索/Chat/项目/渲染/输出/工作台），补齐工作台图标和快捷键（Ctrl+Shift+W）；<b>i18n</b>：新增 ~20 个菜单/渲染/输出子页签相关键值，删除 labelPrint 键值。共删除 1 个文件，新增 0 个文件，修改 6 个文件。`npm run build` 通过。 |
+| 2026-07-17 | v3.2.0 发布 | 已完成 | 版本号 3.2.0 Build 26071703。UI/UX 全面升级：frameless 自定义标题栏（Logo + 菜单 + 更新指示器 + 窗口控制按钮）、三态主题切换（☀️ 亮色 / 🌙 暗色 / 🖥️ 跟随系统）、统一蓝色 Logo（蓝底白六边形蓝色 M）、Chat UI 框架（ChatPanel + ChatMessage + ChatInput + AttachmentPreview）、自动更新重构（autoDownload=true + 启动时自动检查 + 下载完成重启确认）。`npm run build` 通过。 |
+| 2026-07-17 | v3.2.1 发布 | 已完成 | 版本号 3.2.1 Build 26071704。修复 loading 画面 Logo 白边问题；统一图标资源；行尾符规范化（LF→CRLF）。`npm run build` 通过。 |
+| 2026-07-19 | Phase 2 启动 | 进行中 | Phase 2 (AI Hub MVP) 已批准，开始实施。范围：FastAPI 子进程生命周期管理、健康检查、Agent 框架集成（Hermes + Tool Calling）、Provider 配置（DeepSeek/OpenAI/Ollama 可插拔）、附件上下文注入、SSE streaming、Prompt 管理、密钥安全存储、ChatPanel 真实流式响应。 |
 
 ## 10. 执行原则
 

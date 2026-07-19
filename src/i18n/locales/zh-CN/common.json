@@ -355,9 +355,19 @@
   },
   "settings": {
     "title": "设置",
+    "comingSoon": "即将推出",
     "ai": {
       "title": "AI 配置",
-      "desc": "配置大模型 Provider、API Key、模型参数等"
+      "desc": "选择大模型 Provider，配置 API Key 和模型参数",
+      "apiKey": "API Key",
+      "apiKeyPlaceholder": "输入您的 API Key",
+      "model": "模型",
+      "baseUrl": "接口地址",
+      "save": "保存",
+      "saved": "已保存",
+      "setDefault": "设为默认",
+      "isDefault": "当前默认",
+      "default": "默认"
     },
     "general": {
       "title": "通用设置",

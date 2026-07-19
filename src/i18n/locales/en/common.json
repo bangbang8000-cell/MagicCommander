@@ -355,9 +355,19 @@
   },
   "settings": {
     "title": "Settings",
+    "comingSoon": "Coming Soon",
     "ai": {
       "title": "AI Configuration",
-      "desc": "Configure LLM Provider, API Key, model parameters"
+      "desc": "Choose LLM provider, configure API key and model parameters",
+      "apiKey": "API Key",
+      "apiKeyPlaceholder": "Enter your API Key",
+      "model": "Model",
+      "baseUrl": "Base URL",
+      "save": "Save",
+      "saved": "Saved",
+      "setDefault": "Set as Default",
+      "isDefault": "Default",
+      "default": "Default"
     },
     "general": {
       "title": "General",

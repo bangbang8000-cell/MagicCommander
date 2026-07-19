@@ -8,6 +8,7 @@ import type {
   AttachmentType,
 } from '@/types/chat'
 import { generateId } from '@/types/chat'
+import type { AIHubStatus, AIHubProvider } from '@/types/ipc'
 
 interface ChatState {
   // 会话管理
@@ -40,11 +41,19 @@ interface ChatState {
   isSending: boolean
   setIsSending: (v: boolean) => void
 
+  // AI Hub 状态
+  aiHubStatus: AIHubStatus
+  setAIHubStatus: (status: AIHubStatus) => void
+  aiHubProviders: AIHubProvider[]
+  setAIHubProviders: (providers: AIHubProvider[]) => void
+  selectedProvider: string | undefined
+  setSelectedProvider: (provider: string | undefined) => void
+
   // 获取当前会话
   getActiveSession: () => ChatSession | null
 }
 
-// Phase 1-C 占位响应（模拟 Agent 回复）
+// Phase 1-C 占位响应（模拟 Agent 回复，仅在 AI Hub 不可用时使用）
 const MOCK_RESPONSES: Record<ChatMode, string> = {
   template: `您好！我是模板助手，可以帮助您：
 
@@ -82,6 +91,9 @@ export const useChatStore = create<ChatState>()(
       pendingAttachments: [],
       inputValue: '',
       isSending: false,
+      aiHubStatus: { running: false, port: 0 },
+      aiHubProviders: [],
+      selectedProvider: undefined,
 
       setActiveSession: (id) => set({ activeSessionId: id }),
 
@@ -188,6 +200,9 @@ export const useChatStore = create<ChatState>()(
 
       setInputValue: (value) => set({ inputValue: value }),
       setIsSending: (v) => set({ isSending: v }),
+      setAIHubStatus: (status) => set({ aiHubStatus: status }),
+      setAIHubProviders: (providers) => set({ aiHubProviders: providers }),
+      setSelectedProvider: (provider) => set({ selectedProvider: provider }),
 
       getActiveSession: () => {
         const { sessions, activeSessionId } = get()
@@ -200,6 +215,8 @@ export const useChatStore = create<ChatState>()(
         sessions: state.sessions.slice(-20), // 最多保留 20 个会话
         activeSessionId: state.activeSessionId,
         currentMode: state.currentMode,
+        selectedProvider: state.selectedProvider,
+        aiHubProviders: state.aiHubProviders,
       }),
     },
   ),
@@ -232,9 +249,161 @@ function getAttachmentTypeByExt(fileName: string): AttachmentType {
   }
 }
 
-// 导出占位响应函数
+// 导出占位响应函数（仅在 AI Hub 不可用时使用）
 export function getMockResponse(mode: ChatMode): string {
   return MOCK_RESPONSES[mode] || MOCK_RESPONSES.general
+}
+
+/**
+ * 发送消息（真实 AI Hub 流式响应）
+ * 如果 AI Hub 不可用，回退到模拟响应
+ */
+export async function sendMessage(
+  store: ReturnType<typeof useChatStore.getState>,
+  content: string,
+  mode: ChatMode,
+  attachments: ChatAttachment[],
+) {
+  const sessionId = store.activeSessionId
+  if (!sessionId) return
+
+  // 添加用户消息
+  store.addMessage({
+    role: 'user',
+    content,
+    mode,
+    attachments: attachments.length > 0 ? [...attachments] : undefined,
+  })
+
+  store.setIsSending(true)
+  store.setInputValue('')
+  store.clearAttachments()
+
+  // 创建 AI 消息占位
+  const aiMsgId = generateId()
+  store.addMessage({
+    role: 'assistant',
+    content: '',
+    mode,
+  })
+
+  // 尝试使用 AI Hub
+  try {
+    const aiHub = window.electron.aihub
+    if (!aiHub) throw new Error('AI Hub API not available')
+
+    // 检查 AI Hub 状态
+    const status = await aiHub.status()
+    if (!status.running) {
+      throw new Error('AI Hub not running')
+    }
+
+    // 使用选中的 Provider（优先 chat.store，回退到 Settings 默认）
+    const provider = store.selectedProvider
+    if (!provider) {
+      throw new Error('No provider selected')
+    }
+
+    // 监听流式响应
+    let fullContent = ''
+    const unsub = aiHub.onStream(({ sessionId: sid, chunk }) => {
+      if (sid !== sessionId) return
+      fullContent += chunk
+      // 更新消息内容
+      useChatStore.setState((s) => ({
+        sessions: s.sessions.map((ses) =>
+          ses.id === sessionId
+            ? {
+                ...ses,
+                messages: ses.messages.map((m) =>
+                  m.id === aiMsgId ? { ...m, content: fullContent } : m,
+                ),
+              }
+            : ses,
+        ),
+      }))
+    })
+
+    // 发送请求（带超时）
+    const timeoutMs = 60000
+    const chatPromise = aiHub.chat(
+      sessionId,
+      content,
+      mode,
+      provider,
+      attachments.map((a) => ({
+        id: a.id,
+        name: a.name,
+        type: a.type,
+        path: a.path,
+        size: a.size,
+      })),
+    )
+
+    const timeoutPromise = new Promise<string>((_, reject) =>
+      setTimeout(() => reject(new Error('timeout')), timeoutMs),
+    )
+
+    await Promise.race([chatPromise, timeoutPromise])
+    unsub()
+    store.setIsSending(false)
+  } catch (err: any) {
+    // 判断错误类型
+    const errorMsg = err?.message || ''
+    let fallbackResponse: string
+
+    if (errorMsg === 'timeout') {
+      fallbackResponse = '> 请求超时，AI 服务响应时间过长。请稍后重试。'
+    } else if (errorMsg.includes('AI Hub not running') || errorMsg.includes('not available')) {
+      fallbackResponse = getMockResponse(mode)
+    } else {
+      fallbackResponse = getMockResponse(mode)
+    }
+
+    // 如果已有流式内容，追加错误信息
+    const currentMsg = useChatStore.getState().sessions
+      .find((s) => s.id === sessionId)
+      ?.messages.find((m) => m.id === aiMsgId)
+
+    const existingContent = currentMsg?.content || ''
+
+    if (existingContent) {
+      // 已有部分流式内容，追加错误提示
+      useChatStore.setState((s) => ({
+        sessions: s.sessions.map((ses) =>
+          ses.id === sessionId
+            ? {
+                ...ses,
+                messages: ses.messages.map((m) =>
+                  m.id === aiMsgId ? { ...m, content: existingContent + '\n\n> 连接中断，请重试。' } : m,
+                ),
+              }
+            : ses,
+        ),
+      }))
+    } else {
+      // 完全没有响应，回退到模拟响应
+      if (attachments.length > 0) {
+        const fileList = attachments.map((a) => `- ${a.name} (${a.type})`).join('\n')
+        fallbackResponse = `已收到您的消息和以下附件：\n\n${fileList}\n\n---\n\n${fallbackResponse}`
+      }
+      useChatStore.setState((s) => ({
+        sessions: s.sessions.map((ses) =>
+          ses.id === sessionId
+            ? {
+                ...ses,
+                messages: ses.messages.map((m) =>
+                  m.id === aiMsgId ? { ...m, content: fallbackResponse } : m,
+                ),
+              }
+            : ses,
+        ),
+      }))
+    }
+
+    store.setIsSending(false)
+    throw err  // 抛出给 ChatPanel 显示错误提示
+  }
 }
 
 // 模拟发送消息（Phase 1-C 占位，Phase 2 替换为真实流式响应）
