@@ -2,12 +2,13 @@
 
 **批量生成网络设备配置 | Network Device Configuration Automation**
 
-[![Version](https://img.shields.io/badge/version-3.1.0-blue)](https://github.com/bangbang8000-cell/MagicCommander)
+[![Version](https://img.shields.io/badge/version-3.4.0-blue)](https://github.com/bangbang8000-cell/MagicCommander)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![Windows](https://img.shields.io/badge/Windows-NSIS-blue)](https://github.com/bangbang8000-cell/MagicCommander/releases)
 [![macOS](https://img.shields.io/badge/macOS-DMG-silver)](https://github.com/bangbang8000-cell/MagicCommander/releases)
 [![Linux](https://img.shields.io/badge/Linux-AppImage%20%7C%20deb-orange)](https://github.com/bangbang8000-cell/MagicCommander/releases)
 [![Languages](https://img.shields.io/badge/languages-12-orange)](https://github.com/bangbang8000-cell/MagicCommander)
+[![AI](https://img.shields.io/badge/AI--Powered-DeepSeek%20%7C%20OpenAI%20%7C%209%20Providers-purple)](https://github.com/bangbang8000-cell/MagicCommander)
 
 
 ## 你还在手动配置每一台交换机吗？
@@ -70,6 +71,28 @@ MagicCommander 是本地桌面软件（Electron + React + TypeScript），所有
 
 内建 Monaco Editor（VS Code 同款编辑器），支持 Jinja2 语法高亮、代码补全、多标签页管理，模板编写体验不输专业 IDE。
 
+### AI 智能助手，对话式配置管理
+
+MagicCommander 内建 AI Hub，支持 DeepSeek、OpenAI、Claude、Gemini、Qwen、GLM、Grok、Ollama 等 9 种大模型。通过自然语言对话即可完成项目管理、配置渲染、模板分析、优化建议等操作，无需记忆 CLI 命令。
+
+**AI 对话式工作流示例**：
+
+```
+你: "帮我看看 test1 项目有哪些模板，分析一下质量"
+AI: [调用 list_projects → 找到 test1]
+    [调用 analyze_project → 分析 3 个模板 + 5 个 Excel]
+    "test1 项目包含 3 个模板(ASW/DOA/PSW)和 5 个 Excel 文件。
+     DOA.j2 复杂度较高(15 个变量)，建议拆分为子模板；
+     devices.xlsx 第 3 行有空值，建议补全。"
+    
+你: "渲染 test1 项目"
+AI: [调用 render_config → 生成 22 台设备配置]
+    "已生成 22 台设备配置，输出目录: output/。
+     需要我 dry-run 预览一下吗？"
+```
+
+支持 **智能路由**——根据任务类型（编码/分析/问答/推理）自动选择最优模型。AI 可调用 27 个内置工具，包括项目创建、配置渲染、Excel 分析、模板复杂度评估、dry-run 预演、diff 对比、标签生成、配置反向生成等。
+
 ### 模板中心，快速启动项目
 
 从内置示例模板（交换机 ASW/PSW/DOA 配置）一键创建新项目，自动生成标准目录结构（templates / excel / output / yaml）。也可以将现有项目保存为模板，团队复用。
@@ -77,6 +100,14 @@ MagicCommander 是本地桌面软件（Electron + React + TypeScript），所有
 ### 渲染预演与校验，配置零差错
 
 渲染前支持 **dry-run 预演**——预览生成结果但不写入文件，确认无误再正式渲染。内置 **Jinja2 语法校验**和 **Excel 数据校验**，提前发现模板错误和参数缺失，避免渲染到一半才报错。渲染结果支持 **diff 对比**，变更一目了然。
+
+### AI 驱动，让配置管理更智能
+
+不只是批量生成工具。MagicCommander 的 AI 引擎能 **分析你的模板质量**、**检测 Excel 数据问题**、**推荐合适的模板**，甚至 **从现有配置反向生成 Jinja2 模板**。用自然语言告诉 AI 你的需求，剩下的交给它。
+
+### 12 种语言，面向全球运维团队
+
+MagicCommander 支持中文（简体/繁体）、English、日本語、한국어、Français、Deutsch、Español、Português、Русский、العربية、Tiếng Việt、ไทย 共 12 种语言，适配全球运维团队需求。
 
 ---
 
@@ -124,7 +155,30 @@ npm run dev:all
 
 ## 技术栈
 
-Electron 28 · React 18 · TypeScript 5 · Vite 5 · TailwindCSS 3 · Zustand 4 · Monaco Editor 4 · Python 3 · Jinja2
+Electron 28 · React 18 · TypeScript 5 · Vite 5 · TailwindCSS 3 · Zustand 4 · Monaco Editor 4 · Python 3 · Jinja2 · FastAPI · LangChain
+
+## 项目架构
+
+```
+MagicCommander/
+├── src/                  # 前端 (Electron + React)
+│   ├── components/       # UI 组件 (chat, layout, sidebar, dialogs)
+│   ├── stores/           # Zustand 状态管理
+│   ├── i18n/             # 12 语言国际化
+│   └── types/            # TypeScript 类型定义
+├── backend/              # Python CLI 后端
+│   ├── main.py           # 统一命令行入口
+│   ├── analyzer.py       # 项目分析引擎 (模板复杂度/Excel质量/交叉引用)
+│   └── requirements.txt  # Python 依赖
+├── ai_hub/               # AI Hub 服务 (FastAPI)
+│   ├── api/              # REST API 端点
+│   ├── agent/            # Agent 框架 (27 Tools + Tool Calling)
+│   └── prompts/          # LLM 系统提示词与工具规范
+├── electron/             # Electron 主进程
+├── public/               # 静态资源 (图标/文档)
+├── resources/            # 嵌入式 Python 运行时
+└── docs/                 # 开发文档与计划
+```
 
 ---
 
@@ -163,6 +217,10 @@ Electron 28 · React 18 · TypeScript 5 · Vite 5 · TailwindCSS 3 · Zustand 4 
 
 | 版本 | 日期 | 更新内容 |
 |------|------|---------|
+| **3.4.0 Build 26072004** | 2026-07-20 | **Agent v2 智能编排引擎**：Planner/Validator/Context/Recovery/Reporter 五层架构、Skills Engine (7 预置 Skill + 半自动生成)、Memory System (用户画像+项目历史+操作习惯)、工具权限分级 (auto/notify/confirm) + 自主模式、27 工具 Agent 框架；**Chat UI 全面重构**：会话横向标签栏 + 溢出历史下拉、AI 自动提炼会话标题、模式/自主模式精简到设置、字体大小可调节、清除/新建图标语义修正；**可靠性修复**：render/dry-run JSON 解析 (平衡括号提取)、工具结果进度过滤、XML/JSON 截断容错解析、确认级工具权限修正 (semi_auto 也需确认) |
+| **3.3.2 Build 26072003** | 2026-07-20 | AI 工具集扩展 (14→27 工具)、项目分析引擎 (analyze_project)、自动优化建议、Logo 加载修复 (file:// 协议兼容)、i18n 多语言完善 (修复 12 处硬编码文本) |
+| **3.3.1 Build 26072002** | 2026-07-20 | 多 Provider 策略路由 (智能路由引擎)、tool_calls XML 格式解析 + 参数名自动修正、CLI 项目名支持 (非数字 ID)、Windows GBK 编码修复、system.md 提示词增强 |
+| **3.3.0 Build 26071901** | 2026-07-19 | AI Hub 核心功能：FastAPI 子进程生命周期管理、9 LLM Provider (DeepSeek/OpenAI/Claude/Gemini/Qwen/GLM/Grok/Ollama/自定义)、Agent 框架 (14 Tools)、SSE 流式响应、AI 对话 Chat UI、设置面板 AI 配置 (测试连接/获取模型)、语言/主题/更新 Popover 下拉菜单 |
 | **3.1.0 Build 26071702** | 2026-07-17 | Phase 1 体验升级：模板中心（示例模板 + 从模板创建项目）、dry-run 渲染预演、Jinja2 语法校验、Excel 数据校验、diff 对比、搜索增强（输出文件类型过滤）、ResizeHandle 拖拽修复 |
 | **3.0.4 Build 26071602** | 2026-07-16 | Phase 0 质量基线：Jinja2 语法高亮（Monaco Editor + vscode-textmate）、Markdown 标签生成与 PDF 导出、输出目录统一重构（output-label/时间戳/）、搜索面板 Markdown 类型过滤、中栏项目浏览器布局优化（多选批量操作、拖拽分栏、排序切换） |
 | **3.0.3 Build 26071601** | 2026-07-16 | 完成 Phase 0 质量基线：渲染缓存/撤销、Python CLI 统一入口、结构化日志、ESLint/Prettier 配置、26 个自动化测试 |
@@ -181,12 +239,14 @@ Electron 28 · React 18 · TypeScript 5 · Vite 5 · TailwindCSS 3 · Zustand 4 
 
 MagicCommander V3.0 将从"配置批量生成工具"升级为 **AI 驱动的网络配置工程平台**，分四个阶段推进：
 
-| 阶段 | 时间 | 核心交付 |
-|------|------|---------|
-| [Alpha](https://github.com/bangbang8000-cell/MagicCommander/milestone/1) | 2026.07 - 2026.09 | AI Hub 框架 + 智能项目初始化 + 配置反向生成 + 模板调试沙盒 |
-| [Beta](https://github.com/bangbang8000-cell/MagicCommander/milestone/2) | 2026.10 - 2026.12 | 智能校对 + AI 对话助手 + Excel/Jinja2 增强 + 模板资产中心 |
-| [GA](https://github.com/bangbang8000-cell/MagicCommander/milestone/3) | 2027.01 - 2027.03 | 社区分享中心 + 协作审阅 + 项目生命周期 + 权限体系 + 多 LLM Provider |
-| [Scale](https://github.com/bangbang8000-cell/MagicCommander/milestone/4) | 2027.04 - 2027.06 | Git 集成 + Ansible/Nornir 推送 + 多租户 + 监控告警 |
+| 阶段 | 时间 | 状态 | 核心交付 |
+|------|------|------|---------|
+| [Alpha](https://github.com/bangbang8000-cell/MagicCommander/milestone/1) | 2026.07 - 2026.09 | 进行中 | AI Hub 框架 + 智能项目初始化 + 配置反向生成 + 模板调试沙盒 |
+| [Beta](https://github.com/bangbang8000-cell/MagicCommander/milestone/2) | 2026.10 - 2026.12 | 待开始 | 智能校对 + AI 对话助手 + Excel/Jinja2 增强 + 模板资产中心 |
+| [GA](https://github.com/bangbang8000-cell/MagicCommander/milestone/3) | 2027.01 - 2027.03 | 待开始 | 社区分享中心 + 协作审阅 + 项目生命周期 + 权限体系 + 多 LLM Provider |
+| [Scale](https://github.com/bangbang8000-cell/MagicCommander/milestone/4) | 2027.04 - 2027.06 | 待开始 | Git 集成 + Ansible/Nornir 推送 + 多租户 + 监控告警 |
+
+**Alpha 阶段已完成**：AI Hub 核心框架 (FastAPI + 9 LLM Provider + Agent v2 27 Tools + SSE 流式)、Smart Agent 编排引擎 (Planner/Validator/Recovery/Skills/Memory)、AI 对话 Chat UI (会话标签+AI 标题)、多 Provider 智能路由、项目分析引擎 (analyze_project)、配置反向生成 (reverse_engineer_config)、模板推荐 (recommend_template)。
 
 **核心新增能力**：
 - AI 智能中心：借助大模型 API 实现配置生成、校对、优化建议、对话助手

@@ -30,6 +30,15 @@ export const ATTACHMENT_TYPE_LABELS: Record<AttachmentType, string> = {
 // 聊天模式
 export type ChatMode = 'template' | 'config' | 'general'
 
+// 自主模式
+export type AutonomyMode = 'advisor' | 'semi_auto' | 'full_auto'
+
+export const AUTONOMY_MODE_CONFIG: Record<AutonomyMode, { labelKey: string; icon: string }> = {
+  advisor: { labelKey: 'chat:autonomy.advisor', icon: '🛡️' },
+  semi_auto: { labelKey: 'chat:autonomy.semiAuto', icon: '⚡' },
+  full_auto: { labelKey: 'chat:autonomy.fullAuto', icon: '🚀' },
+}
+
 // 模式配置
 export const CHAT_MODE_CONFIG: Record<ChatMode, { labelKey: string; descKey: string; icon: string }> = {
   template: {
@@ -55,6 +64,14 @@ export interface ToolResult {
   success: boolean
   result?: unknown
   error?: string
+}
+
+// Skill 保存提示
+export interface SkillSavePrompt {
+  taskDescription: string
+  skillName: string
+  skillContent: string
+  messageId: string
 }
 
 // 聊天附件

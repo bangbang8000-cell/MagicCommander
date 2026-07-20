@@ -113,6 +113,9 @@
       "sortByUpdated": "By Updated",
       "sortBySource": "By Source",
       "toggleView": "Toggle View"
+    },
+    "category": {
+      "all": "All"
     }
   },
   "search": {

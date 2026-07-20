@@ -6,11 +6,11 @@
 
 | 项目 | 内容 |
 |------|------|
-| 文档版本 | v1.5 |
+| 文档版本 | v1.6 |
 | 创建日期 | 2026-07-16 |
-| 当前状态 | Phase 0 + Phase 1 全部完成；Phase 2 (AI Hub MVP) 核心功能已完成：FastAPI 子进程生命周期管理、Agent 框架（11 个 Tool）、9 种 Provider 支持（DeepSeek V4/OpenAI/Claude/Gemini/Qwen/GLM/Grok/Ollama/自定义）、SSE 流式响应、Prompt 管理、密钥安全存储、AI 配置统一到设置页面、Provider 离线配置、依赖自动安装。Phase 2 MVP 已完成，后续可进入智能项目初始化等高级功能。 |
-| 应用事实基线 | MagicCommander V3.2.1 Build 26071704 |
-| 技术栈事实基线 | Electron 28、React 18、TypeScript 5.3、Vite 5、Zustand 4、Python 3 |
+| 当前状态 | Phase 0/1/2 全部完成；Phase 3 (产品打磨与功能完善) 计划已制定，待审批。详见 `docs/plan/phase-3-polish-and-completeness_v1.0_2026-07-20.md` |
+| 应用事实基线 | MagicCommander V3.3.2 Build 26072003 |
+| 技术栈事实基线 | Electron 28、React 18、TypeScript 5.3、Vite 5、Zustand 4、Python 3、FastAPI、LangChain |
 | 计划来源 | `.trae/specs/evaluate-v3-roadmap/spec.md`、`.trae/specs/evaluate-v3-roadmap/tasks.md`、`.trae/specs/evaluate-v3-roadmap/checklist.md` |
 | 约束 | 用户批准前不修改业务代码；重大 Phase 完成后必须更新本文档并提醒发布到 GitHub |
 
@@ -613,6 +613,8 @@ AI Hub MVP 完成后，再按子阶段推进：
 | 2026-07-20 | async generator await 修复 | 已完成 | 修复 `agent.py` 中 `chat_stream()` 被错误 `await` 的问题（async generator 不能 await）。 |
 | 2026-07-20 | AI 消息 ID 匹配修复 | 已完成 | 修复 `addMessage` 内部 `generateId()` 覆盖预生成 `aiMsgId` 导致流式内容无法写入 AI 消息的 bug。修复后 AI 回答正常显示，会话正确保存。 |
 | 2026-07-20 | 会话管理增强 | 已完成 | 切换模式不再创建新会话（保留对话历史）；persist rehydrate 时序修复（等待 rehydrate 完成后再自动创建会话）；新增会话列表下拉菜单（查看/切换/删除历史会话）。共修改 4 个文件。 |
+| 2026-07-20 | Phase 3 计划制定 | 已规划 | 基于用户 7 项综合需求，制定了 Phase 3 产品打磨与功能完善计划，详见 `docs/plan/phase-3-polish-and-completeness_v1.0_2026-07-20.md`。待用户审批后实施。 |
+| 2026-07-20 | Phase 3 实施完成 | 已完成 | R1-R7 全部完成：README 增强 AI 驱动介绍、语言图标改为 "文/A" 文字风格、语言选择+检查更新集成到设置面板、通用设置(5项)+高级设置(5项)实现、部署文档增加 AI 组件部署章节、LoadingState 统一组件、模板分类筛选、使用指南 AI 章节更新。共修改 12 个文件，新增约 27 个翻译键值。 |
 
 ## 10. 执行原则
 

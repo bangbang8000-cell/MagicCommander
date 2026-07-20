@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import i18n from '@/i18n'
 import type {
   ChatMessage,
   ChatSession,
@@ -53,6 +54,9 @@ interface ChatState {
 
   // 获取当前会话
   getActiveSession: () => ChatSession | null
+
+  // AI 提炼标题
+  generateTitle: (sessionId: string) => Promise<void>
 }
 
 // Phase 1-C 占位响应（模拟 Agent 回复，仅在 AI Hub 不可用时使用）
@@ -105,7 +109,7 @@ export const useChatStore = create<ChatState>()(
         const id = `session_${Date.now()}`
         const session: ChatSession = {
           id,
-          title: `新对话 ${new Date().toLocaleString()}`,
+          title: i18n.t('chat:session.newChat'),
           messages: [],
           mode: m,
           createdAt: Date.now(),
@@ -151,7 +155,6 @@ export const useChatStore = create<ChatState>()(
       addMessage: (message) => {
         const activeId = get().activeSessionId
         if (!activeId) {
-          // 自动创建会话
           get().createSession(message.mode)
         }
         const sessionId = get().activeSessionId
@@ -169,6 +172,10 @@ export const useChatStore = create<ChatState>()(
               ? {
                   ...ses,
                   messages: [...ses.messages, newMsg],
+                  // 首条用户消息自动设置会话标题
+                  title: ses.messages.length === 0 && message.role === 'user'
+                    ? (message.content || '').slice(0, 20) || ses.title
+                    : ses.title,
                   updatedAt: Date.now(),
                 }
               : ses,
@@ -221,6 +228,49 @@ export const useChatStore = create<ChatState>()(
       getActiveSession: () => {
         const { sessions, activeSessionId } = get()
         return sessions.find((s) => s.id === activeSessionId) || null
+      },
+
+      generateTitle: async (sessionId) => {
+        const session = get().sessions.find(s => s.id === sessionId)
+        if (!session) return
+        const userMsg = session.messages.find(m => m.role === 'user')
+        if (!userMsg?.content) return
+        // 已有 AI 标题则跳过
+        if (session.title && session.title !== i18n.t('chat:session.newChat') && !session.title.startsWith('新对话')) return
+        try {
+          const aiHub = window.electron?.aihub
+          if (!aiHub) return
+          const status = await aiHub.status()
+          if (!status.running) return
+          const { useUIStore } = await import('@/stores/ui.store')
+          const aiConfig = useUIStore.getState().aiConfig
+          const provider = get().selectedProvider || aiConfig.defaultProvider
+          if (!provider) return
+          await aiHub.chat(
+            `title_${sessionId}`, // 独立会话 ID 避免污染聊天
+            `用5个字以内概括以下问题的主题，只回复主题不要其他内容："${userMsg.content.slice(0, 100)}"`,
+            'general',
+            provider,
+            undefined,
+            useUIStore.getState().autonomyMode,
+          )
+          // 读取 AI 回复（通过临时订阅）
+          let title = ''
+          const unsub = aiHub.onStream(({ sessionId: sid, chunk }) => {
+            if (sid === `title_${sessionId}`) title += chunk
+          })
+          await new Promise<void>((resolve) => {
+            setTimeout(() => { unsub(); resolve() }, 8000) // 最多等 8 秒
+          })
+          const cleanTitle = title.replace(/[""'']/g, '').trim().slice(0, 15)
+          if (cleanTitle && cleanTitle.length >= 2) {
+            set((s) => ({
+              sessions: s.sessions.map(ses =>
+                ses.id === sessionId ? { ...ses, title: cleanTitle } : ses
+              ),
+            }))
+          }
+        } catch { /* 静默失败，保持默认标题 */ }
       },
     }),
     {
@@ -326,7 +376,7 @@ export async function sendMessage(
       }
       const finalStatus = await aiHub.status()
       if (!finalStatus.running) {
-        throw new Error('AI Hub 启动失败，请检查 Python 环境是否就绪。可前往设置页面测试连接。')
+        throw new Error(i18n.t('chat:aihub.error.hubFailed'))
       }
     }
 
@@ -346,7 +396,7 @@ export async function sendMessage(
     // 使用选中的 Provider（优先 chat.store，回退到 Settings 默认）
     let provider = store.selectedProvider || aiConfig.defaultProvider
     if (!provider) {
-      throw new Error('未选择 AI 模型。请前往设置页面配置 Provider。')
+      throw new Error(i18n.t('chat:aihub.error.noModel'))
     }
 
     // 策略路由：根据消息内容自动选择最优 Provider
@@ -396,6 +446,7 @@ export async function sendMessage(
         path: a.path,
         size: a.size,
       })),
+      useUIStore.getState().autonomyMode,
     )
 
     const timeoutPromise = new Promise<string>((_, reject) =>
@@ -406,7 +457,7 @@ export async function sendMessage(
     unsub()
     store.setIsSending(false)
   } catch (err: any) {
-    const errorMsg = err?.message || '未知错误'
+    const errorMsg = err?.message || i18n.t('chat:aihub.error.unknown')
 
     // 如果已有流式内容，追加错误提示
     const currentMsg = useChatStore.getState().sessions

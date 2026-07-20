@@ -32,15 +32,35 @@ def load_prompt(name: str) -> str:
     return _get_default_prompt(name)
 
 
-def get_system_prompt(mode: Optional[str] = None) -> str:
-    """获取完整的系统提示词（基础 + skill + 模式）"""
+def get_system_prompt(mode: Optional[str] = None, project_name: str = "") -> str:
+    """获取完整的系统提示词（基础 + planner + skill + tools + mode + context + memory）"""
     base = load_prompt("system")
     tools = load_prompt("mc-tools")
-    parts = [base, tools]
+
+    from ai_hub.agent.planner import get_planner_prompt
+    planner = get_planner_prompt()
+
+    from ai_hub.skills.engine import get_skills_engine
+    skills_prompt = get_skills_engine().get_skills_prompt()
+
+    parts = [base, planner, tools, skills_prompt]
+
     if mode and mode in ("template", "config", "general"):
         mode_prompt = load_prompt(mode)
         if mode_prompt:
             parts.append(mode_prompt)
+
+    if project_name:
+        from ai_hub.agent.context import get_project_context
+        ctx = get_project_context("")
+        if ctx.project_name:
+            parts.append(ctx.get_prompt_context())
+
+    from ai_hub.memory.engine import get_memory_engine
+    memory_prompt = get_memory_engine().get_memory_prompt(project_name)
+    if memory_prompt:
+        parts.append(memory_prompt)
+
     return "\n\n".join(parts)
 
 

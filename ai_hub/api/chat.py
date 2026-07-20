@@ -25,6 +25,7 @@ class ChatRequest(BaseModel):
     mode: str = "general"  # template | config | general
     provider: Optional[str] = None
     attachments: Optional[list[dict]] = None
+    autonomy_mode: str = "semi_auto"
 
 
 class ProviderInfo(BaseModel):
@@ -82,6 +83,7 @@ async def send_message(req: ChatRequest):
     session = get_or_create_session(req.session_id)
     session.set_provider(req.provider)
     session.set_mode(req.mode)
+    session.autonomy_mode = req.autonomy_mode
 
     session.add_user_message(req.message, req.attachments)
 
@@ -105,6 +107,20 @@ async def send_message(req: ChatRequest):
             }
 
     return EventSourceResponse(event_generator())
+
+
+class SaveSkillRequest(BaseModel):
+    name: str
+    content: str
+
+
+@router.post("/skill/save")
+async def save_skill(req: SaveSkillRequest):
+    """保存 Skill"""
+    from ai_hub.skills.engine import get_skills_engine
+    engine = get_skills_engine()
+    skill = engine.save_skill(req.name, req.content)
+    return {"status": "ok", "name": skill.name}
 
 
 @router.post("/clear")

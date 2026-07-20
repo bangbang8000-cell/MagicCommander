@@ -71,6 +71,7 @@
     "logViewer": "Log Viewer",
     "userGuide": "User Guide",
     "about": "About",
+    "language": "Language",
     "guideLoadFailed": "# Load Failed\n\nUnable to load the user guide. Please try again later.",
     "switchToLight": "Switch to Light Mode",
     "switchToDark": "Switch to Dark Mode",
@@ -381,11 +382,32 @@
       "routingSimpleDesc": "List, query, help",
       "routingComplex": "Complex Reasoning",
       "routingComplexDesc": "Multi-step reasoning, planning",
-      "notConfigured": "Not configured"
+      "notConfigured": "Not configured",
+      "hubTimeout": "AI Hub startup timed out, please check Python environment",
+      "hubFailed": "AI Hub failed to start, please check Python environment",
+      "hubNotReady": "AI Hub not ready",
+      "testFailed": "Test failed",
+      "providerConfig": "{{name}} Configuration"
     },
     "general": {
       "title": "General",
-      "desc": "Language, auto-save, workspace path"
+      "desc": "Language, auto-save, workspace path",
+      "language": "Language",
+      "autoSave": "Auto Save",
+      "autoSaveDesc": "Auto-save when editing files",
+      "autoSaveInterval": "Auto Save Interval (s)",
+      "workspacePath": "Workspace Path",
+      "openWorkspace": "Open Workspace",
+      "checkUpdateOnStart": "Check for updates on startup",
+      "checkUpdateOnStartDesc": "Automatically check for updates",
+      "fontSize": "Font Size",
+      "fontSmall": "Small (12px)",
+      "fontMedium": "Medium (13px)",
+      "fontLarge": "Large (14px)",
+      "currentVersion": "Current Version",
+      "checkUpdate": "Check for Updates",
+      "latestVersion": "You're up to date",
+      "newVersionAvailable": "New version available"
     },
     "appearance": {
       "title": "Appearance",
@@ -393,8 +415,34 @@
     },
     "advanced": {
       "title": "Advanced",
-      "desc": "Python path, debug mode, proxy settings"
+      "desc": "Python path, debug mode, proxy settings",
+      "pythonPath": "Python Path",
+      "pythonPathHint": "Leave empty for system default Python",
+      "browse": "Browse",
+      "debugMode": "Debug Mode",
+      "debugModeDesc": "Enable verbose logs and DevTools",
+      "proxy": "Proxy",
+      "proxyHint": "e.g.: http://127.0.0.1:7890",
+      "aiHubPort": "AI Hub Port",
+      "aiHubPortDesc": "0 means auto-assign",
+      "aiHubAutoStart": "Auto-start AI Hub",
+      "aiHubAutoStartDesc": "Auto-start when opening Chat",
+      "autonomyMode": "AI Autonomy",
+      "autonomyModeDesc": "Advisor requires confirmation for all actions, Semi-Auto only for render/delete, Full-Auto executes all automatically"
+    },
+    "updates": {
+      "title": "Software Update",
+      "checkButton": "Check for Updates"
     },
     "comingSoon": "Coming Soon"
+  },
+  "window": {
+    "minimize": "Minimize",
+    "maximize": "Maximize",
+    "restore": "Restore",
+    "close": "Close"
+  },
+  "loading": {
+    "loading": "Loading..."
   }
 }

@@ -104,6 +104,8 @@ const api = {
       ipcRenderer.on('language-changed', handler)
       return () => ipcRenderer.removeListener('language-changed', handler)
     },
+    backupAiConfig: (config: unknown) => ipcRenderer.invoke('app:backupAiConfig', config),
+    restoreAiConfig: () => ipcRenderer.invoke('app:restoreAiConfig'),
   },
   log: {
     onOutput: (callback: (data: { level: string; message: string; source?: string }) => void) => {
@@ -127,7 +129,8 @@ const api = {
       mode?: string,
       provider?: string,
       attachments?: Array<{ id: string; name: string; type: string; path: string; size: number }>,
-    ) => ipcRenderer.invoke('aihub:chat', sessionId, message, mode, provider, attachments),
+      autonomyMode?: string,
+    ) => ipcRenderer.invoke('aihub:chat', sessionId, message, mode, provider, attachments, autonomyMode),
     clearSession: (sessionId: string) => ipcRenderer.invoke('aihub:clearSession', sessionId),
     getProviders: () => ipcRenderer.invoke('aihub:getProviders'),
     configureProvider: (provider: string, apiKey: string, model?: string, baseUrl?: string) =>
@@ -146,6 +149,7 @@ const api = {
       routingRules: Array<{ taskType: string; provider: string }>,
       defaultProvider: string,
     ) => ipcRenderer.invoke('aihub:resolveProvider', message, routingRules, defaultProvider),
+    saveSkill: (name: string, content: string) => ipcRenderer.invoke('aihub:saveSkill', name, content),
     onStream: (callback: (data: { sessionId: string; chunk: string }) => void) => {
       const handler = (_e: unknown, data: { sessionId: string; chunk: string }) => callback(data)
       ipcRenderer.on('aihub:stream', handler)

@@ -1,4 +1,5 @@
 import clsx from 'clsx'
+import { useTranslation } from 'react-i18next'
 
 const iconSvg = new URL('/icons/icon.svg', import.meta.url).href
 
@@ -9,10 +10,11 @@ interface AppLogoProps {
 }
 
 export function AppLogo({ size = 24, className, isDark }: AppLogoProps) {
+  const { t } = useTranslation('common')
   return (
     <img
       src={iconSvg}
-      alt="MagicCommander"
+      alt={t('app.title')}
       className={clsx('block shrink-0 select-none', className)}
       draggable={false}
       style={{

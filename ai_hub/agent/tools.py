@@ -10,19 +10,23 @@ import sys
 from pathlib import Path
 from typing import Any
 
+from ai_hub.agent.schemas import ToolPermission, get_tool_permission
+
 logger = logging.getLogger(__name__)
 
 # 工具注册表
 _tools: dict[str, dict] = {}
 
 
-def register_tool(name: str, description: str, parameters: dict, handler: callable):
+def register_tool(name: str, description: str, parameters: dict, handler: callable,
+                  permission: ToolPermission | None = None):
     """注册一个 Agent Tool"""
     _tools[name] = {
         "name": name,
         "description": description,
         "parameters": parameters,
         "handler": handler,
+        "permission": permission.value if permission else get_tool_permission(name).value,
     }
 
 
@@ -35,6 +39,7 @@ def get_tool_definitions() -> list[dict]:
                 "name": t["name"],
                 "description": t["description"],
                 "parameters": t["parameters"],
+                "permission": t.get("permission", "confirm"),
             },
         }
         for t in _tools.values()
@@ -72,7 +77,22 @@ def _run_python_cli(args: list[str]) -> str:
             cwd=backend_dir,
             env={**__import__("os").environ, **env},
         )
-        return result.stdout.strip() or result.stderr.strip()
+        output = result.stdout.strip() or result.stderr.strip()
+        # 过滤进度消息，只提取最终状态行（避免进度JSON污染LLM上下文）
+        lines = output.split('\n')
+        for line in reversed(lines):
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                import json as _json
+                data = _json.loads(line)
+                if isinstance(data, dict) and data.get('status') in ('success', 'complete', 'error'):
+                    # 只返回最终状态行（进度行 status='progress' 被忽略）
+                    return line
+            except Exception:
+                pass
+        return output  # 兜底：无状态行时返回原始输出
     except subprocess.TimeoutExpired:
         return "命令执行超时"
     except Exception as e:
@@ -964,7 +984,7 @@ def init_tools():
 
     register_tool(
         "create_project",
-        "创建新的配置项目，指定项目名称和可选的模板来源",
+        "⚠️ 仅用于从 example 目录复制模板项目。从模板中心创建项目请使用 create_project_intelligent。指定项目名称和可选的模板来源",
         {
             "type": "object",
             "properties": {
@@ -1227,11 +1247,11 @@ def init_tools():
 
     register_tool(
         "delete_labels",
-        "删除指定项目的标签文件",
+        "删除项目标签文件，projectName 可传 \"all\" 清空所有项目",
         {
             "type": "object",
             "properties": {
-                "projectName": {"type": "string", "description": "项目名称"},
+                "projectName": {"type": "string", "description": "项目名称或 \"all\"（所有项目）"},
             },
             "required": ["projectName"],
         },
@@ -1240,12 +1260,13 @@ def init_tools():
 
     register_tool(
         "delete_files",
-        "删除项目输出文件（清空渲染结果）。fileType 可选: output（设备配置）、yaml（YAML文件）、output-sn（SN模式）、yaml-sn（SN模式YAML）",
+        "删除项目输出文件。projectName 可传 \"all\" 清空所有项目。fileType: output（设备配置）、yaml（YAML）、output-sn、yaml-sn。默认 output",
         {
             "type": "object",
             "properties": {
-                "projectName": {"type": "string", "description": "项目名称"},
-                "fileType": {"type": "string", "description": "文件类型", "enum": ["output", "yaml", "output-sn", "yaml-sn"]},
+                "projectName": {"type": "string", "description": "项目名称或 \"all\"（所有项目）"},
+                "fileType": {"type": "string", "description": "文件类型",
+                             "enum": ["output", "yaml", "output-sn", "yaml-sn"]},
             },
             "required": ["projectName"],
         },

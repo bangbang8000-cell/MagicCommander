@@ -47,7 +47,8 @@
       "starting": "AI 服务启动中...",
       "running": "AI 服务运行中",
       "stopped": "AI 服务未启动",
-      "error": "AI 服务异常"
+      "error": "AI 服务异常",
+      "installing": "AI 依赖安装中..."
     },
     "provider": {
       "select": "选择模型",
@@ -59,7 +60,10 @@
       "network": "网络错误，请检查网络连接",
       "unknown": "发生未知错误",
       "retry": "重试",
-      "cancel": "取消"
+      "cancel": "取消",
+      "hubFailed": "AI Hub 启动失败，请检查 Python 环境是否就绪。可前往设置页面测试连接。",
+      "noModel": "未选择 AI 模型。请前往设置页面配置 Provider。",
+      "serviceNotRunning": "AI 服务未启动"
     }
   }
 }

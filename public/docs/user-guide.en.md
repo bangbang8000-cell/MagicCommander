@@ -151,6 +151,53 @@ Automatically generate device labels from parameter tables:
 
 ---
 
+## AI Assistant
+
+MagicCommander features a built-in AI chat assistant for project management, configuration rendering, and template analysis through natural language.
+
+### Configuring AI Services
+
+1. Open the **Settings Panel** (gear icon in the left sidebar)
+2. Select a Provider in the **AI Settings** section (DeepSeek / OpenAI / Claude / Gemini / Qwen / GLM / Grok / Ollama / Custom)
+3. Enter your API Key and Base URL (no API Key needed for Ollama local deployment)
+4. Click **Test Connection** to verify
+5. Click **Fetch Models** to get the available model list and select one
+6. Configure AI Hub auto-start, port, and other advanced options in **General Settings**
+
+### Smart Routing
+
+When **Smart Routing** is enabled in AI Settings, MagicCommander automatically selects the best model for each task type:
+
+- **Code tasks** (create projects, render configs, etc.) → assign a coding-specialized model
+- **Analysis tasks** (project analysis, template quality, etc.) → assign an analysis-specialized model
+- **Q&A tasks** (user guide, help, etc.) → assign a Q&A-specialized model
+- **Reasoning tasks** (complex problems, optimization suggestions, etc.) → assign a reasoning-specialized model
+
+### Using AI Chat
+
+1. Click the **AI Chat** icon (chat bubble) in the left sidebar
+2. AI Hub starts automatically (first launch installs dependencies, ~30 seconds)
+3. Enter natural language commands in the input box, for example:
+   - "List all projects"
+   - "Render project test1"
+   - "Analyze template quality of project test1"
+   - "Clear all render output of test1"
+   - "Reverse engineer config to template"
+4. AI automatically invokes built-in tools and shows real-time progress
+
+### Project Analysis
+
+AI can analyze project template and Excel file quality:
+
+1. Type "analyze project_name" in the AI chat
+2. AI checks:
+   - Template complexity (variable count, nesting depth)
+   - Excel data quality (empty rows, duplicate columns, type inconsistencies)
+   - Cross-references between templates and Excel (missing columns, unused columns)
+3. AI provides optimization suggestions based on results
+
+---
+
 ## Shortcuts
 
 | Shortcut | Function |
@@ -175,6 +222,15 @@ A: Template files should be placed in the `templates` folder of the project.
 
 ### Q: Where to view output files?
 A: Rendered files are saved in `output`, `output-sn`, `yaml`, `yaml-sn` folders. You can view them in the Output Results panel.
+
+### Q: How to configure the AI assistant?
+A: Open the Settings panel, select a Provider in the AI Settings section and enter your API Key, then click Test Connection to verify. See the "AI Assistant" section above for details.
+
+### Q: AI Hub fails to start?
+A: Make sure Python 3.11+ is installed and check the Python path in Settings. On Windows, Python is embedded and no additional installation is needed.
+
+### Q: Which AI models are supported?
+A: DeepSeek, OpenAI (GPT-4o), Claude, Gemini, Qwen, GLM, Grok, Ollama local models, and custom OpenAI-compatible Providers.
 
 ---
 

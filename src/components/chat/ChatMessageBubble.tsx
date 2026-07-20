@@ -2,22 +2,110 @@ import { useTranslation } from 'react-i18next'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import clsx from 'clsx'
-import { User, Bot, Copy, Check } from 'lucide-react'
-import { useState, useCallback } from 'react'
+import { User, Bot, Copy, Check, Save, X } from 'lucide-react'
+import { useState, useCallback, useMemo } from 'react'
 import type { ChatMessage } from '@/types/chat'
 import { formatFileSize } from '@/types/chat'
 import { AttachmentPreview } from './AttachmentPreview'
+import { PlanDisplay } from './PlanDisplay'
+import type { PlanStep } from './PlanDisplay'
 
 interface ChatMessageBubbleProps {
   message: ChatMessage
   isDark: boolean
+  fontSizeClass?: string
 }
 
-export function ChatMessageBubble({ message, isDark }: ChatMessageBubbleProps) {
+/** 从消息内容中解析 📋 执行计划 / Execution Plan */
+function parsePlanSteps(content: string): { steps: PlanStep[]; cleanedContent: string } {
+  const planHeaderRx = /📋\s*(?:执行计划|Execution Plan)[:：]?\s*/g
+  const headerMatch = planHeaderRx.exec(content)
+  if (!headerMatch) return { steps: [], cleanedContent: content }
+
+  const afterHeader = content.slice(headerMatch.index + headerMatch[0].length)
+  const lines = afterHeader.split('\n')
+  const planLines: string[] = []
+  let nonPlanStart = -1
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i]
+    // 匹配 "1. xxx — 使用工具: tool" 或 "1. xxx - tool" 格式
+    if (/^\d+[.、)]\s/.test(line.trim()) && /[—\-]\s*(?:使用工具[:：]?\s*)?\w+/.test(line)) {
+      planLines.push(line)
+    } else if (line.trim() === '') {
+      continue // 跳过空行
+    } else {
+      nonPlanStart = i
+      break
+    }
+  }
+
+  if (planLines.length === 0) return { steps: [], cleanedContent: content }
+
+  const steps: PlanStep[] = planLines.map((line) => {
+    const stepMatch = line.match(/^(\d+)[.、)]\s*(.+?)\s*[—\-]\s*(?:使用工具[:：]?\s*)?(\S+)/)
+    if (stepMatch) {
+      return {
+        step: parseInt(stepMatch[1], 10),
+        description: stepMatch[2].trim(),
+        tool: stepMatch[3].trim(),
+        status: 'done' as const,
+      }
+    }
+    const simpleMatch = line.match(/^(\d+)[.、)]\s*(.+)/)
+    return {
+      step: simpleMatch ? parseInt(simpleMatch[1], 10) : 0,
+      description: simpleMatch ? simpleMatch[2].trim() : line.trim(),
+      tool: '',
+      status: 'done' as const,
+    }
+  })
+
+  // 从原始内容中移除计划部分
+  const beforePlan = content.slice(0, headerMatch.index)
+  const afterPlan = nonPlanStart >= 0 ? lines.slice(nonPlanStart).join('\n') : ''
+  return {
+    steps,
+    cleanedContent: (beforePlan + '\n\n' + afterPlan).trim(),
+  }
+}
+
+/** 检测 AI 是否建议保存为 Skill */
+function detectSkillSuggestion(content: string): { skillName: string; skillContent: string } | null {
+  // 匹配 "建议保存为 Skill: xxx" 或 "Save as Skill: xxx"
+  const suggestRx = /(?:建议保存为\s*Skill|Save\s+as\s+Skill)[:：]\s*(\S+)/i
+  const match = content.match(suggestRx)
+  if (match) {
+    return { skillName: match[1], skillContent: content }
+  }
+  // 匹配 ```skill 代码块
+  const codeBlockRx = /```skill\s*\n([\s\S]*?)```/
+  const cbMatch = content.match(codeBlockRx)
+  if (cbMatch) {
+    const lines = cbMatch[1].trim().split('\n')
+    const name = lines[0]?.replace(/^#\s*/, '').trim() || 'unnamed'
+    return { skillName: name, skillContent: cbMatch[1].trim() }
+  }
+  return null
+}
+
+export function ChatMessageBubble({ message, isDark, fontSizeClass = 'text-[13px]' }: ChatMessageBubbleProps) {
   const { t } = useTranslation()
   const [copied, setCopied] = useState(false)
+  const [skillSaved, setSkillSaved] = useState(false)
+  const [skillDismissed, setSkillDismissed] = useState(false)
   const isUser = message.role === 'user'
   const isSystem = message.role === 'system'
+
+  const { steps, cleanedContent } = useMemo(
+    () => (isUser || isSystem ? { steps: [], cleanedContent: message.content } : parsePlanSteps(message.content)),
+    [message.content, isUser, isSystem],
+  )
+
+  const skillSuggestion = useMemo(
+    () => (isUser || isSystem ? null : detectSkillSuggestion(cleanedContent)),
+    [cleanedContent, isUser, isSystem],
+  )
 
   const handleCopy = useCallback(async () => {
     try {
@@ -26,6 +114,16 @@ export function ChatMessageBubble({ message, isDark }: ChatMessageBubbleProps) {
       setTimeout(() => setCopied(false), 2000)
     } catch {}
   }, [message.content])
+
+  const handleSaveSkill = useCallback(async () => {
+    if (!skillSuggestion) return
+    try {
+      await window.electron.aihub.saveSkill(skillSuggestion.skillName, skillSuggestion.skillContent)
+      setSkillSaved(true)
+    } catch {
+      // 静默失败
+    }
+  }, [skillSuggestion])
 
   if (isSystem) {
     return (
@@ -84,11 +182,15 @@ export function ChatMessageBubble({ message, isDark }: ChatMessageBubbleProps) {
           </div>
         )}
 
+        {/* 📋 执行计划展示 */}
+        {steps.length > 0 && <PlanDisplay steps={steps} isDark={isDark} />}
+
         {/* Markdown 内容 */}
         <div
           className={clsx(
-            'prose prose-sm max-w-none',
+            'prose max-w-none',
             isDark ? 'prose-invert' : '',
+            fontSizeClass,
             'prose-pre:rounded-lg prose-pre:text-xs prose-code:text-xs',
             'prose-headings:mt-3 prose-headings:mb-1',
             'prose-p:my-1 prose-ul:my-1 prose-ol:my-1',
@@ -96,11 +198,57 @@ export function ChatMessageBubble({ message, isDark }: ChatMessageBubbleProps) {
           )}
         >
           <ReactMarkdown remarkPlugins={[remarkGfm]}>
-            {message.content}
+            {steps.length > 0 ? cleanedContent : message.content}
           </ReactMarkdown>
         </div>
 
-        {/* 工具调用信息（Phase 2 预留） */}
+        {/* Skill 保存提示 */}
+        {skillSuggestion && !skillSaved && !skillDismissed && (
+          <div
+            className={clsx(
+              'mt-2 flex items-center gap-2 px-2.5 py-1.5 rounded-lg border text-xs',
+              isDark
+                ? 'border-blue-800 bg-blue-900/30 text-blue-300'
+                : 'border-blue-200 bg-blue-50 text-blue-700',
+            )}
+          >
+            <span className="flex-1">{t('chat:skill.savePrompt')}</span>
+            <button
+              onClick={handleSaveSkill}
+              className={clsx(
+                'flex items-center gap-0.5 px-2 py-0.5 rounded text-xs transition-colors',
+                isDark
+                  ? 'bg-blue-700 hover:bg-blue-600 text-white'
+                  : 'bg-blue-500 hover:bg-blue-600 text-white',
+              )}
+            >
+              <Save size={10} />
+              {t('chat:skill.save')}
+            </button>
+            <button
+              onClick={() => setSkillDismissed(true)}
+              className={clsx(
+                'flex items-center gap-0.5 px-2 py-0.5 rounded text-xs transition-colors',
+                isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-200',
+              )}
+            >
+              <X size={10} />
+              {t('chat:skill.ignore')}
+            </button>
+          </div>
+        )}
+        {skillSaved && (
+          <div
+            className={clsx(
+              'mt-2 px-2.5 py-1 rounded text-xs',
+              isDark ? 'text-green-400' : 'text-green-600',
+            )}
+          >
+            {t('chat:skill.saved')}
+          </div>
+        )}
+
+        {/* 工具调用信息 */}
         {message.metadata?.tools && message.metadata.tools.length > 0 && (
           <div className={clsx('mt-2 flex flex-wrap gap-1', isDark ? 'text-gray-400' : 'text-gray-500')}>
             {message.metadata.tools.map((tool) => (

@@ -113,6 +113,9 @@
       "sortByUpdated": "按更新时间",
       "sortBySource": "按来源项目",
       "toggleView": "切换视图"
+    },
+    "category": {
+      "all": "全部"
     }
   },
   "search": {

@@ -1,8 +1,10 @@
 import { useTranslation } from 'react-i18next'
 import { useState, useEffect, useCallback } from 'react'
 import { useUIStore } from '@/stores/ui.store'
-import { Settings, Cpu, Globe, Palette, Shield, Sun, Moon, Monitor, Check, Eye, EyeOff, Star, Play, RefreshCw, XCircle, AlertTriangle } from 'lucide-react'
+import { Settings, Cpu, Globe, Palette, Shield, Sun, Moon, Monitor, Check, Eye, EyeOff, Star, Play, RefreshCw, XCircle, AlertTriangle, FolderOpen, Languages, Laptop } from 'lucide-react'
 import clsx from 'clsx'
+import { LOCALE_NAMES, LANGUAGE_ICON_CHARS } from '@/i18n/resources'
+import type { SupportedLocale } from '@/i18n/resources'
 
 // Provider 目录（与后端 PROVIDER_CATALOG 保持一致）
 const PROVIDER_CATALOG: Record<string, { name: string; baseUrl: string; models: string[]; defaultModel: string }> = {
@@ -77,6 +79,15 @@ export function SettingsPanel() {
   const setAIConfig = useUIStore((s) => s.setAIConfig)
   const setProviderConfig = useUIStore((s) => s.setProviderConfig)
 
+  const language = useUIStore((s) => s.language)
+  const setLanguage = useUIStore((s) => s.setLanguage)
+  const generalSettings = useUIStore((s) => s.generalSettings)
+  const setGeneralSettings = useUIStore((s) => s.setGeneralSettings)
+  const advancedSettings = useUIStore((s) => s.advancedSettings)
+  const setAdvancedSettings = useUIStore((s) => s.setAdvancedSettings)
+  const autonomyMode = useUIStore((s) => s.autonomyMode)
+  const setAutonomyMode = useUIStore((s) => s.setAutonomyMode)
+
   const [activeProvider, setActiveProvider] = useState('deepseek')
   const [apiKey, setApiKey] = useState('')
   const [model, setModel] = useState('')
@@ -93,6 +104,27 @@ export function SettingsPanel() {
   const [fetchingModels, setFetchingModels] = useState(false)
   const [fetchedModels, setFetchedModels] = useState<string[]>([])
 
+  // 通用设置 - 语言选择下拉
+  const [langDropdownOpen, setLangDropdownOpen] = useState(false)
+
+  // 通用设置 - 更新检查
+  const [updateStatus, setUpdateStatus] = useState<string>('')
+  const [checkingUpdate, setCheckingUpdate] = useState(false)
+
+  // 通用设置 - 工作区路径
+  const [workspacePath, setWorkspacePath] = useState('')
+
+  // 获取工作区路径
+  useEffect(() => {
+    const fetchWorkspacePath = async () => {
+      try {
+        const path = await window.electron.app.getPath('workspace')
+        setWorkspacePath(path)
+      } catch { /* ignore */ }
+    }
+    fetchWorkspacePath()
+  }, [])
+
   // 确保 AI Hub 运行并同步配置，返回 null 表示成功，否则返回错误信息
   const ensureAIHubReady = useCallback(async (): Promise<string | null> => {
     try {
@@ -108,7 +140,7 @@ export function SettingsPanel() {
       }
       const finalStatus = await window.electron.aihub.status()
       if (!finalStatus.running) {
-        return finalStatus.lastError || 'AI Hub 启动超时，请检查 Python 环境'
+        return finalStatus.lastError || t('common:settings.ai.hubTimeout')
       }
 
       // 同步配置到 AI Hub
@@ -126,7 +158,7 @@ export function SettingsPanel() {
       }
       return null
     } catch (e: any) {
-      return e?.message || 'AI Hub 启动失败，请检查 Python 环境'
+      return e?.message || t('common:settings.ai.hubFailed')
     }
   }, [])
 
@@ -216,7 +248,7 @@ export function SettingsPanel() {
       )
       setTestResult({ ok: result.status === 'ok', msg: result.message })
     } catch (e: any) {
-      setTestResult({ ok: false, msg: e.message || '测试失败' })
+      setTestResult({ ok: false, msg: e.message || t('common:settings.ai.testFailed') })
     } finally {
       setTesting(false)
     }
@@ -246,6 +278,41 @@ export function SettingsPanel() {
       setFetchingModels(false)
     }
   }, [baseUrl, apiKey, catalog, isOllama, ensureAIHubReady])
+
+  // 切换语言
+  const handleLanguageChange = useCallback((locale: string) => {
+    setLanguage(locale)
+    setLangDropdownOpen(false)
+  }, [setLanguage])
+
+  // 检查更新
+  const handleCheckUpdate = useCallback(async () => {
+    setCheckingUpdate(true)
+    setUpdateStatus('')
+    try {
+      await window.electron.app.checkUpdate()
+      // 监听更新状态
+      const unsub = window.electron.app.onUpdateStatus((status) => {
+        if (status.status === 'available') {
+          setUpdateStatus('newVersion')
+        } else if (status.status === 'not-available') {
+          setUpdateStatus('latest')
+        }
+        setCheckingUpdate(false)
+        unsub()
+      })
+    } catch {
+      setUpdateStatus('latest')
+      setCheckingUpdate(false)
+    }
+  }, [])
+
+  // 打开工作区
+  const handleOpenWorkspace = useCallback(async () => {
+    try {
+      await window.electron.shell.showItemInFolder(workspacePath)
+    } catch { /* ignore */ }
+  }, [workspacePath])
 
   const themeOptions: { value: 'light' | 'dark' | 'system'; icon: React.ReactNode; label: string }[] = [
     { value: 'light', icon: <Sun size={16} />, label: t('menu.lightMode') },
@@ -310,7 +377,7 @@ export function SettingsPanel() {
               <div className="mt-3 space-y-2">
                 <div className="flex items-center gap-2">
                   <span className={clsx('text-xs font-medium', isDark ? 'text-gray-300' : 'text-gray-600')}>
-                    {catalog.name} 配置
+                    {t('common:settings.ai.providerConfig', { name: catalog.name })}
                   </span>
                   {isDefault && (
                     <span className={clsx('text-[10px] px-1 py-0.5 rounded', isDark ? 'bg-amber-900/40 text-amber-300' : 'bg-amber-100 text-amber-700')}>
@@ -651,52 +718,372 @@ export function SettingsPanel() {
           </div>
         </div>
 
-        {/* ===== 通用设置（即将推出）===== */}
-        <div className={clsx('rounded-lg border p-3 opacity-60', isDark ? 'border-gray-700 bg-gray-800/50' : 'border-gray-200 bg-gray-50')}>
+        {/* ===== 通用设置 ===== */}
+        <div className={clsx('rounded-lg border p-3', isDark ? 'border-gray-700 bg-gray-800/50' : 'border-gray-200 bg-gray-50')}>
           <div className="flex items-start gap-3">
             <div className={clsx('mt-0.5', isDark ? 'text-gray-400' : 'text-gray-500')}>
               <Globe size={16} />
             </div>
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2">
-                <h4 className={clsx('text-sm font-medium', isDark ? 'text-gray-200' : 'text-gray-700')}>
-                  {t('common:settings.general.title')}
-                </h4>
-                <span className={clsx(
-                  'text-[10px] px-1.5 py-0.5 rounded',
-                  isDark ? 'bg-blue-900/40 text-blue-300' : 'bg-blue-100 text-blue-600',
-                )}>
-                  {t('common:settings.comingSoon')}
-                </span>
+              <h4 className={clsx('text-sm font-medium', isDark ? 'text-gray-200' : 'text-gray-700')}>
+                {t('common:settings.general.title')}
+              </h4>
+
+              {/* 语言选择 */}
+              <div className="mt-3 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className={clsx('text-xs', isDark ? 'text-gray-400' : 'text-gray-600')}>
+                    {t('common:settings.general.language')}
+                  </span>
+                  <div className="relative">
+                    <button
+                      onClick={() => setLangDropdownOpen(!langDropdownOpen)}
+                      className={clsx(
+                        'flex items-center gap-1.5 px-2.5 py-1 rounded text-xs border transition-colors',
+                        isDark
+                          ? 'border-gray-600 bg-gray-700 text-gray-200 hover:bg-gray-600'
+                          : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-100',
+                      )}
+                    >
+                      <span className="text-xs font-bold">{LANGUAGE_ICON_CHARS[language as keyof typeof LANGUAGE_ICON_CHARS] || 'A'}</span>
+                      <span>{LOCALE_NAMES[language as keyof typeof LOCALE_NAMES] || language}</span>
+                    </button>
+                    {langDropdownOpen && (
+                      <div className={clsx(
+                        'absolute right-0 top-full mt-1 w-40 rounded-lg border shadow-lg z-50 max-h-60 overflow-y-auto',
+                        isDark ? 'border-gray-600 bg-gray-800' : 'border-gray-200 bg-white',
+                      )}>
+                        {Object.entries(LOCALE_NAMES).map(([locale, name]) => (
+                          <button
+                            key={locale}
+                            onClick={() => handleLanguageChange(locale)}
+                            className={clsx(
+                              'w-full text-left px-3 py-1.5 text-xs transition-colors flex items-center gap-2',
+                              locale === language
+                                ? isDark ? 'bg-blue-900/30 text-blue-300' : 'bg-blue-50 text-blue-600'
+                                : isDark ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-600 hover:bg-gray-100',
+                            )}
+                          >
+                            <span className="text-xs font-bold w-5 text-center">{LANGUAGE_ICON_CHARS[locale as keyof typeof LANGUAGE_ICON_CHARS]}</span>
+                            <span>{name}</span>
+                            {locale === language && <Check size={12} className="ml-auto" />}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* 自动保存 */}
+                <div className="flex items-center justify-between">
+                  <div>
+                    <span className={clsx('text-xs', isDark ? 'text-gray-400' : 'text-gray-600')}>
+                      {t('common:settings.general.autoSave')}
+                    </span>
+                    <p className={clsx('text-[10px]', isDark ? 'text-gray-600' : 'text-gray-400')}>
+                      {t('common:settings.general.autoSaveDesc')}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setGeneralSettings({ autoSave: !generalSettings.autoSave })}
+                    className={clsx(
+                      'w-9 h-5 rounded-full transition-colors relative',
+                      generalSettings.autoSave
+                        ? 'bg-blue-500'
+                        : isDark ? 'bg-gray-600' : 'bg-gray-300',
+                    )}
+                  >
+                    <div className={clsx(
+                      'w-3.5 h-3.5 rounded-full bg-white absolute top-0.5 transition-transform',
+                      generalSettings.autoSave ? 'translate-x-4' : 'translate-x-0.5',
+                    )} />
+                  </button>
+                </div>
+
+                {/* 自动保存间隔 */}
+                {generalSettings.autoSave && (
+                  <div className="flex items-center justify-between">
+                    <span className={clsx('text-xs', isDark ? 'text-gray-400' : 'text-gray-600')}>
+                      {t('common:settings.general.autoSaveInterval')}
+                    </span>
+                    <input
+                      type="number"
+                      min={5}
+                      max={300}
+                      value={generalSettings.autoSaveInterval}
+                      onChange={(e) => setGeneralSettings({ autoSaveInterval: Number(e.target.value) || 30 })}
+                      className={clsx(
+                        'w-16 px-2 py-1 rounded text-xs text-center border',
+                        isDark
+                          ? 'border-gray-600 bg-gray-700 text-gray-200'
+                          : 'border-gray-300 bg-white text-gray-700',
+                      )}
+                    />
+                  </div>
+                )}
+
+                {/* 工作区路径 */}
+                <div className="flex items-center justify-between">
+                  <span className={clsx('text-xs', isDark ? 'text-gray-400' : 'text-gray-600')}>
+                    {t('common:settings.general.workspacePath')}
+                  </span>
+                  <button
+                    onClick={handleOpenWorkspace}
+                    className={clsx(
+                      'flex items-center gap-1 px-2 py-1 rounded text-xs transition-colors',
+                      isDark ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-200 text-gray-600 hover:bg-gray-300',
+                    )}
+                  >
+                    <FolderOpen size={12} />
+                    {t('common:settings.general.openWorkspace')}
+                  </button>
+                </div>
+                <p className={clsx('text-[10px] truncate', isDark ? 'text-gray-600' : 'text-gray-400')}>
+                  {workspacePath || '...'}
+                </p>
+
+                {/* 启动时检查更新 */}
+                <div className="flex items-center justify-between">
+                  <span className={clsx('text-xs', isDark ? 'text-gray-400' : 'text-gray-600')}>
+                    {t('common:settings.general.checkUpdateOnStart')}
+                  </span>
+                  <button
+                    onClick={() => setGeneralSettings({ checkUpdateOnStart: !generalSettings.checkUpdateOnStart })}
+                    className={clsx(
+                      'w-9 h-5 rounded-full transition-colors relative',
+                      generalSettings.checkUpdateOnStart
+                        ? 'bg-blue-500'
+                        : isDark ? 'bg-gray-600' : 'bg-gray-300',
+                    )}
+                  >
+                    <div className={clsx(
+                      'w-3.5 h-3.5 rounded-full bg-white absolute top-0.5 transition-transform',
+                      generalSettings.checkUpdateOnStart ? 'translate-x-4' : 'translate-x-0.5',
+                    )} />
+                  </button>
+                </div>
+
+                {/* 字体大小 */}
+                <div>
+                  <span className={clsx('text-xs', isDark ? 'text-gray-400' : 'text-gray-600')}>
+                    {t('common:settings.general.fontSize')}
+                  </span>
+                  <select
+                    value={generalSettings.fontSize || 'medium'}
+                    onChange={(e) => setGeneralSettings({ fontSize: e.target.value as 'small' | 'medium' | 'large' })}
+                    className={clsx(
+                      'w-full mt-1 px-2 py-1 rounded text-xs border',
+                      isDark ? 'border-gray-600 bg-gray-700 text-gray-200' : 'border-gray-300 bg-white text-gray-700',
+                    )}
+                  >
+                    <option value="small">{t('common:settings.general.fontSmall')}</option>
+                    <option value="medium">{t('common:settings.general.fontMedium')}</option>
+                    <option value="large">{t('common:settings.general.fontLarge')}</option>
+                  </select>
+                </div>
+
+                {/* 软件更新 */}
+                <div className="border-t pt-3 mt-1" style={{ borderColor: isDark ? 'rgb(75, 85, 99)' : 'rgb(229, 231, 235)' }}>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <span className={clsx('text-xs', isDark ? 'text-gray-400' : 'text-gray-600')}>
+                        {t('common:settings.updates.title')}
+                      </span>
+                      <p className={clsx('text-[10px]', isDark ? 'text-gray-600' : 'text-gray-400')}>
+                        {updateStatus === 'newVersion'
+                          ? t('common:settings.general.newVersionAvailable')
+                          : updateStatus === 'latest'
+                            ? t('common:settings.general.latestVersion')
+                            : ''}
+                      </p>
+                    </div>
+                    <button
+                      onClick={handleCheckUpdate}
+                      disabled={checkingUpdate}
+                      className={clsx(
+                        'flex items-center gap-1 px-2.5 py-1 rounded text-xs transition-colors',
+                        isDark
+                          ? 'bg-blue-600 text-white hover:bg-blue-500 disabled:opacity-50'
+                          : 'bg-blue-500 text-white hover:bg-blue-400 disabled:opacity-50',
+                      )}
+                    >
+                      <RefreshCw size={12} className={checkingUpdate ? 'animate-spin' : ''} />
+                      {t('common:settings.updates.checkButton')}
+                    </button>
+                  </div>
+                </div>
               </div>
-              <p className={clsx('text-xs mt-1', isDark ? 'text-gray-500' : 'text-gray-400')}>
-                {t('common:settings.general.desc')}
-              </p>
             </div>
           </div>
         </div>
 
-        {/* ===== 高级设置（即将推出）===== */}
-        <div className={clsx('rounded-lg border p-3 opacity-60', isDark ? 'border-gray-700 bg-gray-800/50' : 'border-gray-200 bg-gray-50')}>
+        {/* ===== 高级设置 ===== */}
+        <div className={clsx('rounded-lg border p-3', isDark ? 'border-gray-700 bg-gray-800/50' : 'border-gray-200 bg-gray-50')}>
           <div className="flex items-start gap-3">
             <div className={clsx('mt-0.5', isDark ? 'text-gray-400' : 'text-gray-500')}>
               <Shield size={16} />
             </div>
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2">
-                <h4 className={clsx('text-sm font-medium', isDark ? 'text-gray-200' : 'text-gray-700')}>
-                  {t('common:settings.advanced.title')}
-                </h4>
-                <span className={clsx(
-                  'text-[10px] px-1.5 py-0.5 rounded',
-                  isDark ? 'bg-blue-900/40 text-blue-300' : 'bg-blue-100 text-blue-600',
-                )}>
-                  {t('common:settings.comingSoon')}
-                </span>
+              <h4 className={clsx('text-sm font-medium', isDark ? 'text-gray-200' : 'text-gray-700')}>
+                {t('common:settings.advanced.title')}
+              </h4>
+
+              <div className="mt-3 space-y-3">
+                {/* Python 路径 */}
+                <div>
+                  <div className="flex items-center justify-between">
+                    <span className={clsx('text-xs', isDark ? 'text-gray-400' : 'text-gray-600')}>
+                      {t('common:settings.advanced.pythonPath')}
+                    </span>
+                    <button
+                      onClick={async () => {
+                        try {
+                          const result = await window.electron.dialog.openFile()
+                          if (result && typeof result === 'string') setAdvancedSettings({ pythonPath: result })
+                        } catch { /* ignore */ }
+                      }}
+                      className={clsx(
+                        'px-2 py-0.5 rounded text-xs transition-colors',
+                        isDark ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-200 text-gray-600 hover:bg-gray-300',
+                      )}
+                    >
+                      {t('common:settings.advanced.browse')}
+                    </button>
+                  </div>
+                  <input
+                    type="text"
+                    value={advancedSettings.pythonPath}
+                    onChange={(e) => setAdvancedSettings({ pythonPath: e.target.value })}
+                    placeholder={t('common:settings.advanced.pythonPathHint')}
+                    className={clsx(
+                      'w-full mt-1 px-2 py-1 rounded text-xs border',
+                      isDark
+                        ? 'border-gray-600 bg-gray-700 text-gray-200 placeholder-gray-500'
+                        : 'border-gray-300 bg-white text-gray-700 placeholder-gray-400',
+                    )}
+                  />
+                </div>
+
+                {/* 调试模式 */}
+                <div className="flex items-center justify-between">
+                  <div>
+                    <span className={clsx('text-xs', isDark ? 'text-gray-400' : 'text-gray-600')}>
+                      {t('common:settings.advanced.debugMode')}
+                    </span>
+                    <p className={clsx('text-[10px]', isDark ? 'text-gray-600' : 'text-gray-400')}>
+                      {t('common:settings.advanced.debugModeDesc')}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setAdvancedSettings({ debugMode: !advancedSettings.debugMode })}
+                    className={clsx(
+                      'w-9 h-5 rounded-full transition-colors relative',
+                      advancedSettings.debugMode
+                        ? 'bg-blue-500'
+                        : isDark ? 'bg-gray-600' : 'bg-gray-300',
+                    )}
+                  >
+                    <div className={clsx(
+                      'w-3.5 h-3.5 rounded-full bg-white absolute top-0.5 transition-transform',
+                      advancedSettings.debugMode ? 'translate-x-4' : 'translate-x-0.5',
+                    )} />
+                  </button>
+                </div>
+
+                {/* 代理设置 */}
+                <div>
+                  <span className={clsx('text-xs', isDark ? 'text-gray-400' : 'text-gray-600')}>
+                    {t('common:settings.advanced.proxy')}
+                  </span>
+                  <input
+                    type="text"
+                    value={advancedSettings.proxy}
+                    onChange={(e) => setAdvancedSettings({ proxy: e.target.value })}
+                    placeholder={t('common:settings.advanced.proxyHint')}
+                    className={clsx(
+                      'w-full mt-1 px-2 py-1 rounded text-xs border',
+                      isDark
+                        ? 'border-gray-600 bg-gray-700 text-gray-200 placeholder-gray-500'
+                        : 'border-gray-300 bg-white text-gray-700 placeholder-gray-400',
+                    )}
+                  />
+                </div>
+
+                {/* AI Hub 端口 */}
+                <div className="flex items-center justify-between">
+                  <div>
+                    <span className={clsx('text-xs', isDark ? 'text-gray-400' : 'text-gray-600')}>
+                      {t('common:settings.advanced.aiHubPort')}
+                    </span>
+                    <p className={clsx('text-[10px]', isDark ? 'text-gray-600' : 'text-gray-400')}>
+                      {t('common:settings.advanced.aiHubPortDesc')}
+                    </p>
+                  </div>
+                  <input
+                    type="number"
+                    min={0}
+                    max={65535}
+                    value={advancedSettings.aiHubPort}
+                    onChange={(e) => setAdvancedSettings({ aiHubPort: Number(e.target.value) || 0 })}
+                    className={clsx(
+                      'w-20 px-2 py-1 rounded text-xs text-center border',
+                      isDark
+                        ? 'border-gray-600 bg-gray-700 text-gray-200'
+                        : 'border-gray-300 bg-white text-gray-700',
+                    )}
+                  />
+                </div>
+
+                {/* AI Hub 自动启动 */}
+                <div className="flex items-center justify-between">
+                  <div>
+                    <span className={clsx('text-xs', isDark ? 'text-gray-400' : 'text-gray-600')}>
+                      {t('common:settings.advanced.aiHubAutoStart')}
+                    </span>
+                    <p className={clsx('text-[10px]', isDark ? 'text-gray-600' : 'text-gray-400')}>
+                      {t('common:settings.advanced.aiHubAutoStartDesc')}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setAdvancedSettings({ aiHubAutoStart: !advancedSettings.aiHubAutoStart })}
+                    className={clsx(
+                      'w-9 h-5 rounded-full transition-colors relative',
+                      advancedSettings.aiHubAutoStart
+                        ? 'bg-blue-500'
+                        : isDark ? 'bg-gray-600' : 'bg-gray-300',
+                    )}
+                  >
+                    <div className={clsx(
+                      'w-3.5 h-3.5 rounded-full bg-white absolute top-0.5 transition-transform',
+                      advancedSettings.aiHubAutoStart ? 'translate-x-4' : 'translate-x-0.5',
+                    )} />
+                  </button>
+                </div>
+
+                {/* 自主模式 */}
+                <div>
+                  <span className={clsx('text-xs', isDark ? 'text-gray-400' : 'text-gray-600')}>
+                    {t('common:settings.advanced.autonomyMode')}
+                  </span>
+                  <p className={clsx('text-[10px] mb-1.5', isDark ? 'text-gray-600' : 'text-gray-400')}>
+                    {t('common:settings.advanced.autonomyModeDesc')}
+                  </p>
+                  <select
+                    value={autonomyMode}
+                    onChange={(e) => setAutonomyMode(e.target.value as 'advisor' | 'semi_auto' | 'full_auto')}
+                    className={clsx(
+                      'w-full px-2 py-1 rounded text-xs border',
+                      isDark
+                        ? 'border-gray-600 bg-gray-700 text-gray-200'
+                        : 'border-gray-300 bg-white text-gray-700',
+                    )}
+                  >
+                    <option value="advisor">{t('chat:autonomy.advisor')}</option>
+                    <option value="semi_auto">{t('chat:autonomy.semiAuto')}</option>
+                    <option value="full_auto">{t('chat:autonomy.fullAuto')}</option>
+                  </select>
+                </div>
               </div>
-              <p className={clsx('text-xs mt-1', isDark ? 'text-gray-500' : 'text-gray-400')}>
-                {t('common:settings.advanced.desc')}
-              </p>
             </div>
           </div>
         </div>

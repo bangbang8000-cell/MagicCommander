@@ -26,6 +26,7 @@ export function TemplateCenterPanel({ onCreateProjectName }: TemplateCenterPanel
   const [query, setQuery] = useState('')
   const [sortBy, setSortBy] = useState<'name' | 'updatedAt' | 'sourceProject'>('name')
   const [viewMode, setViewMode] = useState<'card' | 'compact'>('card')
+  const [category, setCategory] = useState<string>('all')
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null)
   const [editingTemplate, setEditingTemplate] = useState<TemplateInfo | null>(null)
 
@@ -35,15 +36,25 @@ export function TemplateCenterPanel({ onCreateProjectName }: TemplateCenterPanel
 
   const visibleTemplates = useMemo(() => {
     const lower = query.trim().toLowerCase()
-    const filtered = lower
+    let filtered = lower
       ? templates.filter((item) => [item.name, item.description, item.scenario, item.sourceProject].join(' ').toLowerCase().includes(lower))
       : templates
+    // 按分类过滤
+    if (category !== 'all') {
+      filtered = filtered.filter((item) => item.scenario === category)
+    }
     return [...filtered].sort((a, b) => {
       if (sortBy === 'updatedAt') return b.updatedAt.localeCompare(a.updatedAt)
       if (sortBy === 'sourceProject') return a.sourceProject.localeCompare(b.sourceProject)
       return a.name.localeCompare(b.name)
     })
-  }, [query, sortBy, templates])
+  }, [query, sortBy, templates, category])
+
+  // 提取所有分类
+  const categories = useMemo(() => {
+    const cats = new Set(templates.map((item) => item.scenario).filter(Boolean))
+    return ['all', ...Array.from(cats).sort()]
+  }, [templates])
 
   const selectedTemplate = visibleTemplates.find((item) => item.id === selectedTemplateId) ?? visibleTemplates[0] ?? null
 
@@ -86,9 +97,12 @@ export function TemplateCenterPanel({ onCreateProjectName }: TemplateCenterPanel
         query={query}
         sortBy={sortBy}
         viewMode={viewMode}
+        category={category}
+        categories={categories}
         onQueryChange={setQuery}
         onSortChange={setSortBy}
         onViewModeChange={setViewMode}
+        onCategoryChange={setCategory}
       />
       <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
         <div

@@ -298,6 +298,7 @@ export class AIHubService extends EventEmitter {
     mode: string = 'general',
     provider?: string,
     attachments?: Array<{ id: string; name: string; type: string; path: string; size: number }>,
+    autonomyMode: string = 'semi_auto',
     onChunk?: (text: string) => void,
   ): Promise<string> {
     const response = await fetch(`${this.baseUrl}/api/chat/send`, {
@@ -309,6 +310,7 @@ export class AIHubService extends EventEmitter {
         mode,
         provider,
         attachments,
+        autonomy_mode: autonomyMode,
       }),
     })
 
@@ -446,6 +448,18 @@ export class AIHubService extends EventEmitter {
 
     const rule = routingRules.find((r) => r.taskType === taskType)
     return rule?.provider || defaultProvider
+  }
+
+  /**
+   * 保存 Skill
+   */
+  async saveSkill(name: string, content: string): Promise<{ status: string; name: string }> {
+    const response = await fetch(`${this.baseUrl}/api/chat/skill/save`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, content }),
+    })
+    return await response.json()
   }
 
   /**

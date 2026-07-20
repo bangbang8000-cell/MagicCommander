@@ -1,10 +1,12 @@
 import { useTranslation } from 'react-i18next'
 import { useState, useRef, useEffect, useCallback } from 'react'
 import clsx from 'clsx'
-import { Menu, RefreshCw, Minus, Square, X, Globe, Sun, Moon, Monitor } from 'lucide-react'
+import { Menu, RefreshCw, Minus, Square, X, Sun, Moon, Monitor } from 'lucide-react'
 import { useProjectStore } from '@/stores/project.store'
 import { useUIStore } from '@/stores/ui.store'
 import { useEditorStore } from '@/stores/editor.store'
+import { LANGUAGE_ICON_CHARS } from '@/i18n/resources'
+import type { SupportedLocale } from '@/i18n/resources'
 import { AboutDialog } from '@/components/dialogs/AboutDialog'
 import { AppLogo } from '@/components/common'
 import { UpdatePopover } from './UpdatePopover'
@@ -421,7 +423,7 @@ export function Header({ onCheatsheet }: HeaderProps) {
               )}
               title={t('menu.language')}
             >
-              <Globe size={14} />
+              <span className="text-xs font-bold w-4 h-4 flex items-center justify-center select-none">{LANGUAGE_ICON_CHARS[language as keyof typeof LANGUAGE_ICON_CHARS] || 'A'}</span>
             </button>
             <LanguagePopover
               open={langPopoverOpen}
@@ -491,7 +493,7 @@ export function Header({ onCheatsheet }: HeaderProps) {
                 'h-full w-11 flex items-center justify-center transition-colors',
                 isDark ? 'hover:bg-gray-700 text-gray-400' : 'hover:bg-gray-200 text-gray-500',
               )}
-              title="Minimize"
+              title={t('common:window.minimize')}
             >
               <Minus size={14} />
             </button>
@@ -501,7 +503,7 @@ export function Header({ onCheatsheet }: HeaderProps) {
                 'h-full w-11 flex items-center justify-center transition-colors',
                 isDark ? 'hover:bg-gray-700 text-gray-400' : 'hover:bg-gray-200 text-gray-500',
               )}
-              title={isMaximized ? 'Restore' : 'Maximize'}
+              title={isMaximized ? t('common:window.restore') : t('common:window.maximize')}
             >
               <Square size={12} />
             </button>
@@ -512,7 +514,7 @@ export function Header({ onCheatsheet }: HeaderProps) {
                 'hover:bg-red-500 hover:text-white',
                 isDark ? 'text-gray-400' : 'text-gray-500',
               )}
-              title="Close"
+              title={t('common:window.close')}
             >
               <X size={14} />
             </button>

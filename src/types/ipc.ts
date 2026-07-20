@@ -187,6 +187,10 @@ export interface AppIpcApi {
   getLanguage: () => Promise<string>
   setLanguage: (lang: string) => Promise<void>
   onLanguageChange: (callback: (lang: string) => void) => () => void
+  /** 备份 AI 配置到 userData 目录 */
+  backupAiConfig: (config: unknown) => Promise<void>
+  /** 从 userData 目录恢复 AI 配置 */
+  restoreAiConfig: () => Promise<unknown>
 }
 
 // ============================================================
@@ -255,6 +259,7 @@ export interface AIHubIpcApi {
     mode?: string,
     provider?: string,
     attachments?: AIHubAttachment[],
+    autonomyMode?: 'advisor' | 'semi_auto' | 'full_auto',
   ) => Promise<string>
   clearSession: (sessionId: string) => Promise<void>
   getProviders: () => Promise<AIHubProvider[]>
@@ -271,5 +276,6 @@ export interface AIHubIpcApi {
     routingRules: Array<{ taskType: string; provider: string }>,
     defaultProvider: string,
   ) => Promise<string>
+  saveSkill: (name: string, content: string) => Promise<{ status: string; name: string }>
   onStream: (callback: (data: AIHubStreamData) => void) => () => void
 }

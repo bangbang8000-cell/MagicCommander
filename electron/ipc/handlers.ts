@@ -11,7 +11,7 @@ import {
   validateProjectName,
 } from '../utils/security'
 import { logger } from '../utils/logger'
-import { getBackendDir, getExampleDir, getTemplateDir, getWorkspaceDir, APP_CONFIG } from '../config'
+import { getBackendDir, getExampleDir, getTemplateDir, getWorkspaceDir, getUserDataDir, APP_CONFIG } from '../config'
 import {
   listTemplateInfosFromDir,
   readTemplateMeta,
@@ -829,6 +829,7 @@ export function setupIpcHandlers(window: BrowserWindow): void {
       mode?: string,
       provider?: string,
       attachments?: Array<{ id: string; name: string; type: string; path: string; size: number }>,
+      autonomyMode?: string,
     ): Promise<string> => {
       let fullContent = ''
       await aiHubService.sendChatMessage(
@@ -837,6 +838,7 @@ export function setupIpcHandlers(window: BrowserWindow): void {
         mode,
         provider,
         attachments,
+        autonomyMode,
         (chunk: string) => {
           fullContent += chunk
           if (!window.isDestroyed()) {
@@ -908,4 +910,35 @@ export function setupIpcHandlers(window: BrowserWindow): void {
       return await aiHubService.fetchModels(baseUrl, apiKey)
     },
   )
+
+  // AI Hub 保存 Skill
+  ipcMain.handle(
+    'aihub:saveSkill',
+    async (_e, name: string, content: string): Promise<{ status: string; name: string }> => {
+      return await aiHubService.saveSkill(name, content)
+    },
+  )
+
+  // ===== AI 配置备份/恢复 =====
+  const aiConfigBackupFile = path.join(getUserDataDir(), 'ai-config-backup.json')
+
+  ipcMain.handle('app:backupAiConfig', async (_e, config: unknown): Promise<void> => {
+    try {
+      fs.writeFileSync(aiConfigBackupFile, JSON.stringify(config, null, 2), 'utf-8')
+    } catch (err) {
+      logger.error('备份 AI 配置失败', err)
+    }
+  })
+
+  ipcMain.handle('app:restoreAiConfig', async (): Promise<unknown> => {
+    try {
+      if (fs.existsSync(aiConfigBackupFile)) {
+        const content = fs.readFileSync(aiConfigBackupFile, 'utf-8')
+        return JSON.parse(content)
+      }
+    } catch (err) {
+      logger.error('恢复 AI 配置失败', err)
+    }
+    return null
+  })
 }

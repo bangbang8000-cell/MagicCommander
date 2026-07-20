@@ -246,21 +246,17 @@ export class RenderHandler {
         pythonProcess.on('close', (code: number) => {
           if (code === 0) {
             if (returnData) {
-              const jsonMatch = output.match(/\{[\s\S]*\}/)
-              if (jsonMatch) {
-                try {
-                  const result = JSON.parse(jsonMatch[0])
-                  if (result.status === 'success') {
-                    this.queueProgress({ status: 'complete', message: result.message || '命令执行完成' })
-                    resolve(result.data)
-                    return
-                  }
-                  this.queueProgress({ status: 'error', message: result.message || '命令执行失败' })
-                  reject(new Error(result.message))
-                  return
-                } catch {
-                  // fallthrough
-                }
+              // 从混合输出中提取最后一个合法 JSON 对象（支持跨行 + 进度消息混合）
+              const result = extractLastJson(output)
+              if (result && (result.status === 'success' || result.status === 'complete')) {
+                this.queueProgress({ status: 'complete', message: result.message || '命令执行完成' })
+                resolve(result.data)
+                return
+              }
+              if (result && result.status === 'error') {
+                this.queueProgress({ status: 'error', message: result.message || '命令执行失败' })
+                reject(new Error(result.message))
+                return
               }
               reject(new Error(`Python 脚本输出格式不正确（非 JSON）: ${output.slice(0, 500)}`))
             } else {
@@ -282,4 +278,44 @@ export class RenderHandler {
       }
     })
   }
+}
+
+/**
+ * 从混合输出（进度 JSON + 跨行最终 JSON）中提取最后一个合法 JSON 对象。
+ * 使用平衡括号追踪，正确处理 indent=2 的多行 JSON 和前缀的进度消息。
+ */
+function extractLastJson(text: string): any | null {
+  let depth = 0
+  let start = -1
+  let lastJson: string | null = null
+
+  for (let i = 0; i < text.length; i++) {
+    if (text[i] === '{' && depth === 0) {
+      start = i
+      depth = 1
+    } else if (text[i] === '{') {
+      depth++
+    } else if (text[i] === '}') {
+      depth--
+      if (depth === 0 && start >= 0) {
+        const candidate = text.slice(start, i + 1)
+        try {
+          JSON.parse(candidate)
+          lastJson = candidate
+        } catch {
+          // JSON 不合法，继续扫描
+        }
+        start = -1
+      }
+    }
+  }
+
+  if (lastJson) {
+    try {
+      return JSON.parse(lastJson)
+    } catch {
+      return null
+    }
+  }
+  return null
 }

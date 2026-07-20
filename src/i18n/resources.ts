@@ -36,3 +36,20 @@ export const LOCALE_NAMES: Record<SupportedLocale, string> = {
 
 /** RTL 语言列表 */
 export const RTL_LOCALES: SupportedLocale[] = ['ar']
+
+/** 语言图标文字标识（用于 Header 按钮） */
+export const LANGUAGE_ICON_CHARS: Record<SupportedLocale, string> = {
+  'zh-CN': '文',
+  'zh-TW': '繁',
+  en: 'A',
+  ja: 'あ',
+  ko: '한',
+  fr: 'F',
+  de: 'D',
+  es: 'E',
+  pt: 'P',
+  ru: 'Р',
+  ar: 'ع',
+  vi: 'V',
+  th: 'ท',
+}

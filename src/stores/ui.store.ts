@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
+import { persist, subscribeWithSelector } from 'zustand/middleware'
 
 export type ActivityType = 'search' | 'chat' | 'explorer' | 'render' | 'output' | 'workbench' | 'settings'
 export type PanelType = 'log' | 'terminal' | 'problems'
@@ -72,6 +72,18 @@ interface UIState {
   aiConfig: AIConfig
   setAIConfig: (config: Partial<AIConfig>) => void
   setProviderConfig: (key: string, config: { apiKey?: string; model?: string; baseUrl?: string }) => void
+
+  // 自主模式（从 chat.store 迁移到此，统一由设置面板管理）
+  autonomyMode: 'advisor' | 'semi_auto' | 'full_auto'
+  setAutonomyMode: (mode: 'advisor' | 'semi_auto' | 'full_auto') => void
+
+  // 通用设置
+  generalSettings: GeneralSettings
+  setGeneralSettings: (settings: Partial<GeneralSettings>) => void
+
+  // 高级设置
+  advancedSettings: AdvancedSettings
+  setAdvancedSettings: (settings: Partial<AdvancedSettings>) => void
 }
 
 export interface RoutingRule {
@@ -92,9 +104,25 @@ export interface ProviderConfig {
   baseUrl: string
 }
 
+export interface GeneralSettings {
+  autoSave: boolean
+  autoSaveInterval: number
+  checkUpdateOnStart: boolean
+  fontSize: 'small' | 'medium' | 'large'
+}
+
+export interface AdvancedSettings {
+  pythonPath: string
+  debugMode: boolean
+  proxy: string
+  aiHubPort: number
+  aiHubAutoStart: boolean
+}
+
 export const useUIStore = create<UIState>()(
-  persist(
-    (set) => ({
+  subscribeWithSelector(
+    persist(
+      (set) => ({
       activeActivity: 'search',
       setActiveActivity: (activity) => set({ activeActivity: activity }),
 
@@ -202,6 +230,28 @@ export const useUIStore = create<UIState>()(
             },
           },
         })),
+
+      autonomyMode: 'semi_auto',
+      setAutonomyMode: (mode) => set({ autonomyMode: mode }),
+
+      generalSettings: {
+        autoSave: true,
+        autoSaveInterval: 30,
+        checkUpdateOnStart: true,
+        fontSize: 'medium',
+      },
+      setGeneralSettings: (settings) =>
+        set((s) => ({ generalSettings: { ...s.generalSettings, ...settings } })),
+
+      advancedSettings: {
+        pythonPath: '',
+        debugMode: false,
+        proxy: '',
+        aiHubPort: 0,
+        aiHubAutoStart: true,
+      },
+      setAdvancedSettings: (settings) =>
+        set((s) => ({ advancedSettings: { ...s.advancedSettings, ...settings } })),
     }),
     {
       name: 'mc-ui-state',
@@ -220,6 +270,9 @@ export const useUIStore = create<UIState>()(
         templateListHeight: state.templateListHeight,
         language: state.language,
         aiConfig: state.aiConfig,
+        generalSettings: state.generalSettings,
+        advancedSettings: state.advancedSettings,
+        autonomyMode: state.autonomyMode,
       }),
       onRehydrateStorage: () => {
         return (state) => {
@@ -237,9 +290,48 @@ export const useUIStore = create<UIState>()(
             if (!state.templateListHeight || state.templateListHeight < LAYOUT_INTERNAL_MIN) {
               state.templateListHeight = LAYOUT_TEMPLATE_LIST_DEFAULT
             }
+
+            // AI 配置恢复：如果 providers 为空，尝试从文件备份恢复
+            if (state.aiConfig && Object.keys(state.aiConfig.providers || {}).length === 0) {
+              setTimeout(async () => {
+                try {
+                  if (typeof window !== 'undefined' && window.electron?.app?.restoreAiConfig) {
+                    const backup = await window.electron.app.restoreAiConfig()
+                    if (backup && typeof backup === 'object') {
+                      const b = backup as Record<string, unknown>
+                      if (b.providers && typeof b.providers === 'object' && Object.keys(b.providers as object).length > 0) {
+                        useUIStore.getState().setAIConfig(b as Partial<AIConfig>)
+                      }
+                    }
+                  }
+                } catch {
+                  // 备份文件不存在或损坏，静默忽略
+                }
+              }, 200)
+            }
           }
         }
       },
     },
   ),
+  ),
+)
+
+// AI 配置自动备份：监听 aiConfig 变化，有 API Key 数据时自动备份到 userData 目录
+let aiConfigReady = false
+setTimeout(() => {
+  aiConfigReady = true
+}, 1000)
+
+useUIStore.subscribe(
+  (state) => state.aiConfig,
+  (aiConfig) => {
+    if (!aiConfigReady) return
+    if (aiConfig?.providers && Object.keys(aiConfig.providers).length > 0) {
+      if (typeof window !== 'undefined' && window.electron?.app?.backupAiConfig) {
+        window.electron.app.backupAiConfig(aiConfig).catch(() => {})
+      }
+    }
+  },
+  { equalityFn: (a, b) => JSON.stringify(a) === JSON.stringify(b) },
 )

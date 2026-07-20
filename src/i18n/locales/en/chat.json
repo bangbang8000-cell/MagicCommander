@@ -33,9 +33,9 @@
     "desc": "Choose a chat mode, ask a question or upload an attachment to get started"
   },
   "session": {
-    "newChat": "New chat",
-    "delete": "Delete chat",
-    "noSessions": "No chat history",
+    "newChat": "New",
+    "delete": "Delete",
+    "noSessions": "No history",
     "list": "Sessions",
     "justNow": "Just now",
     "minAgo": "m ago",
@@ -47,7 +47,8 @@
       "starting": "AI service starting...",
       "running": "AI service running",
       "stopped": "AI service stopped",
-      "error": "AI service error"
+      "error": "AI service error",
+      "installing": "Installing AI dependencies..."
     },
     "provider": {
       "select": "Select model",
@@ -59,7 +60,25 @@
       "network": "Network error, please check your connection",
       "unknown": "An unknown error occurred",
       "retry": "Retry",
-      "cancel": "Cancel"
+      "cancel": "Cancel",
+      "hubFailed": "AI Hub failed to start. Please check the Python environment. Go to Settings to test the connection.",
+      "noModel": "No AI model selected. Please configure a Provider in Settings.",
+      "serviceNotRunning": "AI service not running"
     }
+  },
+  "autonomy": {
+    "label": "Autonomy",
+    "advisor": "Advisor",
+    "semiAuto": "Semi-Auto",
+    "fullAuto": "Full-Auto"
+  },
+  "plan": {
+    "title": "Execution Plan"
+  },
+  "skill": {
+    "savePrompt": "Save this workflow as a Skill for future reuse?",
+    "save": "Save",
+    "ignore": "Ignore",
+    "saved": "Skill saved"
   }
 }

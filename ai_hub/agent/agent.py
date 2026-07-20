@@ -11,6 +11,12 @@ from typing import AsyncIterator, Optional
 from ai_hub.llm.provider import registry, LLMProvider
 from ai_hub.agent.tools import get_tool_definitions, execute_tool
 from ai_hub.prompts.loader import get_system_prompt
+from ai_hub.agent.validator import validate_tool_call
+from ai_hub.agent.recovery import analyze_error
+from ai_hub.agent.context import get_project_context, clear_project_context
+from ai_hub.agent.schemas import ToolPermission
+from ai_hub.skills.engine import get_skills_engine
+from ai_hub.memory.engine import get_memory_engine
 
 logger = logging.getLogger(__name__)
 
@@ -23,14 +29,18 @@ class AgentSession:
         self.system_prompt: str = get_system_prompt()
         self.provider: Optional[LLMProvider] = None
         self.mode: str = "general"
+        self.autonomy_mode: str = "semi_auto"
+        self.current_project: str = ""
+        self.session_id: str = ""
 
     def set_provider(self, name: Optional[str] = None):
         self.provider = registry.get(name)
 
-    def set_mode(self, mode: str):
+    def set_mode(self, mode: str, project_name: str = ""):
         """设置对话模式，自动加载对应 prompt"""
         self.mode = mode
-        self.system_prompt = get_system_prompt(mode)
+        self.current_project = project_name
+        self.system_prompt = get_system_prompt(mode, project_name)
 
     def add_message(self, role: str, content: str, extra: dict = None):
         msg = {"role": role, "content": content}
@@ -78,26 +88,79 @@ class AgentSession:
             # 检测是否有 tool call
             tool_call = _parse_tool_call(full_content)
             if not tool_call:
-                # 没有 tool call，对话结束
                 reason = _get_reasoning(self.provider)
                 self.add_message("assistant", full_content, {"reasoning_content": reason} if reason else None)
                 return
 
-            # 有 tool call：输出工具调用状态
             cleaned_content = _strip_tool_call(full_content)
 
             tool_name = tool_call["name"]
             tool_args = tool_call["arguments"]
+
+            # === Agent v2: 校验工具调用 ===
+            available_tools = {t["function"]["name"] for t in tools}
+            validation = validate_tool_call(tool_name, tool_args, available_tools, self.current_project)
+
+            if validation.has_corrections:
+                yield f"\n\n{validation.correction_message}\n\n"
+
+            tool_name = validation.name
+            tool_args = validation.args
+
+            # === Agent v2: 权限分级检查 ===
+            if validation.permission == ToolPermission.CONFIRM and self.autonomy_mode != "full_auto":
+                yield f"\n\n> ⚠️ 操作 `{tool_name}` 需要确认。请回复 '确认' 继续，或 '取消' 中止。\n\n"
+                return
+
             tool_call_id = f"call_{uuid.uuid4().hex[:12]}"
 
-            yield f"\n\n> 🔧 正在调用工具: `{tool_name}`...\n\n"
+            if validation.permission == ToolPermission.NOTIFY:
+                yield f"\n\n> 🔧 正在调用工具: `{tool_name}`...\n\n"
+            elif validation.permission == ToolPermission.AUTO:
+                yield f"\n\n> 🔧 正在调用工具: `{tool_name}`...\n\n"
+            else:
+                yield f"\n\n> 🔧 正在调用工具: `{tool_name}`...\n\n"
 
-            try:
-                result = await execute_tool(tool_name, tool_args)
-            except Exception as e:
-                logger.error(f"Tool execution error: {e}")
-                yield f"> 工具执行失败: {_extract_error_message(e)}\n\n"
+            # === Agent v2: 执行工具 + 错误恢复 ===
+            retry_count = 0
+            max_retries = 2
+            result = None
+            while retry_count <= max_retries:
+                try:
+                    result = await execute_tool(tool_name, tool_args)
+                    break
+                except Exception as e:
+                    error_msg = _extract_error_message(e)
+                    logger.error(f"Tool execution error: {e}")
+
+                    if retry_count < max_retries:
+                        recovery = analyze_error(tool_name, tool_args, error_msg, available_tools)
+                        if recovery.action == "retry":
+                            yield f"\n> {recovery.message}\n\n"
+                            if recovery.modified_tool:
+                                tool_name = recovery.modified_tool
+                            if recovery.modified_args:
+                                tool_args = recovery.modified_args
+                            retry_count += 1
+                            continue
+                        else:
+                            yield f"\n> {recovery.message}\n\n"
+                            return
+                    else:
+                        yield f"\n> 工具执行失败（已重试 {max_retries} 次）: {error_msg}\n\n"
+                        return
+
+            if result is None:
+                yield "\n> 工具执行失败，未获取到结果。\n\n"
                 return
+
+            # === Agent v2: 更新上下文和记忆 ===
+            if self.current_project:
+                ctx = get_project_context(self.session_id)
+                ctx.record_operation(f"调用工具: {tool_name}")
+
+            memory = get_memory_engine()
+            memory.record_operation(self.current_project, f"调用 {tool_name}")
 
             # 将 tool 结果加入上下文（OpenAI 标准格式）
             tool_result_json = json.dumps(result, ensure_ascii=False)
@@ -176,8 +239,8 @@ def _parse_tool_call(content: str) -> Optional[dict]:
         except json.JSONDecodeError:
             pass
 
-    # 方式2: 匹配独立的 JSON 对象（包含 name 和 arguments）
-    pattern2 = r'\{\s*"name"\s*:\s*"[^"]+"\s*,\s*"arguments"\s*:\s*\{[^}]+\}\s*\}'
+    # 方式2: 匹配独立的 JSON 对象（包含 name 和 arguments，支持空参数 {}）
+    pattern2 = r'\{\s*"name"\s*:\s*"[^"]+"\s*,\s*"arguments"\s*:\s*\{[^}]*\}\s*\}'
     match2 = re.search(pattern2, content)
     if match2:
         try:
@@ -185,16 +248,43 @@ def _parse_tool_call(content: str) -> Optional[dict]:
         except json.JSONDecodeError:
             pass
 
-    # 方式3: 匹配 <tool_calls> XML 格式（LLM 原生 function calling 格式）
-    pattern3 = r"<invoke\s+name=\"([^\"]+)\">(.*?)</invoke>"
-    match3 = re.search(pattern3, content, re.DOTALL)
+    # 方式3: 匹配 XML 格式 — 优先从 <tool_calls> 中提取 <invoke>
+    invoke_pattern = r"<invoke\s+name=\"([^\"]+)\">(.*?)</invoke>"
+    # 如果存在 <tool_calls> 包装，先定位到内部（避免匹配到外表注释）
+    tc_match = re.search(r"<tool_calls>(.*?)</tool_calls>", content, re.DOTALL)
+    search_content = tc_match.group(1) if tc_match else content
+    match3 = re.search(invoke_pattern, search_content, re.DOTALL)
     if match3:
         tool_name = match3.group(1)
         params_str = match3.group(2)
         args = {}
         for pm in re.finditer(r"<parameter\s+name=\"([^\"]+)\"[^>]*>(.*?)</parameter>", params_str):
-            args[pm.group(1)] = pm.group(2).strip()
+            value = pm.group(2).strip()
+            # 处理 string="true" 等属性格式的值
+            if value.lower() == 'true':
+                value = True
+            elif value.lower() == 'false':
+                value = False
+            args[pm.group(1)] = value
         return _normalize_tool_params({"name": tool_name, "arguments": args})
+
+    # 兜底: 处理不完整 XML（流截断时 invoke 标签未闭合，但仍能提取参数）
+    m = re.search(r'<invoke\s+name="([^"]+)"[^>]*>', content)
+    if m:
+        tool_name = m.group(1)
+        tail = content[m.start():]
+        args = {}
+        # 参数可能没有 </parameter> 闭合标签
+        for pm in re.finditer(r'<parameter\s+name="([^"]+)"[^>]*>(.*?)(?:</parameter>|$)', tail, re.DOTALL):
+            key = pm.group(1)
+            value = pm.group(2).strip()
+            if value.lower() == 'true':
+                value = True
+            elif value.lower() == 'false':
+                value = False
+            args[key] = value
+        if args:
+            return _normalize_tool_params({"name": tool_name, "arguments": args})
 
     return None
 
@@ -254,6 +344,7 @@ def get_or_create_session(session_id: str) -> AgentSession:
     if session_id not in _sessions:
         session = AgentSession()
         session.set_provider()
+        session.session_id = session_id
         _sessions[session_id] = session
     return _sessions[session_id]
 
@@ -261,3 +352,4 @@ def get_or_create_session(session_id: str) -> AgentSession:
 def clear_session(session_id: str):
     """清除会话"""
     _sessions.pop(session_id, None)
+    clear_project_context(session_id)
