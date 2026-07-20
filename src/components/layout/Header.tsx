@@ -1,13 +1,15 @@
 import { useTranslation } from 'react-i18next'
 import { useState, useRef, useEffect, useCallback } from 'react'
 import clsx from 'clsx'
-import { Menu, RefreshCw, Minus, Square, X, Globe } from 'lucide-react'
+import { Menu, RefreshCw, Minus, Square, X, Globe, Sun, Moon, Monitor } from 'lucide-react'
 import { useProjectStore } from '@/stores/project.store'
 import { useUIStore } from '@/stores/ui.store'
 import { useEditorStore } from '@/stores/editor.store'
 import { AboutDialog } from '@/components/dialogs/AboutDialog'
 import { AppLogo } from '@/components/common'
-import i18n from '@/i18n'
+import { UpdatePopover } from './UpdatePopover'
+import { LanguagePopover } from './LanguagePopover'
+import { ThemePopover } from './ThemePopover'
 import type { UpdateStatus } from '@/types/ipc'
 
 interface HeaderProps {
@@ -37,6 +39,11 @@ export function Header({ onCheatsheet }: HeaderProps) {
   const [updateStatus, setUpdateStatus] = useState<UpdateStatus | null>(null)
   const [updateBusy, setUpdateBusy] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
+
+  // Popover 状态
+  const [updatePopoverOpen, setUpdatePopoverOpen] = useState(false)
+  const [langPopoverOpen, setLangPopoverOpen] = useState(false)
+  const [themePopoverOpen, setThemePopoverOpen] = useState(false)
 
   // 窗口控制状态
   const [isMaximized, setIsMaximized] = useState(false)
@@ -239,25 +246,17 @@ export function Header({ onCheatsheet }: HeaderProps) {
     window.electron?.window?.close()
   }, [])
 
-  // 切换主题：light → dark → system → light
-  const handleToggleTheme = useCallback(() => {
-    const cycle: Array<'light' | 'dark' | 'system'> = ['light', 'dark', 'system']
-    const idx = cycle.indexOf(theme)
-    const next = cycle[(idx + 1) % 3]
-    setTheme(next)
-  }, [theme, setTheme])
+  // 切换主题
+  const handleSelectTheme = useCallback((t: 'light' | 'dark' | 'system') => {
+    setTheme(t)
+  }, [setTheme])
 
-  // 切换语言：循环常用语言
-  const handleToggleLanguage = useCallback(() => {
-    const langs = ['zh-CN', 'en', 'ja', 'ko', 'fr', 'de', 'es', 'pt', 'ru', 'ar', 'vi', 'th', 'zh-TW']
-    const idx = langs.indexOf(language)
-    const next = langs[(idx + 1) % langs.length]
-    setLanguage(next)
-    i18n.changeLanguage(next)
-  }, [language, setLanguage])
+  // 切换语言
+  const handleSelectLanguage = useCallback((lang: string) => {
+    setLanguage(lang)
+  }, [setLanguage])
 
-  const themeIcon = theme === 'light' ? '☀️' : theme === 'dark' ? '🌙' : '🖥️'
-  const themeTitle = theme === 'light' ? t('menu.lightMode') : theme === 'dark' ? t('menu.darkMode') : t('menu.systemMode')
+  const themeIcon = theme === 'light' ? <Sun size={14} /> : theme === 'dark' ? <Moon size={14} /> : <Monitor size={14} />
 
   // 菜单项渲染辅助函数
   const renderMenuItem = (
@@ -413,43 +412,74 @@ export function Header({ onCheatsheet }: HeaderProps) {
         {/* 右侧：快捷操作 */}
         <div className="flex items-center gap-0.5 px-2" style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}>
           {/* 切换语言 */}
-          <button
-            onClick={handleToggleLanguage}
-            className={clsx(
-              'p-1.5 rounded transition-colors text-xs',
-              isDark ? 'hover:bg-gray-700 text-gray-400' : 'hover:bg-gray-200 text-gray-500',
-            )}
-            title={t('menu.language')}
-          >
-            <Globe size={14} />
-          </button>
+          <div className="relative">
+            <button
+              onClick={() => { setLangPopoverOpen(!langPopoverOpen); setThemePopoverOpen(false); setUpdatePopoverOpen(false) }}
+              className={clsx(
+                'p-1.5 rounded transition-colors',
+                isDark ? 'hover:bg-gray-700 text-gray-400' : 'hover:bg-gray-200 text-gray-500',
+              )}
+              title={t('menu.language')}
+            >
+              <Globe size={14} />
+            </button>
+            <LanguagePopover
+              open={langPopoverOpen}
+              onClose={() => setLangPopoverOpen(false)}
+              isDark={isDark}
+              currentLanguage={language}
+              onSelect={handleSelectLanguage}
+            />
+          </div>
 
           {/* 切换主题 */}
-          <button
-            onClick={handleToggleTheme}
-            className={clsx(
-              'p-1.5 rounded transition-colors text-xs',
-              isDark ? 'hover:bg-gray-700 text-gray-400' : 'hover:bg-gray-200 text-gray-500',
-            )}
-            title={themeTitle}
-          >
-            <span className="text-xs leading-none">{themeIcon}</span>
-          </button>
+          <div className="relative">
+            <button
+              onClick={() => { setThemePopoverOpen(!themePopoverOpen); setLangPopoverOpen(false); setUpdatePopoverOpen(false) }}
+              className={clsx(
+                'p-1.5 rounded transition-colors',
+                isDark ? 'hover:bg-gray-700 text-gray-400' : 'hover:bg-gray-200 text-gray-500',
+              )}
+              title={t('common:settings.appearance.title')}
+            >
+              {themeIcon}
+            </button>
+            <ThemePopover
+              open={themePopoverOpen}
+              onClose={() => setThemePopoverOpen(false)}
+              isDark={isDark}
+              currentTheme={theme}
+              onSelect={handleSelectTheme}
+            />
+          </div>
 
           {/* 检查更新 */}
-          <button
-            onClick={handleCheckUpdate}
-            className={clsx(
-              'relative p-1.5 rounded transition-colors',
-              isDark ? 'hover:bg-gray-700 text-gray-400' : 'hover:bg-gray-200 text-gray-500',
-            )}
-            title={t('menu.checkUpdate')}
-          >
-            <RefreshCw size={14} />
-            {updateDownloaded && (
-              <span className="absolute top-0.5 right-0.5 w-2 h-2 rounded-full bg-blue-500" />
-            )}
-          </button>
+          <div className="relative">
+            <button
+              onClick={() => { setUpdatePopoverOpen(!updatePopoverOpen); setLangPopoverOpen(false); setThemePopoverOpen(false) }}
+              className={clsx(
+                'relative p-1.5 rounded transition-colors',
+                isDark ? 'hover:bg-gray-700 text-gray-400' : 'hover:bg-gray-200 text-gray-500',
+              )}
+              title={t('menu.checkUpdate')}
+            >
+              <RefreshCw size={14} />
+              {updateDownloaded && (
+                <span className="absolute top-0.5 right-0.5 w-2 h-2 rounded-full bg-blue-500" />
+              )}
+            </button>
+            <UpdatePopover
+              open={updatePopoverOpen}
+              onClose={() => setUpdatePopoverOpen(false)}
+              isDark={isDark}
+              updateStatus={updateStatus}
+              updateBusy={updateBusy}
+              updateDownloaded={updateDownloaded}
+              onCheckUpdate={handleCheckUpdate}
+              onDownloadUpdate={handleDownloadUpdate}
+              onInstallUpdate={handleInstallUpdate}
+            />
+          </div>
         </div>
 
         {/* 窗口控制按钮（仅 Windows） */}
