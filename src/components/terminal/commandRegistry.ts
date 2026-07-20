@@ -109,12 +109,7 @@ export const commands: { [name: string]: CommandEntry } = {
   version: {
     desc: () => tt('terminal.commands.version.desc'),
     fn: (_, ctx) => {
-      const v = window.electron?.app?.getBuildInfo?.()
-        ? '...'
-        : useProjectStore.getState().projects
-          ? 'v3.5.0'
-          : 'v3.5.0'
-      ctx.addLog('success', `MagicCommander ${v}`)
+      ctx.addLog('success', 'MagicCommander v3.5.0')
     },
   },
   ver: {
