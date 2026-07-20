@@ -133,6 +133,10 @@ const api = {
     configureProvider: (provider: string, apiKey: string, model?: string, baseUrl?: string) =>
       ipcRenderer.invoke('aihub:configureProvider', provider, apiKey, model, baseUrl),
     setDefaultProvider: (provider: string) => ipcRenderer.invoke('aihub:setDefaultProvider', provider),
+    testConnection: (provider: string, apiKey: string, baseUrl: string, model: string) =>
+      ipcRenderer.invoke('aihub:testConnection', provider, apiKey, baseUrl, model),
+    fetchModels: (baseUrl: string, apiKey: string) =>
+      ipcRenderer.invoke('aihub:fetchModels', baseUrl, apiKey),
     onStream: (callback: (data: { sessionId: string; chunk: string }) => void) => {
       const handler = (_e: unknown, data: { sessionId: string; chunk: string }) => callback(data)
       ipcRenderer.on('aihub:stream', handler)

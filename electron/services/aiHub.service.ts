@@ -389,6 +389,30 @@ export class AIHubService extends EventEmitter {
       body: JSON.stringify({ provider }),
     })
   }
+
+  /**
+   * 测试 Provider 连接
+   */
+  async testConnection(provider: string, apiKey: string, baseUrl: string, model: string): Promise<{ status: string; message: string }> {
+    const response = await fetch(`${this.baseUrl}/api/chat/test`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ provider, api_key: apiKey, base_url: baseUrl, model }),
+    })
+    return await response.json()
+  }
+
+  /**
+   * 获取可用模型列表
+   */
+  async fetchModels(baseUrl: string, apiKey: string): Promise<{ status: string; models: string[]; message?: string }> {
+    const response = await fetch(`${this.baseUrl}/api/chat/models`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ base_url: baseUrl, api_key: apiKey }),
+    })
+    return await response.json()
+  }
 }
 
 // 全局单例

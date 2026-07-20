@@ -260,5 +260,7 @@ export interface AIHubIpcApi {
   getProviders: () => Promise<AIHubProvider[]>
   configureProvider: (provider: string, apiKey: string, model?: string, baseUrl?: string) => Promise<void>
   setDefaultProvider: (provider: string) => Promise<void>
+  testConnection: (provider: string, apiKey: string, baseUrl: string, model: string) => Promise<{ status: string; message: string }>
+  fetchModels: (baseUrl: string, apiKey: string) => Promise<{ status: string; models: string[]; message?: string }>
   onStream: (callback: (data: AIHubStreamData) => void) => () => void
 }

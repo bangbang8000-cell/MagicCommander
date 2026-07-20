@@ -367,7 +367,10 @@
       "saved": "Saved",
       "setDefault": "Set as Default",
       "isDefault": "Default",
-      "default": "Default"
+      "default": "Default",
+      "testConnection": "Test Connection",
+      "fetchModels": "Fetch Models",
+      "selectModel": "Select Model"
     },
     "general": {
       "title": "General",

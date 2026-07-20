@@ -867,4 +867,20 @@ export function setupIpcHandlers(window: BrowserWindow): void {
   ipcMain.handle('aihub:setDefaultProvider', async (_e, provider: string): Promise<void> => {
     await aiHubService.setDefaultProvider(provider)
   })
+
+  // AI Hub 测试连接
+  ipcMain.handle(
+    'aihub:testConnection',
+    async (_e, provider: string, apiKey: string, baseUrl: string, model: string): Promise<{ status: string; message: string }> => {
+      return await aiHubService.testConnection(provider, apiKey, baseUrl, model)
+    },
+  )
+
+  // AI Hub 获取模型列表
+  ipcMain.handle(
+    'aihub:fetchModels',
+    async (_e, baseUrl: string, apiKey: string): Promise<{ status: string; models: string[]; message?: string }> => {
+      return await aiHubService.fetchModels(baseUrl, apiKey)
+    },
+  )
 }

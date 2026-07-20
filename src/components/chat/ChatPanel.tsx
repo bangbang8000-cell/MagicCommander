@@ -73,6 +73,36 @@ export function ChatPanel() {
     return () => clearInterval(interval)
   }, [setAIHubStatus, setAIHubProviders])
 
+  // 打开 ChatPanel 时自动启动 AI Hub
+  useEffect(() => {
+    const startAIHub = async () => {
+      try {
+        const status = await window.electron.aihub.status()
+        if (!status.running && !status.installing) {
+          console.log('[ChatPanel] AI Hub 未运行，自动启动...')
+          await window.electron.aihub.start()
+          // 等待启动完成
+          for (let i = 0; i < 15; i++) {
+            await new Promise((r) => setTimeout(r, 1000))
+            const s = await window.electron.aihub.status()
+            if (s.running) {
+              setAIHubStatus(s)
+              setAIHubError(null)
+              const providers = await window.electron.aihub.getProviders()
+              setAIHubProviders(providers)
+              return
+            }
+          }
+          setAIHubError('AI Hub 启动超时，请检查 Python 环境')
+        }
+      } catch (e: any) {
+        console.error('[ChatPanel] AI Hub 启动失败:', e)
+        setAIHubError(e?.message || 'AI Hub 启动失败')
+      }
+    }
+    startAIHub()
+  }, [])
+
   // 从 Settings 同步默认 Provider 到 chat store
   useEffect(() => {
     if (!selectedProvider && aiConfig.defaultProvider) {

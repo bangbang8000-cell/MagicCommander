@@ -292,16 +292,27 @@ export async function sendMessage(
     const aiHub = window.electron.aihub
     if (!aiHub) throw new Error('AI Hub API not available')
 
-    // 检查 AI Hub 状态
+    // 检查 AI Hub 状态，如果未运行则尝试启动
     const status = await aiHub.status()
     if (!status.running) {
-      throw new Error('AI Hub not running')
+      console.log('[chat.store] AI Hub 未运行，尝试启动...')
+      await aiHub.start()
+      // 等待启动（最多 10 秒）
+      for (let i = 0; i < 10; i++) {
+        await new Promise((r) => setTimeout(r, 1000))
+        const s = await aiHub.status()
+        if (s.running) break
+      }
+      const finalStatus = await aiHub.status()
+      if (!finalStatus.running) {
+        throw new Error('AI Hub 启动失败，请检查 Python 环境是否就绪。可前往设置页面测试连接。')
+      }
     }
 
     // 使用选中的 Provider（优先 chat.store，回退到 Settings 默认）
     const provider = store.selectedProvider
     if (!provider) {
-      throw new Error('No provider selected')
+      throw new Error('未选择 AI 模型。请前往设置页面配置 Provider。')
     }
 
     // 监听流式响应
@@ -348,19 +359,9 @@ export async function sendMessage(
     unsub()
     store.setIsSending(false)
   } catch (err: any) {
-    // 判断错误类型
-    const errorMsg = err?.message || ''
-    let fallbackResponse: string
+    const errorMsg = err?.message || '未知错误'
 
-    if (errorMsg === 'timeout') {
-      fallbackResponse = '> 请求超时，AI 服务响应时间过长。请稍后重试。'
-    } else if (errorMsg.includes('AI Hub not running') || errorMsg.includes('not available')) {
-      fallbackResponse = getMockResponse(mode)
-    } else {
-      fallbackResponse = getMockResponse(mode)
-    }
-
-    // 如果已有流式内容，追加错误信息
+    // 如果已有流式内容，追加错误提示
     const currentMsg = useChatStore.getState().sessions
       .find((s) => s.id === sessionId)
       ?.messages.find((m) => m.id === aiMsgId)
@@ -368,7 +369,7 @@ export async function sendMessage(
     const existingContent = currentMsg?.content || ''
 
     if (existingContent) {
-      // 已有部分流式内容，追加错误提示
+      // 已有部分流式内容，追加中断提示
       useChatStore.setState((s) => ({
         sessions: s.sessions.map((ses) =>
           ses.id === sessionId
@@ -382,18 +383,16 @@ export async function sendMessage(
         ),
       }))
     } else {
-      // 完全没有响应，回退到模拟响应
-      if (attachments.length > 0) {
-        const fileList = attachments.map((a) => `- ${a.name} (${a.type})`).join('\n')
-        fallbackResponse = `已收到您的消息和以下附件：\n\n${fileList}\n\n---\n\n${fallbackResponse}`
-      }
+      // 完全没有响应，显示错误信息
       useChatStore.setState((s) => ({
         sessions: s.sessions.map((ses) =>
           ses.id === sessionId
             ? {
                 ...ses,
                 messages: ses.messages.map((m) =>
-                  m.id === aiMsgId ? { ...m, content: fallbackResponse } : m,
+                  m.id === aiMsgId
+                    ? { ...m, content: `> 错误: ${errorMsg}` }
+                    : m,
                 ),
               }
             : ses,

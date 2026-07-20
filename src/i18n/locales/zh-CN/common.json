@@ -367,7 +367,10 @@
       "saved": "已保存",
       "setDefault": "设为默认",
       "isDefault": "当前默认",
-      "default": "默认"
+      "default": "默认",
+      "testConnection": "测试连接",
+      "fetchModels": "获取模型",
+      "selectModel": "选择模型"
     },
     "general": {
       "title": "通用设置",

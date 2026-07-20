@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import { useState, useEffect, useCallback } from 'react'
 import { useUIStore } from '@/stores/ui.store'
-import { Settings, Cpu, Globe, Palette, Shield, Sun, Moon, Monitor, Check, Eye, EyeOff, Star } from 'lucide-react'
+import { Settings, Cpu, Globe, Palette, Shield, Sun, Moon, Monitor, Check, Eye, EyeOff, Star, Play, RefreshCw, XCircle, AlertTriangle } from 'lucide-react'
 import clsx from 'clsx'
 
 // Provider 目录（与后端 PROVIDER_CATALOG 保持一致）
@@ -85,6 +85,14 @@ export function SettingsPanel() {
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
 
+  // 测试连接
+  const [testing, setTesting] = useState(false)
+  const [testResult, setTestResult] = useState<{ ok: boolean; msg: string } | null>(null)
+
+  // 获取模型
+  const [fetchingModels, setFetchingModels] = useState(false)
+  const [fetchedModels, setFetchedModels] = useState<string[]>([])
+
   const catalog = PROVIDER_CATALOG[activeProvider]
   const isOllama = activeProvider === 'ollama'
   const isCustom = activeProvider === 'custom'
@@ -98,6 +106,8 @@ export function SettingsPanel() {
     setBaseUrl(saved?.baseUrl || catalog.baseUrl)
     setShowKey(false)
     setSaved(false)
+    setTestResult(null)
+    setFetchedModels([])
   }, [activeProvider, aiConfig.providers, catalog.defaultModel, catalog.baseUrl])
 
   // 保存配置
@@ -150,6 +160,45 @@ export function SettingsPanel() {
       console.error('Set default provider failed:', e)
     }
   }, [activeProvider, setAIConfig])
+
+  // 测试连接
+  const handleTestConnection = useCallback(async () => {
+    setTesting(true)
+    setTestResult(null)
+    try {
+      const result = await window.electron.aihub.testConnection(
+        activeProvider,
+        apiKey.trim(),
+        baseUrl.trim() || catalog.baseUrl,
+        model.trim() || catalog.defaultModel,
+      )
+      setTestResult({ ok: result.status === 'ok', msg: result.message })
+    } catch (e: any) {
+      setTestResult({ ok: false, msg: e.message || '测试失败' })
+    } finally {
+      setTesting(false)
+    }
+  }, [activeProvider, apiKey, model, baseUrl, catalog])
+
+  // 获取模型列表
+  const handleFetchModels = useCallback(async () => {
+    if (!baseUrl.trim() && !isOllama) return
+    setFetchingModels(true)
+    setFetchedModels([])
+    try {
+      const result = await window.electron.aihub.fetchModels(
+        baseUrl.trim() || catalog.baseUrl,
+        apiKey.trim(),
+      )
+      if (result.status === 'ok' && result.models.length > 0) {
+        setFetchedModels(result.models)
+      }
+    } catch (e: any) {
+      console.error('Fetch models failed:', e)
+    } finally {
+      setFetchingModels(false)
+    }
+  }, [baseUrl, apiKey, catalog, isOllama])
 
   const themeOptions: { value: 'light' | 'dark' | 'system'; icon: React.ReactNode; label: string }[] = [
     { value: 'light', icon: <Sun size={16} />, label: t('menu.lightMode') },
@@ -224,9 +273,32 @@ export function SettingsPanel() {
                   )}
                 </div>
 
+                {/* 1. Base URL */}
+                <div>
+                  <label className={clsx('block text-[10px] mb-0.5', isDark ? 'text-gray-500' : 'text-gray-400')}>
+                    {t('common:settings.ai.baseUrl')}
+                  </label>
+                  <input
+                    type="text"
+                    value={baseUrl}
+                    onChange={(e) => setBaseUrl(e.target.value)}
+                    placeholder={catalog.baseUrl || 'https://api.openai.com/v1'}
+                    className={clsx(
+                      'w-full px-2.5 py-1.5 rounded text-xs outline-none',
+                      isDark
+                        ? 'bg-gray-900 text-gray-100 placeholder-gray-600 focus:ring-1 focus:ring-blue-500'
+                        : 'bg-white text-gray-900 placeholder-gray-400 focus:ring-1 focus:ring-blue-400 border border-gray-300',
+                    )}
+                  />
+                </div>
+
+                {/* 2. API Key */}
                 {!isOllama && (
-                  <div className="flex gap-2">
-                    <div className="relative flex-1">
+                  <div>
+                    <label className={clsx('block text-[10px] mb-0.5', isDark ? 'text-gray-500' : 'text-gray-400')}>
+                      {t('common:settings.ai.apiKey')}
+                    </label>
+                    <div className="relative">
                       <input
                         type={showKey ? 'text' : 'password'}
                         value={apiKey}
@@ -249,78 +321,124 @@ export function SettingsPanel() {
                   </div>
                 )}
 
-                <div className="flex gap-2">
-                  <div className="flex-1">
-                    <label className={clsx('block text-[10px] mb-0.5', isDark ? 'text-gray-500' : 'text-gray-400')}>
+                {/* 3. Model */}
+                <div>
+                  <div className="flex items-center justify-between mb-0.5">
+                    <label className={clsx('text-[10px]', isDark ? 'text-gray-500' : 'text-gray-400')}>
                       {t('common:settings.ai.model')}
                     </label>
-                    {isCustom ? (
-                      <input
-                        type="text"
-                        value={model}
-                        onChange={(e) => setModel(e.target.value)}
-                        placeholder="gpt-4o"
-                        className={clsx(
-                          'w-full px-2.5 py-1.5 rounded text-xs outline-none',
-                          isDark
-                            ? 'bg-gray-900 text-gray-100 focus:ring-1 focus:ring-blue-500'
-                            : 'bg-white text-gray-900 focus:ring-1 focus:ring-blue-400 border border-gray-300',
-                        )}
-                      />
-                    ) : (
-                      <select
-                        value={model}
-                        onChange={(e) => setModel(e.target.value)}
-                        className={clsx(
-                          'w-full px-2.5 py-1.5 rounded text-xs outline-none',
-                          isDark
-                            ? 'bg-gray-900 text-gray-100 focus:ring-1 focus:ring-blue-500'
-                            : 'bg-white text-gray-900 focus:ring-1 focus:ring-blue-400 border border-gray-300',
-                        )}
-                      >
-                        {catalog.models.map((m) => (
-                          <option key={m} value={m}>{m}</option>
-                        ))}
-                      </select>
-                    )}
+                    <button
+                      onClick={handleFetchModels}
+                      disabled={fetchingModels || (!baseUrl.trim() && !isOllama)}
+                      className={clsx(
+                        'text-[10px] flex items-center gap-1 px-1.5 py-0.5 rounded transition-colors',
+                        fetchingModels
+                          ? 'opacity-50 cursor-not-allowed'
+                          : isDark
+                            ? 'text-blue-400 hover:bg-gray-700'
+                            : 'text-blue-500 hover:bg-blue-50',
+                      )}
+                      title={t('common:settings.ai.fetchModels')}
+                    >
+                      <RefreshCw size={10} className={fetchingModels ? 'animate-spin' : ''} />
+                      {t('common:settings.ai.fetchModels')}
+                    </button>
                   </div>
+                  {isCustom ? (
+                    <input
+                      type="text"
+                      value={model}
+                      onChange={(e) => setModel(e.target.value)}
+                      placeholder="gpt-4o"
+                      className={clsx(
+                        'w-full px-2.5 py-1.5 rounded text-xs outline-none',
+                        isDark
+                          ? 'bg-gray-900 text-gray-100 focus:ring-1 focus:ring-blue-500'
+                          : 'bg-white text-gray-900 focus:ring-1 focus:ring-blue-400 border border-gray-300',
+                      )}
+                    />
+                  ) : fetchedModels.length > 0 ? (
+                    <select
+                      value={model}
+                      onChange={(e) => setModel(e.target.value)}
+                      className={clsx(
+                        'w-full px-2.5 py-1.5 rounded text-xs outline-none',
+                        isDark
+                          ? 'bg-gray-900 text-gray-100 focus:ring-1 focus:ring-blue-500'
+                          : 'bg-white text-gray-900 focus:ring-1 focus:ring-blue-400 border border-gray-300',
+                      )}
+                    >
+                      <option value="">{t('common:settings.ai.selectModel')}</option>
+                      {fetchedModels.map((m) => (
+                        <option key={m} value={m}>{m}</option>
+                      ))}
+                    </select>
+                  ) : (
+                    <select
+                      value={model}
+                      onChange={(e) => setModel(e.target.value)}
+                      className={clsx(
+                        'w-full px-2.5 py-1.5 rounded text-xs outline-none',
+                        isDark
+                          ? 'bg-gray-900 text-gray-100 focus:ring-1 focus:ring-blue-500'
+                          : 'bg-white text-gray-900 focus:ring-1 focus:ring-blue-400 border border-gray-300',
+                      )}
+                    >
+                      {catalog.models.map((m) => (
+                        <option key={m} value={m}>{m}</option>
+                      ))}
+                    </select>
+                  )}
                 </div>
 
-                <div>
-                  <label className={clsx('block text-[10px] mb-0.5', isDark ? 'text-gray-500' : 'text-gray-400')}>
-                    {t('common:settings.ai.baseUrl')}
-                  </label>
-                  <input
-                    type="text"
-                    value={baseUrl}
-                    onChange={(e) => setBaseUrl(e.target.value)}
-                    placeholder="https://api.openai.com/v1"
-                    className={clsx(
-                      'w-full px-2.5 py-1.5 rounded text-xs outline-none',
-                      isDark
-                        ? 'bg-gray-900 text-gray-100 focus:ring-1 focus:ring-blue-500'
-                        : 'bg-white text-gray-900 focus:ring-1 focus:ring-blue-400 border border-gray-300',
-                    )}
-                  />
-                </div>
+                {/* 测试连接结果 */}
+                {testResult && (
+                  <div className={clsx(
+                    'flex items-start gap-1.5 text-[10px] p-2 rounded',
+                    testResult.ok
+                      ? isDark ? 'bg-green-900/30 text-green-300' : 'bg-green-50 text-green-700'
+                      : isDark ? 'bg-red-900/30 text-red-300' : 'bg-red-50 text-red-700',
+                  )}>
+                    {testResult.ok ? <Check size={12} /> : <XCircle size={12} />}
+                    <span>{testResult.msg}</span>
+                  </div>
+                )}
               </div>
 
               {/* 操作按钮 */}
               <div className="flex items-center justify-between mt-3">
-                <button
-                  onClick={handleSetDefault}
-                  disabled={isDefault}
-                  className={clsx(
-                    'text-[10px] px-2 py-1 rounded transition-colors',
-                    isDefault
-                      ? 'opacity-40 cursor-not-allowed'
-                      : isDark
-                        ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                        : 'bg-gray-200 text-gray-600 hover:bg-gray-300',
-                  )}
-                >
-                  {isDefault ? t('common:settings.ai.isDefault') : t('common:settings.ai.setDefault')}
-                </button>
+                <div className="flex items-center gap-1.5">
+                  <button
+                    onClick={handleSetDefault}
+                    disabled={isDefault}
+                    className={clsx(
+                      'text-[10px] px-2 py-1 rounded transition-colors',
+                      isDefault
+                        ? 'opacity-40 cursor-not-allowed'
+                        : isDark
+                          ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                          : 'bg-gray-200 text-gray-600 hover:bg-gray-300',
+                    )}
+                  >
+                    {isDefault ? t('common:settings.ai.isDefault') : t('common:settings.ai.setDefault')}
+                  </button>
+
+                  <button
+                    onClick={handleTestConnection}
+                    disabled={testing || (!apiKey.trim() && !isOllama)}
+                    className={clsx(
+                      'text-[10px] flex items-center gap-1 px-2 py-1 rounded transition-colors',
+                      testing || (!apiKey.trim() && !isOllama)
+                        ? 'opacity-40 cursor-not-allowed'
+                        : isDark
+                          ? 'bg-green-900/30 text-green-300 hover:bg-green-900/50'
+                          : 'bg-green-100 text-green-700 hover:bg-green-200',
+                    )}
+                  >
+                    {testing ? <RefreshCw size={10} className="animate-spin" /> : <Play size={10} />}
+                    {t('common:settings.ai.testConnection')}
+                  </button>
+                </div>
 
                 <div className="flex items-center gap-2">
                   {saved && (

@@ -125,6 +125,84 @@ class SetDefaultRequest(BaseModel):
     provider: str
 
 
+class TestConnectionRequest(BaseModel):
+    provider: str
+    api_key: str
+    base_url: str
+    model: str
+
+
+class FetchModelsRequest(BaseModel):
+    base_url: str
+    api_key: str
+
+
+@router.post("/test")
+async def test_connection(req: TestConnectionRequest):
+    """测试 Provider 连接"""
+    import httpx
+
+    try:
+        headers = {
+            "Authorization": f"Bearer {req.api_key}",
+            "Content-Type": "application/json",
+        }
+        base_url = req.base_url.rstrip("/")
+
+        async with httpx.AsyncClient(timeout=15.0) as client:
+            resp = await client.post(
+                f"{base_url}/chat/completions",
+                headers=headers,
+                json={
+                    "model": req.model,
+                    "messages": [{"role": "user", "content": "Hi"}],
+                    "max_tokens": 5,
+                },
+            )
+            if resp.status_code == 200:
+                return {"status": "ok", "message": f"连接成功！模型 {req.model} 响应正常"}
+            else:
+                detail = ""
+                try:
+                    detail = resp.json().get("error", {}).get("message", resp.text[:200])
+                except Exception:
+                    detail = resp.text[:200]
+                return {"status": "error", "message": f"HTTP {resp.status_code}: {detail}"}
+    except httpx.ConnectError:
+        return {"status": "error", "message": f"无法连接到 {req.base_url}，请检查 Base URL 是否正确"}
+    except httpx.TimeoutException:
+        return {"status": "error", "message": "连接超时，请检查网络或 Base URL"}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
+
+@router.post("/models")
+async def fetch_models(req: FetchModelsRequest):
+    """获取可用模型列表"""
+    import httpx
+
+    try:
+        headers = {
+            "Authorization": f"Bearer {req.api_key}",
+        }
+        base_url = req.base_url.rstrip("/")
+
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            resp = await client.get(
+                f"{base_url}/models",
+                headers=headers,
+            )
+            if resp.status_code == 200:
+                data = resp.json()
+                models = [m["id"] for m in data.get("data", [])]
+                models.sort()
+                return {"status": "ok", "models": models}
+            else:
+                return {"status": "error", "models": [], "message": f"HTTP {resp.status_code}"}
+    except Exception as e:
+        return {"status": "error", "models": [], "message": str(e)}
+
+
 @router.post("/config")
 async def configure_provider(req: ConfigProvidersRequest):
     """配置 Provider 的 API Key"""
