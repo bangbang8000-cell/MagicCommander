@@ -1,12 +1,13 @@
 import { useTranslation } from 'react-i18next'
 import { useState, useRef, useEffect, useCallback } from 'react'
 import clsx from 'clsx'
-import { Menu, RefreshCw, Minus, Square, X } from 'lucide-react'
+import { Menu, RefreshCw, Minus, Square, X, Globe } from 'lucide-react'
 import { useProjectStore } from '@/stores/project.store'
 import { useUIStore } from '@/stores/ui.store'
 import { useEditorStore } from '@/stores/editor.store'
 import { AboutDialog } from '@/components/dialogs/AboutDialog'
 import { AppLogo } from '@/components/common'
+import i18n from '@/i18n'
 import type { UpdateStatus } from '@/types/ipc'
 
 interface HeaderProps {
@@ -16,6 +17,10 @@ interface HeaderProps {
 export function Header({ onCheatsheet }: HeaderProps) {
   const { t } = useTranslation()
   const isDark = useUIStore((s) => s.isDark)
+  const theme = useUIStore((s) => s.theme)
+  const setTheme = useUIStore((s) => s.setTheme)
+  const language = useUIStore((s) => s.language)
+  const setLanguage = useUIStore((s) => s.setLanguage)
   const toggleSidebar = useUIStore((s) => s.toggleSidebar)
   const togglePanel = useUIStore((s) => s.togglePanel)
   const setActiveActivity = useUIStore((s) => s.setActiveActivity)
@@ -234,6 +239,26 @@ export function Header({ onCheatsheet }: HeaderProps) {
     window.electron?.window?.close()
   }, [])
 
+  // 切换主题：light → dark → system → light
+  const handleToggleTheme = useCallback(() => {
+    const cycle: Array<'light' | 'dark' | 'system'> = ['light', 'dark', 'system']
+    const idx = cycle.indexOf(theme)
+    const next = cycle[(idx + 1) % 3]
+    setTheme(next)
+  }, [theme, setTheme])
+
+  // 切换语言：循环常用语言
+  const handleToggleLanguage = useCallback(() => {
+    const langs = ['zh-CN', 'en', 'ja', 'ko', 'fr', 'de', 'es', 'pt', 'ru', 'ar', 'vi', 'th', 'zh-TW']
+    const idx = langs.indexOf(language)
+    const next = langs[(idx + 1) % langs.length]
+    setLanguage(next)
+    i18n.changeLanguage(next)
+  }, [language, setLanguage])
+
+  const themeIcon = theme === 'light' ? '☀️' : theme === 'dark' ? '🌙' : '🖥️'
+  const themeTitle = theme === 'light' ? t('menu.lightMode') : theme === 'dark' ? t('menu.darkMode') : t('menu.systemMode')
+
   // 菜单项渲染辅助函数
   const renderMenuItem = (
     key: string,
@@ -387,6 +412,30 @@ export function Header({ onCheatsheet }: HeaderProps) {
 
         {/* 右侧：快捷操作 */}
         <div className="flex items-center gap-0.5 px-2" style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}>
+          {/* 切换语言 */}
+          <button
+            onClick={handleToggleLanguage}
+            className={clsx(
+              'p-1.5 rounded transition-colors text-xs',
+              isDark ? 'hover:bg-gray-700 text-gray-400' : 'hover:bg-gray-200 text-gray-500',
+            )}
+            title={t('menu.language')}
+          >
+            <Globe size={14} />
+          </button>
+
+          {/* 切换主题 */}
+          <button
+            onClick={handleToggleTheme}
+            className={clsx(
+              'p-1.5 rounded transition-colors text-xs',
+              isDark ? 'hover:bg-gray-700 text-gray-400' : 'hover:bg-gray-200 text-gray-500',
+            )}
+            title={themeTitle}
+          >
+            <span className="text-xs leading-none">{themeIcon}</span>
+          </button>
+
           {/* 检查更新 */}
           <button
             onClick={handleCheckUpdate}
