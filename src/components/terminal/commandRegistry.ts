@@ -86,7 +86,7 @@ async function resolveProjectId(nameOrId: string): Promise<number | null> {
     const match = projects.find(
       (p: any) => String(p.name ?? '') === nameOrId || String(p.id ?? '') === nameOrId,
     )
-    if (match) return match.id ?? 0
+    if (match) return (match as any).id ?? 0
   }
   return null
 }
@@ -109,11 +109,11 @@ export const commands: { [name: string]: CommandEntry } = {
   version: {
     desc: () => tt('terminal.commands.version.desc'),
     fn: (_, ctx) => {
-      const v = window.electron?.app?.getBuildInfo
+      const v = window.electron?.app?.getBuildInfo?.()
         ? '...'
         : useProjectStore.getState().projects
-          ? 'v3.4.1'
-          : 'v3.4.1'
+          ? 'v3.5.0'
+          : 'v3.5.0'
       ctx.addLog('success', `MagicCommander ${v}`)
     },
   },
