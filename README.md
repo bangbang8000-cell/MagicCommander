@@ -2,7 +2,7 @@
 
 **批量生成网络设备配置 | Network Device Configuration Automation**
 
-[![Version](https://img.shields.io/badge/version-3.4.0-blue)](https://github.com/bangbang8000-cell/MagicCommander)
+[![Version](https://img.shields.io/badge/version-3.4.1-blue)](https://github.com/bangbang8000-cell/MagicCommander)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![Windows](https://img.shields.io/badge/Windows-NSIS-blue)](https://github.com/bangbang8000-cell/MagicCommander/releases)
 [![macOS](https://img.shields.io/badge/macOS-DMG-silver)](https://github.com/bangbang8000-cell/MagicCommander/releases)
@@ -217,6 +217,7 @@ MagicCommander/
 
 | 版本 | 日期 | 更新内容 |
 |------|------|---------|
+| **3.4.1 Build 26072005** | 2026-07-20 | 修复关于对话框版本号显示为旧版 3.3.2 的问题，同步更新 electron/config.ts 中的 VERSION 配置 |
 | **3.4.0 Build 26072004** | 2026-07-20 | **Agent v2 智能编排引擎**：Planner/Validator/Context/Recovery/Reporter 五层架构、Skills Engine (7 预置 Skill + 半自动生成)、Memory System (用户画像+项目历史+操作习惯)、工具权限分级 (auto/notify/confirm) + 自主模式、27 工具 Agent 框架；**Chat UI 全面重构**：会话横向标签栏 + 溢出历史下拉、AI 自动提炼会话标题、模式/自主模式精简到设置、字体大小可调节、清除/新建图标语义修正；**可靠性修复**：render/dry-run JSON 解析 (平衡括号提取)、工具结果进度过滤、XML/JSON 截断容错解析、确认级工具权限修正 (semi_auto 也需确认) |
 | **3.3.2 Build 26072003** | 2026-07-20 | AI 工具集扩展 (14→27 工具)、项目分析引擎 (analyze_project)、自动优化建议、Logo 加载修复 (file:// 协议兼容)、i18n 多语言完善 (修复 12 处硬编码文本) |
 | **3.3.1 Build 26072002** | 2026-07-20 | 多 Provider 策略路由 (智能路由引擎)、tool_calls XML 格式解析 + 参数名自动修正、CLI 项目名支持 (非数字 ID)、Windows GBK 编码修复、system.md 提示词增强 |
