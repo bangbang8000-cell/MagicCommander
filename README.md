@@ -2,7 +2,7 @@
 
 **批量生成网络设备配置 | Network Device Configuration Automation**
 
-[![Version](https://img.shields.io/badge/version-3.4.1-blue)](https://github.com/bangbang8000-cell/MagicCommander)
+[![Version](https://img.shields.io/badge/version-3.5.0-blue)](https://github.com/bangbang8000-cell/MagicCommander)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![Windows](https://img.shields.io/badge/Windows-NSIS-blue)](https://github.com/bangbang8000-cell/MagicCommander/releases)
 [![macOS](https://img.shields.io/badge/macOS-DMG-silver)](https://github.com/bangbang8000-cell/MagicCommander/releases)
@@ -194,6 +194,13 @@ MagicCommander/
 | `Ctrl+Shift+E` | 切换到项目浏览器 |
 | `Ctrl+Shift+F` | 切换到搜索面板 |
 | `Ctrl+Shift+R` | 切换到工作台 |
+| `Ctrl+Shift+O` | 切换到输出结果 |
+| `Ctrl+Shift+W` | 切换到工作台 |
+| `Ctrl+Shift+H` | 切换到 AI 对话 |
+| `Ctrl+,` | 打开设置 |
+| `Ctrl+K Ctrl+S` | 打开快捷键列表 |
+| `Ctrl+Shift+P` | 命令面板 |
+| `Alt+F/E/V/T/H` | 打开对应菜单 |
 
 ---
 
@@ -217,6 +224,7 @@ MagicCommander/
 
 | 版本 | 日期 | 更新内容 |
 |------|------|---------|
+| **3.5.0 Build 26072101** | 2026-07-21 | **菜单系统重构**：Ctrl+S 去重、视图菜单歧义修复、快捷键注册表补齐(8→23)、标签页右键菜单、Alt+字母菜单导航、Cheatsheet i18n、命令面板(Ctrl+Shift+P)；**面板合并**：渲染操作+工作台合并(⚡闪电图标)、标签打印卡片、输出结果快捷跳转；**模板中心优化**：工具栏压缩、卡片内联展开+文件树、模板文件点击加载到编辑器、创建项目 Modal 对话框；**视觉统一**：暗色模式底色统一(Monaco自定义主题)、全局字体11→7种、JSON语法高亮；新增 IPC: readTemplateFile/readTemplateExcel |
 | **3.4.1 Build 26072006** | 2026-07-20 | 修复关于对话框版本号显示问题，触发正式编译发布 |
 | **3.4.0 Build 26072004** | 2026-07-20 | **Agent v2 智能编排引擎**：Planner/Validator/Context/Recovery/Reporter 五层架构、Skills Engine (7 预置 Skill + 半自动生成)、Memory System (用户画像+项目历史+操作习惯)、工具权限分级 (auto/notify/confirm) + 自主模式、27 工具 Agent 框架；**Chat UI 全面重构**：会话横向标签栏 + 溢出历史下拉、AI 自动提炼会话标题、模式/自主模式精简到设置、字体大小可调节、清除/新建图标语义修正；**可靠性修复**：render/dry-run JSON 解析 (平衡括号提取)、工具结果进度过滤、XML/JSON 截断容错解析、确认级工具权限修正 (semi_auto 也需确认) |
 | **3.3.2 Build 26072003** | 2026-07-20 | AI 工具集扩展 (14→27 工具)、项目分析引擎 (analyze_project)、自动优化建议、Logo 加载修复 (file:// 协议兼容)、i18n 多语言完善 (修复 12 处硬编码文本) |
