@@ -25,11 +25,11 @@
 
 MagicCommander 将你的网络设备参数（Excel 表格）和设备配置模板（Jinja2 语法）结合起来，一键生成所有设备的标准化配置文件，同时自动生成可打印的设备标签。
 
-![MagicCommander 主界面](snapshot/软件说明0.png)
+![MagicCommander 主界面 - AI 对话 + 项目浏览器](snapshot/软件说明0.png)
 
-**工作原理**：你在 Excel 里维护设备参数（主机名、IP 地址、VLAN ID、接口描述等），用 Jinja2 模板定义配置格式，MagicCommander 自动完成拼接和渲染，输出可直接使用的设备配置文件。
+**工作原理**：左侧项目浏览器管理模板和 Excel 参数，右侧 AI 对话面板通过自然语言驱动渲染、分析、优化等操作。你用 Jinja2 模板定义配置格式，在 Excel 中维护设备参数，MagicCommander 自动完成拼接和渲染，输出可直接使用的设备配置文件。
 
-![MagicCommander 标签生成](snapshot/软件说明1.png)
+![MagicCommander 渲染输出 - 配置文件与 Jinja2 模板左右对比](snapshot/软件说明1.png)
 
 ---
 
