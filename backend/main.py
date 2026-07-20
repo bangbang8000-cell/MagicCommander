@@ -715,7 +715,7 @@ def handle_file_command(processor, args):
 
 
 def process_project_ids(ids_str, project_names):
-    """处理项目ID字符串"""
+    """处理项目ID字符串，支持数字编号和项目名称"""
     if ids_str.strip().lower() == 'all':
         return list(range(len(project_names)))
     
@@ -723,11 +723,22 @@ def process_project_ids(ids_str, project_names):
         ids = []
         for part in ids_str.strip().split(','):
             part = part.strip()
+            if not part:
+                continue
             if part.isdigit():
+                # 数字编号
                 idx = int(part) - 1
                 if idx < 0 or idx >= len(project_names):
                     raise ValueError(f'项目ID {part} 无效，范围应在1-{len(project_names)}之间')
                 ids.append(idx)
+            else:
+                # 项目名称
+                if part in project_names:
+                    ids.append(project_names.index(part))
+                else:
+                    raise ValueError(f'项目 "{part}" 不存在，可用项目: {", ".join(project_names)}')
+        if not ids:
+            raise ValueError(f'未指定有效的项目ID或名称')
         return ids
     except Exception as e:
         raise ValueError(f'无效的项目ID格式: {ids_str}')
@@ -744,24 +755,35 @@ def convert_to_project_string(ids):
     return '/'.join([str(idx + 1) for idx in ids])
 
 
+def _safe_print(text: str):
+    """安全打印，处理 Windows GBK 编码问题"""
+    try:
+        print(text)
+    except UnicodeEncodeError:
+        # GBK 编码回退：替换 Unicode 符号为 ASCII
+        text = text.replace('\u2713', '[OK]').replace('\u2717', '[ERR]').replace('\u26a0', '[WARN]').replace('\u2139', '[INFO]')
+        text = text.replace('\033[92m', '').replace('\033[91m', '').replace('\033[93m', '').replace('\033[94m', '').replace('\033[0m', '')
+        print(text)
+
+
 def print_success(message):
     """打印成功信息"""
-    print(f'\033[92m✓ {message}\033[0m')
+    _safe_print(f'\033[92m✓ {message}\033[0m')
 
 
 def print_error(message):
     """打印错误信息"""
-    print(f'\033[91m✗ {message}\033[0m')
+    _safe_print(f'\033[91m✗ {message}\033[0m')
 
 
 def print_warning(message):
     """打印警告信息"""
-    print(f'\033[93m⚠ {message}\033[0m')
+    _safe_print(f'\033[93m⚠ {message}\033[0m')
 
 
 def print_info(message):
     """打印信息"""
-    print(f'\033[94mℹ {message}\033[0m')
+    _safe_print(f'\033[94mℹ {message}\033[0m')
 
 
 if __name__ == '__main__':

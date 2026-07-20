@@ -141,6 +141,11 @@ const api = {
       configs: Array<{ provider: string; apiKey: string; model: string; baseUrl: string }>,
       defaultProvider: string,
     ) => ipcRenderer.invoke('aihub:syncProviders', configs, defaultProvider),
+    resolveProvider: (
+      message: string,
+      routingRules: Array<{ taskType: string; provider: string }>,
+      defaultProvider: string,
+    ) => ipcRenderer.invoke('aihub:resolveProvider', message, routingRules, defaultProvider),
     onStream: (callback: (data: { sessionId: string; chunk: string }) => void) => {
       const handler = (_e: unknown, data: { sessionId: string; chunk: string }) => callback(data)
       ipcRenderer.on('aihub:stream', handler)

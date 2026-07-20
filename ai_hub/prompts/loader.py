@@ -33,12 +33,15 @@ def load_prompt(name: str) -> str:
 
 
 def get_system_prompt(mode: Optional[str] = None) -> str:
-    """获取完整的系统提示词（基础 + 模式）"""
+    """获取完整的系统提示词（基础 + skill + 模式）"""
     base = load_prompt("system")
+    tools = load_prompt("mc-tools")
+    parts = [base, tools]
     if mode and mode in ("template", "config", "general"):
         mode_prompt = load_prompt(mode)
-        return f"{base}\n\n{mode_prompt}"
-    return base
+        if mode_prompt:
+            parts.append(mode_prompt)
+    return "\n\n".join(parts)
 
 
 def reload_prompts():

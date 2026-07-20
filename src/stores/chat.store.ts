@@ -344,9 +344,22 @@ export async function sendMessage(
     await aiHub.syncProviders(configs, aiConfig.defaultProvider)
 
     // 使用选中的 Provider（优先 chat.store，回退到 Settings 默认）
-    const provider = store.selectedProvider || aiConfig.defaultProvider
+    let provider = store.selectedProvider || aiConfig.defaultProvider
     if (!provider) {
       throw new Error('未选择 AI 模型。请前往设置页面配置 Provider。')
+    }
+
+    // 策略路由：根据消息内容自动选择最优 Provider
+    if (aiConfig.routingEnabled && aiConfig.routingRules.length > 0) {
+      const resolved = await aiHub.resolveProvider(
+        content,
+        aiConfig.routingRules,
+        aiConfig.defaultProvider,
+      )
+      if (resolved && resolved !== provider) {
+        console.log(`[chat.store] 策略路由: ${provider} → ${resolved}`)
+        provider = resolved
+      }
     }
 
     // 监听流式响应

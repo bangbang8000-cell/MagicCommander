@@ -888,6 +888,19 @@ export function setupIpcHandlers(window: BrowserWindow): void {
     },
   )
 
+  // AI Hub 策略路由
+  ipcMain.handle(
+    'aihub:resolveProvider',
+    async (
+      _e,
+      message: string,
+      routingRules: Array<{ taskType: string; provider: string }>,
+      defaultProvider: string,
+    ): Promise<string> => {
+      return aiHubService.resolveProvider(message, routingRules, defaultProvider)
+    },
+  )
+
   // AI Hub 获取模型列表
   ipcMain.handle(
     'aihub:fetchModels',

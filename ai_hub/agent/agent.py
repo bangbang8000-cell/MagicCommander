@@ -135,32 +135,69 @@ class AgentSession:
         return "".join(result_parts)
 
 
+# 参数名兼容映射：LLM 常见错误 -> 正确参数名
+_PARAM_ALIASES = {
+    "project": "projectName",
+    "name": "projectName",
+    "template": "templateName",
+    "config_text": "configText",
+    "device_type": "deviceType",
+    "source_project": "sourceProject",
+    "target_project": "targetProject",
+    "file_path": "filePath",
+    "excel_name": "excelName",
+    "config_description": "configDescription",
+}
+
+
+def _normalize_tool_params(tool_call: dict) -> dict:
+    """修正 LLM 常见的参数名错误"""
+    args = tool_call.get("arguments", {})
+    if not isinstance(args, dict):
+        return tool_call
+    for wrong, correct in _PARAM_ALIASES.items():
+        if wrong in args and correct not in args:
+            args[correct] = args.pop(wrong)
+    return tool_call
+
+
 def _parse_tool_call(content: str) -> Optional[dict]:
     """从 LLM 响应中解析 tool call，返回 {name, arguments} 或 None"""
 
-    # 匹配 ```tool_call ... ``` 代码块
+    # 方式1: 匹配 ```tool_call ... ``` 代码块
     pattern = r"```tool_call\s*\n(.*?)\n```"
     match = re.search(pattern, content, re.DOTALL)
     if match:
         try:
-            return json.loads(match.group(1))
+            return _normalize_tool_params(json.loads(match.group(1)))
         except json.JSONDecodeError:
             pass
 
-    # 匹配独立的 JSON 对象（包含 name 和 arguments）
+    # 方式2: 匹配独立的 JSON 对象（包含 name 和 arguments）
     pattern2 = r'\{\s*"name"\s*:\s*"[^"]+"\s*,\s*"arguments"\s*:\s*\{[^}]+\}\s*\}'
     match2 = re.search(pattern2, content)
     if match2:
         try:
-            return json.loads(match2.group(0))
+            return _normalize_tool_params(json.loads(match2.group(0)))
         except json.JSONDecodeError:
             pass
+
+    # 方式3: 匹配 <tool_calls> XML 格式（LLM 原生 function calling 格式）
+    pattern3 = r"<invoke\s+name=\"([^\"]+)\">(.*?)</invoke>"
+    match3 = re.search(pattern3, content, re.DOTALL)
+    if match3:
+        tool_name = match3.group(1)
+        params_str = match3.group(2)
+        args = {}
+        for pm in re.finditer(r"<parameter\s+name=\"([^\"]+)\"[^>]*>(.*?)</parameter>", params_str):
+            args[pm.group(1)] = pm.group(2).strip()
+        return _normalize_tool_params({"name": tool_name, "arguments": args})
 
     return None
 
 
 def _strip_tool_call(content: str) -> str:
-    """从内容中移除 tool call JSON，返回清理后的文本"""
+    """从内容中移除 tool call JSON/XML，返回清理后的文本"""
     # 移除 ```tool_call ... ``` 代码块
     cleaned = re.sub(r"```tool_call\s*\n.*?\n```\s*", "", content, flags=re.DOTALL)
     # 移除独立的 JSON 对象（包含 name 和 arguments）
@@ -169,6 +206,8 @@ def _strip_tool_call(content: str) -> str:
         "",
         cleaned,
     )
+    # 移除 <tool_calls> XML 格式
+    cleaned = re.sub(r"<tool_calls>.*?</tool_calls>\s*", "", cleaned, flags=re.DOTALL)
     return cleaned.strip()
 
 

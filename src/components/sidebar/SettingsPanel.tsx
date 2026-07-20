@@ -512,6 +512,107 @@ export function SettingsPanel() {
           </div>
         </div>
 
+        {/* ===== 策略路由 ===== */}
+        <div className={clsx('rounded-lg border p-3', isDark ? 'border-gray-700 bg-gray-800/50' : 'border-gray-200 bg-gray-50')}>
+          <div className="flex items-start gap-3">
+            <div className={clsx('mt-0.5', isDark ? 'text-gray-400' : 'text-gray-500')}>
+              <Shield size={16} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className={clsx('text-sm font-medium', isDark ? 'text-gray-200' : 'text-gray-700')}>
+                    {t('common:settings.ai.routing')}
+                  </h4>
+                  <p className={clsx('text-xs mt-0.5', isDark ? 'text-gray-500' : 'text-gray-400')}>
+                    {t('common:settings.ai.routingDesc')}
+                  </p>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={aiConfig.routingEnabled}
+                    onChange={(e) => setAIConfig({ routingEnabled: e.target.checked })}
+                    className="sr-only peer"
+                  />
+                  <div className={clsx(
+                    "w-8 h-4 rounded-full peer transition-colors",
+                    aiConfig.routingEnabled
+                      ? 'bg-blue-500'
+                      : (isDark ? 'bg-gray-600' : 'bg-gray-300'),
+                  )}>
+                    <div className={clsx(
+                      "w-3 h-3 rounded-full bg-white transition-transform mt-0.5",
+                      aiConfig.routingEnabled ? 'translate-x-4 ml-0.5' : 'translate-x-0.5',
+                    )} />
+                  </div>
+                </label>
+              </div>
+
+              {aiConfig.routingEnabled && (
+                <div className="mt-3 space-y-2">
+                  {(['code', 'analysis', 'simple', 'complex'] as const).map((taskType) => {
+                    const rule = aiConfig.routingRules.find((r) => r.taskType === taskType)
+                    const provider = rule?.provider || aiConfig.defaultProvider
+                    const labels: Record<string, string> = {
+                      code: t('common:settings.ai.routingCode'),
+                      analysis: t('common:settings.ai.routingAnalysis'),
+                      simple: t('common:settings.ai.routingSimple'),
+                      complex: t('common:settings.ai.routingComplex'),
+                    }
+                    const descs: Record<string, string> = {
+                      code: t('common:settings.ai.routingCodeDesc'),
+                      analysis: t('common:settings.ai.routingAnalysisDesc'),
+                      simple: t('common:settings.ai.routingSimpleDesc'),
+                      complex: t('common:settings.ai.routingComplexDesc'),
+                    }
+                    return (
+                      <div key={taskType} className="flex items-center gap-2">
+                        <div className="w-24 shrink-0">
+                          <span className={clsx('text-[11px] font-medium', isDark ? 'text-gray-300' : 'text-gray-600')}>
+                            {labels[taskType]}
+                          </span>
+                          <p className={clsx('text-[9px]', isDark ? 'text-gray-500' : 'text-gray-400')}>
+                            {descs[taskType]}
+                          </p>
+                        </div>
+                        <select
+                          value={provider}
+                          onChange={(e) => {
+                            const newRules = aiConfig.routingRules.map((r) =>
+                              r.taskType === taskType ? { ...r, provider: e.target.value } : r,
+                            )
+                            // 确保所有 4 种类型都有规则
+                            const allTypes = ['code', 'analysis', 'simple', 'complex']
+                            const merged = allTypes.map((t) => {
+                              const existing = newRules.find((r) => r.taskType === t)
+                              return existing || { taskType: t as any, provider: aiConfig.defaultProvider }
+                            })
+                            setAIConfig({ routingRules: merged })
+                          }}
+                          className={clsx(
+                            'flex-1 px-2 py-1 rounded text-xs outline-none',
+                            isDark
+                              ? 'bg-gray-700 text-gray-200'
+                              : 'bg-gray-100 text-gray-700 border border-gray-300',
+                          )}
+                        >
+                          {PROVIDER_KEYS.filter((k) => aiConfig.providers[k]?.apiKey || k === 'ollama').map((k) => (
+                            <option key={k} value={k}>{PROVIDER_CATALOG[k].name}</option>
+                          ))}
+                          {PROVIDER_KEYS.filter((k) => !aiConfig.providers[k]?.apiKey && k !== 'ollama').map((k) => (
+                            <option key={k} value={k} disabled>{PROVIDER_CATALOG[k].name} ({t('common:settings.ai.notConfigured')})</option>
+                          ))}
+                        </select>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
         {/* ===== 外观 ===== */}
         <div className={clsx('rounded-lg border p-3', isDark ? 'border-gray-700 bg-gray-800/50' : 'border-gray-200 bg-gray-50')}>
           <div className="flex items-start gap-3">

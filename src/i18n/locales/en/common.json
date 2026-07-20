@@ -370,7 +370,18 @@
       "default": "Default",
       "testConnection": "Test Connection",
       "fetchModels": "Fetch Models",
-      "selectModel": "Select Model"
+      "selectModel": "Select Model",
+      "routing": "Smart Routing",
+      "routingDesc": "Auto-select the best AI model based on task type",
+      "routingCode": "Code/Template",
+      "routingCodeDesc": "Write code, generate templates",
+      "routingAnalysis": "Analysis/Review",
+      "routingAnalysisDesc": "Config analysis, diff review",
+      "routingSimple": "Simple Q&A",
+      "routingSimpleDesc": "List, query, help",
+      "routingComplex": "Complex Reasoning",
+      "routingComplexDesc": "Multi-step reasoning, planning",
+      "notConfigured": "Not configured"
     },
     "general": {
       "title": "General",

@@ -370,7 +370,18 @@
       "default": "默认",
       "testConnection": "测试连接",
       "fetchModels": "获取模型",
-      "selectModel": "选择模型"
+      "selectModel": "选择模型",
+      "routing": "智能路由",
+      "routingDesc": "根据消息类型自动选择最优 AI 模型",
+      "routingCode": "编码/模板",
+      "routingCodeDesc": "编写代码、生成模板",
+      "routingAnalysis": "分析/审查",
+      "routingAnalysisDesc": "配置分析、对比审查",
+      "routingSimple": "简单问答",
+      "routingSimpleDesc": "列表、查询、帮助",
+      "routingComplex": "复杂推理",
+      "routingComplexDesc": "多步骤推理、规划",
+      "notConfigured": "未配置"
     },
     "general": {
       "title": "通用设置",

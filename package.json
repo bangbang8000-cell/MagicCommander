@@ -1,6 +1,6 @@
 {
   "name": "magiccommander",
-  "version": "3.3.0",
+  "version": "3.3.1",
   "description": "MagicCommander - 网络设备配置管理工具",
   "main": "dist-electron/main.js",
   "author": "Magic Commander Team",

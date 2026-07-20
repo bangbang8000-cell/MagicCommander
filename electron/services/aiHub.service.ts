@@ -421,6 +421,34 @@ export class AIHubService extends EventEmitter {
   }
 
   /**
+   * 根据消息内容和路由策略选择合适的 Provider
+   */
+  resolveProvider(
+    message: string,
+    routingRules: Array<{ taskType: string; provider: string }>,
+    defaultProvider: string,
+  ): string {
+    // 关键词匹配规则
+    const codeKeywords = ['创建', '生成', '模板', '渲染', 'render', 'template', 'create', '新建', '编写', '写', '生成配置']
+    const analysisKeywords = ['分析', '对比', '审查', 'review', 'diff', 'compare', 'analyze', '检查', '查看', '评估', '校验']
+    const simpleKeywords = ['列表', '列出', 'list', 'show', '显示', '帮助', 'help', '你好', 'hello', '是什么']
+
+    const lowerMsg = message.toLowerCase()
+
+    let taskType = 'complex'
+    if (simpleKeywords.some((kw) => lowerMsg.includes(kw))) {
+      taskType = 'simple'
+    } else if (codeKeywords.some((kw) => lowerMsg.includes(kw))) {
+      taskType = 'code'
+    } else if (analysisKeywords.some((kw) => lowerMsg.includes(kw))) {
+      taskType = 'analysis'
+    }
+
+    const rule = routingRules.find((r) => r.taskType === taskType)
+    return rule?.provider || defaultProvider
+  }
+
+  /**
    * 获取可用模型列表
    */
   async fetchModels(baseUrl: string, apiKey: string): Promise<{ status: string; models: string[]; message?: string }> {

@@ -74,8 +74,15 @@ interface UIState {
   setProviderConfig: (key: string, config: { apiKey?: string; model?: string; baseUrl?: string }) => void
 }
 
+export interface RoutingRule {
+  taskType: 'code' | 'analysis' | 'simple' | 'complex'
+  provider: string
+}
+
 export interface AIConfig {
   defaultProvider: string
+  routingEnabled: boolean
+  routingRules: RoutingRule[]
   providers: Record<string, ProviderConfig>
 }
 
@@ -170,7 +177,17 @@ export const useUIStore = create<UIState>()(
       language: 'zh-CN',
       setLanguage: (language) => set({ language }),
 
-      aiConfig: { defaultProvider: 'deepseek', providers: {} },
+      aiConfig: {
+        defaultProvider: 'deepseek',
+        routingEnabled: false,
+        routingRules: [
+          { taskType: 'code', provider: 'deepseek' },
+          { taskType: 'analysis', provider: 'deepseek' },
+          { taskType: 'simple', provider: 'deepseek' },
+          { taskType: 'complex', provider: 'deepseek' },
+        ],
+        providers: {},
+      },
       setAIConfig: (config) => set((s) => ({ aiConfig: { ...s.aiConfig, ...config } })),
       setProviderConfig: (key, config) =>
         set((s) => ({

@@ -266,5 +266,10 @@ export interface AIHubIpcApi {
     configs: Array<{ provider: string; apiKey: string; model: string; baseUrl: string }>,
     defaultProvider: string,
   ) => Promise<void>
+  resolveProvider: (
+    message: string,
+    routingRules: Array<{ taskType: string; provider: string }>,
+    defaultProvider: string,
+  ) => Promise<string>
   onStream: (callback: (data: AIHubStreamData) => void) => () => void
 }
