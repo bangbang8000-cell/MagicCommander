@@ -340,7 +340,7 @@ export const SearchPanel = React.memo(function SearchPanel() {
   const typeChipClass = (key: string) => {
     const active = selectedTypes.has(key)
     return clsx(
-      'px-2 py-0.5 text-[10px] rounded border transition-colors cursor-pointer',
+      'px-2 py-0.5 text-[11px] rounded border transition-colors cursor-pointer',
       active
         ? isDark
           ? 'bg-primary-900/40 border-primary-700 text-primary-200'
@@ -445,7 +445,7 @@ export const SearchPanel = React.memo(function SearchPanel() {
                 <span
                   onClick={() => setSelectedTypes(new Set())}
                   className={clsx(
-                    'px-2 py-0.5 text-[10px] rounded border transition-colors cursor-pointer',
+                    'px-2 py-0.5 text-[11px] rounded border transition-colors cursor-pointer',
                     isDark
                       ? 'text-gray-500 border-gray-600 hover:text-gray-300'
                       : 'text-gray-500 border-gray-300 hover:text-gray-700',
@@ -508,7 +508,7 @@ export const SearchPanel = React.memo(function SearchPanel() {
                   <FileText size={12} className={clsx('shrink-0 mt-0.5', isDark ? 'text-gray-500' : 'text-gray-400')} />
                   <div className="flex-1 min-w-0">
                     <div className="truncate">{renderHighlightedText(item.file.name)}</div>
-                    <div className={clsx('truncate text-[10px] mt-0.5', isDark ? 'text-gray-500' : 'text-gray-400')}>
+                    <div className={clsx('truncate text-[11px] mt-0.5', isDark ? 'text-gray-500' : 'text-gray-400')}>
                       {item.relativePath || item.file.path}
                     </div>
                   </div>
@@ -555,14 +555,14 @@ export const SearchPanel = React.memo(function SearchPanel() {
                     )}
                     <FileText size={12} className={clsx('shrink-0', isDark ? 'text-gray-500' : 'text-gray-400')} />
                     <span className="flex-1 truncate font-medium">{group.file.name}</span>
-                    <span className={clsx('shrink-0 text-[10px]', isDark ? 'text-gray-500' : 'text-gray-400')}>
+                    <span className={clsx('shrink-0 text-[11px]', isDark ? 'text-gray-500' : 'text-gray-400')}>
                       {group.matches.length} {t('search.matchCountSuffix')}
                     </span>
                   </button>
                   {!isCollapsed && (
                     <div>
                       <div
-                        className={clsx('px-3 pb-1 text-[10px] truncate', isDark ? 'text-gray-500' : 'text-gray-400')}
+                        className={clsx('px-3 pb-1 text-[11px] truncate', isDark ? 'text-gray-500' : 'text-gray-400')}
                       >
                         {group.relativePath || group.file.path}
                       </div>
@@ -577,7 +577,7 @@ export const SearchPanel = React.memo(function SearchPanel() {
                         >
                           <span
                             className={clsx(
-                              'shrink-0 text-[10px] font-mono',
+                              'shrink-0 text-[11px] font-mono',
                               isDark ? 'text-gray-500' : 'text-gray-400',
                             )}
                           >

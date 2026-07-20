@@ -76,7 +76,7 @@ export function ContextMenu({ items, children, className }: ContextMenuProps) {
                 {item.icon && <span className="w-4 flex justify-center">{item.icon}</span>}
                 <span className="flex-1">{item.label}</span>
                 {item.shortcut && (
-                  <span className={clsx('text-[10px]', isDark ? 'text-gray-500' : 'text-gray-400')}>
+                  <span className={clsx('text-[11px]', isDark ? 'text-gray-500' : 'text-gray-400')}>
                     {item.shortcut}
                   </span>
                 )}

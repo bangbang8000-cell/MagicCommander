@@ -3,10 +3,10 @@ import { useTranslation } from 'react-i18next'
 import { useProjectStore } from '@/stores/project.store'
 import { useUIStore } from '@/stores/ui.store'
 import { showError, showSuccess } from '@/components/ui/Toast'
-import { ResizeHandle } from '@/components/common/ResizeHandle'
+import { Modal } from '@/components/ui/Modal'
+import clsx from 'clsx'
 import type { TemplateInfo, TemplateMeta } from '@/types/project'
 import { TemplateCard } from './TemplateCard'
-import { TemplateDetail } from './TemplateDetail'
 import { TemplateEditDialog } from './TemplateEditDialog'
 import { TemplateListToolbar } from './TemplateListToolbar'
 
@@ -16,19 +16,23 @@ type TemplateCenterPanelProps = {
 
 export function TemplateCenterPanel({ onCreateProjectName }: TemplateCenterPanelProps) {
   const { t } = useTranslation('project')
+  const isDark = useUIStore((s) => s.isDark)
   const templates = useProjectStore((s) => s.templates)
   const fetchTemplates = useProjectStore((s) => s.fetchTemplates)
   const createProject = useProjectStore((s) => s.createProject)
   const updateTemplateMeta = useProjectStore((s) => s.updateTemplateMeta)
   const deleteTemplate = useProjectStore((s) => s.deleteTemplate)
-  const templateListHeight = useUIStore((s) => s.templateListHeight)
-  const setTemplateListHeight = useUIStore((s) => s.setTemplateListHeight)
   const [query, setQuery] = useState('')
   const [sortBy, setSortBy] = useState<'name' | 'updatedAt' | 'sourceProject'>('name')
-  const [viewMode, setViewMode] = useState<'card' | 'compact'>('card')
   const [category, setCategory] = useState<string>('all')
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null)
   const [editingTemplate, setEditingTemplate] = useState<TemplateInfo | null>(null)
+
+  // 创建项目弹窗
+  const [createDialogOpen, setCreateDialogOpen] = useState(false)
+  const [createDialogName, setCreateDialogName] = useState('')
+  const [createDialogTemplate, setCreateDialogTemplate] = useState<TemplateInfo | null>(null)
+  const [creating, setCreating] = useState(false)
 
   useEffect(() => {
     fetchTemplates().catch((err) => showError(t('template.readFailed', { message: (err as Error).message })))
@@ -37,9 +41,13 @@ export function TemplateCenterPanel({ onCreateProjectName }: TemplateCenterPanel
   const visibleTemplates = useMemo(() => {
     const lower = query.trim().toLowerCase()
     let filtered = lower
-      ? templates.filter((item) => [item.name, item.description, item.scenario, item.sourceProject].join(' ').toLowerCase().includes(lower))
+      ? templates.filter((item) =>
+          [item.name, item.description, item.scenario, item.sourceProject]
+            .join(' ')
+            .toLowerCase()
+            .includes(lower),
+        )
       : templates
-    // 按分类过滤
     if (category !== 'all') {
       filtered = filtered.filter((item) => item.scenario === category)
     }
@@ -50,23 +58,31 @@ export function TemplateCenterPanel({ onCreateProjectName }: TemplateCenterPanel
     })
   }, [query, sortBy, templates, category])
 
-  // 提取所有分类
   const categories = useMemo(() => {
     const cats = new Set(templates.map((item) => item.scenario).filter(Boolean))
     return ['all', ...Array.from(cats).sort()]
   }, [templates])
 
-  const selectedTemplate = visibleTemplates.find((item) => item.id === selectedTemplateId) ?? visibleTemplates[0] ?? null
+  const openCreateDialog = (template: TemplateInfo) => {
+    const defaultName = onCreateProjectName
+      ? onCreateProjectName(template.name)
+      : `${template.name}-project`
+    setCreateDialogName(defaultName)
+    setCreateDialogTemplate(template)
+    setCreateDialogOpen(true)
+  }
 
-  const createFromTemplate = async (template: TemplateInfo) => {
-    const defaultName = onCreateProjectName ? onCreateProjectName(template.name) : `${template.name}-project`
-    const name = window.prompt(t('template.enterProjectName'), defaultName)
-    if (!name?.trim()) return
+  const handleCreate = async () => {
+    if (!createDialogTemplate || !createDialogName.trim()) return
+    setCreating(true)
     try {
-      await createProject(name.trim(), { template: template.id })
-      showSuccess(t('template.createFromTemplate', { name: name.trim() }))
+      await createProject(createDialogName.trim(), { template: createDialogTemplate.id })
+      showSuccess(t('template.createFromTemplate', { name: createDialogName.trim() }))
+      setCreateDialogOpen(false)
     } catch (err) {
       showError((err as Error).message)
+    } finally {
+      setCreating(false)
     }
   }
 
@@ -96,44 +112,33 @@ export function TemplateCenterPanel({ onCreateProjectName }: TemplateCenterPanel
       <TemplateListToolbar
         query={query}
         sortBy={sortBy}
-        viewMode={viewMode}
         category={category}
         categories={categories}
         onQueryChange={setQuery}
         onSortChange={setSortBy}
-        onViewModeChange={setViewMode}
         onCategoryChange={setCategory}
       />
-      <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
-        <div
-          className="p-2 space-y-2 overflow-auto border-b border-gray-200 dark:border-gray-700"
-          style={{ maxHeight: `${templateListHeight}px` }}
-        >
-          {visibleTemplates.length === 0 ? (
-            <div className="text-xs text-gray-500 dark:text-gray-400 p-2">{t('template.noTemplates')}</div>
-          ) : (
-            visibleTemplates.map((template) => (
-              <TemplateCard
-                key={template.id}
-                template={template}
-                selected={selectedTemplate?.id === template.id}
-                compact={viewMode === 'compact'}
-                onSelect={() => setSelectedTemplateId(template.id)}
-                onCreateProject={() => createFromTemplate(template)}
-                onEdit={() => setEditingTemplate(template)}
-                onDelete={() => removeTemplate(template)}
-              />
-            ))
-          )}
-        </div>
-        <ResizeHandle
-          direction="vertical"
-          onResize={(delta) => setTemplateListHeight(templateListHeight + delta)}
-        />
-        <div className="flex-1 min-h-0 overflow-hidden">
-          <TemplateDetail template={selectedTemplate} />
-        </div>
+      <div className="flex-1 overflow-auto p-2 space-y-1.5">
+        {visibleTemplates.length === 0 ? (
+          <div className="text-xs text-gray-500 dark:text-gray-400 p-2 text-center">
+            {t('template.noTemplates')}
+          </div>
+        ) : (
+          visibleTemplates.map((template) => (
+            <TemplateCard
+              key={template.id}
+              template={template}
+              selected={selectedTemplateId === template.id}
+              onSelect={() => setSelectedTemplateId(template.id)}
+              onCreateProject={() => openCreateDialog(template)}
+              onEdit={() => setEditingTemplate(template)}
+              onDelete={() => removeTemplate(template)}
+            />
+          ))
+        )}
       </div>
+
+      {/* 模板编辑弹窗 */}
       <TemplateEditDialog
         open={editingTemplate !== null}
         template={editingTemplate}
@@ -143,6 +148,64 @@ export function TemplateCenterPanel({ onCreateProjectName }: TemplateCenterPanel
           return editTemplate(editingTemplate, meta)
         }}
       />
+
+      {/* 创建项目弹窗 */}
+      <Modal
+        open={createDialogOpen}
+        onClose={() => setCreateDialogOpen(false)}
+        title={t('template.createProject') || '创建项目'}
+        width="400px"
+        footer={
+          <>
+            <button
+              onClick={() => setCreateDialogOpen(false)}
+              className={clsx(
+                'px-4 py-1.5 text-sm rounded border transition-colors',
+                isDark
+                  ? 'border-gray-600 text-gray-200 hover:bg-gray-700'
+                  : 'border-gray-300 text-gray-700 hover:bg-gray-50',
+              )}
+            >
+              {t('template.edit.cancel')}
+            </button>
+            <button
+              onClick={handleCreate}
+              disabled={creating || !createDialogName.trim()}
+              className={clsx(
+                'px-4 py-1.5 text-sm rounded transition-colors',
+                'bg-primary-600 text-white hover:bg-primary-700 disabled:opacity-50',
+              )}
+            >
+              {creating ? t('template.creating') || '创建中...' : t('template.create') || '创建'}
+            </button>
+          </>
+        }
+      >
+        <div className="space-y-3">
+          <div>
+            <label className={clsx('text-xs font-medium mb-1 block', isDark ? 'text-gray-300' : 'text-gray-600')}>
+              {t('template.enterProjectName')}
+            </label>
+            <input
+              type="text"
+              value={createDialogName}
+              onChange={(e) => setCreateDialogName(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter') handleCreate() }}
+              autoFocus
+              className={clsx(
+                'w-full px-3 py-2 text-sm rounded border outline-none focus:border-primary-400',
+                isDark ? 'bg-gray-900 border-gray-700 text-gray-100' : 'bg-white border-gray-300 text-gray-900',
+              )}
+              placeholder={t('template.enterProjectName')}
+            />
+          </div>
+          {createDialogTemplate && (
+            <p className={clsx('text-xs', isDark ? 'text-gray-400' : 'text-gray-500')}>
+              模板: <span className="font-medium">{createDialogTemplate.name}</span>
+            </p>
+          )}
+        </div>
+      </Modal>
     </div>
   )
 }

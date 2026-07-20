@@ -164,14 +164,7 @@
     "reload": "刷新页面"
   },
   "loading": {
-    "restoringState": "正在恢复状态...",
-    "loadingProject": "正在加载项目...",
-    "restoringProject": "正在恢复项目...",
-    "restoringTabs": "正在恢复标签页...",
-    "starting": "正在启动...",
-    "ready": "准备就绪",
-    "defaultQuote": "网络的世界里，没有到达不了的远方...",
-    "networkEngineerProverb": "网络工程师箴言"
+    "loading": "加载中..."
   },
   "logViewer": {
     "executionLog": "执行日志",
@@ -336,12 +329,20 @@
     "renderOperations": "渲染操作",
     "outputResults": "输出结果",
     "chat": "AI 对话",
-    "workbench": "工作台"
+    "workbench": "工作台",
+    "newProject": "新建项目",
+    "undo": "撤销",
+    "redo": "重做",
+    "copySelection": "复制",
+    "paste": "粘贴",
+    "settings": "打开设置",
+    "aiChat": "AI 对话"
   },
   "hotkeyCategories": {
     "file": "文件",
     "view": "视图",
-    "panel": "面板"
+    "panel": "面板",
+    "edit": "编辑"
   },
   "explorer": {
     "title": "资源管理器",
@@ -433,8 +434,7 @@
     "updates": {
       "title": "软件更新",
       "checkButton": "检查更新"
-    },
-    "comingSoon": "即将推出"
+    }
   },
   "window": {
     "minimize": "最小化",
@@ -442,7 +442,12 @@
     "restore": "还原",
     "close": "关闭"
   },
-  "loading": {
-    "loading": "加载中..."
+  "cheatsheet": {
+    "title": "键盘快捷键",
+    "close": "关闭"
+  },
+  "commandPalette": {
+    "placeholder": "输入命令名称搜索...",
+    "noResults": "无匹配结果"
   }
 }

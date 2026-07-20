@@ -299,7 +299,7 @@ export function OutputPanel() {
                 <div className={clsx('text-xs font-semibold', isDark ? 'text-gray-200' : 'text-gray-700')}>
                   {selectedProject.name}
                 </div>
-                <div className="space-y-1 text-[10px]">
+                <div className="space-y-1 text-[11px]">
                   {outputStructure.map((dir) => (
                     <div key={dir.path} className="flex justify-between">
                       <span className={isDark ? 'text-gray-400' : 'text-gray-500'}>

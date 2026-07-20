@@ -9,9 +9,12 @@ import React, { useState, useEffect } from 'react'
 import { WorkbenchScopeCard } from './workbench/WorkbenchScopeCard'
 import { WorkbenchReadinessCard } from './workbench/WorkbenchReadinessCard'
 import { WorkbenchOutputCard } from './workbench/WorkbenchOutputCard'
+import { WorkbenchLabelCard } from './workbench/WorkbenchLabelCard'
 import { WorkbenchActionCard } from './workbench/WorkbenchActionCard'
 import { WorkbenchDryRunResults } from './workbench/WorkbenchDryRunResults'
 import { WorkbenchResultCard } from './workbench/WorkbenchResultCard'
+import { Button } from '@/components/ui/Button'
+import { ExternalLink } from 'lucide-react'
 
 export const WorkbenchPanel = React.memo(function WorkbenchPanel() {
   const { t } = useTranslation('project')
@@ -44,6 +47,7 @@ export const WorkbenchPanel = React.memo(function WorkbenchPanel() {
   const clearValidationResults = useRenderStore((s) => s.clearValidationResults)
   const openFile = useEditorStore((s) => s.openFile)
   const isDark = useUIStore((s) => s.isDark)
+  const setActiveActivity = useUIStore((s) => s.setActiveActivity)
 
   const [projectInfo, setProjectInfo] = useState<any>(null)
 
@@ -198,6 +202,23 @@ export const WorkbenchPanel = React.memo(function WorkbenchPanel() {
           onDeleteOutput={handleDeleteOutput}
           onDeleteYaml={handleDeleteYaml}
         />
+
+        <WorkbenchLabelCard
+          selectedProjectIds={selectedProjectIds}
+          isDark={isDark}
+        />
+
+        <div className={clsx('border-t', isDark ? 'border-gray-700' : 'border-gray-200')} />
+
+        <Button
+          variant="secondary"
+          size="sm"
+          icon={<ExternalLink size={12} />}
+          onClick={() => setActiveActivity('output')}
+          className="w-full justify-start"
+        >
+          {t('workbench.viewOutput')}
+        </Button>
 
         {dryRunResults.length > 0 && (
           <>

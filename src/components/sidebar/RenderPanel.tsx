@@ -188,7 +188,7 @@ export function RenderPanel() {
                   {showProjectInfo ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
                   <FolderOpen size={12} />
                   <span>{t('common:renderPanel.projectInfo')}</span>
-                  <span className={clsx('text-[10px] font-normal', isDark ? 'text-gray-400' : 'text-gray-500')}>
+                  <span className={clsx('text-[11px] font-normal', isDark ? 'text-gray-400' : 'text-gray-500')}>
                     {selectedProject.name}
                   </span>
                 </button>
@@ -206,31 +206,31 @@ export function RenderPanel() {
                       <>
                         <div className="flex justify-between">
                           <span className={isDark ? 'text-gray-400' : 'text-gray-500'}>{t('common:renderPanel.path')}</span>
-                          <span className={clsx('font-medium text-[10px] truncate max-w-[140px]', isDark ? 'text-gray-300' : 'text-gray-600')}>
+                          <span className={clsx('font-medium text-[11px] truncate max-w-[140px]', isDark ? 'text-gray-300' : 'text-gray-600')}>
                             {projectInfo.path}
                           </span>
                         </div>
                         <div className="flex flex-wrap gap-1 pt-1">
                           {projectInfo.structure?.excel && (
-                            <span className="px-1.5 py-0.5 bg-green-100 text-green-700 rounded text-[10px]">Excel</span>
+                            <span className="px-1.5 py-0.5 bg-green-100 text-green-700 rounded text-[11px]">Excel</span>
                           )}
                           {projectInfo.structure?.templates && (
-                            <span className="px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded text-[10px]">
+                            <span className="px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded text-[11px]">
                               {t('common:renderPanel.template')}
                             </span>
                           )}
                           {projectInfo.structure?.para && (
-                            <span className="px-1.5 py-0.5 bg-purple-100 text-purple-700 rounded text-[10px]">
+                            <span className="px-1.5 py-0.5 bg-purple-100 text-purple-700 rounded text-[11px]">
                               {t('common:renderPanel.parameter')}
                             </span>
                           )}
                           {projectInfo.structure?.output && (
-                            <span className="px-1.5 py-0.5 bg-orange-100 text-orange-700 rounded text-[10px]">
+                            <span className="px-1.5 py-0.5 bg-orange-100 text-orange-700 rounded text-[11px]">
                               {t('common:renderPanel.output')}
                             </span>
                           )}
                           {projectInfo.structure?.yaml && (
-                            <span className="px-1.5 py-0.5 bg-cyan-100 text-cyan-700 rounded text-[10px]">
+                            <span className="px-1.5 py-0.5 bg-cyan-100 text-cyan-700 rounded text-[11px]">
                               {t('common:renderPanel.yaml')}
                             </span>
                           )}
@@ -256,13 +256,13 @@ export function RenderPanel() {
                 <Play size={12} /> {t('common:renderPanel.renderConfig')}
               </h4>
               <div className="flex flex-col gap-1">
-                <div className={clsx('flex items-center gap-1 text-[10px]', isDark ? 'text-gray-400' : 'text-gray-500')}>
+                <div className={clsx('flex items-center gap-1 text-[11px]', isDark ? 'text-gray-400' : 'text-gray-500')}>
                   <span>{t('common:renderPanel.format')}:</span>
                   <select
                     value={config.outputFormat}
                     onChange={(e) => setConfig({ outputFormat: e.target.value as 'device_name' | 'device_sn' })}
                     className={clsx(
-                      'text-[10px] border rounded px-1 py-0.5 flex-1',
+                      'text-[11px] border rounded px-1 py-0.5 flex-1',
                       isDark ? 'bg-gray-800 border-gray-600 text-gray-200' : 'bg-white border-gray-300 text-gray-900',
                     )}
                   >
@@ -270,13 +270,13 @@ export function RenderPanel() {
                     <option value="device_sn">{t('common:renderPanel.deviceSN')}</option>
                   </select>
                 </div>
-                <div className={clsx('flex items-center gap-1 text-[10px]', isDark ? 'text-gray-400' : 'text-gray-500')}>
+                <div className={clsx('flex items-center gap-1 text-[11px]', isDark ? 'text-gray-400' : 'text-gray-500')}>
                   <span>{t('common:renderPanel.type')}:</span>
                   <select
                     value={config.renderType}
                     onChange={(e) => setConfig({ renderType: e.target.value as 'project' | 'yaml' })}
                     className={clsx(
-                      'text-[10px] border rounded px-1 py-0.5 flex-1',
+                      'text-[11px] border rounded px-1 py-0.5 flex-1',
                       isDark ? 'bg-gray-800 border-gray-600 text-gray-200' : 'bg-white border-gray-300 text-gray-900',
                     )}
                   >
@@ -296,7 +296,7 @@ export function RenderPanel() {
               </h4>
               <div className={clsx('flex flex-wrap gap-1 max-h-32 overflow-auto rounded p-1', isDark ? 'bg-gray-800' : 'bg-gray-50')}>
                 {projects.length === 0 ? (
-                  <span className={clsx('text-[10px]', isDark ? 'text-gray-400' : 'text-gray-500')}>
+                  <span className={clsx('text-[11px]', isDark ? 'text-gray-400' : 'text-gray-500')}>
                     {t('common:renderPanel.noProjects')}
                   </span>
                 ) : (
@@ -307,7 +307,7 @@ export function RenderPanel() {
                         key={p.id}
                         onClick={() => toggleProject(p.id)}
                         className={clsx(
-                          'text-[10px] px-2 py-0.5 rounded-full border transition-colors',
+                          'text-[11px] px-2 py-0.5 rounded-full border transition-colors',
                           selected
                             ? isDark
                               ? 'bg-primary-900/40 border-primary-700 text-primary-200'
@@ -351,7 +351,7 @@ export function RenderPanel() {
               </h4>
               <div className={clsx('flex flex-wrap gap-1 max-h-32 overflow-auto rounded p-1', isDark ? 'bg-gray-800' : 'bg-gray-50')}>
                 {projects.length === 0 ? (
-                  <span className={clsx('text-[10px]', isDark ? 'text-gray-400' : 'text-gray-500')}>
+                  <span className={clsx('text-[11px]', isDark ? 'text-gray-400' : 'text-gray-500')}>
                     {t('common:renderPanel.noProjects')}
                   </span>
                 ) : (
@@ -362,7 +362,7 @@ export function RenderPanel() {
                         key={p.id}
                         onClick={() => toggleProject(p.id)}
                         className={clsx(
-                          'text-[10px] px-2 py-0.5 rounded-full border transition-colors',
+                          'text-[11px] px-2 py-0.5 rounded-full border transition-colors',
                           selected
                             ? isDark
                               ? 'bg-primary-900/40 border-primary-700 text-primary-200'
@@ -435,10 +435,10 @@ export function RenderPanel() {
 
             {showPrintConfig && (
               <div className={clsx('border rounded p-2 space-y-2', isDark ? 'bg-gray-800/60 border-gray-700' : 'bg-gray-50 border-gray-200')}>
-                <h5 className={clsx('text-[10px] font-semibold', isDark ? 'text-gray-200' : 'text-gray-700')}>
+                <h5 className={clsx('text-[11px] font-semibold', isDark ? 'text-gray-200' : 'text-gray-700')}>
                   {t('project:label.printConfig')}
                 </h5>
-                <div className="space-y-1.5 text-[10px]">
+                <div className="space-y-1.5 text-[11px]">
                   <div className="flex items-center gap-1">
                     <label className={clsx('w-14 shrink-0', isDark ? 'text-gray-400' : 'text-gray-600')}>
                       {t('project:label.paper')}
@@ -497,7 +497,7 @@ export function RenderPanel() {
               </h4>
               <div className={clsx('flex flex-wrap gap-1 max-h-32 overflow-auto rounded p-1', isDark ? 'bg-gray-800' : 'bg-gray-50')}>
                 {projects.length === 0 ? (
-                  <span className={clsx('text-[10px]', isDark ? 'text-gray-400' : 'text-gray-500')}>
+                  <span className={clsx('text-[11px]', isDark ? 'text-gray-400' : 'text-gray-500')}>
                     {t('common:renderPanel.noProjects')}
                   </span>
                 ) : (
@@ -508,7 +508,7 @@ export function RenderPanel() {
                         key={p.id}
                         onClick={() => toggleProject(p.id)}
                         className={clsx(
-                          'text-[10px] px-2 py-0.5 rounded-full border transition-colors',
+                          'text-[11px] px-2 py-0.5 rounded-full border transition-colors',
                           selected
                             ? isDark
                               ? 'bg-primary-900/40 border-primary-700 text-primary-200'
@@ -554,7 +554,7 @@ export function RenderPanel() {
         {/* 进度条（所有页签共用） */}
         {isProcessing && (
           <div className="space-y-1">
-            <div className={clsx('flex justify-between text-[10px]', isDark ? 'text-gray-300' : 'text-gray-600')}>
+            <div className={clsx('flex justify-between text-[11px]', isDark ? 'text-gray-300' : 'text-gray-600')}>
               <span className="truncate">{currentMessage || t('common:renderPanel.processing')}</span>
               <span>{progress}%</span>
             </div>
@@ -573,7 +573,7 @@ export function RenderPanel() {
             {errors.map((err, i) => (
               <div
                 key={i}
-                className={clsx('text-[10px] px-2 py-1 rounded', isDark ? 'text-red-300 bg-red-900/40' : 'text-red-600 bg-red-50')}
+                className={clsx('text-[11px] px-2 py-1 rounded', isDark ? 'text-red-300 bg-red-900/40' : 'text-red-600 bg-red-50')}
               >
                 {err}
               </div>

@@ -72,6 +72,11 @@ export interface ProjectIpcApi {
   saveAsTemplate: (projectName: string, templateName: string, meta: Partial<TemplateMeta>) => Promise<void>
   updateTemplateMeta: (id: string, meta: Partial<TemplateMeta>) => Promise<void>
   deleteTemplate: (id: string) => Promise<void>
+  readTemplateFile: (templateId: string, filePath: string) => Promise<string>
+  readTemplateExcel: (
+    templateId: string,
+    filePath: string,
+  ) => Promise<{ name: string; headers: string[]; rows: Record<string, any>[] }[]>
   getWorkspaceIndex: () => Promise<WorkspaceIndex>
   delete: (ids: string[]) => Promise<void>
   getStructure: (name: string) => Promise<unknown[]>

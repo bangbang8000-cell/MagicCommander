@@ -18,7 +18,8 @@
     "closeSplit": "关闭分屏",
     "preview": "预览模式",
     "pin": "固定标签",
-    "unpin": "取消固定"
+    "unpin": "取消固定",
+    "copyPath": "复制路径"
   },
   "monaco": {
     "wordWrap": "自动换行",

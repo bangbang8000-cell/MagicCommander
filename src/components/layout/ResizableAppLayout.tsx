@@ -33,7 +33,7 @@ export function ResizableAppLayout({
       {sidebarVisible && (
         <>
           <div
-            className={clsx('flex-shrink-0 overflow-hidden', isDark ? 'bg-gray-800 border-r border-gray-700' : 'bg-white border-r border-gray-200')}
+            className={clsx('flex-shrink-0 overflow-hidden', isDark ? 'bg-gray-900 border-r border-gray-700' : 'bg-white border-r border-gray-200')}
             style={{ width: sidebarPx }}
           >
             {sidebar}
@@ -47,7 +47,7 @@ export function ResizableAppLayout({
           <>
             <ResizeHandle direction="horizontal" onResize={resizeBottom} />
             <div
-              className={clsx('overflow-hidden border-t', isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200')}
+              className={clsx('overflow-hidden border-t', isDark ? 'bg-gray-900 border-gray-700' : 'bg-white border-gray-200')}
               style={{ height: bottomPx }}
             >
               {bottomPanel}

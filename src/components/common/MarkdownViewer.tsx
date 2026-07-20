@@ -48,7 +48,7 @@ function MarkdownContent({ content, title, onClose, inline = false }: MarkdownVi
   }
 
   return (
-    <div className={clsx('flex flex-col w-full h-full overflow-hidden', isDark ? 'bg-gray-800' : 'bg-white')}>
+    <div className={clsx('flex flex-col w-full h-full overflow-hidden', isDark ? 'bg-[#151e28]' : 'bg-white')}>
       <div
         className={clsx(
           'flex items-center justify-between px-4 py-3 border-b shrink-0',
@@ -126,12 +126,12 @@ function MarkdownContent({ content, title, onClose, inline = false }: MarkdownVi
             .markdown-content p { margin-bottom: 0.75rem; line-height: 1.7; }
             .markdown-content ul, .markdown-content ol { margin-bottom: 0.75rem; padding-left: 1.5rem; }
             .markdown-content li { margin-bottom: 0.25rem; line-height: 1.6; }
-            .markdown-content code { padding: 0.125rem 0.375rem; border-radius: 0.25rem; font-size: 0.875em; }
-            .markdown-content pre { padding: 1rem; border-radius: 0.5rem; overflow-x: auto; margin-bottom: 1rem; }
+            .markdown-content code { padding: 0.125rem 0.375rem; border-radius: 0.25rem; font-size: 0.875em; ${isDark ? 'background: #1f2937; color: #e5e7eb;' : 'background: #f3f4f6; color: #d9464e;'} }
+            .markdown-content pre { padding: 1rem; border-radius: 0.5rem; overflow-x: auto; margin-bottom: 1rem; ${isDark ? 'background: #111827; border: 1px solid #1f2937;' : 'background: #1f2937;'} }
             .markdown-content pre code { padding: 0; background: transparent; }
             .markdown-content table { width: 100%; border-collapse: collapse; margin-bottom: 1rem; }
             .markdown-content th, .markdown-content td { padding: 0.5rem 0.75rem; border: 1px solid ${isDark ? '#374151' : '#e5e7eb'}; }
-            .markdown-content th { font-weight: 600; }
+            .markdown-content th { font-weight: 600; ${isDark ? 'background: #1f2937;' : 'background: #f9fafb;'} }
             .markdown-content hr { border: none; border-top: 1px solid ${isDark ? '#374151' : '#e5e7eb'}; margin: 1.5rem 0; }
             .markdown-content strong { font-weight: 600; }
             .markdown-content a { color: ${isDark ? '#60a5fa' : '#2563eb'}; text-decoration: underline; }

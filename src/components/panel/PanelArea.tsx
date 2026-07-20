@@ -26,7 +26,7 @@ export function PanelArea() {
           <button
             onClick={() => setActivePanel('log')}
             className={clsx(
-              'flex items-center gap-1 px-2 py-1 text-[10px] rounded',
+              'flex items-center gap-1 px-2 py-1 text-[11px] rounded',
               activePanel === 'log'
                 ? isDark
                   ? 'bg-gray-900 text-gray-100'
@@ -41,7 +41,7 @@ export function PanelArea() {
           <button
             onClick={() => setActivePanel('terminal')}
             className={clsx(
-              'flex items-center gap-1 px-2 py-1 text-[10px] rounded',
+              'flex items-center gap-1 px-2 py-1 text-[11px] rounded',
               activePanel === 'terminal'
                 ? isDark
                   ? 'bg-gray-900 text-gray-100'
@@ -136,7 +136,7 @@ function LogPanel() {
               key={opt.value}
               onClick={() => setFilter(opt.value)}
               className={clsx(
-                'text-[10px] px-1.5 py-0.5 rounded transition-colors',
+                'text-[11px] px-1.5 py-0.5 rounded transition-colors',
                 filter === opt.value
                   ? isDark
                     ? 'bg-gray-700 text-gray-100'
@@ -150,13 +150,13 @@ function LogPanel() {
             </button>
           ))}
         </div>
-        <span className={`text-[10px] ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>
+        <span className={`text-[11px] ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>
           {t('common:panel.logCount', { filtered: filteredLogs.length, total: logs.length })}
         </span>
         <button
           onClick={clearLogs}
           className={clsx(
-            'text-[10px] px-1 py-0.5 rounded',
+            'text-[11px] px-1 py-0.5 rounded',
             isDark
               ? 'text-gray-400 hover:text-red-400 hover:bg-gray-800'
               : 'text-gray-400 hover:text-red-500 hover:bg-gray-100',

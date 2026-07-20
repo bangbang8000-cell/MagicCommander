@@ -21,7 +21,7 @@ export function ProjectStatusBadge({ status }: ProjectStatusBadgeProps) {
         <span
           key={item.label}
           className={clsx(
-            'rounded px-1.5 py-0.5 text-[10px]',
+            'rounded px-1.5 py-0.5 text-[11px]',
             item.tone === 'red' && 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-200',
             item.tone === 'amber' && 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-200',
             item.tone === 'green' && 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-200',

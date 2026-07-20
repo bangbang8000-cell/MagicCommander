@@ -42,7 +42,7 @@ export function WorkbenchScopeCard({
           {projectInfo?.path && (
             <div className="flex justify-between">
               <span className={isDark ? 'text-gray-400' : 'text-gray-500'}>{t('workbench.path')}</span>
-              <span className={clsx('font-medium text-[10px] truncate max-w-[140px]', isDark ? 'text-gray-200' : 'text-gray-700')}>
+              <span className={clsx('font-medium text-[11px] truncate max-w-[140px]', isDark ? 'text-gray-200' : 'text-gray-700')}>
                 {projectInfo.path}
               </span>
             </div>
@@ -50,7 +50,7 @@ export function WorkbenchScopeCard({
           <button
             onClick={onOpenFolder}
             className={clsx(
-              'flex items-center gap-1 px-2 py-1 mt-1 text-[10px] rounded transition-colors w-full',
+              'flex items-center gap-1 px-2 py-1 mt-1 text-[11px] rounded transition-colors w-full',
               isDark ? 'text-gray-400 hover:text-gray-200 hover:bg-gray-700' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100',
             )}
           >
@@ -64,7 +64,7 @@ export function WorkbenchScopeCard({
       {projects.length > 0 && (
         <div className="space-y-1">
           <div className="flex items-center justify-between">
-            <span className={clsx('text-[10px]', isDark ? 'text-gray-400' : 'text-gray-500')}>
+            <span className={clsx('text-[11px]', isDark ? 'text-gray-400' : 'text-gray-500')}>
               {t('workbench.selectedCount', { selected: selectedProjectIds.length, total: projects.length })}
             </span>
           </div>
@@ -77,7 +77,7 @@ export function WorkbenchScopeCard({
                   key={p.id}
                   onClick={() => onToggleProject(p.id)}
                   className={clsx(
-                    'text-[10px] px-2 py-0.5 rounded-full border transition-colors flex items-center gap-1',
+                    'text-[11px] px-2 py-0.5 rounded-full border transition-colors flex items-center gap-1',
                     selected
                       ? isDark
                         ? 'bg-primary-900/40 border-primary-700 text-primary-200'

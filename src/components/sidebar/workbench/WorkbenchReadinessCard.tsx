@@ -63,7 +63,7 @@ export function WorkbenchReadinessCard({
               >
                 {exists ? <CheckCircle2 size={12} /> : <XCircle size={12} />}
                 <span className="min-w-[72px]">{item.label}</span>
-                <span className={clsx('text-[10px]', isDark ? 'text-gray-500' : 'text-gray-400')}>
+                <span className={clsx('text-[11px]', isDark ? 'text-gray-500' : 'text-gray-400')}>
                   {item.description}
                 </span>
               </div>
@@ -73,7 +73,7 @@ export function WorkbenchReadinessCard({
             <button
               onClick={onOpenParaConfig}
               className={clsx(
-                'flex items-center gap-1 px-2 py-1 text-[10px] rounded transition-colors',
+                'flex items-center gap-1 px-2 py-1 text-[11px] rounded transition-colors',
                 isDark ? 'text-gray-400 hover:text-gray-200 hover:bg-gray-700' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100',
               )}
             >
@@ -83,7 +83,7 @@ export function WorkbenchReadinessCard({
               onClick={onValidateTemplate}
               disabled={isValidationRunning}
               className={clsx(
-                'flex items-center gap-1 px-2 py-1 text-[10px] rounded transition-colors',
+                'flex items-center gap-1 px-2 py-1 text-[11px] rounded transition-colors',
                 isDark ? 'text-gray-400 hover:text-gray-200 hover:bg-gray-700' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100',
               )}
             >
@@ -93,7 +93,7 @@ export function WorkbenchReadinessCard({
               onClick={onValidateExcel}
               disabled={isValidationRunning}
               className={clsx(
-                'flex items-center gap-1 px-2 py-1 text-[10px] rounded transition-colors',
+                'flex items-center gap-1 px-2 py-1 text-[11px] rounded transition-colors',
                 isDark ? 'text-gray-400 hover:text-gray-200 hover:bg-gray-700' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100',
               )}
             >
@@ -104,12 +104,12 @@ export function WorkbenchReadinessCard({
           {validationResults && validationResults.length > 0 && (
             <div className="mt-2 space-y-1">
               <div className="flex items-center justify-between">
-                <span className={clsx('text-[10px] font-medium', isDark ? 'text-gray-400' : 'text-gray-500')}>
+                <span className={clsx('text-[11px] font-medium', isDark ? 'text-gray-400' : 'text-gray-500')}>
                   {t('workbench.validationResult')}
                 </span>
                 <button
                   onClick={onClearValidation}
-                  className={clsx('text-[10px]', isDark ? 'text-gray-500 hover:text-gray-300' : 'text-gray-400 hover:text-gray-600')}
+                  className={clsx('text-[11px]', isDark ? 'text-gray-500 hover:text-gray-300' : 'text-gray-400 hover:text-gray-600')}
                 >
                   {t('workbench.clear')}
                 </button>
@@ -118,7 +118,7 @@ export function WorkbenchReadinessCard({
                 <div
                   key={i}
                   className={clsx(
-                    'text-[10px] px-2 py-1 rounded',
+                    'text-[11px] px-2 py-1 rounded',
                     r.status === 'pass'
                       ? isDark ? 'bg-green-900/30 text-green-300' : 'bg-green-50 text-green-700'
                       : r.status === 'warn'
@@ -134,7 +134,7 @@ export function WorkbenchReadinessCard({
                   {r.errors && r.errors.length > 0 && (
                     <div className="mt-1 space-y-0.5 ml-4">
                       {r.errors.map((e, j) => (
-                        <div key={j} className="text-[10px]">
+                        <div key={j} className="text-[11px]">
                           {e.file}:{e.line} - {e.message}
                         </div>
                       ))}
@@ -143,7 +143,7 @@ export function WorkbenchReadinessCard({
                   {r.warnings && r.warnings.length > 0 && (
                     <div className="mt-1 space-y-0.5 ml-4">
                       {r.warnings.map((w, j) => (
-                        <div key={j} className="text-[10px]">
+                        <div key={j} className="text-[11px]">
                           {w.message}
                         </div>
                       ))}

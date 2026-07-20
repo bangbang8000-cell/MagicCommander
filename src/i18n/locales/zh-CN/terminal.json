@@ -1,7 +1,7 @@
 {
   "banner": {
-    "welcomeBanner": "╔══════════════════════════════════════════════════════════════╗\n║                    MagicCommander 终端                     ║\n╠══════════════════════════════════════════════════════════════╣\n║  欢迎使用 MagicCommander 内置终端！                       ║\n║  输入 help 查看界面终端命令                               ║\n║  输入 help cli 查看命令行版本用法                         ║\n╠══════════════════════════════════════════════════════════════╣\n║  常用命令速览:                                           ║\n║  ┌─────────────────────────────────────────────────────┐ ║\n║  │ help       - 显示界面终端帮助                        │ ║\n║  │ help cli   - 显示命令行版本用法                      │ ║\n║  │ list / ls  - 列出所有项目                            │ ║\n║  │ select     - 选择项目                               │ ║\n║  │ render     - 执行渲染                               │ ║\n║  │ label      - 标签打印                               │ ║\n║  │ clear      - 清空终端                               │ ║\n║  └─────────────────────────────────────────────────────┘ ║\n╚══════════════════════════════════════════════════════════════╝",
-    "compactWelcome": "MagicCommander 终端\n输入 help 查看界面终端命令，输入 help cli 查看命令行版本用法。"
+    "welcomeBanner": "╔══════════════════════════════════════════════════════════════╗\n║                    MagicCommander 终端                     ║\n╠══════════════════════════════════════════════════════════════╣\n║  欢迎使用 MagicCommander 内置终端！                       ║\n║  输入 help 查看所有命令、help cli 查看命令行用法          ║\n╠══════════════════════════════════════════════════════════════╣\n║  常用命令:                                                ║\n║  list     - 列出项目/示例/模板                            ║\n║  select   - 选择项目                                      ║\n║  create   - 创建项目                                      ║\n║  render   - 渲染配置/YAML                                 ║\n║  template - 模板管理                                      ║\n║  label    - 标签打印/MD/PDF                               ║\n║  delete   - 删除项目/文件/模板                            ║\n║  validate - 校验模板/Excel                                ║\n║  theme    - 切换主题                                      ║\n║  clear    - 清屏                                          ║\n╚══════════════════════════════════════════════════════════════╝",
+    "compactWelcome": "MagicCommander 终端\n输入 help 查看命令，help cli 查看命令行用法。"
   },
   "messages": {
     "cleared": "终端已清空。",
@@ -23,120 +23,143 @@
   "electronRequired": "请在 Electron 桌面应用中运行此功能",
   "help": {
     "terminal": [
-      "MagicCommander 界面终端帮助",
+      "MagicCommander 界面终端命令",
       "",
-      "说明：这里是应用内快捷终端，不是系统 Shell。它封装了常用项目、渲染和标签操作。",
-      "如需使用完整命令行版，请在系统终端进入 backend 目录后运行：python main.py <命令>。",
+      "项目管理:",
+      "  list / ls [projects|examples|templates]  列出项目/示例/模板",
+      "  create <名称> [--empty] [--template <名>]  创建项目",
+      "  select <项目名或ID>                      选择项目",
+      "  info <项目名或ID>                        查看项目信息",
+      "  delete project <id>                      删除项目",
       "",
-      "常用界面终端命令：",
-      "  help                         显示本帮助",
-      "  help cli                     显示命令行版 main.py 用法",
-      "  list / ls                    列出项目",
-      "  select <项目名或ID>          选择项目",
-      "  render project <ID|all>      渲染配置，示例：render project 1",
-      "  render yaml <ID|all>         生成 YAML，示例：render yaml 1,2",
-      "  render project <ID> --format device_sn  按 SN 命名输出配置",
-      "  render yaml <ID> --format device_sn     按 SN 命名输出 YAML",
-      "  label <ID|all>               生成标签文档",
-      "  theme [light|dark]           切换或设置主题",
-      "  clear / cls                  清空终端",
+      "模板管理:",
+      "  template list                             列出模板",
+      "  template save <项目> <模板名>             保存为模板",
+      "  template delete <模板名>                  删除模板",
       "",
-      "ID 写法：1 表示单个项目，1,2,3 表示多个项目，all 表示全部项目。",
-      "更多命令行版示例请输入：help cli"
+      "配置渲染:",
+      "  render project [ids]                      渲染配置",
+      "  render project [ids] --format device_sn   按SN渲染",
+      "  render yaml [ids]                         渲染YAML",
+      "  render dry-run [ids]                      预览(不写文件)",
+      "  render undo [ids]                         撤销渲染",
+      "",
+      "标签:",
+      "  label print [ids]                         生成Word标签",
+      "  label md [ids]                            生成Markdown标签",
+      "  label pdf [ids]                           生成PDF标签",
+      "  label delete [ids]                        删除标签",
+      "",
+      "文件/校验:",
+      "  read / cat <项目> <路径>                  读取项目文件",
+      "  delete output|yaml|output-sn|yaml-sn [ids]  删除输出",
+      "  delete labels [ids]                       删除标签",
+      "  validate template|excel <ids>             校验模板/Excel",
+      "",
+      "其他:",
+      "  theme [light|dark]                        切换主题",
+      "  clear / cls                               清屏",
+      "  version                                   版本",
+      "",
+      "ID: 1=单个, 1,2,3=多个, all=全部。不指定则用已选项目。",
+      "更多: help cli"
     ],
     "cli": [
-      "MagicCommander 命令行版用法",
+      "MagicCommander 命令行版用法 (backend/main.py)",
       "",
-      "运行位置：系统终端 / PowerShell 中进入 backend 目录，执行：",
-      "  python main.py <命令>",
+      "项目管理:",
+      "  project list / create / delete / info",
+      "  project list-examples / list-files",
+      "  project read-file / write-file / read-excel / read-docx",
       "",
-      "项目管理：",
-      "  python main.py project list",
-      "  python main.py project create <项目名>",
-      "  python main.py project delete <ID或1,2,3> --force",
-      "  python main.py project info <ID>",
+      "模板管理:",
+      "  template list / save <源> <名> / delete <名>",
       "",
-      "配置渲染：",
-      "  python main.py render project <ID|1,2,3|all>",
-      "  python main.py render project <ID> --format device_sn",
-      "  python main.py render yaml <ID|1,2,3|all>",
-      "  python main.py render yaml <ID> --format device_sn",
+      "配置渲染:",
+      "  render project <ids> [--format device_sn]",
+      "  render yaml <ids> [--format device_sn]",
+      "  render dry-run <ids> / undo <ids>",
       "",
-      "标签功能：",
-      "  python main.py label print <ID|1,2,3|all>",
-      "  python main.py label delete <ID|1,2,3|all>",
+      "标签:",
+      "  label print / md / pdf / delete <ids>",
       "",
-      "文件清理：",
-      "  python main.py file delete output <ID|all> --force",
-      "  python main.py file delete output-sn <ID|all> --force",
-      "  python main.py file delete yaml <ID|all> --force",
-      "  python main.py file delete yaml-sn <ID|all> --force",
+      "校验分析:",
+      "  validate template / excel <ids>",
+      "  analyze project <ids>",
+      "  diff <项目> <设备> <内容>",
       "",
-      "查看原生 argparse 帮助：",
-      "  python main.py --help",
-      "  python main.py project --help",
-      "  python main.py render --help"
+      "文件:",
+      "  file delete <output|output-sn|yaml|yaml-sn> <ids>",
+      "  file list <id>",
+      "",
+      "查看完整帮助: python main.py --help"
     ]
   },
   "commands": {
     "help": {
-      "desc": "显示界面终端帮助；help cli 显示命令行版本用法",
+      "desc": "显示帮助；help cli 显示命令行用法",
       "output": "支持的命令:"
     },
     "question": {
-      "desc": "列出所有支持的命令（别名）"
+      "desc": "列出所有命令（别名）"
     },
     "version": {
-      "desc": "显示当前应用版本"
+      "desc": "显示版本"
     },
     "ver": {
-      "desc": "显示当前应用版本（别名）"
+      "desc": "显示版本（别名）"
     },
     "list": {
-      "desc": "列出项目（list projects 或 ls）",
-      "projectsFromCache": "项目列表（缓存，共 {{count}} 个）:",
-      "projectsFromServer": "项目列表（共 {{count}} 个）:",
-      "noProjects": "暂无项目",
-      "unknownParam": "未知参数: {{param}}"
+      "desc": "列出项目/示例/模板: list [projects|examples|templates]"
     },
     "ls": {
-      "desc": "列出项目（list projects 的别名）"
+      "desc": "list 别名"
+    },
+    "create": {
+      "desc": "创建项目: create <名称> [--empty] [--template <名>]"
     },
     "select": {
-      "desc": "选择项目，用法: select <项目名>",
-      "usage": "用法: select <项目名>",
-      "notFound": "未找到项目: {{name}}",
-      "selected": "已选择项目: {{name}}"
+      "desc": "选择项目: select <名称或ID>"
+    },
+    "delete": {
+      "desc": "删除: delete project|output|yaml|output-sn|yaml-sn|labels|template"
+    },
+    "rm": {
+      "desc": "delete 别名"
+    },
+    "info": {
+      "desc": "项目信息: info <名称或ID>"
+    },
+    "template": {
+      "desc": "模板管理: template list|save <项目> <模板名>|delete <模板名>"
     },
     "render": {
-      "desc": "渲染项目，用法: render [project|yaml] [项目名或id]",
-      "noProject": "未指定项目，请使用: render project <项目名或id>",
-      "yamlDone": "YAML 渲染完成: {{ids}}",
-      "projectDone": "项目渲染完成: {{ids}}",
-      "unknownSub": "未知子命令: {{sub}}",
-      "failed": "渲染失败: {{error}}"
+      "desc": "渲染: render project|yaml|dry-run|undo [ids] [--format device_sn]"
     },
     "label": {
-      "desc": "打印标签，用法: label <项目名或id>",
-      "noProject": "未选中项目，用法: label <项目名或id>",
-      "submitted": "标签打印任务已提交: {{ids}}",
-      "failed": "标签打印失败: {{error}}"
+      "desc": "标签: label print|md|pdf|delete [ids]"
+    },
+    "validate": {
+      "desc": "校验: validate template|excel <ids>"
+    },
+    "read": {
+      "desc": "读取文件: read <项目> <路径>"
+    },
+    "cat": {
+      "desc": "read 别名"
     },
     "theme": {
-      "desc": "切换/设置主题，用法: theme [light|dark]",
-      "toggled": "主题已切换为: {{theme}}",
-      "set": "主题已设置为: {{theme}}",
-      "unknown": "未知主题: {{theme}}，可用: light / dark"
+      "desc": "切换主题: theme [light|dark]"
     },
     "clear": {
-      "desc": "清空终端历史"
+      "desc": "清屏"
     },
     "cls": {
-      "desc": "清空终端历史（别名）"
+      "desc": "清屏（别名）"
     },
     "echo": {
-      "desc": "回显文本，用法: echo <text>"
+      "desc": "输出文本"
     },
-    "unknown": "未知命令: {{cmd}}"
+    "unknown": "未知命令: {{cmd}}。输入 help 查看可用命令。"
   }
 }

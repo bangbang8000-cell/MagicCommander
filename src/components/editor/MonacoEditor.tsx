@@ -16,6 +16,7 @@ const EXT_MAP: Record<string, string> = {
   '.md': 'markdown',
   '.markdown': 'markdown',
   '.txt': 'plaintext',
+  '.json': 'json',
   '.cfg': 'ini',
   '.conf': 'ini',
 }
@@ -156,23 +157,31 @@ export function MonacoEditor({ tab }: MonacoEditorProps) {
     registerSaveFn(tab.id, handleSave)
   }, [tab.id, registerSaveFn, handleSave])
 
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
-        e.preventDefault()
-        handleSave()
-      }
-    }
-    window.addEventListener('keydown', handler)
-    return () => window.removeEventListener('keydown', handler)
-  }, [handleSave])
-
   const language = getLanguage(tab.filePath, tab.fileType)
-  const monacoTheme = isDark ? 'vs-dark' : 'vs'
+  const monacoTheme = isDark ? 'mc-dark' : 'vs'
 
   const handleMount: OnMount = (editor, monaco) => {
     editorRef.current = editor
     monacoRef.current = monaco
+
+    // 注册自定义暗色主题，背景色匹配应用主色调 gray-900 (#111827)
+    monaco.editor.defineTheme('mc-dark', {
+      base: 'vs-dark',
+      inherit: true,
+      rules: [],
+      colors: {
+        'editor.background': '#111827',
+        'editor.foreground': '#d1d5db',
+        'editor.lineHighlightBackground': '#1f2937',
+        'editor.selectionBackground': '#374151',
+        'editor.inactiveSelectionBackground': '#37415180',
+        'editorCursor.foreground': '#60a5fa',
+        'editorLineNumber.foreground': '#4b5563',
+        'editorLineNumber.activeForeground': '#9ca3af',
+        'editor.selectionHighlightBackground': '#37415180',
+      },
+    })
+
     const container = editor.getContainerDomNode() as HTMLElement | null
     const section = findSection(container)
 

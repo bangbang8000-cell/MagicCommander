@@ -100,31 +100,31 @@ export function ConfigPanel() {
               <>
                 <div className="flex justify-between">
                   <span className="text-gray-500">{t('workbench.path')}</span>
-                  <span className="font-medium text-[10px] truncate max-w-[140px]">{projectInfo.path}</span>
+                  <span className="font-medium text-[11px] truncate max-w-[140px]">{projectInfo.path}</span>
                 </div>
                 <div className="flex flex-wrap gap-1 pt-1">
                   {projectInfo.structure?.excel && (
-                    <span className="px-1.5 py-0.5 bg-green-100 text-green-700 rounded text-[10px]">
+                    <span className="px-1.5 py-0.5 bg-green-100 text-green-700 rounded text-[11px]">
                       {t('workbench.excel')}
                     </span>
                   )}
                   {projectInfo.structure?.templates && (
-                    <span className="px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded text-[10px]">
+                    <span className="px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded text-[11px]">
                       {t('workbench.template')}
                     </span>
                   )}
                   {projectInfo.structure?.para && (
-                    <span className="px-1.5 py-0.5 bg-purple-100 text-purple-700 rounded text-[10px]">
+                    <span className="px-1.5 py-0.5 bg-purple-100 text-purple-700 rounded text-[11px]">
                       {t('workbench.para')}
                     </span>
                   )}
                   {projectInfo.structure?.output && (
-                    <span className="px-1.5 py-0.5 bg-orange-100 text-orange-700 rounded text-[10px]">
+                    <span className="px-1.5 py-0.5 bg-orange-100 text-orange-700 rounded text-[11px]">
                       {t('workbench.output')}
                     </span>
                   )}
                   {projectInfo.structure?.yaml && (
-                    <span className="px-1.5 py-0.5 bg-cyan-100 text-cyan-700 rounded text-[10px]">
+                    <span className="px-1.5 py-0.5 bg-cyan-100 text-cyan-700 rounded text-[11px]">
                       {t('workbench.yaml')}
                     </span>
                   )}
@@ -154,23 +154,23 @@ export function ConfigPanel() {
             <Play size={12} /> {t('workbench.renderOperation')}
           </h4>
           <div className="flex flex-col gap-1">
-            <div className="flex items-center gap-1 text-[10px] text-gray-500">
+            <div className="flex items-center gap-1 text-[11px] text-gray-500">
               <span>{t('workbench.format')}</span>
               <select
                 value={config.outputFormat}
                 onChange={(e) => setConfig({ outputFormat: e.target.value as 'device_name' | 'device_sn' })}
-                className="text-[10px] border border-gray-300 rounded px-1 py-0.5 flex-1"
+                className="text-[11px] border border-gray-300 rounded px-1 py-0.5 flex-1"
               >
                 <option value="device_name">{t('workbench.deviceName')}</option>
                 <option value="device_sn">{t('workbench.deviceSn')}</option>
               </select>
             </div>
-            <div className="flex items-center gap-1 text-[10px] text-gray-500">
+            <div className="flex items-center gap-1 text-[11px] text-gray-500">
               <span>{t('workbench.type')}</span>
               <select
                 value={config.renderType}
                 onChange={(e) => setConfig({ renderType: e.target.value as 'project' | 'yaml' })}
-                className="text-[10px] border border-gray-300 rounded px-1 py-0.5 flex-1"
+                className="text-[11px] border border-gray-300 rounded px-1 py-0.5 flex-1"
               >
                 <option value="project">{t('workbench.projectConfig')}</option>
                 <option value="yaml">{t('workbench.yamlFile')}</option>
@@ -220,7 +220,7 @@ export function ConfigPanel() {
 
         {isRendering && (
           <div className="space-y-1">
-            <div className="flex justify-between text-[10px] text-gray-600">
+            <div className="flex justify-between text-[11px] text-gray-600">
               <span className="truncate">{currentMessage || t('workbench.processing')}</span>
               <span>{progress}%</span>
             </div>

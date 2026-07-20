@@ -1,8 +1,9 @@
-import { useState } from 'react'
 import { Modal } from '@/components/ui/Modal'
 import { HotkeyKeys } from '@/components/ui/Kbd'
 import { getHotkeysByCategory, CATEGORY_ORDER } from '@/hooks/hotkeyRegistry'
 import { useUIStore } from '@/stores/ui.store'
+import { useTranslation } from 'react-i18next'
+import clsx from 'clsx'
 
 interface CheatsheetProps {
   open: boolean
@@ -10,25 +11,22 @@ interface CheatsheetProps {
 }
 
 export function Cheatsheet({ open, onClose }: CheatsheetProps) {
-  const [active] = useState(true)
+  const { t } = useTranslation()
   const isDark = useUIStore((s) => s.isDark)
   const byCategory = getHotkeysByCategory()
-
-  // 使用 active 避免 lint 警告
-  void active
 
   return (
     <Modal
       open={open}
       onClose={onClose}
-      title="键盘快捷键"
+      title={t('common:cheatsheet.title')}
       width="580px"
       footer={
         <button
           onClick={onClose}
           className="px-4 py-1.5 text-sm rounded bg-primary-600 text-white hover:bg-primary-700"
         >
-          关闭
+          {t('common:cheatsheet.close')}
         </button>
       }
     >
@@ -66,9 +64,4 @@ export function Cheatsheet({ open, onClose }: CheatsheetProps) {
       </div>
     </Modal>
   )
-}
-
-// 由于 ts 会编译错误移除 clsx 引用
-function clsx(...args: any[]): string {
-  return args.filter(Boolean).join(' ')
 }

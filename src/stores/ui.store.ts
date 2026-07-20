@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { persist, subscribeWithSelector } from 'zustand/middleware'
 
-export type ActivityType = 'search' | 'chat' | 'explorer' | 'render' | 'output' | 'workbench' | 'settings'
+export type ActivityType = 'search' | 'chat' | 'explorer' | 'output' | 'workbench' | 'settings'
 export type PanelType = 'log' | 'terminal' | 'problems'
 
 // 布局尺寸基准（像素），与 App.tsx 保持一致

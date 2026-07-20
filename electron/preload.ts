@@ -15,6 +15,10 @@ const api = {
       ipcRenderer.invoke('project:saveAsTemplate', projectName, templateName, meta),
     updateTemplateMeta: (id: string, meta: unknown) => ipcRenderer.invoke('project:updateTemplateMeta', id, meta),
     deleteTemplate: (id: string) => ipcRenderer.invoke('project:deleteTemplate', id),
+    readTemplateFile: (templateId: string, filePath: string) =>
+      ipcRenderer.invoke('project:readTemplateFile', templateId, filePath),
+    readTemplateExcel: (templateId: string, filePath: string) =>
+      ipcRenderer.invoke('project:readTemplateExcel', templateId, filePath),
     getWorkspaceIndex: () => ipcRenderer.invoke('project:getWorkspaceIndex'),
     delete: (ids: string[]) => ipcRenderer.invoke('project:delete', ids),
     getStructure: (name: string) => ipcRenderer.invoke('project:structure', name),

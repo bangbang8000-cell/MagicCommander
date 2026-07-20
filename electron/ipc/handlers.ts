@@ -217,6 +217,41 @@ export function setupIpcHandlers(window: BrowserWindow): void {
     return template
   })
 
+  ipcMain.handle('project:readTemplateFile', async (_e, templateId: string, filePath: string): Promise<string> => {
+    const pathValidation = validateFilePath(filePath)
+    if (!pathValidation.valid) throw new Error(pathValidation.error || '文件路径无效')
+    if (!isFileTypeAllowed(filePath)) throw new Error('不支持该文件类型')
+
+    const templateDir = getTemplateDir()
+    const fullPath = buildSafePath(path.join(templateDir, templateId), filePath)
+    if (!fullPath) throw new Error('文件路径不安全')
+    if (!isFileAccessible(fullPath)) throw new Error(`文件不存在: ${filePath}`)
+
+    return fs.readFileSync(fullPath, 'utf-8')
+  })
+
+  ipcMain.handle(
+    'project:readTemplateExcel',
+    async (
+      _e,
+      templateId: string,
+      filePath: string,
+    ): Promise<{ name: string; headers: string[]; rows: Record<string, any>[] }[]> => {
+      const pathValidation = validateFilePath(filePath)
+      if (!pathValidation.valid) throw new Error(pathValidation.error || '文件路径无效')
+
+      const ext = path.extname(filePath).toLowerCase()
+      if (!['.xlsx', '.xls'].includes(ext)) throw new Error('仅支持 Excel 文件')
+
+      const templateDir = getTemplateDir()
+      const fullPath = buildSafePath(path.join(templateDir, templateId), filePath)
+      if (!fullPath) throw new Error('文件路径不安全')
+      if (!isFileAccessible(fullPath)) throw new Error(`文件不存在: ${filePath}`)
+
+      return readExcelByPath(fullPath)
+    },
+  )
+
   ipcMain.handle('project:getWorkspaceIndex', async () => readWorkspaceIndex(getWorkspaceDir()))
 
   ipcMain.handle(

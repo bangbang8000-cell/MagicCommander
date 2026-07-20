@@ -17,7 +17,7 @@ export function WorkbenchResultCard({ isRendering, progress, currentMessage, err
     <div className="space-y-2">
       {isRendering && (
         <div className="space-y-1.5">
-          <div className={clsx('flex justify-between text-[10px]', isDark ? 'text-gray-400' : 'text-gray-600')}>
+          <div className={clsx('flex justify-between text-[11px]', isDark ? 'text-gray-400' : 'text-gray-600')}>
             <span className="truncate">{currentMessage || t('workbench.processing')}</span>
             <span>{progress}%</span>
           </div>
@@ -35,7 +35,7 @@ export function WorkbenchResultCard({ isRendering, progress, currentMessage, err
             <div
               key={i}
               className={clsx(
-                'text-[10px] px-2 py-1 rounded',
+                'text-[11px] px-2 py-1 rounded',
                 isDark ? 'bg-red-900/40 text-red-300' : 'bg-red-50 text-red-600',
               )}
             >

@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import { useUIStore, type ActivityType } from '@/stores/ui.store'
-import { Search, FolderOpen, Zap, FileCheck, MessageSquare, Wrench, Settings, PanelLeftClose, PanelLeft } from 'lucide-react'
+import { Search, FolderOpen, Zap, FileCheck, MessageSquare, Settings, PanelLeftClose, PanelLeft } from 'lucide-react'
 import clsx from 'clsx'
 
 interface ActivityItem {
@@ -13,7 +13,6 @@ interface ActivityItem {
 const ACTIVITY_LABEL_KEYS: Record<string, string> = {
   search: 'menu.projectExplorer',
   explorer: 'menu.projectExplorer',
-  render: 'menu.renderOperations',
   output: 'menu.outputResults',
   chat: 'chat:title',
   workbench: 'menu.workbench',
@@ -24,9 +23,8 @@ const activities: ActivityItem[] = [
   { id: 'search', icon: <Search size={20} />, labelKey: 'common:sidebar.search', shortcut: 'Ctrl+Shift+F' },
   { id: 'chat', icon: <MessageSquare size={20} />, labelKey: 'chat:title', shortcut: 'Ctrl+Shift+H' },
   { id: 'explorer', icon: <FolderOpen size={20} />, labelKey: 'menu.projectExplorer', shortcut: 'Ctrl+Shift+E' },
-  { id: 'render', icon: <Zap size={20} />, labelKey: 'menu.renderOperations', shortcut: 'Ctrl+Shift+R' },
+  { id: 'workbench', icon: <Zap size={20} />, labelKey: 'menu.workbench', shortcut: 'Ctrl+Shift+W' },
   { id: 'output', icon: <FileCheck size={20} />, labelKey: 'menu.outputResults', shortcut: 'Ctrl+Shift+O' },
-  { id: 'workbench', icon: <Wrench size={20} />, labelKey: 'menu.workbench', shortcut: 'Ctrl+Shift+W' },
   { id: 'settings', icon: <Settings size={20} />, labelKey: 'common:settings.title', shortcut: 'Ctrl+,' },
 ]
 
@@ -38,7 +36,7 @@ export function ActivityBar() {
   const toggleSidebar = useUIStore((s) => s.toggleSidebar)
 
   return (
-    <div className="w-12 flex flex-col items-center py-2 gap-0.5 shrink-0 bg-gray-100 dark:bg-gray-800 border-e border-gray-200 dark:border-gray-700">
+    <div className="w-12 flex flex-col items-center py-2 gap-0.5 shrink-0 bg-gray-100 dark:bg-gray-900 border-e border-gray-200 dark:border-gray-700">
       <div className="flex-1 flex flex-col items-center gap-0.5 w-full">
         {activities.map((item) => {
           const isActive = activeActivity === item.id

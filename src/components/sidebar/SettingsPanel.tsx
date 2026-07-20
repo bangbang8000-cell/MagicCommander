@@ -365,7 +365,7 @@ export function SettingsPanel() {
                       )}
                     >
                       <span className="font-medium text-[11px]">{cat.name}</span>
-                      <span className="text-[10px] opacity-70">
+                      <span className="text-[11px] opacity-70">
                         {isConfigured ? '✓' : '—'}
                       </span>
                     </button>
@@ -380,7 +380,7 @@ export function SettingsPanel() {
                     {t('common:settings.ai.providerConfig', { name: catalog.name })}
                   </span>
                   {isDefault && (
-                    <span className={clsx('text-[10px] px-1 py-0.5 rounded', isDark ? 'bg-amber-900/40 text-amber-300' : 'bg-amber-100 text-amber-700')}>
+                    <span className={clsx('text-[11px] px-1 py-0.5 rounded', isDark ? 'bg-amber-900/40 text-amber-300' : 'bg-amber-100 text-amber-700')}>
                       <Star size={10} className="inline mr-0.5" />
                       {t('common:settings.ai.default')}
                     </span>
@@ -389,7 +389,7 @@ export function SettingsPanel() {
 
                 {/* 1. Base URL */}
                 <div>
-                  <label className={clsx('block text-[10px] mb-0.5', isDark ? 'text-gray-500' : 'text-gray-400')}>
+                  <label className={clsx('block text-[11px] mb-0.5', isDark ? 'text-gray-500' : 'text-gray-400')}>
                     {t('common:settings.ai.baseUrl')}
                   </label>
                   <input
@@ -409,7 +409,7 @@ export function SettingsPanel() {
                 {/* 2. API Key */}
                 {!isOllama && (
                   <div>
-                    <label className={clsx('block text-[10px] mb-0.5', isDark ? 'text-gray-500' : 'text-gray-400')}>
+                    <label className={clsx('block text-[11px] mb-0.5', isDark ? 'text-gray-500' : 'text-gray-400')}>
                       {t('common:settings.ai.apiKey')}
                     </label>
                     <div className="relative">
@@ -438,14 +438,14 @@ export function SettingsPanel() {
                 {/* 3. Model */}
                 <div>
                   <div className="flex items-center justify-between mb-0.5">
-                    <label className={clsx('text-[10px]', isDark ? 'text-gray-500' : 'text-gray-400')}>
+                    <label className={clsx('text-[11px]', isDark ? 'text-gray-500' : 'text-gray-400')}>
                       {t('common:settings.ai.model')}
                     </label>
                     <button
                       onClick={handleFetchModels}
                       disabled={fetchingModels || (!baseUrl.trim() && !isOllama)}
                       className={clsx(
-                        'text-[10px] flex items-center gap-1 px-1.5 py-0.5 rounded transition-colors',
+                        'text-[11px] flex items-center gap-1 px-1.5 py-0.5 rounded transition-colors',
                         fetchingModels
                           ? 'opacity-50 cursor-not-allowed'
                           : isDark
@@ -508,7 +508,7 @@ export function SettingsPanel() {
                 {/* 测试连接结果 */}
                 {testResult && (
                   <div className={clsx(
-                    'flex items-start gap-1.5 text-[10px] p-2 rounded',
+                    'flex items-start gap-1.5 text-[11px] p-2 rounded',
                     testResult.ok
                       ? isDark ? 'bg-green-900/30 text-green-300' : 'bg-green-50 text-green-700'
                       : isDark ? 'bg-red-900/30 text-red-300' : 'bg-red-50 text-red-700',
@@ -526,7 +526,7 @@ export function SettingsPanel() {
                     onClick={handleSetDefault}
                     disabled={isDefault}
                     className={clsx(
-                      'text-[10px] px-2 py-1 rounded transition-colors',
+                      'text-[11px] px-2 py-1 rounded transition-colors',
                       isDefault
                         ? 'opacity-40 cursor-not-allowed'
                         : isDark
@@ -541,7 +541,7 @@ export function SettingsPanel() {
                     onClick={handleTestConnection}
                     disabled={testing || (!apiKey.trim() && !isOllama)}
                     className={clsx(
-                      'text-[10px] flex items-center gap-1 px-2 py-1 rounded transition-colors',
+                      'text-[11px] flex items-center gap-1 px-2 py-1 rounded transition-colors',
                       testing || (!apiKey.trim() && !isOllama)
                         ? 'opacity-40 cursor-not-allowed'
                         : isDark
@@ -556,7 +556,7 @@ export function SettingsPanel() {
 
                 <div className="flex items-center gap-2">
                   {saved && (
-                    <span className={clsx('text-[10px] flex items-center gap-0.5', isDark ? 'text-green-400' : 'text-green-600')}>
+                    <span className={clsx('text-[11px] flex items-center gap-0.5', isDark ? 'text-green-400' : 'text-green-600')}>
                       <Check size={10} />
                       {t('common:settings.ai.saved')}
                     </span>
@@ -639,7 +639,7 @@ export function SettingsPanel() {
                           <span className={clsx('text-[11px] font-medium', isDark ? 'text-gray-300' : 'text-gray-600')}>
                             {labels[taskType]}
                           </span>
-                          <p className={clsx('text-[9px]', isDark ? 'text-gray-500' : 'text-gray-400')}>
+                          <p className={clsx('text-[11px]', isDark ? 'text-gray-500' : 'text-gray-400')}>
                             {descs[taskType]}
                           </p>
                         </div>
@@ -780,7 +780,7 @@ export function SettingsPanel() {
                     <span className={clsx('text-xs', isDark ? 'text-gray-400' : 'text-gray-600')}>
                       {t('common:settings.general.autoSave')}
                     </span>
-                    <p className={clsx('text-[10px]', isDark ? 'text-gray-600' : 'text-gray-400')}>
+                    <p className={clsx('text-[11px]', isDark ? 'text-gray-600' : 'text-gray-400')}>
                       {t('common:settings.general.autoSaveDesc')}
                     </p>
                   </div>
@@ -838,7 +838,7 @@ export function SettingsPanel() {
                     {t('common:settings.general.openWorkspace')}
                   </button>
                 </div>
-                <p className={clsx('text-[10px] truncate', isDark ? 'text-gray-600' : 'text-gray-400')}>
+                <p className={clsx('text-[11px] truncate', isDark ? 'text-gray-600' : 'text-gray-400')}>
                   {workspacePath || '...'}
                 </p>
 
@@ -889,7 +889,7 @@ export function SettingsPanel() {
                       <span className={clsx('text-xs', isDark ? 'text-gray-400' : 'text-gray-600')}>
                         {t('common:settings.updates.title')}
                       </span>
-                      <p className={clsx('text-[10px]', isDark ? 'text-gray-600' : 'text-gray-400')}>
+                      <p className={clsx('text-[11px]', isDark ? 'text-gray-600' : 'text-gray-400')}>
                         {updateStatus === 'newVersion'
                           ? t('common:settings.general.newVersionAvailable')
                           : updateStatus === 'latest'
@@ -970,7 +970,7 @@ export function SettingsPanel() {
                     <span className={clsx('text-xs', isDark ? 'text-gray-400' : 'text-gray-600')}>
                       {t('common:settings.advanced.debugMode')}
                     </span>
-                    <p className={clsx('text-[10px]', isDark ? 'text-gray-600' : 'text-gray-400')}>
+                    <p className={clsx('text-[11px]', isDark ? 'text-gray-600' : 'text-gray-400')}>
                       {t('common:settings.advanced.debugModeDesc')}
                     </p>
                   </div>
@@ -1015,7 +1015,7 @@ export function SettingsPanel() {
                     <span className={clsx('text-xs', isDark ? 'text-gray-400' : 'text-gray-600')}>
                       {t('common:settings.advanced.aiHubPort')}
                     </span>
-                    <p className={clsx('text-[10px]', isDark ? 'text-gray-600' : 'text-gray-400')}>
+                    <p className={clsx('text-[11px]', isDark ? 'text-gray-600' : 'text-gray-400')}>
                       {t('common:settings.advanced.aiHubPortDesc')}
                     </p>
                   </div>
@@ -1040,7 +1040,7 @@ export function SettingsPanel() {
                     <span className={clsx('text-xs', isDark ? 'text-gray-400' : 'text-gray-600')}>
                       {t('common:settings.advanced.aiHubAutoStart')}
                     </span>
-                    <p className={clsx('text-[10px]', isDark ? 'text-gray-600' : 'text-gray-400')}>
+                    <p className={clsx('text-[11px]', isDark ? 'text-gray-600' : 'text-gray-400')}>
                       {t('common:settings.advanced.aiHubAutoStartDesc')}
                     </p>
                   </div>
@@ -1065,7 +1065,7 @@ export function SettingsPanel() {
                   <span className={clsx('text-xs', isDark ? 'text-gray-400' : 'text-gray-600')}>
                     {t('common:settings.advanced.autonomyMode')}
                   </span>
-                  <p className={clsx('text-[10px] mb-1.5', isDark ? 'text-gray-600' : 'text-gray-400')}>
+                  <p className={clsx('text-[11px] mb-1.5', isDark ? 'text-gray-600' : 'text-gray-400')}>
                     {t('common:settings.advanced.autonomyModeDesc')}
                   </p>
                   <select

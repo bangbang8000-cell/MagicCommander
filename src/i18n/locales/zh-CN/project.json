@@ -116,7 +116,10 @@
     },
     "category": {
       "all": "全部"
-    }
+    },
+    "createProject": "从模板创建项目",
+    "create": "创建",
+    "creating": "创建中..."
   },
   "search": {
     "title": "搜索",
@@ -235,8 +238,6 @@
     "portrait": "纵向",
     "landscape": "横向",
     "executeAction": "执行动作",
-    "batchRender": "批量渲染 ({{count}})",
-    "renderCurrentOnly": "仅渲染当前项目",
     "dryRunPreview": "预览渲染结果",
     "deleteOutput": "删除输出",
     "deleteYaml": "删除 YAML",
@@ -257,7 +258,7 @@
     "openProjectDir": "打开项目目录",
     "scopeHint": "请在项目浏览器中选择一个项目",
     "selectedCount": "已选 {{selected}} / {{total}} 个项目",
-    "processing": "处理中..."
+    "viewOutput": "查看输出结果"
   },
   "config": {
     "title": "配置",
@@ -275,7 +276,7 @@
     "resetToDefault": "恢复默认"
   },
   "label": {
-    "title": "标签",
+    "title": "标签打印",
     "selectProject": "选择项目",
     "selectProjectPlaceholder": "请选择项目...",
     "printLabels": "打印标签",

@@ -155,13 +155,13 @@ export function ChatPanel() {
   const overflowSessions = overflowCount > 0 ? sortedSessions.slice(sortedSessions.length - overflowCount) : []
 
   // 字体大小映射
-  const fontSizeClass = fontSize === 'small' ? 'text-[12px]' : fontSize === 'large' ? 'text-[14px]' : 'text-[13px]'
+  const fontSizeClass = fontSize === 'small' ? 'text-xs' : fontSize === 'large' ? 'text-sm' : 'text-sm'
 
   return (
     <div className="flex flex-col h-full">
       {/* === 顶部工具栏 === */}
       <div className={clsx('flex items-center gap-1.5 px-3 py-1.5 border-b shrink-0', isDark ? 'border-gray-700 bg-gray-900/60' : 'border-gray-200 bg-gray-50')}>
-        <span className={clsx('flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full shrink-0',
+        <span className={clsx('flex items-center gap-1 text-[11px] px-1.5 py-0.5 rounded-full shrink-0',
           aiHubStatus.installing ? (isDark ? 'bg-blue-900/50 text-blue-400' : 'bg-blue-100 text-blue-700')
           : aiHubStatus.running ? (isDark ? 'bg-green-900/50 text-green-400' : 'bg-green-100 text-green-700')
           : (isDark ? 'bg-gray-700 text-gray-400' : 'bg-gray-200 text-gray-500'))}

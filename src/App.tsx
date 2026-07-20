@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback, useState, useRef } from 'react'
+import React, { useEffect, useCallback, useState, useRef, useMemo } from 'react'
 import clsx from 'clsx'
 import { useProjectStore } from './stores/project.store'
 import { useLogStore } from './stores/log.store'
@@ -6,6 +6,7 @@ import { useRenderStore } from './stores/render.store'
 import { useUIStore } from './stores/ui.store'
 import { useEditorStore, type EditorTab } from './stores/editor.store'
 import { useHotkey } from './hooks/useHotkey'
+import { HOTKEY_REGISTRY } from './hooks/hotkeyRegistry'
 import { Header } from './components/layout/Header'
 import { ActivityBar } from './components/layout/ActivityBar'
 import { StatusBar } from './components/layout/StatusBar'
@@ -15,13 +16,13 @@ import { WorkbenchPanel } from './components/sidebar/WorkbenchPanel'
 import { OutputPanel } from './components/sidebar/OutputPanel'
 import { SettingsPanel } from './components/sidebar/SettingsPanel'
 import { SearchPanel } from './components/sidebar/SearchPanel'
-import { RenderPanel } from './components/sidebar/RenderPanel'
 import { ChatPanel } from './components/chat'
 import { EditorArea } from './components/editor/EditorArea'
 import { PanelArea } from './components/panel/PanelArea'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { ToastContainer } from './components/ui/Toast'
 import { Cheatsheet } from './components/ui/Cheatsheet'
+import { CommandPalette, type CommandItem } from './components/ui/CommandPalette'
 import { LoadingScreen } from './components/common/LoadingScreen'
 import { errorService } from '@/services/errorService'
 import type { EditorTabMeta } from './types/editor'
@@ -31,6 +32,7 @@ import { RTL_LOCALES } from './i18n/resources'
 export default function App() {
   const fetchProjects = useProjectStore((s) => s.fetchProjects)
   const selectProject = useProjectStore((s) => s.selectProject)
+  const createProject = useProjectStore((s) => s.createProject)
   const subscribeProgress = useRenderStore((s) => s.subscribeProgress)
   const subscribeLog = useLogStore((s) => s.subscribeLog)
   const panelVisible = useUIStore((s) => s.panelVisible)
@@ -56,6 +58,7 @@ export default function App() {
   const initRef = useRef(false)
 
   const [cheatsheetOpen, setCheatsheetOpen] = useState(false)
+  const [commandPaletteOpen, setCommandPaletteOpen] = useState(false)
   const [isInitialized, setIsInitialized] = useState(false)
   const [loadingStage, setLoadingStage] = useState(0)
 
@@ -232,6 +235,38 @@ export default function App() {
     },
     [cheatsheetPending],
   )
+
+  // 命令面板：从快捷键注册表 + 菜单构建统一命令列表
+  const commandItems = useMemo<CommandItem[]>(() => {
+    const handler = (activity: string) => () => setActiveActivity(activity as any)
+    const extra: CommandItem[] = [
+      { id: 'newProject', label: i18n.t('common:menu.newProject'), category: '文件', shortcut: 'Ctrl+N', action: () => createProject(`Project_${Date.now().toString(36).toUpperCase()}`) },
+      { id: 'openProjectDir', label: i18n.t('common:menu.openProjectDir'), category: '文件', action: async () => { try { const p = await window.electron?.app?.getPath?.('workspace'); if (p) window.electron?.shell?.showItemInFolder?.(p); } catch {} } },
+      { id: 'undo', label: i18n.t('common:menu.undo'), category: '编辑', shortcut: 'Ctrl+Z', action: () => document.execCommand('undo') },
+      { id: 'redo', label: i18n.t('common:menu.redo'), category: '编辑', shortcut: 'Ctrl+Y', action: () => document.execCommand('redo') },
+      { id: 'copy', label: i18n.t('common:menu.copy'), category: '编辑', shortcut: 'Ctrl+C', action: () => document.execCommand('copy') },
+      { id: 'paste', label: i18n.t('common:menu.paste'), category: '编辑', shortcut: 'Ctrl+V', action: () => document.execCommand('paste') },
+      { id: 'cheatsheet', label: i18n.t('common:menu.cheatsheet'), category: '视图', shortcut: 'Ctrl+K Ctrl+S', action: () => setCheatsheetOpen(true) },
+    ]
+    const fromRegistry: CommandItem[] = HOTKEY_REGISTRY.map((h) => {
+      let action: () => void
+      switch (h.combo) {
+        case 'ctrl+s': action = () => saveActiveTab(); break
+        case 'ctrl+w': action = () => { const s = useEditorStore.getState(); const tid = s.splitMode !== 'none' && s.splitTabs.some(t => t.id === s.activeSplitTabId) ? s.activeSplitTabId : s.activeTabId; if (tid) closeTab(tid); }; break
+        case 'ctrl+shift+t': action = () => reopenLastClosed(); break
+        case 'ctrl+b': action = () => toggleSidebar(); break
+        case 'ctrl+j': action = () => useUIStore.getState().togglePanel(); break
+        case 'ctrl+\\\\': action = () => useEditorStore.getState().setSplitMode(useEditorStore.getState().splitMode === 'vertical' ? 'none' : 'vertical'); break
+        case 'ctrl+k ctrl+s': action = () => setCheatsheetOpen(true); break
+        case 'f5': action = () => window.location.reload(); break
+        default: action = () => handler(h.combo.includes('shift+h') ? 'chat' : h.combo.includes('shift+e') ? 'explorer' : h.combo.includes('shift+f') ? 'search' : h.combo.includes('shift+r') ? 'workbench' : h.combo.includes('shift+o') ? 'output' : h.combo.includes('shift+w') ? 'workbench' : h.combo.includes(',') ? 'settings' : 'search')
+      }
+      return { id: h.combo, label: h.label, category: h.category, shortcut: h.combo, action }
+    })
+    return [...fromRegistry, ...extra]
+  }, [saveActiveTab, closeTab, reopenLastClosed, toggleSidebar, setActiveActivity, createProject])
+
+  useHotkey('ctrl+shift+p', () => setCommandPaletteOpen(true), [])
   useHotkey('ctrl+b', () => toggleSidebar(), [toggleSidebar])
   useHotkey(
     'ctrl+j',
@@ -242,7 +277,7 @@ export default function App() {
   )
   useHotkey('ctrl+shift+e', () => setActiveActivity('explorer'), [setActiveActivity])
   useHotkey('ctrl+shift+f', () => setActiveActivity('search'), [setActiveActivity])
-  useHotkey('ctrl+shift+r', () => setActiveActivity('render'), [setActiveActivity])
+  useHotkey('ctrl+shift+r', () => setActiveActivity('workbench'), [setActiveActivity])
   useHotkey('ctrl+shift+o', () => setActiveActivity('output'), [setActiveActivity])
   useHotkey('ctrl+shift+w', () => setActiveActivity('workbench'), [setActiveActivity])
   useHotkey('ctrl+shift+h', () => setActiveActivity('chat'), [setActiveActivity])
@@ -267,12 +302,10 @@ export default function App() {
         return <SearchPanel />
       case 'explorer':
         return <ExplorerPanel />
-      case 'render':
-        return <RenderPanel />
-      case 'output':
-        return <OutputPanel />
       case 'workbench':
         return <WorkbenchPanel />
+      case 'output':
+        return <OutputPanel />
       case 'settings':
         return <SettingsPanel />
       case 'chat':
@@ -306,6 +339,11 @@ export default function App() {
         <StatusBar />
         <ToastContainer />
         <Cheatsheet open={cheatsheetOpen} onClose={() => setCheatsheetOpen(false)} />
+        <CommandPalette
+          open={commandPaletteOpen}
+          onClose={() => setCommandPaletteOpen(false)}
+          commands={commandItems}
+        />
       </div>
     </ErrorBoundary>
   )

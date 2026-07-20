@@ -24,13 +24,13 @@ export function WorkbenchOutputCard({
         <Settings size={12} /> {t('workbench.outputSettings')}
       </h4>
       <div className="space-y-1.5">
-        <div className={clsx('flex items-center gap-1 text-[10px]', isDark ? 'text-gray-400' : 'text-gray-500')}>
+        <div className={clsx('flex items-center gap-1 text-[11px]', isDark ? 'text-gray-400' : 'text-gray-500')}>
           <span className="min-w-[36px]">{t('workbench.format')}</span>
           <select
             value={outputFormat}
             onChange={(e) => onOutputFormatChange(e.target.value as 'device_name' | 'device_sn')}
             className={clsx(
-              'text-[10px] border rounded px-1 py-0.5 flex-1',
+              'text-[11px] border rounded px-1 py-0.5 flex-1',
               isDark ? 'border-gray-600 bg-gray-800 text-gray-200' : 'border-gray-300 text-gray-700',
             )}
           >
@@ -38,13 +38,13 @@ export function WorkbenchOutputCard({
             <option value="device_sn">{t('workbench.deviceSn')}</option>
           </select>
         </div>
-        <div className={clsx('flex items-center gap-1 text-[10px]', isDark ? 'text-gray-400' : 'text-gray-500')}>
+        <div className={clsx('flex items-center gap-1 text-[11px]', isDark ? 'text-gray-400' : 'text-gray-500')}>
           <span className="min-w-[36px]">{t('workbench.type')}</span>
           <select
             value={renderType}
             onChange={(e) => onRenderTypeChange(e.target.value as 'project' | 'yaml')}
             className={clsx(
-              'text-[10px] border rounded px-1 py-0.5 flex-1',
+              'text-[11px] border rounded px-1 py-0.5 flex-1',
               isDark ? 'border-gray-600 bg-gray-800 text-gray-200' : 'border-gray-300 text-gray-700',
             )}
           >

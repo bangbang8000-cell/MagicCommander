@@ -265,7 +265,7 @@ export function ExplorerPanel() {
                 <div className="flex items-center gap-2">
                   <span>{t('explorer.projectList')}</span>
                   <span className={clsx(
-                    'text-[10px] px-1.5 py-0.5 rounded-full font-normal',
+                    'text-[11px] px-1.5 py-0.5 rounded-full font-normal',
                     'bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300',
                   )}>
                     {sorted.length}
@@ -300,7 +300,7 @@ export function ExplorerPanel() {
                   <>
                     {favoriteList.length > 0 && (
                       <div>
-                        <div className="px-3 py-1 text-[10px] font-semibold uppercase tracking-wider flex items-center gap-1 bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400">
+                        <div className="px-3 py-1 text-[11px] font-semibold uppercase tracking-wider flex items-center gap-1 bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400">
                           <Star size={10} className="text-yellow-500" />
                           {t('explorer.favorites')}
                         </div>
@@ -328,7 +328,7 @@ export function ExplorerPanel() {
                     )}
                     {recentList.length > 0 && (
                       <div>
-                        <div className="px-3 py-1 text-[10px] font-semibold uppercase tracking-wider flex items-center gap-1 bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400">
+                        <div className="px-3 py-1 text-[11px] font-semibold uppercase tracking-wider flex items-center gap-1 bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400">
                           <Clock size={10} className="text-gray-400 dark:text-gray-500" />
                           {t('explorer.recent')}
                         </div>
@@ -356,7 +356,7 @@ export function ExplorerPanel() {
                     )}
                     {normalList.length > 0 && (
                       <div>
-                        <div className="px-3 py-1 text-[10px] font-semibold uppercase tracking-wider flex items-center gap-1 bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400">
+                        <div className="px-3 py-1 text-[11px] font-semibold uppercase tracking-wider flex items-center gap-1 bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400">
                           <Folder size={10} className="text-gray-400 dark:text-gray-500" />
                           {t('explorer.allProjectsGroup')}
                         </div>

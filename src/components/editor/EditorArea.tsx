@@ -8,6 +8,7 @@ import { MonacoEditor } from './MonacoEditor'
 import { ExcelViewer } from './ExcelViewer'
 import { WordViewer } from './WordViewer'
 import { MarkdownViewer } from '@/components/common/MarkdownViewer'
+import { ContextMenu } from '@/components/ui/ContextMenu'
 import { UnsupportedViewer } from './UnsupportedViewer'
 import { Modal } from '@/components/ui/Modal'
 import { getFileTypeIcon } from '@/config/icons'
@@ -135,7 +136,7 @@ export function EditorArea() {
 
   const renderTabBar = (tabs: typeof openTabs, activeId: string | null, isSplit: boolean) => (
     <div
-      className={`flex items-center border-b h-9 shrink-0 overflow-x-auto ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-gray-50 border-gray-200'}`}
+      className={`flex items-center border-b h-9 shrink-0 overflow-x-auto ${isDark ? 'bg-gray-900 border-gray-700' : 'bg-gray-50 border-gray-200'}`}
     >
       {tabs.map((tab) => {
         // 构建完整的悬浮提示信息
@@ -144,43 +145,85 @@ export function EditorArea() {
           ? `${tab.projectName} / ${dirPath} / ${tab.title}`
           : `${tab.projectName} / ${tab.title}`
 
+        const tabIndex = tabs.indexOf(tab)
+        const isLastTab = tabIndex === tabs.length - 1
+        const onlyOneTab = tabs.length <= 1
+
+        const contextItems = [
+          {
+            label: t('editor:tabs.close'),
+            onClick: () => closeTab(tab.id),
+          },
+          {
+            label: t('editor:tabs.closeOthers'),
+            disabled: onlyOneTab,
+            onClick: () => {
+              const others = tabs.filter((t) => t.id !== tab.id)
+              others.forEach((t) => closeTab(t.id))
+            },
+          },
+          {
+            label: t('editor:tabs.closeRight'),
+            disabled: isLastTab,
+            onClick: () => {
+              const toRight = tabs.slice(tabIndex + 1)
+              toRight.forEach((t) => closeTab(t.id))
+            },
+          },
+          {
+            label: t('editor:tabs.closeAll'),
+            disabled: onlyOneTab,
+            onClick: () => {
+              tabs.forEach((t) => closeTab(t.id))
+            },
+          },
+          { separator: true as const, label: '', onClick: () => {} },
+          {
+            label: t('editor:tabs.copyPath'),
+            onClick: () => {
+              navigator.clipboard.writeText(tab.filePath).catch(() => {})
+            },
+          },
+        ]
+
         return (
-          <div
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            title={fullPath}
-            className={clsx(
-              `flex items-center gap-1 px-3 py-1.5 text-xs cursor-pointer border-e select-none group whitespace-nowrap ${isDark ? 'border-gray-700' : 'border-gray-200'}`,
-              activeId === tab.id
-                ? isDark
-                  ? 'bg-gray-900 text-gray-100 border-b-2 border-b-primary-400'
-                  : 'bg-white text-gray-900 border-b-2 border-b-primary-500 shadow-sm'
-                : isDark
-                  ? 'text-gray-400 hover:text-gray-200 hover:bg-gray-700'
-                  : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100',
-            )}
-          >
-            {(() => {
-              const IconComponent = getFileTypeIcon(tab.fileType)
-              return <IconComponent size={14} className={isDark ? 'text-gray-400' : 'text-gray-500'} />
-            })()}
-            <span className={clsx(tab.isDirty && 'italic')}>
-              {tab.title}
-              {tab.isDirty && ' \u2022'}
-            </span>
-            <button
-              onClick={(e) => {
-                e.stopPropagation()
-                closeTab(tab.id)
-              }}
+          <ContextMenu items={contextItems} key={tab.id}>
+            <div
+              onClick={() => setActiveTab(tab.id)}
+              title={fullPath}
               className={clsx(
-                'ms-1 p-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity',
-                isDark ? 'hover:bg-gray-600 text-gray-400' : 'hover:bg-gray-200 text-gray-400',
+                `flex items-center gap-1 px-3 py-1.5 text-xs cursor-pointer border-e select-none group whitespace-nowrap ${isDark ? 'border-gray-700' : 'border-gray-200'}`,
+                activeId === tab.id
+                  ? isDark
+                    ? 'bg-gray-900 text-gray-100 border-b-2 border-b-primary-400'
+                    : 'bg-white text-gray-900 border-b-2 border-b-primary-500 shadow-sm'
+                  : isDark
+                    ? 'text-gray-400 hover:text-gray-200 hover:bg-gray-700'
+                    : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100',
               )}
             >
-              <X size={10} />
-            </button>
-          </div>
+              {(() => {
+                const IconComponent = getFileTypeIcon(tab.fileType)
+                return <IconComponent size={14} className={isDark ? 'text-gray-400' : 'text-gray-500'} />
+              })()}
+              <span className={clsx(tab.isDirty && 'italic')}>
+                {tab.title}
+                {tab.isDirty && ' \u2022'}
+              </span>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  closeTab(tab.id)
+                }}
+                className={clsx(
+                  'ms-1 p-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity',
+                  isDark ? 'hover:bg-gray-600 text-gray-400' : 'hover:bg-gray-200 text-gray-400',
+                )}
+              >
+                <X size={10} />
+              </button>
+            </div>
+          </ContextMenu>
         )
       })}
       {!isSplit && (

@@ -89,7 +89,7 @@ function detectSkillSuggestion(content: string): { skillName: string; skillConte
   return null
 }
 
-export function ChatMessageBubble({ message, isDark, fontSizeClass = 'text-[13px]' }: ChatMessageBubbleProps) {
+export function ChatMessageBubble({ message, isDark, fontSizeClass = 'text-sm' }: ChatMessageBubbleProps) {
   const { t } = useTranslation()
   const [copied, setCopied] = useState(false)
   const [skillSaved, setSkillSaved] = useState(false)
@@ -168,7 +168,7 @@ export function ChatMessageBubble({ message, isDark, fontSizeClass = 'text-[13px
           <span className={clsx('text-xs font-semibold', isDark ? 'text-gray-300' : 'text-gray-700')}>
             {isUser ? t('chat:role.user') : t('chat:role.assistant')}
           </span>
-          <span className={clsx('text-[10px]', isDark ? 'text-gray-500' : 'text-gray-400')}>
+          <span className={clsx('text-[11px]', isDark ? 'text-gray-500' : 'text-gray-400')}>
             {new Date(message.timestamp).toLocaleTimeString()}
           </span>
         </div>
@@ -255,7 +255,7 @@ export function ChatMessageBubble({ message, isDark, fontSizeClass = 'text-[13px
               <span
                 key={tool}
                 className={clsx(
-                  'text-[10px] px-1.5 py-0.5 rounded',
+                  'text-[11px] px-1.5 py-0.5 rounded',
                   isDark ? 'bg-gray-700' : 'bg-gray-200',
                 )}
               >

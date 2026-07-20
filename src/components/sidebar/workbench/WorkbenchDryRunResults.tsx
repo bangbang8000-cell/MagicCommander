@@ -72,7 +72,7 @@ export function WorkbenchDryRunResults({ results, isDark, onClear }: WorkbenchDr
 
       {Object.entries(grouped).map(([project, devices]) => (
         <div key={project} className="space-y-1">
-          <div className={clsx('text-[10px] font-medium px-1', isDark ? 'text-gray-400' : 'text-gray-500')}>
+          <div className={clsx('text-[11px] font-medium px-1', isDark ? 'text-gray-400' : 'text-gray-500')}>
             {project} ({devices.length})
           </div>
           {devices.map((d) => {
@@ -100,7 +100,7 @@ export function WorkbenchDryRunResults({ results, isDark, onClear }: WorkbenchDr
                     {isExpanded ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
                     <FileText size={12} />
                     <span className="truncate">{d.device}</span>
-                    <span className={clsx('text-[10px] ml-auto', isDark ? 'text-gray-500' : 'text-gray-400')}>
+                    <span className={clsx('text-[11px] ml-auto', isDark ? 'text-gray-500' : 'text-gray-400')}>
                       {d.role} / {d.filename}
                     </span>
                   </button>
@@ -108,7 +108,7 @@ export function WorkbenchDryRunResults({ results, isDark, onClear }: WorkbenchDr
                     onClick={() => handleDiff(d.project, d.device, d.content, format)}
                     disabled={isLoadingDiff}
                     className={clsx(
-                      'p-1 rounded text-[10px] transition-colors',
+                      'p-1 rounded text-[11px] transition-colors',
                       diff
                         ? isDark ? 'text-yellow-400 hover:bg-gray-700' : 'text-yellow-600 hover:bg-gray-100'
                         : isDark ? 'text-gray-500 hover:text-gray-300 hover:bg-gray-700' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100',
@@ -122,7 +122,7 @@ export function WorkbenchDryRunResults({ results, isDark, onClear }: WorkbenchDr
                   <div className="mx-3 mb-1">
                     <pre
                       className={clsx(
-                        'text-[10px] p-2 rounded overflow-auto max-h-64 whitespace-pre-wrap font-mono',
+                        'text-[11px] p-2 rounded overflow-auto max-h-64 whitespace-pre-wrap font-mono',
                         isDark ? 'bg-gray-800 text-gray-200 border border-gray-700' : 'bg-gray-50 text-gray-700 border border-gray-200',
                       )}
                     >
@@ -134,7 +134,7 @@ export function WorkbenchDryRunResults({ results, isDark, onClear }: WorkbenchDr
                   <div className="mx-3 mb-1">
                     <pre
                       className={clsx(
-                        'text-[10px] p-2 rounded overflow-auto max-h-48 whitespace-pre-wrap font-mono',
+                        'text-[11px] p-2 rounded overflow-auto max-h-48 whitespace-pre-wrap font-mono',
                         isDark ? 'bg-gray-800 text-gray-200 border border-gray-700' : 'bg-gray-50 text-gray-700 border border-gray-200',
                       )}
                     >

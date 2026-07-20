@@ -1,7 +1,7 @@
 {
   "name": "magiccommander",
-  "version": "3.4.1",
-  "description": "MagicCommander - 网络设备配置管理工具",
+  "version": "3.5.0",
+  "description": "MagicCommander - \u7f51\u7edc\u8bbe\u5907\u914d\u7f6e\u7ba1\u7406\u5de5\u5177",
   "main": "dist-electron/main.js",
   "author": "Magic Commander Team",
   "license": "MIT",

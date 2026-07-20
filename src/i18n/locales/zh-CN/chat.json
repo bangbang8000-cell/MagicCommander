@@ -65,5 +65,10 @@
       "noModel": "未选择 AI 模型。请前往设置页面配置 Provider。",
       "serviceNotRunning": "AI 服务未启动"
     }
+  },
+  "autonomy": {
+    "advisor": "顾问模式",
+    "semiAuto": "半自动",
+    "fullAuto": "全自动"
   }
 }

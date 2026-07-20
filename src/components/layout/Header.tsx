@@ -85,6 +85,26 @@ export function Header({ onCheatsheet }: HeaderProps) {
     return cleanup
   }, [])
 
+  // 菜单键盘导航：Alt+首字母打开对应菜单
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (!e.altKey || e.ctrlKey || e.metaKey) return
+      const menuKeys: Record<string, string> = {
+        f: 'file',
+        e: 'edit',
+        v: 'view',
+        t: 'tools',
+        h: 'help',
+      }
+      const menuId = menuKeys[e.key.toLowerCase()]
+      if (menuId) {
+        e.preventDefault()
+        setOpenMenu((prev) => (prev === menuId ? null : menuId))
+      }
+    }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [])
   const handleMenuClick = (menu: string) => {
     setOpenMenu(openMenu === menu ? null : menu)
   }
@@ -282,7 +302,7 @@ export function Header({ onCheatsheet }: HeaderProps) {
     >
       <span>{label}</span>
       {shortcut && (
-        <span className={clsx('ml-4 text-[10px]', isDark ? 'text-gray-500' : 'text-gray-400')}>
+        <span className={clsx('ml-4 text-[11px]', isDark ? 'text-gray-500' : 'text-gray-400')}>
           {shortcut}
         </span>
       )}
@@ -301,8 +321,10 @@ export function Header({ onCheatsheet }: HeaderProps) {
       renderSeparator('sep-f1'),
       renderMenuItem('saveFile', t('menu.saveFile'), 'Ctrl+S', handleSaveFile),
       renderSeparator('sep-f2'),
-      renderMenuItem('refresh', t('app.refresh'), 'F5', handleRefresh),
+      renderMenuItem('settings', t('common:settings.title'), 'Ctrl+,', () => handleGoToActivity('settings')),
       renderSeparator('sep-f3'),
+      renderMenuItem('refresh', t('app.refresh'), 'F5', handleRefresh),
+      renderSeparator('sep-f4'),
       renderMenuItem('exit', t('menu.exit'), 'Alt+F4', handleExit),
     ],
     edit: [
@@ -316,11 +338,10 @@ export function Header({ onCheatsheet }: HeaderProps) {
     ],
     view: [
       renderMenuItem('chat', t('menu.chat'), 'Ctrl+Shift+H', () => handleGoToActivity('chat')),
-      renderMenuItem('search', t('menu.projectExplorer'), 'Ctrl+Shift+F', () => handleGoToActivity('search')),
-      renderMenuItem('explorer', t('menu.projectExplorer'), 'Ctrl+Shift+E', () => handleGoToActivity('explorer')),
-      renderMenuItem('render', t('menu.renderOperations'), 'Ctrl+Shift+R', () => handleGoToActivity('render')),
-      renderMenuItem('output', t('menu.outputResults'), 'Ctrl+Shift+O', () => handleGoToActivity('output')),
+      renderMenuItem('search', t('common:sidebar.search'), 'Ctrl+Shift+F', () => handleGoToActivity('search')),
+      renderMenuItem('explorer', t('common:sidebar.explorer'), 'Ctrl+Shift+E', () => handleGoToActivity('explorer')),
       renderMenuItem('workbench', t('menu.workbench'), 'Ctrl+Shift+W', () => handleGoToActivity('workbench')),
+      renderMenuItem('output', t('menu.outputResults'), 'Ctrl+Shift+O', () => handleGoToActivity('output')),
       renderSeparator('sep-v1'),
       renderMenuItem(
         'sidebar',
@@ -386,7 +407,8 @@ export function Header({ onCheatsheet }: HeaderProps) {
                       : 'text-gray-600 hover:bg-gray-200',
                 )}
               >
-                {menu.label}
+                <span className="underline decoration-dotted underline-offset-[3px]">{menu.label[0]}</span>
+                {menu.label.slice(1)}
               </button>
               {openMenu === menu.id && (
                 <div
