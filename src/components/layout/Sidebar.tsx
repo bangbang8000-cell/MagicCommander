@@ -7,7 +7,6 @@ import type { ReactNode } from 'react'
 const PANEL_TITLE_KEYS: Record<ActivityType, string> = {
   search: 'common:sidebar.search',
   explorer: 'menu.projectExplorer',
-  render: 'menu.renderOperations',
   output: 'menu.outputResults',
   workbench: 'common:sidebar.workbench',
   chat: 'chat:title',
