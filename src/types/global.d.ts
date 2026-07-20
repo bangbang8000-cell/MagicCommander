@@ -16,4 +16,20 @@ declare global {
   }
 }
 
+// Vite 静态资源类型声明
+declare module '*.svg' {
+  const src: string
+  export default src
+}
+
+declare module '*.png' {
+  const src: string
+  export default src
+}
+
+declare module '*.ico' {
+  const src: string
+  export default src
+}
+
 export {}

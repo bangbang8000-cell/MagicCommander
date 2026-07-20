@@ -136,15 +136,43 @@ async def _diff_compare(args: dict) -> str:
 async def _read_file(args: dict) -> str:
     project_name = args["projectName"]
     file_path = args["filePath"]
-    return _run_python_cli(["file", "read", project_name, file_path])
+    return _run_python_cli(["project", "read-file", project_name, file_path])
 
 
 async def _search_files(args: dict) -> str:
+    """搜索项目文件：通过 list-files + grep 实现"""
     query = args["query"]
-    cmd = ["search", query]
-    if args.get("projectName"):
-        cmd.extend(["--project", args["projectName"]])
-    return _run_python_cli(cmd)
+    project_name = args.get("projectName", "")
+    ws = _workspace_dir or "workspace"
+    import glob as _glob
+
+    results = []
+    if project_name:
+        search_dirs = [str(Path(ws) / project_name)]
+    else:
+        search_dirs = [str(Path(ws) / d) for d in os.listdir(ws)
+                       if os.path.isdir(os.path.join(ws, d)) and not d.startswith('.')]
+
+    for search_dir in search_dirs:
+        for root, dirs, files in os.walk(search_dir):
+            dirs[:] = [d for d in dirs if not d.startswith('.') and d != '__pycache__']
+            for fname in files:
+                if query.lower() in fname.lower():
+                    results.append(os.path.relpath(os.path.join(root, fname), ws))
+                else:
+                    fpath = os.path.join(root, fname)
+                    try:
+                        with open(fpath, 'r', encoding='utf-8', errors='ignore') as f:
+                            for i, line in enumerate(f, 1):
+                                if query.lower() in line.lower():
+                                    results.append(f"{os.path.relpath(fpath, ws)}:{i}: {line.strip()[:200]}")
+                                    break
+                    except Exception:
+                        pass
+
+    if not results:
+        return json.dumps({"status": "ok", "message": f"未找到匹配 '{query}' 的文件或内容", "data": []}, ensure_ascii=False)
+    return json.dumps({"status": "ok", "message": f"找到 {len(results)} 个匹配项", "data": results[:50]}, ensure_ascii=False)
 
 
 async def _create_template(args: dict) -> str:
@@ -844,6 +872,83 @@ async def _recommend_template(args: dict) -> str:
     return json.dumps(result, ensure_ascii=False)
 
 
+# ====== 新增工具：补齐 CLI 能力 ======
+
+async def _delete_project(args: dict) -> str:
+    project_name = args["projectName"]
+    return _run_python_cli(["project", "delete", "--force", project_name])
+
+
+async def _get_project_info(args: dict) -> str:
+    project_name = args["projectName"]
+    return _run_python_cli(["project", "info", "--format", "json", project_name])
+
+
+async def _render_yaml(args: dict) -> str:
+    project_name = args["projectName"]
+    return _run_python_cli(["render", "yaml", project_name])
+
+
+async def _undo_render(args: dict) -> str:
+    project_name = args["projectName"]
+    return _run_python_cli(["render", "undo", project_name])
+
+
+async def _generate_labels(args: dict) -> str:
+    project_name = args["projectName"]
+    return _run_python_cli(["label", "print", project_name])
+
+
+async def _generate_label_md(args: dict) -> str:
+    project_name = args["projectName"]
+    return _run_python_cli(["label", "md", project_name])
+
+
+async def _delete_labels(args: dict) -> str:
+    project_name = args["projectName"]
+    return _run_python_cli(["label", "delete", project_name])
+
+
+async def _delete_files(args: dict) -> str:
+    """删除项目输出文件（清空渲染结果）"""
+    project_name = args["projectName"]
+    file_type = args.get("fileType", "output")
+    return _run_python_cli(["file", "delete", "--force", file_type, project_name])
+
+
+async def _list_project_files(args: dict) -> str:
+    project_name = args["projectName"]
+    return _run_python_cli(["project", "list-files", project_name])
+
+
+async def _read_excel(args: dict) -> str:
+    project_name = args["projectName"]
+    file_name = args["fileName"]
+    cmd = ["project", "read-excel", project_name, file_name]
+    if args.get("sheetName"):
+        cmd.extend(["--sheet", args["sheetName"]])
+    return _run_python_cli(cmd)
+
+
+async def _write_excel(args: dict) -> str:
+    project_name = args["projectName"]
+    file_name = args["fileName"]
+    data = json.dumps(args["data"], ensure_ascii=False)
+    return _run_python_cli(["project", "write-excel", project_name, file_name, data])
+
+
+async def _write_text_file(args: dict) -> str:
+    project_name = args["projectName"]
+    file_path = args["filePath"]
+    content = args["content"]
+    return _run_python_cli(["project", "write-file", project_name, file_path, content])
+
+
+async def _analyze_project(args: dict) -> str:
+    project_name = args["projectName"]
+    return _run_python_cli(["analyze", "project", project_name])
+
+
 def init_tools():
     """初始化所有 Agent Tools"""
     register_tool(
@@ -1038,6 +1143,184 @@ def init_tools():
             "required": [],
         },
         _recommend_template,
+    )
+
+    # ====== 新增工具注册 ======
+
+    register_tool(
+        "delete_project",
+        "删除指定项目及其所有文件（不可恢复，请谨慎使用）",
+        {
+            "type": "object",
+            "properties": {
+                "projectName": {"type": "string", "description": "项目名称"},
+            },
+            "required": ["projectName"],
+        },
+        _delete_project,
+    )
+
+    register_tool(
+        "get_project_info",
+        "获取项目详细信息：目录结构、文件列表、各子目录是否存在",
+        {
+            "type": "object",
+            "properties": {
+                "projectName": {"type": "string", "description": "项目名称"},
+            },
+            "required": ["projectName"],
+        },
+        _get_project_info,
+    )
+
+    register_tool(
+        "render_yaml",
+        "渲染项目的 YAML 文件",
+        {
+            "type": "object",
+            "properties": {
+                "projectName": {"type": "string", "description": "项目名称"},
+            },
+            "required": ["projectName"],
+        },
+        _render_yaml,
+    )
+
+    register_tool(
+        "undo_render",
+        "撤销最近一次渲染，恢复备份的输出文件",
+        {
+            "type": "object",
+            "properties": {
+                "projectName": {"type": "string", "description": "项目名称"},
+            },
+            "required": ["projectName"],
+        },
+        _undo_render,
+    )
+
+    register_tool(
+        "generate_labels",
+        "生成 Word 格式的设备标签文件",
+        {
+            "type": "object",
+            "properties": {
+                "projectName": {"type": "string", "description": "项目名称"},
+            },
+            "required": ["projectName"],
+        },
+        _generate_labels,
+    )
+
+    register_tool(
+        "generate_label_md",
+        "生成 Markdown 格式的设备标签文件，可在程序内直接查看",
+        {
+            "type": "object",
+            "properties": {
+                "projectName": {"type": "string", "description": "项目名称"},
+            },
+            "required": ["projectName"],
+        },
+        _generate_label_md,
+    )
+
+    register_tool(
+        "delete_labels",
+        "删除指定项目的标签文件",
+        {
+            "type": "object",
+            "properties": {
+                "projectName": {"type": "string", "description": "项目名称"},
+            },
+            "required": ["projectName"],
+        },
+        _delete_labels,
+    )
+
+    register_tool(
+        "delete_files",
+        "删除项目输出文件（清空渲染结果）。fileType 可选: output（设备配置）、yaml（YAML文件）、output-sn（SN模式）、yaml-sn（SN模式YAML）",
+        {
+            "type": "object",
+            "properties": {
+                "projectName": {"type": "string", "description": "项目名称"},
+                "fileType": {"type": "string", "description": "文件类型", "enum": ["output", "yaml", "output-sn", "yaml-sn"]},
+            },
+            "required": ["projectName"],
+        },
+        _delete_files,
+    )
+
+    register_tool(
+        "list_project_files",
+        "列出项目目录下的所有文件和子目录结构",
+        {
+            "type": "object",
+            "properties": {
+                "projectName": {"type": "string", "description": "项目名称"},
+            },
+            "required": ["projectName"],
+        },
+        _list_project_files,
+    )
+
+    register_tool(
+        "read_excel",
+        "读取项目中的 Excel 文件内容（指定工作表），返回表头和数据行",
+        {
+            "type": "object",
+            "properties": {
+                "projectName": {"type": "string", "description": "项目名称"},
+                "fileName": {"type": "string", "description": "Excel 文件名（如 parameter.xlsx）"},
+                "sheetName": {"type": "string", "description": "工作表名称（可选，默认第一个）"},
+            },
+            "required": ["projectName", "fileName"],
+        },
+        _read_excel,
+    )
+
+    register_tool(
+        "write_excel",
+        "向项目中的 Excel 文件写入数据",
+        {
+            "type": "object",
+            "properties": {
+                "projectName": {"type": "string", "description": "项目名称"},
+                "fileName": {"type": "string", "description": "Excel 文件名"},
+                "data": {"type": "object", "description": "写入数据: {sheet, headers, rows}"},
+            },
+            "required": ["projectName", "fileName", "data"],
+        },
+        _write_excel,
+    )
+
+    register_tool(
+        "write_text_file",
+        "在项目中创建或覆盖文本文件（模板、配置等）",
+        {
+            "type": "object",
+            "properties": {
+                "projectName": {"type": "string", "description": "项目名称"},
+                "filePath": {"type": "string", "description": "相对于项目根目录的文件路径"},
+                "content": {"type": "string", "description": "文件内容"},
+            },
+            "required": ["projectName", "filePath", "content"],
+        },
+        _write_text_file,
+    )
+
+    register_tool(
+        "analyze_project",
+        "分析项目：检查模板复杂度、变量使用、Excel 数据质量、模板与参数表的交叉引用，生成优化建议报告",
+        {
+            "type": "object",
+            "properties": {
+                "projectName": {"type": "string", "description": "项目名称"},
+            },
+            "required": ["projectName"],
+        },
+        _analyze_project,
     )
 
     logger.info(f"Initialized {len(_tools)} Agent tools")

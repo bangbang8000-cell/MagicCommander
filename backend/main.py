@@ -128,6 +128,13 @@ def main():
     diff_parser.add_argument('content', help='dry-run 渲染内容')
     diff_parser.add_argument('--format', choices=['device_name', 'device_sn'], default='device_name', help='输出格式')
 
+    # 分析项目
+    analyze_parser = subparsers.add_parser('analyze', help='分析项目模板和参数表')
+    analyze_subparsers = analyze_parser.add_subparsers(title='分析操作', dest='subcommand', help='分析子命令')
+
+    analyze_project_parser = analyze_subparsers.add_parser('project', help='分析项目')
+    analyze_project_parser.add_argument('ids', help='项目ID或名称')
+
     # 标签功能命令
     label_parser = subparsers.add_parser('label', help='标签功能操作')
     label_subparsers = label_parser.add_subparsers(title='标签操作', dest='subcommand', help='标签子命令')
@@ -217,6 +224,8 @@ def main():
             handle_validate_command(processor, args)
         elif args.command == 'diff':
             handle_diff_command(processor, args)
+        elif args.command == 'analyze':
+            handle_analyze_command(processor, args)
         else:
             print_error(f'未知命令: {args.command}')
             sys.exit(1)
@@ -662,6 +671,19 @@ def handle_diff_command(processor, args):
             'hasChanges': len(diff_lines) > 0 and diff_lines[0] != '(无差异)',
         },
     }, ensure_ascii=False))
+
+def handle_analyze_command(processor, args):
+    """分析项目模板和参数表"""
+    from analyzer import analyze_project
+
+    target_ids = process_project_ids(args.ids, processor.project_name)
+
+    for idx in target_ids:
+        project_name = processor.project_name[idx]
+        project_path = os.path.join(WORKSPACE_DIR, project_name)
+
+        report = analyze_project(project_path)
+        print(json.dumps(report, ensure_ascii=False))
 
 def handle_file_command(processor, args):
     """处理文件操作命令"""

@@ -145,7 +145,10 @@ _PARAM_ALIASES = {
     "source_project": "sourceProject",
     "target_project": "targetProject",
     "file_path": "filePath",
+    "file_type": "fileType",
+    "file_name": "fileName",
     "excel_name": "excelName",
+    "sheet_name": "sheetName",
     "config_description": "configDescription",
 }
 

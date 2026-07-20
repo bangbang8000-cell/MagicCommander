@@ -1,5 +1,7 @@
 import clsx from 'clsx'
 
+const iconSvg = new URL('/icons/icon.svg', import.meta.url).href
+
 interface AppLogoProps {
   size?: number
   className?: string
@@ -9,7 +11,7 @@ interface AppLogoProps {
 export function AppLogo({ size = 24, className, isDark }: AppLogoProps) {
   return (
     <img
-      src="/icons/icon.svg"
+      src={iconSvg}
       alt="MagicCommander"
       className={clsx('block shrink-0 select-none', className)}
       draggable={false}
