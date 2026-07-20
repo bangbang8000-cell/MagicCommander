@@ -876,6 +876,18 @@ export function setupIpcHandlers(window: BrowserWindow): void {
     },
   )
 
+  // AI Hub 同步 Provider 配置
+  ipcMain.handle(
+    'aihub:syncProviders',
+    async (
+      _e,
+      configs: Array<{ provider: string; apiKey: string; model: string; baseUrl: string }>,
+      defaultProvider: string,
+    ): Promise<void> => {
+      await aiHubService.syncProviders(configs, defaultProvider)
+    },
+  )
+
   // AI Hub 获取模型列表
   ipcMain.handle(
     'aihub:fetchModels',

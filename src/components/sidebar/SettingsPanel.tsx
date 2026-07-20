@@ -93,6 +93,43 @@ export function SettingsPanel() {
   const [fetchingModels, setFetchingModels] = useState(false)
   const [fetchedModels, setFetchedModels] = useState<string[]>([])
 
+  // 确保 AI Hub 运行并同步配置，返回 null 表示成功，否则返回错误信息
+  const ensureAIHubReady = useCallback(async (): Promise<string | null> => {
+    try {
+      const status = await window.electron.aihub.status()
+      if (!status.running && !status.installing) {
+        await window.electron.aihub.start()
+        // 等待启动（最多 15 秒）
+        for (let i = 0; i < 15; i++) {
+          await new Promise((r) => setTimeout(r, 1000))
+          const s = await window.electron.aihub.status()
+          if (s.running) break
+        }
+      }
+      const finalStatus = await window.electron.aihub.status()
+      if (!finalStatus.running) {
+        return finalStatus.lastError || 'AI Hub 启动超时，请检查 Python 环境'
+      }
+
+      // 同步配置到 AI Hub
+      const aiConfig = useUIStore.getState().aiConfig
+      const configs = Object.entries(aiConfig.providers)
+        .filter(([, cfg]) => cfg.apiKey)
+        .map(([key, cfg]) => ({
+          provider: key,
+          apiKey: cfg.apiKey,
+          model: cfg.model || '',
+          baseUrl: cfg.baseUrl || '',
+        }))
+      if (configs.length > 0) {
+        await window.electron.aihub.syncProviders(configs, aiConfig.defaultProvider)
+      }
+      return null
+    } catch (e: any) {
+      return e?.message || 'AI Hub 启动失败，请检查 Python 环境'
+    }
+  }, [])
+
   const catalog = PROVIDER_CATALOG[activeProvider]
   const isOllama = activeProvider === 'ollama'
   const isCustom = activeProvider === 'custom'
@@ -166,6 +203,11 @@ export function SettingsPanel() {
     setTesting(true)
     setTestResult(null)
     try {
+      const err = await ensureAIHubReady()
+      if (err) {
+        setTestResult({ ok: false, msg: err })
+        return
+      }
       const result = await window.electron.aihub.testConnection(
         activeProvider,
         apiKey.trim(),
@@ -178,7 +220,7 @@ export function SettingsPanel() {
     } finally {
       setTesting(false)
     }
-  }, [activeProvider, apiKey, model, baseUrl, catalog])
+  }, [activeProvider, apiKey, model, baseUrl, catalog, ensureAIHubReady])
 
   // 获取模型列表
   const handleFetchModels = useCallback(async () => {
@@ -186,6 +228,11 @@ export function SettingsPanel() {
     setFetchingModels(true)
     setFetchedModels([])
     try {
+      const err = await ensureAIHubReady()
+      if (err) {
+        console.error('AI Hub 未就绪:', err)
+        return
+      }
       const result = await window.electron.aihub.fetchModels(
         baseUrl.trim() || catalog.baseUrl,
         apiKey.trim(),
@@ -198,7 +245,7 @@ export function SettingsPanel() {
     } finally {
       setFetchingModels(false)
     }
-  }, [baseUrl, apiKey, catalog, isOllama])
+  }, [baseUrl, apiKey, catalog, isOllama, ensureAIHubReady])
 
   const themeOptions: { value: 'light' | 'dark' | 'system'; icon: React.ReactNode; label: string }[] = [
     { value: 'light', icon: <Sun size={16} />, label: t('menu.lightMode') },

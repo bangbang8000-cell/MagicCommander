@@ -137,6 +137,10 @@ const api = {
       ipcRenderer.invoke('aihub:testConnection', provider, apiKey, baseUrl, model),
     fetchModels: (baseUrl: string, apiKey: string) =>
       ipcRenderer.invoke('aihub:fetchModels', baseUrl, apiKey),
+    syncProviders: (
+      configs: Array<{ provider: string; apiKey: string; model: string; baseUrl: string }>,
+      defaultProvider: string,
+    ) => ipcRenderer.invoke('aihub:syncProviders', configs, defaultProvider),
     onStream: (callback: (data: { sessionId: string; chunk: string }) => void) => {
       const handler = (_e: unknown, data: { sessionId: string; chunk: string }) => callback(data)
       ipcRenderer.on('aihub:stream', handler)

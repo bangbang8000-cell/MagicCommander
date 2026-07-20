@@ -14,8 +14,10 @@ interface ChatState {
   // 会话管理
   sessions: ChatSession[]
   activeSessionId: string | null
+  hasHydrated: boolean
   setActiveSession: (id: string) => void
   createSession: (mode?: ChatMode) => string
+  updateSessionMode: (mode: ChatMode) => void
   deleteSession: (id: string) => void
   clearCurrentSession: () => void
 
@@ -87,6 +89,7 @@ export const useChatStore = create<ChatState>()(
     (set, get) => ({
       sessions: [],
       activeSessionId: null,
+      hasHydrated: false,
       currentMode: 'general',
       pendingAttachments: [],
       inputValue: '',
@@ -114,6 +117,17 @@ export const useChatStore = create<ChatState>()(
           currentMode: m,
         }))
         return id
+      },
+
+      updateSessionMode: (mode) => {
+        const activeId = get().activeSessionId
+        if (!activeId) return
+        set((s) => ({
+          currentMode: mode,
+          sessions: s.sessions.map((ses) =>
+            ses.id === activeId ? { ...ses, mode, updatedAt: Date.now() } : ses,
+          ),
+        }))
       },
 
       deleteSession: (id) => {
@@ -145,7 +159,7 @@ export const useChatStore = create<ChatState>()(
 
         const newMsg: ChatMessage = {
           ...message,
-          id: generateId(),
+          id: (message as any).id || generateId(),
           timestamp: Date.now(),
         }
 
@@ -212,12 +226,18 @@ export const useChatStore = create<ChatState>()(
     {
       name: 'mc-chat-state',
       partialize: (state) => ({
-        sessions: state.sessions.slice(-20), // 最多保留 20 个会话
+        sessions: state.sessions.slice(-20),
         activeSessionId: state.activeSessionId,
         currentMode: state.currentMode,
         selectedProvider: state.selectedProvider,
         aiHubProviders: state.aiHubProviders,
       }),
+      onRehydrateStorage: () => (state) => {
+        if (state) {
+          state.hasHydrated = true
+          // 如果 rehydrate 后没有活跃会话，且没有历史会话，ChatPanel 会创建新的
+        }
+      },
     },
   ),
 )
@@ -282,10 +302,11 @@ export async function sendMessage(
   // 创建 AI 消息占位
   const aiMsgId = generateId()
   store.addMessage({
+    id: aiMsgId,
     role: 'assistant',
     content: '',
     mode,
-  })
+  } as any)
 
   // 尝试使用 AI Hub
   try {
@@ -297,8 +318,8 @@ export async function sendMessage(
     if (!status.running) {
       console.log('[chat.store] AI Hub 未运行，尝试启动...')
       await aiHub.start()
-      // 等待启动（最多 10 秒）
-      for (let i = 0; i < 10; i++) {
+      // 等待启动（最多 15 秒）
+      for (let i = 0; i < 15; i++) {
         await new Promise((r) => setTimeout(r, 1000))
         const s = await aiHub.status()
         if (s.running) break
@@ -309,8 +330,21 @@ export async function sendMessage(
       }
     }
 
+    // 同步配置到 AI Hub（确保 Provider 已注册）
+    const { useUIStore } = await import('@/stores/ui.store')
+    const aiConfig = useUIStore.getState().aiConfig
+    const configs = Object.entries(aiConfig.providers)
+      .filter(([, cfg]) => cfg.apiKey)
+      .map(([key, cfg]) => ({
+        provider: key,
+        apiKey: cfg.apiKey,
+        model: cfg.model || '',
+        baseUrl: cfg.baseUrl || '',
+      }))
+    await aiHub.syncProviders(configs, aiConfig.defaultProvider)
+
     // 使用选中的 Provider（优先 chat.store，回退到 Settings 默认）
-    const provider = store.selectedProvider
+    const provider = store.selectedProvider || aiConfig.defaultProvider
     if (!provider) {
       throw new Error('未选择 AI 模型。请前往设置页面配置 Provider。')
     }

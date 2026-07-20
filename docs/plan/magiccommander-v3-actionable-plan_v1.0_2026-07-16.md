@@ -6,7 +6,7 @@
 
 | 项目 | 内容 |
 |------|------|
-| 文档版本 | v1.4 |
+| 文档版本 | v1.5 |
 | 创建日期 | 2026-07-16 |
 | 当前状态 | Phase 0 + Phase 1 全部完成；Phase 2 (AI Hub MVP) 核心功能已完成：FastAPI 子进程生命周期管理、Agent 框架（11 个 Tool）、9 种 Provider 支持（DeepSeek V4/OpenAI/Claude/Gemini/Qwen/GLM/Grok/Ollama/自定义）、SSE 流式响应、Prompt 管理、密钥安全存储、AI 配置统一到设置页面、Provider 离线配置、依赖自动安装。Phase 2 MVP 已完成，后续可进入智能项目初始化等高级功能。 |
 | 应用事实基线 | MagicCommander V3.2.1 Build 26071704 |
@@ -607,7 +607,12 @@ AI Hub MVP 完成后，再按子阶段推进：
 | 2026-07-17 | UI/UX 优化重构 | 已完成 | <b>AI对话位置调整</b>：Chat 移至 ActivityBar 第 2 位（搜索和项目浏览器之间）；<b>标签打印合并</b>：LabelPanel 功能合并到 RenderPanel 的"打印标签"子页签，删除独立 LabelPanel.tsx；<b>RenderPanel 子页签</b>：参照 ExplorerPanel 模式，拆分为 渲染配置 / 打印标签 / 清理文件 三个子页签；<b>OutputPanel 子页签</b>：拆分为 文件浏览 / 批量导出 两个子页签，导出页签预留 ZIP 和目录导出功能；<b>菜单栏重构</b>：从 3 组（文件/视图/帮助）扩展为 5 组（文件/编辑/视图/工具/帮助），补充撤销/重做/复制/粘贴/快捷键列表/检查更新/终端/日志查看器/退出/保存文件等菜单项，移除已废弃的标签打印入口；<b>ActivityBar 精简</b>：从 7 项减至 6 项（搜索/Chat/项目/渲染/输出/工作台），补齐工作台图标和快捷键（Ctrl+Shift+W）；<b>i18n</b>：新增 ~20 个菜单/渲染/输出子页签相关键值，删除 labelPrint 键值。共删除 1 个文件，新增 0 个文件，修改 6 个文件。`npm run build` 通过。 |
 | 2026-07-17 | v3.2.0 发布 | 已完成 | 版本号 3.2.0 Build 26071703。UI/UX 全面升级：frameless 自定义标题栏（Logo + 菜单 + 更新指示器 + 窗口控制按钮）、三态主题切换（☀️ 亮色 / 🌙 暗色 / 🖥️ 跟随系统）、统一蓝色 Logo（蓝底白六边形蓝色 M）、Chat UI 框架（ChatPanel + ChatMessage + ChatInput + AttachmentPreview）、自动更新重构（autoDownload=true + 启动时自动检查 + 下载完成重启确认）。`npm run build` 通过。 |
 | 2026-07-17 | v3.2.1 发布 | 已完成 | 版本号 3.2.1 Build 26071704。修复 loading 画面 Logo 白边问题；统一图标资源；行尾符规范化（LF→CRLF）。`npm run build` 通过。 |
-| 2026-07-19 | Phase 2 启动 | 进行中 | Phase 2 (AI Hub MVP) 已批准，开始实施。范围：FastAPI 子进程生命周期管理、健康检查、Agent 框架集成（Hermes + Tool Calling）、Provider 配置（DeepSeek/OpenAI/Ollama 可插拔）、附件上下文注入、SSE streaming、Prompt 管理、密钥安全存储、ChatPanel 真实流式响应。 |
+| 2026-07-20 | Phase 2-E 增强 + 修复 | 已完成 | 完善 AI 配置测试功能（新增测试连接和获取模型端点）、调整配置字段顺序（接口地址→API Key→模型）、修复 AI 对话无响应问题（mock 静默回退→错误透传）、ChatPanel 打开时自动启动 AI Hub。 |
+| 2026-07-20 | UI 下拉菜单重构 | 已完成 | 语言/主题/更新三个图标改为 Popover 下拉菜单，取代循环切换。新增 Popover/UpdatePopover/LanguagePopover/ThemePopover 四个组件。 |
+| 2026-07-20 | AI 对话配置同步修复 | 已完成 | 修复 AI 对话三个功能不可用：根因为配置双存储（localStorage vs secrets 文件）不同步。新增 `syncProviders` IPC 通道，在发送消息/测试连接/获取模型前自动同步配置到 AI Hub。共修改 7 个文件。 |
+| 2026-07-20 | async generator await 修复 | 已完成 | 修复 `agent.py` 中 `chat_stream()` 被错误 `await` 的问题（async generator 不能 await）。 |
+| 2026-07-20 | AI 消息 ID 匹配修复 | 已完成 | 修复 `addMessage` 内部 `generateId()` 覆盖预生成 `aiMsgId` 导致流式内容无法写入 AI 消息的 bug。修复后 AI 回答正常显示，会话正确保存。 |
+| 2026-07-20 | 会话管理增强 | 已完成 | 切换模式不再创建新会话（保留对话历史）；persist rehydrate 时序修复（等待 rehydrate 完成后再自动创建会话）；新增会话列表下拉菜单（查看/切换/删除历史会话）。共修改 4 个文件。 |
 
 ## 10. 执行原则
 

@@ -4,6 +4,8 @@ Agent 编排层
 """
 import json
 import logging
+import re
+import uuid
 from typing import AsyncIterator, Optional
 
 from ai_hub.llm.provider import registry, LLMProvider
@@ -30,8 +32,11 @@ class AgentSession:
         self.mode = mode
         self.system_prompt = get_system_prompt(mode)
 
-    def add_message(self, role: str, content: str):
-        self.messages.append({"role": role, "content": content})
+    def add_message(self, role: str, content: str, extra: dict = None):
+        msg = {"role": role, "content": content}
+        if extra:
+            msg.update(extra)
+        self.messages.append(msg)
 
     def add_user_message(self, content: str, attachments: Optional[list[dict]] = None):
         """添加用户消息，可选附件信息"""
@@ -53,51 +58,72 @@ class AgentSession:
         current_messages = list(self.messages)
 
         for _round in range(max_tool_rounds):
-            # 调用 LLM
+            # 调用 LLM，实时流式输出
             full_content = ""
             try:
-                stream = await self.provider.chat_stream(
+                stream = self.provider.chat_stream(
                     messages=current_messages,
                     system_prompt=self.system_prompt,
                 )
 
-                # 收集完整响应用于检测 tool calls
                 async for chunk in stream:
                     full_content += chunk
-                    yield chunk  # 流式输出给前端
+                    yield chunk  # 实时流式输出给前端
 
             except Exception as e:
                 logger.error(f"Agent stream error: {e}")
-                yield f"\n\n> 错误: {str(e)}"
+                yield f"\n\n> 错误: {_extract_error_message(e)}"
                 return
 
-            # 检测是否有 tool call（通过 JSON 格式标记）
+            # 检测是否有 tool call
             tool_call = _parse_tool_call(full_content)
             if not tool_call:
                 # 没有 tool call，对话结束
-                self.add_message("assistant", full_content)
+                reason = _get_reasoning(self.provider)
+                self.add_message("assistant", full_content, {"reasoning_content": reason} if reason else None)
                 return
 
-            # 执行 tool call
+            # 有 tool call：输出工具调用状态
+            cleaned_content = _strip_tool_call(full_content)
+
             tool_name = tool_call["name"]
             tool_args = tool_call["arguments"]
+            tool_call_id = f"call_{uuid.uuid4().hex[:12]}"
 
             yield f"\n\n> 🔧 正在调用工具: `{tool_name}`...\n\n"
 
-            result = await execute_tool(tool_name, tool_args)
+            try:
+                result = await execute_tool(tool_name, tool_args)
+            except Exception as e:
+                logger.error(f"Tool execution error: {e}")
+                yield f"> 工具执行失败: {_extract_error_message(e)}\n\n"
+                return
 
-            # 将 tool 结果加入上下文
-            tool_result_msg = json.dumps(result, ensure_ascii=False)
-            current_messages.append({
+            # 将 tool 结果加入上下文（OpenAI 标准格式）
+            tool_result_json = json.dumps(result, ensure_ascii=False)
+            reason = _get_reasoning(self.provider)
+            assistant_msg = {
                 "role": "assistant",
-                "content": full_content,
-            })
+                "content": cleaned_content if cleaned_content else None,
+                "tool_calls": [{
+                    "id": tool_call_id,
+                    "type": "function",
+                    "function": {
+                        "name": tool_name,
+                        "arguments": json.dumps(tool_args, ensure_ascii=False),
+                    }
+                }]
+            }
+            if reason:
+                assistant_msg["reasoning_content"] = reason
+            current_messages.append(assistant_msg)
             current_messages.append({
                 "role": "tool",
-                "content": tool_result_msg,
+                "tool_call_id": tool_call_id,
+                "content": tool_result_json,
             })
 
-            yield f"> 工具执行结果:\n```json\n{tool_result_msg}\n```\n\n"
+            yield f"> 工具执行结果:\n```json\n{tool_result_json}\n```\n\n"
 
         yield "\n\n> 已达到最大工具调用轮次，任务可能未完成。"
 
@@ -110,8 +136,7 @@ class AgentSession:
 
 
 def _parse_tool_call(content: str) -> Optional[dict]:
-    """从 LLM 响应中解析 tool call"""
-    import re
+    """从 LLM 响应中解析 tool call，返回 {name, arguments} 或 None"""
 
     # 匹配 ```tool_call ... ``` 代码块
     pattern = r"```tool_call\s*\n(.*?)\n```"
@@ -132,6 +157,50 @@ def _parse_tool_call(content: str) -> Optional[dict]:
             pass
 
     return None
+
+
+def _strip_tool_call(content: str) -> str:
+    """从内容中移除 tool call JSON，返回清理后的文本"""
+    # 移除 ```tool_call ... ``` 代码块
+    cleaned = re.sub(r"```tool_call\s*\n.*?\n```\s*", "", content, flags=re.DOTALL)
+    # 移除独立的 JSON 对象（包含 name 和 arguments）
+    cleaned = re.sub(
+        r'\n?\s*\{\s*"name"\s*:\s*"[^"]+"\s*,\s*"arguments"\s*:\s*\{[^}]+\}\s*\}\s*\n?',
+        "",
+        cleaned,
+    )
+    return cleaned.strip()
+
+
+def _extract_error_message(e: Exception) -> str:
+    """从异常中提取用户友好的错误信息"""
+    msg = str(e)
+
+    # 尝试解析 OpenAI API 错误
+    try:
+        # 格式: "Error code: 400 - {'error': {'message': '...', ...}}"
+        if "Error code:" in msg:
+            parts = msg.split(" - ", 1)
+            if len(parts) > 1:
+                detail = parts[1]
+                # 尝试解析 JSON
+                try:
+                    data = json.loads(detail.replace("'", '"'))
+                    if "error" in data and "message" in data["error"]:
+                        return data["error"]["message"]
+                except (json.JSONDecodeError, KeyError):
+                    pass
+                return detail[:200]
+    except Exception:
+        pass
+
+    return msg[:300]
+
+
+def _get_reasoning(provider) -> str:
+    """获取 Provider 的 reasoning_content（DeepSeek thinking mode）"""
+    reason = getattr(provider, 'last_reasoning_content', '')
+    return reason.strip() if reason else ''
 
 
 # 全局会话缓存

@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import clsx from 'clsx'
-import { Plus, Trash2, MessageSquare, LayoutTemplate, FileCode, ChevronDown, Settings, Wifi, WifiOff, AlertCircle } from 'lucide-react'
+import { Plus, Trash2, MessageSquare, LayoutTemplate, FileCode, ChevronDown, Settings, Wifi, WifiOff, AlertCircle, Clock, X, Check } from 'lucide-react'
 import { useChatStore, sendMessage } from '@/stores/chat.store'
 import { useUIStore } from '@/stores/ui.store'
 import type { ChatMode } from '@/types/chat'
@@ -9,12 +9,26 @@ import { CHAT_MODE_CONFIG } from '@/types/chat'
 import { ChatMessageBubble } from './ChatMessageBubble'
 import { ChatInput } from './ChatInput'
 
+// Provider 名称映射（与后端 PROVIDER_CATALOG 保持一致）
+const PROVIDER_NAMES: Record<string, string> = {
+  deepseek: 'DeepSeek',
+  openai: 'OpenAI',
+  claude: 'Claude',
+  gemini: 'Gemini',
+  qwen: 'Qwen',
+  glm: 'GLM',
+  grok: 'Grok',
+  ollama: 'Ollama (本地)',
+  custom: '自定义',
+}
+
 export function ChatPanel() {
   const { t } = useTranslation()
   const isDark = useUIStore((s) => s.isDark)
 
   const sessions = useChatStore((s) => s.sessions)
   const activeSessionId = useChatStore((s) => s.activeSessionId)
+  const hasHydrated = useChatStore((s) => s.hasHydrated)
   const createSession = useChatStore((s) => s.createSession)
   const deleteSession = useChatStore((s) => s.deleteSession)
   const setActiveSession = useChatStore((s) => s.setActiveSession)
@@ -37,6 +51,8 @@ export function ChatPanel() {
 
   const [lastError, setLastError] = useState<string | null>(null)
   const [aiHubError, setAIHubError] = useState<string | null>(null)
+  const [sessionListOpen, setSessionListOpen] = useState(false)
+  const sessionListRef = useRef<HTMLDivElement>(null)
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const activeSession = getActiveSession()
@@ -46,12 +62,28 @@ export function ChatPanel() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [activeSession?.messages.length, isSending])
 
-  // 如果没有活跃会话，自动创建
+  // 点击外部关闭会话列表
   useEffect(() => {
+    if (!sessionListOpen) return
+    const handleClickOutside = (e: MouseEvent) => {
+      if (sessionListRef.current && !sessionListRef.current.contains(e.target as Node)) {
+        setSessionListOpen(false)
+      }
+    }
+    const timer = setTimeout(() => document.addEventListener('mousedown', handleClickOutside), 0)
+    return () => {
+      clearTimeout(timer)
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [sessionListOpen])
+
+  // 等待 rehydrate 完成后，如果没有活跃会话则自动创建
+  useEffect(() => {
+    if (!hasHydrated) return
     if (!activeSessionId) {
       createSession()
     }
-  }, [activeSessionId, createSession])
+  }, [hasHydrated, activeSessionId, createSession])
 
   // AI Hub 状态轮询
   useEffect(() => {
@@ -115,7 +147,7 @@ export function ChatPanel() {
     .filter(([, cfg]) => cfg.apiKey)
     .map(([key, cfg]) => ({
       key,
-      name: key,
+      name: PROVIDER_NAMES[key] || key,
       model: cfg.model || key,
       models: [cfg.model || ''],
       enabled: true,
@@ -150,11 +182,49 @@ export function ChatPanel() {
   const handleModeChange = useCallback(
     (mode: ChatMode) => {
       setMode(mode)
-      // 创建新会话使用新模式
-      createSession(mode)
+      // 更新当前会话的模式，不创建新会话，保留对话历史
+      const store = useChatStore.getState()
+      store.updateSessionMode(mode)
     },
-    [setMode, createSession],
+    [setMode],
   )
+
+  const handleDeleteSession = useCallback(
+    (id: string, e: React.MouseEvent) => {
+      e.stopPropagation()
+      deleteSession(id)
+      setSessionListOpen(false)
+    },
+    [deleteSession],
+  )
+
+  const handleSwitchSession = useCallback(
+    (id: string) => {
+      setActiveSession(id)
+      setSessionListOpen(false)
+      // 同步 mode
+      const session = sessions.find((s) => s.id === id)
+      if (session) {
+        setMode(session.mode)
+      }
+    },
+    [setActiveSession, sessions, setMode],
+  )
+
+  const formatRelativeTime = (ts: number): string => {
+    const now = Date.now()
+    const diff = now - ts
+    if (diff < 60000) return t('chat:session.justNow')
+    if (diff < 3600000) return `${Math.floor(diff / 60000)}${t('chat:session.minAgo')}`
+    if (diff < 86400000) return `${Math.floor(diff / 3600000)}${t('chat:session.hourAgo')}`
+    if (diff < 172800000) return t('chat:session.yesterday')
+    return new Date(ts).toLocaleDateString()
+  }
+
+  const modeLabel = (mode: ChatMode): string => {
+    const config = CHAT_MODE_CONFIG[mode]
+    return t(config.labelKey)
+  }
 
   return (
     <div className="flex flex-col h-full">
@@ -174,6 +244,100 @@ export function ChatPanel() {
           >
             {t('chat:title')}
           </h3>
+          {/* 会话列表下拉 */}
+          <div className="relative" ref={sessionListRef}>
+            <button
+              onClick={() => setSessionListOpen(!sessionListOpen)}
+              className={clsx(
+                'flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded transition-colors',
+                isDark ? 'hover:bg-gray-700 text-gray-400' : 'hover:bg-gray-200 text-gray-500',
+              )}
+              title={t('chat:session.list')}
+            >
+              <span className="max-w-[80px] truncate">
+                {activeSession ? modeLabel(activeSession.mode) : t('chat:session.list')}
+              </span>
+              <ChevronDown size={10} className={clsx('transition-transform', sessionListOpen && 'rotate-180')} />
+            </button>
+            {sessionListOpen && (
+              <div
+                className={clsx(
+                  'absolute top-full left-0 z-50 mt-1 w-64 py-1 rounded-lg shadow-lg border',
+                  isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200',
+                )}
+              >
+                <div className={clsx('px-3 py-1.5 text-[10px] font-semibold uppercase', isDark ? 'text-gray-500' : 'text-gray-400')}>
+                  {t('chat:session.list')} ({sessions.length})
+                </div>
+                <div className="max-h-64 overflow-y-auto">
+                  {sessions.length === 0 ? (
+                    <div className={clsx('px-3 py-4 text-xs text-center', isDark ? 'text-gray-500' : 'text-gray-400')}>
+                      {t('chat:session.noSessions')}
+                    </div>
+                  ) : (
+                    sessions
+                      .slice()
+                      .sort((a, b) => b.updatedAt - a.updatedAt)
+                      .map((s) => {
+                        const isActive = s.id === activeSessionId
+                        return (
+                          <div
+                            key={s.id}
+                            onClick={() => handleSwitchSession(s.id)}
+                            className={clsx(
+                              'flex items-center gap-2 px-3 py-2 cursor-pointer transition-colors group',
+                              isActive
+                                ? (isDark ? 'bg-blue-900/30' : 'bg-blue-50')
+                                : (isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-100'),
+                            )}
+                          >
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-1.5">
+                                {isActive && <Check size={10} className="text-blue-500 shrink-0" />}
+                                <span
+                                  className={clsx(
+                                    'text-xs truncate',
+                                    isActive
+                                      ? (isDark ? 'text-blue-300 font-medium' : 'text-blue-700 font-medium')
+                                      : (isDark ? 'text-gray-300' : 'text-gray-700'),
+                                  )}
+                                >
+                                  {s.title}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-2 mt-0.5">
+                                <span
+                                  className={clsx(
+                                    'text-[10px] px-1 rounded',
+                                    isDark ? 'bg-gray-700 text-gray-400' : 'bg-gray-200 text-gray-500',
+                                  )}
+                                >
+                                  {modeLabel(s.mode)}
+                                </span>
+                                <span className={clsx('text-[10px] flex items-center gap-0.5', isDark ? 'text-gray-500' : 'text-gray-400')}>
+                                  <Clock size={9} />
+                                  {formatRelativeTime(s.updatedAt)}
+                                </span>
+                              </div>
+                            </div>
+                            <button
+                              onClick={(e) => handleDeleteSession(s.id, e)}
+                              className={clsx(
+                                'shrink-0 p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity',
+                                isDark ? 'hover:bg-red-900/50 text-gray-500 hover:text-red-400' : 'hover:bg-red-100 text-gray-400 hover:text-red-500',
+                              )}
+                              title={t('chat:session.delete')}
+                            >
+                              <X size={12} />
+                            </button>
+                          </div>
+                        )
+                      })
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
           {/* AI Hub 状态 */}
           <span
             className={clsx(

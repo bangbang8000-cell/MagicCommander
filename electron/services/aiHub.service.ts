@@ -403,6 +403,24 @@ export class AIHubService extends EventEmitter {
   }
 
   /**
+   * 同步 Provider 配置到 AI Hub（批量）
+   * 将渲染进程 localStorage 中的配置推送到 AI Hub 的 secrets 文件
+   */
+  async syncProviders(
+    configs: Array<{ provider: string; apiKey: string; model: string; baseUrl: string }>,
+    defaultProvider: string,
+  ): Promise<void> {
+    for (const cfg of configs) {
+      if (cfg.apiKey) {
+        await this.configureProvider(cfg.provider, cfg.apiKey, cfg.model, cfg.baseUrl)
+      }
+    }
+    if (defaultProvider) {
+      await this.setDefaultProvider(defaultProvider)
+    }
+  }
+
+  /**
    * 获取可用模型列表
    */
   async fetchModels(baseUrl: string, apiKey: string): Promise<{ status: string; models: string[]; message?: string }> {

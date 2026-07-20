@@ -53,6 +53,7 @@ class OpenAICompatibleProvider(LLMProvider):
             api_key=config.api_key,
             base_url=config.base_url,
         )
+        self.last_reasoning_content: str = ""
 
     @property
     def provider_name(self) -> str:
@@ -78,9 +79,15 @@ class OpenAICompatibleProvider(LLMProvider):
                 max_tokens=max_tokens,
                 stream=True,
             )
+            self.last_reasoning_content = ""
             async for chunk in stream:
-                if chunk.choices and chunk.choices[0].delta.content:
-                    yield chunk.choices[0].delta.content
+                if chunk.choices and chunk.choices[0].delta:
+                    delta = chunk.choices[0].delta
+                    # 收集 DeepSeek thinking mode 的 reasoning_content
+                    if hasattr(delta, 'reasoning_content') and delta.reasoning_content:
+                        self.last_reasoning_content += delta.reasoning_content
+                    if delta.content:
+                        yield delta.content
         except Exception as e:
             logger.error(f"[{self._name}] Stream error: {e}")
             yield f"\n\n> 错误: {str(e)}"

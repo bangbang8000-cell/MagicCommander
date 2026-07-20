@@ -35,7 +35,12 @@
   "session": {
     "newChat": "New chat",
     "delete": "Delete chat",
-    "noSessions": "No chat history"
+    "noSessions": "No chat history",
+    "list": "Sessions",
+    "justNow": "Just now",
+    "minAgo": "m ago",
+    "hourAgo": "h ago",
+    "yesterday": "Yesterday"
   },
   "aihub": {
     "status": {

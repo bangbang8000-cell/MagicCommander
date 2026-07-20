@@ -35,7 +35,12 @@
   "session": {
     "newChat": "新对话",
     "delete": "删除对话",
-    "noSessions": "暂无对话记录"
+    "noSessions": "暂无对话记录",
+    "list": "会话列表",
+    "justNow": "刚刚",
+    "minAgo": "分钟前",
+    "hourAgo": "小时前",
+    "yesterday": "昨天"
   },
   "aihub": {
     "status": {
