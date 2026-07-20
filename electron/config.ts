@@ -300,8 +300,8 @@ export const APP_CONFIG = {
   // 版本信息
   VERSION: {
     CURRENT: '3.4.1',
-    BUILD: '26072005',
-    DISPLAY: 'V3.4.1 Build 26072005',
+    BUILD: '26072006',
+    DISPLAY: 'V3.4.1 Build 26072006',
     MIN_SUPPORTED_PYTHON: '3.8',
   },
 }
