@@ -1,7 +1,7 @@
 {
   "name": "magiccommander",
   "version": "3.5.0",
-  "description": "MagicCommander - \u7f51\u7edc\u8bbe\u5907\u914d\u7f6e\u7ba1\u7406\u5de5\u5177",
+  "description": "MagicCommander - 网络设备配置管理工具",
   "main": "dist-electron/main.js",
   "author": "Magic Commander Team",
   "license": "MIT",
@@ -31,6 +31,7 @@
   },
   "dependencies": {
     "@monaco-editor/react": "^4.7.0",
+    "@types/qrcode": "^1.5.6",
     "clsx": "^2.1.0",
     "docx-preview": "^0.3.7",
     "electron-updater": "^6.8.9",
@@ -39,6 +40,7 @@
     "iconv-lite": "^0.7.2",
     "lucide-react": "^0.344.0",
     "mammoth": "^1.12.0",
+    "qrcode": "^1.5.4",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-i18next": "^17.0.8",

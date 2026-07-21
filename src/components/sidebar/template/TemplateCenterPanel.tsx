@@ -2,10 +2,12 @@ import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useProjectStore } from '@/stores/project.store'
 import { useUIStore } from '@/stores/ui.store'
+import { usePlatformStore } from '@/stores/platform.store'
 import { showError, showSuccess } from '@/components/ui/Toast'
 import { Modal } from '@/components/ui/Modal'
 import clsx from 'clsx'
 import type { TemplateInfo, TemplateMeta } from '@/types/project'
+import type { RemoteTemplate } from '@/api/platform'
 import { TemplateCard } from './TemplateCard'
 import { TemplateEditDialog } from './TemplateEditDialog'
 import { TemplateListToolbar } from './TemplateListToolbar'
@@ -22,6 +24,15 @@ export function TemplateCenterPanel({ onCreateProjectName }: TemplateCenterPanel
   const createProject = useProjectStore((s) => s.createProject)
   const updateTemplateMeta = useProjectStore((s) => s.updateTemplateMeta)
   const deleteTemplate = useProjectStore((s) => s.deleteTemplate)
+
+  // Platform remote templates
+  const loggedIn = usePlatformStore((s) => s.loggedIn)
+  const remoteTemplates = usePlatformStore((s) => s.remoteTemplates)
+  const remoteLoading = usePlatformStore((s) => s.remoteLoading)
+  const remoteError = usePlatformStore((s) => s.remoteError)
+  const fetchRemoteTemplates = usePlatformStore((s) => s.fetchRemoteTemplates)
+
+  const [tab, setTab] = useState<'local' | 'remote'>('local')
   const [query, setQuery] = useState('')
   const [sortBy, setSortBy] = useState<'name' | 'updatedAt' | 'sourceProject'>('name')
   const [category, setCategory] = useState<string>('all')
@@ -107,36 +118,132 @@ export function TemplateCenterPanel({ onCreateProjectName }: TemplateCenterPanel
     }
   }
 
+  // Fetch remote templates on tab switch
+  useEffect(() => {
+    if (tab === 'remote') {
+      fetchRemoteTemplates().catch(() => {})
+    }
+  }, [tab, fetchRemoteTemplates])
+
+  const handleDownloadRemote = (tpl: RemoteTemplate) => {
+    const url = `http://localhost:18720/api/templates/${tpl.owner}/${tpl.name}/download`
+    window.open(url, '_blank')
+  }
+
   return (
     <div className="h-full flex flex-col overflow-hidden">
-      <TemplateListToolbar
-        query={query}
-        sortBy={sortBy}
-        category={category}
-        categories={categories}
-        onQueryChange={setQuery}
-        onSortChange={setSortBy}
-        onCategoryChange={setCategory}
-      />
-      <div className="flex-1 overflow-auto p-2 space-y-1.5">
-        {visibleTemplates.length === 0 ? (
-          <div className="text-xs text-gray-500 dark:text-gray-400 p-2 text-center">
-            {t('template.noTemplates')}
-          </div>
-        ) : (
-          visibleTemplates.map((template) => (
-            <TemplateCard
-              key={template.id}
-              template={template}
-              selected={selectedTemplateId === template.id}
-              onSelect={() => setSelectedTemplateId(template.id)}
-              onCreateProject={() => openCreateDialog(template)}
-              onEdit={() => setEditingTemplate(template)}
-              onDelete={() => removeTemplate(template)}
-            />
-          ))
-        )}
+      {/* Tab switcher */}
+      <div className="flex border-b border-gray-700">
+        <button
+          onClick={() => setTab('local')}
+          className={clsx(
+            'flex-1 py-2 text-xs font-medium transition-colors',
+            tab === 'local'
+              ? 'text-indigo-400 border-b-2 border-indigo-400'
+              : 'text-gray-500 hover:text-gray-300',
+          )}
+        >
+          本地
+        </button>
+        <button
+          onClick={() => setTab('remote')}
+          className={clsx(
+            'flex-1 py-2 text-xs font-medium transition-colors',
+            tab === 'remote'
+              ? 'text-indigo-400 border-b-2 border-indigo-400'
+              : 'text-gray-500 hover:text-gray-300',
+          )}
+        >
+          远程
+        </button>
       </div>
+
+      {tab === 'local' ? (
+        <>
+          <TemplateListToolbar
+            query={query}
+            sortBy={sortBy}
+            category={category}
+            categories={categories}
+            onQueryChange={setQuery}
+            onSortChange={setSortBy}
+            onCategoryChange={setCategory}
+          />
+          <div className="flex-1 overflow-auto p-2 space-y-1.5">
+            {visibleTemplates.length === 0 ? (
+              <div className="text-xs text-gray-500 dark:text-gray-400 p-2 text-center">
+                {t('template.noTemplates')}
+              </div>
+            ) : (
+              visibleTemplates.map((template) => (
+                <TemplateCard
+                  key={template.id}
+                  template={template}
+                  selected={selectedTemplateId === template.id}
+                  onSelect={() => setSelectedTemplateId(template.id)}
+                  onCreateProject={() => openCreateDialog(template)}
+                  onEdit={() => setEditingTemplate(template)}
+                  onDelete={() => removeTemplate(template)}
+                />
+              ))
+            )}
+          </div>
+        </>
+      ) : (
+        /* Remote templates tab */
+        <div className="flex-1 overflow-auto p-2 space-y-1.5">
+          {!loggedIn && (
+            <div className="text-xs text-gray-500 p-2 text-center">
+              请先登录平台以浏览远程模板
+            </div>
+          )}
+          {remoteLoading && (
+            <div className="text-xs text-gray-500 p-2 text-center">加载中...</div>
+          )}
+          {remoteError && (
+            <div className="text-xs text-red-400 p-2 text-center">{remoteError}</div>
+          )}
+          {loggedIn && !remoteLoading && remoteTemplates.length === 0 && (
+            <div className="text-xs text-gray-500 p-2 text-center">暂无远程模板</div>
+          )}
+          {loggedIn &&
+            remoteTemplates.map((tpl, idx) => (
+              <div
+                key={`${tpl.owner}/${tpl.name}/${idx}`}
+                className={clsx(
+                  'p-2.5 rounded-lg border transition-colors',
+                  isDark
+                    ? 'border-gray-700 bg-gray-800/50 hover:bg-gray-800'
+                    : 'border-gray-200 bg-white hover:bg-gray-50',
+                )}
+              >
+                <div className="flex items-start justify-between">
+                  <div className="flex-1 min-w-0">
+                    <div className="text-xs font-medium truncate">
+                      {tpl.owner}/{tpl.name}
+                    </div>
+                    {tpl.description && (
+                      <p className={clsx('text-[11px] mt-0.5 line-clamp-2', isDark ? 'text-gray-400' : 'text-gray-500')}>
+                        {tpl.description}
+                      </p>
+                    )}
+                    {tpl.updated_at && (
+                      <p className="text-[10px] text-gray-500 mt-1">
+                        {new Date(tpl.updated_at).toLocaleDateString()}
+                      </p>
+                    )}
+                  </div>
+                  <button
+                    onClick={() => handleDownloadRemote(tpl)}
+                    className="ml-2 px-2 py-0.5 text-[11px] rounded bg-indigo-600/20 text-indigo-400 hover:bg-indigo-600/30 transition-colors shrink-0"
+                  >
+                    下载
+                  </button>
+                </div>
+              </div>
+            ))}
+        </div>
+      )}
 
       {/* 模板编辑弹窗 */}
       <TemplateEditDialog

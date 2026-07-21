@@ -5,6 +5,8 @@ import { Menu, RefreshCw, Minus, Square, X, Sun, Moon, Monitor } from 'lucide-re
 import { useProjectStore } from '@/stores/project.store'
 import { useUIStore } from '@/stores/ui.store'
 import { useEditorStore } from '@/stores/editor.store'
+import { usePlatformStore } from '@/stores/platform.store'
+import { LoginDialog } from '@/components/auth/LoginDialog'
 import { LANGUAGE_ICON_CHARS } from '@/i18n/resources'
 import type { SupportedLocale } from '@/i18n/resources'
 import { AboutDialog } from '@/components/dialogs/AboutDialog'
@@ -33,9 +35,13 @@ export function Header({ onCheatsheet }: HeaderProps) {
   const setActivePanel = useUIStore((s) => s.setActivePanel)
   const saveActiveTab = useEditorStore((s) => s.saveActiveTab)
   const createProject = useProjectStore((s) => s.createProject)
+  const platformLoggedIn = usePlatformStore((s) => s.loggedIn)
+  const platformUsername = usePlatformStore((s) => s.username)
+  const platformLogout = usePlatformStore((s) => s.logout)
 
   const [openMenu, setOpenMenu] = useState<string | null>(null)
   const [aboutOpen, setAboutOpen] = useState(false)
+  const [loginOpen, setLoginOpen] = useState(false)
   const [restartPromptOpen, setRestartPromptOpen] = useState(false)
   const [updateDownloaded, setUpdateDownloaded] = useState(false)
   const [updateStatus, setUpdateStatus] = useState<UpdateStatus | null>(null)
@@ -477,6 +483,33 @@ export function Header({ onCheatsheet }: HeaderProps) {
             />
           </div>
 
+          {/* 平台登录 / 用户 */}
+          <div className="relative">
+            {platformLoggedIn ? (
+              <button
+                onClick={platformLogout}
+                className={clsx(
+                  'px-2 py-1 text-xs rounded transition-colors',
+                  isDark ? 'text-indigo-400 hover:bg-gray-700' : 'text-indigo-600 hover:bg-gray-200',
+                )}
+                title={platformUsername || ''}
+              >
+                {platformUsername || '已登录'}
+              </button>
+            ) : (
+              <button
+                onClick={() => setLoginOpen(true)}
+                className={clsx(
+                  'px-2 py-1 text-xs rounded transition-colors',
+                  isDark ? 'text-gray-400 hover:bg-gray-700' : 'text-gray-500 hover:bg-gray-200',
+                )}
+                title="登录平台"
+              >
+                登录
+              </button>
+            )}
+          </div>
+
           {/* 检查更新 */}
           <div className="relative">
             <button
@@ -555,6 +588,9 @@ export function Header({ onCheatsheet }: HeaderProps) {
         onDownloadUpdate={handleDownloadUpdate}
         onInstallUpdate={handleInstallUpdate}
       />
+
+      {/* 平台登录对话框 */}
+      <LoginDialog open={loginOpen} onClose={() => setLoginOpen(false)} />
 
       {/* 重启提示对话框 */}
       {restartPromptOpen && (
