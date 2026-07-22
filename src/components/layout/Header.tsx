@@ -9,6 +9,7 @@ import { usePlatformStore } from '@/stores/platform.store'
 import { LoginDialog } from '@/components/auth/LoginDialog'
 import { LANGUAGE_ICON_CHARS } from '@/i18n/resources'
 import type { SupportedLocale } from '@/i18n/resources'
+import { useBuildInfo } from '@/hooks/useAppVersion'
 import { AboutDialog } from '@/components/dialogs/AboutDialog'
 import { AppLogo } from '@/components/common'
 import { UpdatePopover } from './UpdatePopover'
@@ -38,6 +39,7 @@ export function Header({ onCheatsheet }: HeaderProps) {
   const platformLoggedIn = usePlatformStore((s) => s.loggedIn)
   const platformUsername = usePlatformStore((s) => s.username)
   const platformLogout = usePlatformStore((s) => s.logout)
+  const buildInfo = useBuildInfo()
 
   const [openMenu, setOpenMenu] = useState<string | null>(null)
   const [aboutOpen, setAboutOpen] = useState(false)
@@ -581,7 +583,7 @@ export function Header({ onCheatsheet }: HeaderProps) {
       <AboutDialog
         open={aboutOpen}
         onClose={() => setAboutOpen(false)}
-        version="3.5.0"
+version={buildInfo.displayVersion}
         updateStatus={updateStatus}
         updateBusy={updateBusy}
         onCheckUpdate={handleCheckUpdate}
