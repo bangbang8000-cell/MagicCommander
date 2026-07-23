@@ -1,8 +1,8 @@
 # MagicCommander v3.5 云集成开发计划
 
-> 版本：v1.0  
-> 日期：2026-07-22  
-> 基于：[CLIENT_CLOUD_INTEGRATION_PRD.md](./CLIENT_CLOUD_INTEGRATION_PRD.md)  
+> 版本：v1.1  
+> 日期：2026-07-23  
+> 基于：[CLIENT_CLOUD_INTEGRATION_PRD.md](./CLIENT_CLOUD_INTEGRATION_PRD.md) v1.1  
 > 版本号规则：`V{MAJOR}.{MINOR}.{PATCH}-build.{YYMMDDNN}`
 
 ---
@@ -14,25 +14,26 @@
 3. [Build 26080201 - 模板市场](#3-build-26080201---模板市场)
 4. [Build 26080901 - 项目同步](#4-build-26080901---项目同步)
 5. [Build 26081601 - 完善上线](#5-build-26081601---完善上线)
-6. [文件变更清单](#6-文件变更清单)
-7. [风险评估](#7-风险评估)
+6. [Build 26082301 - UI 重构与多语言](#6-build-26082301---ui-重构与多语言)
+7. [Build 26083001 - 同步与搜索](#7-build-26083001---同步与搜索)
+8. [Build 26090601 - 登录体验与云端完善](#8-build-26090601---登录体验与云端完善)
+9. [文件变更清单](#9-文件变更清单)
+10. [风险评估](#10-风险评估)
 
 ---
 
 ## 1. 版本路线图
 
 ```
-V3.4.1 Build 26072006  (当前版本)
+V3.5.0 Build 26081601  (当前版本 - 四 Build 完成后)
         │
-        ├── Build 26072601  [基础连接]    服务器配置 + 扫码登录 + Token 管理 + 用户资料
+        ├── Build 26082301  [UI重构与多语言]  用户资料重构 + 设置面板重组 + 硬编码消除 + 菜单顺序 + 多语言补全
         │
-        ├── Build 26080201  [模板市场]    远程模板浏览 + 详情 + 一键安装 + 模板发布
+        ├── Build 26083001  [同步与搜索]      项目/模板同步按钮 + 云端搜索 + Dashboard 优化 + 模板市场实现
         │
-        ├── Build 26080901  [项目同步]    推送/拉取 + 同步状态 + 增量检测
-        │
-        └── Build 26081601  [完善上线]    仪表盘 + 公开项目 + 冲突处理 + 版本检查
+        └── Build 26090601  [登录体验与云端]  登录优化 + 通知中心 + 版本检查 + 云端 API 扩展
                                        ↓
-                              V3.5.0 Build 26081601  (正式发布)
+                              V3.5.x Build 26090601  (下一个正式发布)
 ```
 
 每个 Build 独立可测、可发布，后一个 Build 依赖前一个 Build 的功能。
@@ -750,9 +751,442 @@ export async function getLocalCommitSha(projectDir: string): Promise<string | nu
 
 ---
 
-## 6. 文件变更清单
+## 6. Build 26082301 - UI 重构与多语言
 
-### 6.1 新增文件（共 16 个）
+### 目标
+修复 v3.5 四 Build 上线后暴露的 UI 与多语言问题：用户资料展示编程字段、设置面板分类混乱、大量硬编码中文、菜单顺序不合理。
+
+### 6.1 服务器端扩展（需同步完成）
+
+| 任务 | 文件 | 说明 |
+|------|------|------|
+| 用户头像上传 API | `api/routes/user.py` | 新增 `POST /api/v1/user/avatar`，支持 multipart 上传 |
+
+### 6.2 客户端新增文件
+
+| 文件 | 类型 | 说明 |
+|------|------|------|
+| `src/components/cloud/EditProfileDialog.tsx` | UI 组件 | 编辑用户资料弹窗（full_name, bio） |
+
+### 6.3 客户端修改文件
+
+| 文件 | 修改内容 |
+|------|---------|
+| `src/components/cloud/UserProfileView.tsx` | **重构**：调用 `/user/profile` 展示完整资料（full_name, email, avatar, bio, bindings）；移除 userId 展示 |
+| `src/components/sidebar/SettingsPanel.tsx` | **重构**：改为 tabs 分组（通用/AI/平台/高级/关于），合并外观到通用，策略路由到 AI，平台连接独立 |
+| `src/components/layout/ActivityBar.tsx` | 调整 activities 顺序：`search → cloud → chat → explorer → workbench → output → settings` |
+| `src/components/layout/Header.tsx` | View 菜单新增 `cloud` 入口 |
+| `src/App.tsx` | 添加 cloud 热键 `Ctrl+Shift+C` |
+| `src/components/cloud/CloudPanel.tsx` | 消除 tab 标签硬编码中文，改为 `t()` 调用 |
+| `src/components/cloud/DashboardView.tsx` | 消除所有硬编码中文，改为 `t()` 调用 |
+| `src/components/cloud/SyncStatusBadge.tsx` | 消除状态文本硬编码 |
+| `src/components/auth/LoginDialog.tsx` | 消除平台名称硬编码 |
+| `src/components/sidebar/project/ProjectListItem.tsx` | 消除按钮文本硬编码 |
+| `src/i18n/locales/zh-CN/cloud.json` | 补全翻译键：`profile.*`, `status.*`, `sync.*`, `push.*`, `pull.*`, `login.*`, `settings.*`, `dashboard.*`, `search.*` |
+| `src/i18n/locales/en/cloud.json` | 同步补全英文翻译 |
+| `src/i18n/locales/{ja,ko,zh-TW}/cloud.json` | 为日/韩/繁中生成 cloud.json（AI 辅助翻译） |
+| `src/i18n/locales/{ja,ko,zh-TW}/chat.json` | 为日/韩/繁中生成 chat.json |
+| `src/i18n/index.ts` | 注册 `auth` 命名空间（如需） |
+| `electron/config.ts` | BUILD 更新为 `26082301` |
+
+### 6.4 详细任务分解
+
+#### 任务 6.4.1：用户资料重构 `UserProfileView.tsx`
+
+```
+改造前：
+┌─────────────────────────────┐
+│  [头像]  username            │
+│          ID: 123            │  ← 编程字段，用户无法理解
+│  [打开平台] [退出登录]       │
+└─────────────────────────────┘
+
+改造后：
+┌─────────────────────────────┐
+│  [头像]  显示名称 (full_name)│
+│          @username           │
+│          bio (如有)           │
+├─────────────────────────────┤
+│  📧 email                   │
+│  📍 location (如有)          │
+│  🔗 website (如有)           │
+├─────────────────────────────┤
+│  绑定账号:                   │
+│  🕊️ 飞书 - 已绑定 [昵称]     │
+│  🐧 QQ   - 未绑定 [+绑定]    │
+│  💬 微信 - 未绑定 [+绑定]    │
+├─────────────────────────────┤
+│  ✏️ 编辑资料                 │
+│  🌐 打开平台                 │
+│  🚪 退出登录                 │
+└─────────────────────────────┘
+```
+
+数据来源：`GET /api/v1/user/profile`（已实现，但客户端未使用完整字段）
+
+#### 任务 6.4.2：设置面板重构 `SettingsPanel.tsx`
+
+采用 tabs 分组替代当前平铺结构：
+
+```
+设置面板
+├── 📋 通用 (General)
+│   ├── 语言选择
+│   ├── 外观 (主题: 浅色/深色/跟随系统)
+│   ├── 字体大小 (小/中/大)
+│   ├── 自动保存 (开关 + 间隔)
+│   └── 工作区路径
+│
+├── 🤖 AI (AI Configuration)
+│   ├── Provider 选择卡片
+│   ├── 当前 Provider 配置 (API Key / Base URL / Model)
+│   ├── 测试连接 / 获取模型
+│   ├── 智能路由 (开关 + 任务类型 → Provider 映射)
+│   └── 自主模式 (顾问/半自动/全自动)
+│
+├── ☁️ 平台 (Platform)
+│   ├── 服务器地址 + 测试连接
+│   ├── 登录状态 (已登录/未登录)
+│   ├── 账号信息 (来自 user/profile)
+│   └── 同步设置 (未来)
+│
+├── 🔧 高级 (Advanced)
+│   ├── Python 路径
+│   ├── AI Hub 端口 + 自动启动
+│   ├── 代理设置
+│   ├── 调试模式
+│   └── 软件更新 (检查更新按钮 + 自动检查开关)
+│
+└── 📊 关于 (About)
+    ├── 版本信息
+    ├── 检查更新
+    └── 开源协议
+```
+
+#### 任务 6.4.3：消除硬编码中文
+
+扫描并修复所有硬编码中文，涉及 13+ 个文件：
+
+| 文件 | 硬编码文本 |
+|------|-----------|
+| `CloudPanel.tsx` | `'仪表盘'`, `'模板市场'`, `'远程项目'`, `'MagicCommander Platform'`, `'登录'` |
+| `DashboardView.tsx` | `'请先登录...'`, `'加载失败:'`, `'欢迎, {username}'`, `'服务器: {baseUrl}'`, `'我的模板'`, `'我的项目'`, `'连接正常'`, `'浏览模板市场'`, `'管理我的项目'`, `'最近模板'`, `'最近项目'` |
+| `SyncStatusBadge.tsx` | `'已同步'`, `'仅本地'`, `'仅云端'`, `'本地有修改'`, `'云端有更新'`, `'冲突'` |
+| `ProjectListItem.tsx` | `'推送到云端'`, `'在资源管理器中打开'` |
+| `LoginDialog.tsx` | `'飞书'`, `'QQ'`, `'微信'`, `'扫描二维码登录'` |
+| `UserProfileView.tsx` | `'打开平台'`, `'退出登录'` |
+
+#### 任务 6.4.4：多语言补全
+
+新增 `cloud.json` 翻译键：
+
+| Key | 中文 | English |
+|-----|------|---------|
+| `cloud.profile.fullName` | 显示名称 | Display Name |
+| `cloud.profile.email` | 邮箱 | Email |
+| `cloud.profile.location` | 位置 | Location |
+| `cloud.profile.website` | 网站 | Website |
+| `cloud.profile.bio` | 简介 | Bio |
+| `cloud.profile.edit` | 编辑资料 | Edit Profile |
+| `cloud.profile.openPlatform` | 打开平台 | Open Platform |
+| `cloud.profile.logout` | 退出登录 | Logout |
+| `cloud.profile.bindings` | 绑定账号 | Linked Accounts |
+| `cloud.profile.bind` | 绑定 | Bind |
+| `cloud.profile.unbind` | 解绑 | Unbind |
+| `cloud.status.synced` | 已同步 | Synced |
+| `cloud.status.localOnly` | 仅本地 | Local Only |
+| `cloud.status.remoteOnly` | 仅云端 | Remote Only |
+| `cloud.status.localAhead` | 本地有修改 | Local Modified |
+| `cloud.status.remoteAhead` | 云端有更新 | Remote Updated |
+| `cloud.status.conflict` | 冲突 | Conflict |
+| `cloud.sync.push` | 推送到云端 | Push to Cloud |
+| `cloud.sync.pull` | 拉取到本地 | Pull to Local |
+| `cloud.sync.pushTitle` | 推送项目 | Push Project |
+| `cloud.sync.pullTitle` | 拉取项目 | Pull Project |
+| `cloud.settings.title` | 设置 | Settings |
+| `cloud.settings.general` | 通用 | General |
+| `cloud.settings.ai` | AI | AI |
+| `cloud.settings.platform` | 平台 | Platform |
+| `cloud.settings.advanced` | 高级 | Advanced |
+| `cloud.settings.about` | 关于 | About |
+| `cloud.dashboard.welcome` | 欢迎, {name} | Welcome, {name} |
+| `cloud.dashboard.myTemplates` | 我的模板 | My Templates |
+| `cloud.dashboard.myProjects` | 我的项目 | My Projects |
+| `cloud.dashboard.recentTemplates` | 最近模板 | Recent Templates |
+| `cloud.dashboard.recentProjects` | 最近项目 | Recent Projects |
+| `cloud.dashboard.browseMarket` | 浏览模板市场 | Browse Template Market |
+| `cloud.dashboard.manageProjects` | 管理我的项目 | Manage My Projects |
+| `cloud.dashboard.notLoggedIn` | 请先登录云平台 | Please login to the cloud platform |
+| `cloud.dashboard.goSettings` | 前往设置 | Go to Settings |
+| `cloud.dashboard.loadFailed` | 加载失败 | Load Failed |
+| `cloud.dashboard.connected` | 连接正常 | Connected |
+| `cloud.panel.tabDashboard` | 仪表盘 | Dashboard |
+| `cloud.panel.tabTemplates` | 模板市场 | Template Market |
+| `cloud.panel.tabProjects` | 远程项目 | Remote Projects |
+| `cloud.search.placeholder` | 搜索项目名称或描述... | Search project name or description... |
+| `cloud.search.noResults` | 未找到匹配的项目 | No matching projects found |
+| `cloud.search.noResultsTemplates` | 未找到匹配的模板 | No matching templates found |
+
+### 6.5 验收标准
+
+| 验收项 | 标准 |
+|--------|------|
+| 用户资料 | 展示 full_name、email、bio、location、website、bindings；编辑资料弹窗可用 |
+| 设置面板 | 5 个 tab 分组正确，各设置项工作正常 |
+| 菜单顺序 | ActivityBar 顺序为 search → cloud → chat → explorer → workbench → output → settings |
+| View 菜单 | 包含 cloud 入口，快捷键 Ctrl+Shift+C |
+| 硬编码消除 | 扫描确认所有 cloud 组件无硬编码中文 |
+| 多语言 | zh-CN/en/ja/ko/zh-TW 五种语言 cloud.json 完整，切换正常 |
+
+---
+
+## 7. Build 26083001 - 同步与搜索
+
+### 目标
+完善项目/模板的同步操作入口，实现云端项目与模板的搜索功能，优化 Dashboard，实现模板市场界面。
+
+### 7.1 服务器端扩展（需同步完成）
+
+| 任务 | 文件 | 说明 |
+|------|------|------|
+| 公开项目搜索 API | `api/routes/projects.py` | 新增 `GET /api/v1/projects/public?q=xxx&page=1&limit=20`，使用 Gitea `search_repos()` |
+| 用户项目搜索参数 | `api/routes/projects.py` | 为 `GET /api/v1/projects` 增加 `?q=` 参数，搜索当前用户的项目 |
+| 公开统计 API | `api/routes/client.py` | 新增 `GET /api/v1/public/stats`，返回总用户数、总模板数、总项目数 |
+
+### 7.2 客户端新增文件
+
+| 文件 | 类型 | 说明 |
+|------|------|------|
+| `src/components/ui/SearchInput.tsx` | UI 组件 | 带防抖的搜索输入框（380ms 防抖 + 清除按钮） |
+| `src/components/cloud/TemplateMarket.tsx` | UI 组件 | 模板市场搜索 + 卡片列表（替代当前占位界面） |
+
+### 7.3 客户端修改文件
+
+| 文件 | 修改内容 |
+|------|---------|
+| `src/components/cloud/CloudPanel.tsx` | 顶部新增搜索栏；搜索词向下传递到各子组件 |
+| `src/components/cloud/RemoteProjectView.tsx` | "我的项目"tab：客户端过滤；"公开项目"tab：服务端搜索（新增搜索框 + 380ms 防抖） |
+| `src/components/cloud/DashboardView.tsx` | 统计卡片新增"平台用户"；最近模板每项增加"安装"按钮；最近项目每项增加"拉取"按钮；快捷操作按钮修正跳转目标 |
+| `src/components/sidebar/project/ProjectListItem.tsx` | 根据 syncStatus 显示对应操作按钮（push/pull/conflict/synced） |
+| `src/components/sidebar/project/ExplorerPanel.tsx` | 模板列表项增加"发布到云端"按钮；远程模板列表项增加"安装到本地"按钮 |
+| `src/api/platform.ts` | 新增 `projects.searchPublic(q, page)` 和 `projects.search(q)` 方法 |
+| `electron/config.ts` | BUILD 更新为 `26083001` |
+
+### 7.4 详细任务分解
+
+#### 任务 7.4.1：SearchInput 组件
+
+```tsx
+// src/components/ui/SearchInput.tsx
+// 属性：value, onChange, placeholder, className
+// 功能：380ms 防抖、清除按钮、搜索图标
+// 使用 useRef + useEffect 实现防抖
+```
+
+#### 任务 7.4.2：混合搜索实现
+
+```
+搜索策略（按 tab 不同）：
+┌──────────────────┬─────────────────────────────┐
+│ Tab              │ 搜索策略                      │
+├──────────────────┼─────────────────────────────┤
+│ "我的项目" tab   │ 客户端即时过滤（名称/描述匹配）│
+│ "公开项目" tab   │ 服务端搜索（380ms 防抖）      │
+│ "模板市场" tab   │ 服务端搜索（已有 `?q=` 参数）  │
+│ "仪表盘" tab     │ 不搜索（仅统计展示）           │
+└──────────────────┴─────────────────────────────┘
+```
+
+**客户端过滤实现（"我的项目"）：**
+```typescript
+const filtered = useMemo(() => {
+  if (!searchQuery) return remoteProjects
+  const q = searchQuery.toLowerCase()
+  return remoteProjects.filter(p =>
+    p.name.toLowerCase().includes(q) ||
+    (p.description || '').toLowerCase().includes(q)
+  )
+}, [remoteProjects, searchQuery])
+```
+
+**服务端搜索实现（"公开项目"）：**
+```typescript
+useEffect(() => {
+  const timer = setTimeout(() => {
+    fetchPublicProjects(searchQuery)
+  }, 380)
+  return () => clearTimeout(timer)
+}, [searchQuery])
+```
+
+#### 任务 7.4.3：项目同步按钮
+
+根据 syncStatus 动态显示操作按钮：
+
+```tsx
+// ProjectListItem 操作按钮组
+{syncStatus === 'local_only' && <Tooltip text="推送到云端"><PushButton /></Tooltip>}
+{syncStatus === 'remote_only' && <Tooltip text="拉取到本地"><PullButton /></Tooltip>}
+{syncStatus === 'local_ahead' && <Tooltip text="推送到云端"><PushButton /></Tooltip>}
+{syncStatus === 'remote_ahead' && <Tooltip text="拉取到本地"><PullButton /></Tooltip>}
+{syncStatus === 'conflict' && <Tooltip text="解决冲突"><ConflictButton /></Tooltip>}
+{syncStatus === 'synced' && <SyncedCheckmark />}
+<Tooltip text="在资源管理器中打开"><OpenFolderButton /></Tooltip>
+```
+
+#### 任务 7.4.4：模板市场实现
+
+当前 `CloudPanel.tsx` 的"模板市场" tab 是占位文本。实现实际功能：
+
+```
+┌────────────────────────────────────────┐
+│  [🔍 搜索模板...]    [全部分类 ▼]      │
+├────────────────────────────────────────┤
+│  ┌──────────┐ ┌──────────┐           │
+│  │ 模板名称  │ │ 模板名称  │           │
+│  │ 描述...   │ │ 描述...   │           │
+│  │ 作者 · 时间│ │ 作者 · 时间│          │
+│  │ [安装]    │ │ [安装]    │           │
+│  └──────────┘ └──────────┘           │
+├────────────────────────────────────────┤
+│           < 1  2  3 ... 10 >          │
+└────────────────────────────────────────┘
+```
+
+- 调用 `GET /api/v1/templates?q=xxx&category=xxx&page=1&limit=20`
+- 搜索框支持关键词搜索（防抖 380ms）
+- 分类下拉从服务器 topics 动态获取
+- 点击"安装" → 一键安装流程
+- 点击卡片 → 进入模板详情（复用已有 TemplateDetailView）
+
+### 7.5 验收标准
+
+| 验收项 | 标准 |
+|--------|------|
+| 搜索输入框 | 输入后 380ms 触发搜索，有清除按钮，空状态提示 |
+| 我的项目搜索 | 实时客户端过滤，名称/描述匹配 |
+| 公开项目搜索 | 服务端搜索，分页正常，无结果提示 |
+| 模板市场搜索 | 服务端搜索，分类筛选，分页正常 |
+| 同步按钮 | 根据 syncStatus 正确显示 push/pull/conflict/synced |
+| 模板发布按钮 | 本地模板列表显示"发布到云端"按钮 |
+| 模板安装按钮 | 远程模板列表显示"安装到本地"按钮 |
+| Dashboard | 按钮跳转目标正确，最近模板/项目有操作按钮 |
+
+---
+
+## 8. Build 26090601 - 登录体验与云端完善
+
+### 目标
+优化登录体验（动态显示可用登录方式、Token 自动刷新），实现通知中心，集成版本检查，完善云端 API。
+
+### 8.1 服务器端扩展（需同步完成）
+
+| 任务 | 文件 | 说明 |
+|------|------|------|
+| 客户端版本检查 API | `api/routes/client.py` | 新增 `GET /api/v1/client/version`，返回最新版本号、下载链接、更新日志 |
+| 通知系统 API | `api/routes/notifications.py` (新) | 新增 `GET /api/v1/client/notifications`，返回系统公告列表 |
+| 多平台绑定实现 | `api/routes/auth.py` | 实现 `POST /api/v1/auth/bindings` 添加绑定逻辑 |
+| 用户头像上传 | `api/routes/user.py` | 新增 `POST /api/v1/user/avatar` multipart 上传 |
+
+### 8.2 客户端新增文件
+
+| 文件 | 类型 | 说明 |
+|------|------|------|
+| `src/components/cloud/NotificationCenter.tsx` | UI 组件 | 通知中心（平台公告 + 同步提醒） |
+
+### 8.3 客户端修改文件
+
+| 文件 | 修改内容 |
+|------|---------|
+| `src/components/auth/LoginDialog.tsx` | 调用 `/auth/health` 动态显示可用登录方式（未配置的灰显） |
+| `src/api/platform.ts` | `request()` 中检测 401，自动调用 `auth.refresh()` 刷新 Token；新增 `getVersion()`, `getNotifications()`, `getPublicStats()` |
+| `src/components/cloud/CloudStatusIndicator.tsx` | 新增版本更新提示（有新版本时显示红点） |
+| `src/components/cloud/DashboardView.tsx` | 集成通知中心组件 |
+| `src/App.tsx` | 启动时检查版本更新 |
+| `electron/services/update.service.ts` | 集成云端版本检查（替代/补充 GitHub electron-updater） |
+| `electron/config.ts` | BUILD 更新为 `26090601` |
+
+### 8.4 详细任务分解
+
+#### 任务 8.4.1：动态登录方式
+
+```
+调用 GET /api/v1/auth/health 获取各平台配置状态：
+{
+  "feishu": { "configured": true },
+  "qq": { "configured": false },
+  "wechat": { "configured": false }
+}
+
+根据配置状态渲染登录方式：
+- 已配置：正常显示，可点击
+- 未配置：灰显 + 提示"暂未开放"
+```
+
+#### 任务 8.4.2：Token 自动刷新
+
+```typescript
+// platform.ts 的 request() 函数中
+if (res.status === 401 && !isRefreshRequest) {
+  try {
+    const newToken = await refreshToken()
+    // 重试原请求
+    return request<T>(method, url, body, { ...headers, Authorization: `Bearer ${newToken}` })
+  } catch {
+    // 刷新失败，提示重新登录
+    throw new Error('Token 已过期，请重新登录')
+  }
+}
+```
+
+#### 任务 8.4.3：通知中心
+
+```
+┌────────────────────────────────────────┐
+│  🔔 通知中心                           │
+├────────────────────────────────────────┤
+│  📢 平台公告 (2)                       │
+│  ├── MagicCommander v3.5 正式发布！    │
+│  │   新版本带来云集成功能...  (2天前)  │
+│  ├── 模板市场新增 50+ 模板！           │
+│  │   来自社区贡献者...        (5天前)  │
+│  └── 查看更多...                       │
+│                                        │
+│  ⚠️ 同步提醒 (1)                       │
+│  ├── project-a 有未推送的修改           │
+│  └── [立即推送]                        │
+└────────────────────────────────────────┘
+```
+
+数据来源：`GET /api/v1/client/notifications`
+
+#### 任务 8.4.4：版本检查
+
+```typescript
+// 启动时调用
+const versionInfo = await getVersion()
+if (versionInfo.latest_build > CURRENT_BUILD) {
+  // 在 CloudStatusIndicator 显示红点
+  // 在设置 > 关于 tab 显示更新提示
+}
+```
+
+### 8.5 验收标准
+
+| 验收项 | 标准 |
+|--------|------|
+| 动态登录方式 | 仅已配置的平台可点击，未配置的灰显 |
+| Token 自动刷新 | 401 时自动刷新 Token，重试请求 |
+| 登录过期提示 | Token 刷新失败后显示 toast 提示 |
+| 通知中心 | 公告列表正确显示，同步提醒正确显示 |
+| 版本检查 | 有新版本时在 Header 显示红点提示 |
+| 全链路测试 | 完整流程 P0 功能通过 |
+
+---
+
+## 9. 文件变更清单
+
+### 9.1 新增文件（共 22 个）
 
 | Build | 文件 | 行数估算 |
 |-------|------|---------|
@@ -776,13 +1210,17 @@ export async function getLocalCommitSha(projectDir: string): Promise<string | nu
 | 26080901 | `src/components/cloud/SyncStatusBadge.tsx` | ~80 |
 | 26080901 | `electron/utils/git.ts` | ~100 |
 | 26081601 | `src/components/cloud/DashboardView.tsx` | ~150 |
+| 26082301 | `src/components/cloud/EditProfileDialog.tsx` | ~120 |
+| 26083001 | `src/components/ui/SearchInput.tsx` | ~60 |
+| 26083001 | `src/components/cloud/TemplateMarket.tsx` | ~200 |
+| 26090601 | `src/components/cloud/NotificationCenter.tsx` | ~150 |
 
-### 6.2 修改文件（共 11 个）
+### 9.2 修改文件（共 20+ 个）
 
 | Build | 文件 | 修改范围 |
 |-------|------|---------|
 | 26072601 | `package.json` | 版本号 + 新增 simple-git 依赖 |
-| 26072601 | `electron/config.ts` | VERSION/BUILD/DISPLAY |
+| 26072601 | `electron/config.ts` | VERSION/BUILD/DISPLAY (各 Build 各更新一次) |
 | 26072601 | `electron/ipc/handlers.ts` | 注册 cloud IPC 通道 |
 | 26072601 | `electron/main.ts` | 初始化 cloud handler |
 | 26072601 | `src/App.tsx` | 引入 CloudPanel，注册 CloudActivity |
@@ -793,10 +1231,31 @@ export async function getLocalCommitSha(projectDir: string): Promise<string | nu
 | 26080201 | `src/stores/project.store.ts` | 新增 importTemplate action |
 | 26080901 | `src/components/project/ProjectList.tsx` | 列表项新增 SyncStatusBadge |
 | 26081601 | `electron/services/update.service.ts` | 集成云端版本检查 |
+| 26082301 | `src/components/cloud/UserProfileView.tsx` | **重构**：展示完整用户资料 |
+| 26082301 | `src/components/sidebar/SettingsPanel.tsx` | **重构**：tabs 分组 |
+| 26082301 | `src/components/layout/ActivityBar.tsx` | 调整 activities 顺序 |
+| 26082301 | `src/components/layout/Header.tsx` | View 菜单添加 cloud 入口 |
+| 26082301 | `src/components/cloud/CloudPanel.tsx` | 消除硬编码 |
+| 26082301 | `src/components/cloud/DashboardView.tsx` | 消除硬编码 |
+| 26082301 | `src/components/cloud/SyncStatusBadge.tsx` | 消除硬编码 |
+| 26082301 | `src/components/auth/LoginDialog.tsx` | 消除硬编码 |
+| 26082301 | `src/components/sidebar/project/ProjectListItem.tsx` | 消除硬编码 |
+| 26082301 | `src/i18n/locales/*/cloud.json` | 补全翻译键 |
+| 26082301 | `src/i18n/locales/{ja,ko,zh-TW}/chat.json` | 新增翻译文件 |
+| 26083001 | `src/components/cloud/CloudPanel.tsx` | 添加搜索栏 |
+| 26083001 | `src/components/cloud/RemoteProjectView.tsx` | 混合搜索 |
+| 26083001 | `src/components/cloud/DashboardView.tsx` | 优化仪表盘 |
+| 26083001 | `src/components/sidebar/project/ProjectListItem.tsx` | 同步按钮组 |
+| 26083001 | `src/components/sidebar/project/ExplorerPanel.tsx` | 模板同步入口 |
+| 26083001 | `src/api/platform.ts` | 新增搜索 API |
+| 26090601 | `src/components/auth/LoginDialog.tsx` | 动态登录方式 |
+| 26090601 | `src/api/platform.ts` | Token 自动刷新 + 版本/通知 API |
+| 26090601 | `src/components/cloud/CloudStatusIndicator.tsx` | 版本更新提示 |
+| 26090601 | `src/components/cloud/DashboardView.tsx` | 集成通知中心 |
 
 ---
 
-## 7. 风险评估
+## 10. 风险评估
 
 | 风险 | 级别 | 影响 | 缓解措施 |
 |------|------|------|---------|
@@ -807,6 +1266,8 @@ export async function getLocalCommitSha(projectDir: string): Promise<string | nu
 | 网络环境差异 | 中 | 内网/代理环境无法连接 | 支持 HTTP 代理配置，提供手动下载链接 |
 | Gitea Token 安全 | 高 | Token 泄露导致数据风险 | 使用 safeStorage 加密存储，最小权限 Token |
 | 同步冲突 | 中 | 数据丢失风险 | 冲突时不做自动合并，由用户手动选择策略 |
+| 多语言维护成本 | 中 | 新增大量翻译键，11 种语言维护困难 | 优先覆盖中/英/日/韩/繁中 5 种，其余 AI 辅助翻译 |
+| 设置面板重构风险 | 中 | 重构后现有设置项丢失或错位 | 逐项迁移，保留原有 localStorage key 不变 |
 
 ---
 
@@ -814,8 +1275,10 @@ export async function getLocalCommitSha(projectDir: string): Promise<string | nu
 
 | 版本号 | 对应 Build | 说明 |
 |--------|-----------|------|
-| V3.4.1 Build 26072006 | 当前版本 | 纯本地功能 |
 | V3.5.0 Build 26072601 | Build 1 | 基础连接 |
 | V3.5.0 Build 26080201 | Build 2 | 模板市场 |
 | V3.5.0 Build 26080901 | Build 3 | 项目同步 |
-| V3.5.0 Build 26081601 | Build 4 | 完善上线（正式发布） |
+| V3.5.0 Build 26081601 | Build 4 | 完善上线 |
+| V3.5.0 Build 26082301 | Build 5 | UI 重构与多语言 |
+| V3.5.0 Build 26083001 | Build 6 | 同步与搜索 |
+| V3.5.x Build 26090601 | Build 7 | 登录体验与云端完善（下一个正式发布） |

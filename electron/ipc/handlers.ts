@@ -1,4 +1,4 @@
-import { ipcMain, BrowserWindow, shell } from 'electron'
+import { ipcMain, BrowserWindow, shell, safeStorage } from 'electron'
 import { RenderHandler } from './render.handler'
 import * as fs from 'fs'
 import * as path from 'path'
@@ -20,6 +20,7 @@ import {
 } from '../services/template.service'
 import { readWorkspaceIndex, refreshWorkspaceIndex } from '../services/workspace-index.service'
 import { aiHubService, type AIHubStatus } from '../services/aiHub.service'
+import { getLocalCommitSha, collectProjectFiles, installRemoteProject } from '../utils/git'
 
 function readExcelByPath(filePath: string): { name: string; headers: string[]; rows: Record<string, any>[] }[] {
   if (!fs.existsSync(filePath)) {
@@ -313,6 +314,38 @@ export function setupIpcHandlers(window: BrowserWindow): void {
     if (!fs.existsSync(targetPath)) throw new Error(`模板不存在: ${id}`)
     fs.rmSync(targetPath, { recursive: true, force: true })
     refreshWorkspace()
+  })
+
+  ipcMain.handle('project:installRemoteTemplate', async (_e, data: { name: string; zipData: string; owner: string }): Promise<void> => {
+    const AdmZip = (await import('adm-zip')).default
+    const templateDir = getTemplateDir()
+
+    // Decode base64 zip data
+    const buffer = Buffer.from(data.zipData, 'base64')
+    const zip = new AdmZip(buffer)
+
+    const targetName = data.name
+    const targetPath = path.join(templateDir, targetName)
+
+    // Check if template already exists
+    if (fs.existsSync(targetPath)) {
+      throw new Error(`模板已存在: ${targetName}`)
+    }
+
+    // Extract all files
+    zip.extractAllTo(targetPath, true)
+
+    // Save metadata
+    const metaFile = path.join(targetPath, '.mc-template-meta.json')
+    fs.writeFileSync(metaFile, JSON.stringify({
+      name: targetName,
+      source: 'remote',
+      owner: data.owner,
+      installedAt: new Date().toISOString(),
+    }, null, 2), 'utf-8')
+
+    refreshWorkspace()
+    logger.info(`模板安装成功: ${data.owner}/${targetName}`)
   })
 
   ipcMain.handle('project:saveAsExample', async (_e, projectName: string, exampleName: string): Promise<void> => {
@@ -975,5 +1008,84 @@ export function setupIpcHandlers(window: BrowserWindow): void {
       logger.error('恢复 AI 配置失败', err)
     }
     return null
+  })
+
+  // ===== 项目同步 =====
+
+  ipcMain.handle('project:getLocalSha', async (_e, projectName: string): Promise<string | null> => {
+    const projectDir = path.join(getWorkspaceDir(), projectName)
+    return getLocalCommitSha(projectDir)
+  })
+
+  ipcMain.handle('project:collectProjectFiles', async (_e, projectName: string): Promise<{ path: string; content: string }[]> => {
+    const projectDir = path.join(getWorkspaceDir(), projectName)
+    if (!fs.existsSync(projectDir)) {
+      throw new Error(`项目不存在: ${projectName}`)
+    }
+    return collectProjectFiles(projectDir)
+  })
+
+  ipcMain.handle('project:installRemoteProject', async (_e, data: { name: string; zipData: string; owner: string }): Promise<void> => {
+    const workspaceDir = getWorkspaceDir()
+    await installRemoteProject(data.zipData, workspaceDir, data.name, data.owner)
+    refreshWorkspace()
+    logger.info(`远程项目安装成功: ${data.owner}/${data.name}`)
+  })
+
+  ipcMain.handle('project:batchGetLocalSha', async (_e, projectNames: string[]): Promise<Record<string, string | null>> => {
+    const result: Record<string, string | null> = {}
+    for (const name of projectNames) {
+      const projectDir = path.join(getWorkspaceDir(), name)
+      result[name] = await getLocalCommitSha(projectDir)
+    }
+    return result
+  })
+
+  // ===== 平台 Token 安全存储 =====
+  ipcMain.handle('platform:saveToken', async (_e, token: string): Promise<void> => {
+    try {
+      if (safeStorage.isEncryptionAvailable()) {
+        const encrypted = safeStorage.encryptString(token)
+        const tokenFile = path.join(getUserDataDir(), 'platform-token.enc')
+        fs.writeFileSync(tokenFile, encrypted)
+      } else {
+        // 回退到普通文件存储（开发环境）
+        const tokenFile = path.join(getUserDataDir(), 'platform-token.json')
+        fs.writeFileSync(tokenFile, JSON.stringify({ token }), 'utf-8')
+      }
+    } catch (err) {
+      logger.error('保存平台 Token 失败', err)
+    }
+  })
+
+  ipcMain.handle('platform:loadToken', async (): Promise<string | null> => {
+    try {
+      const encFile = path.join(getUserDataDir(), 'platform-token.enc')
+      const jsonFile = path.join(getUserDataDir(), 'platform-token.json')
+      if (fs.existsSync(encFile)) {
+        if (safeStorage.isEncryptionAvailable()) {
+          const encrypted = fs.readFileSync(encFile)
+          return safeStorage.decryptString(encrypted)
+        }
+      }
+      if (fs.existsSync(jsonFile)) {
+        const content = JSON.parse(fs.readFileSync(jsonFile, 'utf-8'))
+        return content.token || null
+      }
+    } catch (err) {
+      logger.error('加载平台 Token 失败', err)
+    }
+    return null
+  })
+
+  ipcMain.handle('platform:clearToken', async (): Promise<void> => {
+    try {
+      const encFile = path.join(getUserDataDir(), 'platform-token.enc')
+      const jsonFile = path.join(getUserDataDir(), 'platform-token.json')
+      if (fs.existsSync(encFile)) fs.unlinkSync(encFile)
+      if (fs.existsSync(jsonFile)) fs.unlinkSync(jsonFile)
+    } catch (err) {
+      logger.error('清除平台 Token 失败', err)
+    }
   })
 }

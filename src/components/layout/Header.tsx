@@ -7,6 +7,9 @@ import { useUIStore } from '@/stores/ui.store'
 import { useEditorStore } from '@/stores/editor.store'
 import { usePlatformStore } from '@/stores/platform.store'
 import { LoginDialog } from '@/components/auth/LoginDialog'
+import { CloudStatusIndicator } from '@/components/cloud/CloudStatusIndicator'
+import { NotificationCenter } from '@/components/cloud/NotificationCenter'
+import { UserProfileView } from '@/components/cloud/UserProfileView'
 import { LANGUAGE_ICON_CHARS } from '@/i18n/resources'
 import type { SupportedLocale } from '@/i18n/resources'
 import { useBuildInfo } from '@/hooks/useAppVersion'
@@ -44,6 +47,7 @@ export function Header({ onCheatsheet }: HeaderProps) {
   const [openMenu, setOpenMenu] = useState<string | null>(null)
   const [aboutOpen, setAboutOpen] = useState(false)
   const [loginOpen, setLoginOpen] = useState(false)
+  const [userProfileOpen, setUserProfileOpen] = useState(false)
   const [restartPromptOpen, setRestartPromptOpen] = useState(false)
   const [updateDownloaded, setUpdateDownloaded] = useState(false)
   const [updateStatus, setUpdateStatus] = useState<UpdateStatus | null>(null)
@@ -345,8 +349,9 @@ export function Header({ onCheatsheet }: HeaderProps) {
       renderMenuItem('cheatsheet', t('menu.cheatsheet'), 'Ctrl+K S', handleCheatsheet),
     ],
     view: [
-      renderMenuItem('chat', t('menu.chat'), 'Ctrl+Shift+H', () => handleGoToActivity('chat')),
       renderMenuItem('search', t('common:sidebar.search'), 'Ctrl+Shift+F', () => handleGoToActivity('search')),
+      renderMenuItem('cloud', t('cloud:title'), 'Ctrl+Shift+C', () => handleGoToActivity('cloud')),
+      renderMenuItem('chat', t('menu.chat'), 'Ctrl+Shift+H', () => handleGoToActivity('chat')),
       renderMenuItem('explorer', t('common:sidebar.explorer'), 'Ctrl+Shift+E', () => handleGoToActivity('explorer')),
       renderMenuItem('workbench', t('menu.workbench'), 'Ctrl+Shift+W', () => handleGoToActivity('workbench')),
       renderMenuItem('output', t('menu.outputResults'), 'Ctrl+Shift+O', () => handleGoToActivity('output')),
@@ -485,18 +490,28 @@ export function Header({ onCheatsheet }: HeaderProps) {
             />
           </div>
 
+          {/* 平台连接状态 */}
+          <div className="relative">
+            <CloudStatusIndicator />
+          </div>
+
+          {/* 通知中心 */}
+          <div className="relative">
+            <NotificationCenter isDark={isDark} />
+          </div>
+
           {/* 平台登录 / 用户 */}
           <div className="relative">
             {platformLoggedIn ? (
               <button
-                onClick={platformLogout}
+                onClick={() => setUserProfileOpen(!userProfileOpen)}
                 className={clsx(
                   'px-2 py-1 text-xs rounded transition-colors',
                   isDark ? 'text-indigo-400 hover:bg-gray-700' : 'text-indigo-600 hover:bg-gray-200',
                 )}
-                title={platformUsername || ''}
+                title={platformUsername || t('cloud:loginDialog.loggedIn')}
               >
-                {platformUsername || '已登录'}
+                {platformUsername || t('cloud:loginDialog.loggedIn')}
               </button>
             ) : (
               <button
@@ -505,11 +520,12 @@ export function Header({ onCheatsheet }: HeaderProps) {
                   'px-2 py-1 text-xs rounded transition-colors',
                   isDark ? 'text-gray-400 hover:bg-gray-700' : 'text-gray-500 hover:bg-gray-200',
                 )}
-                title="登录平台"
+                title={t('cloud:loginDialog.title')}
               >
-                登录
+                {t('cloud:login')}
               </button>
             )}
+            {userProfileOpen && <UserProfileView onClose={() => setUserProfileOpen(false)} />}
           </div>
 
           {/* 检查更新 */}

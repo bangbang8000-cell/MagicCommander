@@ -9,6 +9,7 @@
 [![Linux](https://img.shields.io/badge/Linux-AppImage%20%7C%20deb-orange)](https://github.com/bangbang8000-cell/MagicCommander/releases)
 [![Languages](https://img.shields.io/badge/languages-12-orange)](https://github.com/bangbang8000-cell/MagicCommander)
 [![AI](https://img.shields.io/badge/AI--Powered-DeepSeek%20%7C%20OpenAI%20%7C%209%20Providers-purple)](https://github.com/bangbang8000-cell/MagicCommander)
+[![Cloud](https://img.shields.io/badge/Cloud%20Connect-Gitea%20%7C%20JWT%20%7C%20QR%20Login-cyan)](https://github.com/bangbang8000-cell/MagicCommander/tree/main/docs)
 
 
 ## 你还在手动配置每一台交换机吗？
@@ -97,6 +98,17 @@ AI: [调用 render_config → 生成 22 台设备配置]
 
 从内置示例模板（交换机 ASW/PSW/DOA 配置）一键创建新项目，自动生成标准目录结构（templates / excel / output / yaml）。也可以将现有项目保存为模板，团队复用。
 
+### Cloud Connect — 云平台集成 (v3.5.0)
+
+MagicCommander v3.5.0 引入 **Cloud Connect** 云平台集成，通过自建 MagicCommander Platform（基于 Gitea + FastAPI）实现团队协作：
+
+- **模板市场**：浏览、搜索、安装云端模板，支持按分类筛选
+- **项目同步**：本地项目一键推送至云端，云端项目拉取到本地，自动检测同步状态
+- **QR 扫码登录**：支持飞书 / QQ / 微信扫码登录，JWT Token 自动刷新
+- **通知中心**：实时接收平台公告和版本更新提醒
+- **用户资料**：云端用户档案管理，支持平台账号绑定
+- **多语言界面**：13 种语言完整翻译，包括云端功能所有界面
+
 ### 渲染预演与校验，配置零差错
 
 渲染前支持 **dry-run 预演**——预览生成结果但不写入文件，确认无误再正式渲染。内置 **Jinja2 语法校验**和 **Excel 数据校验**，提前发现模板错误和参数缺失，避免渲染到一半才报错。渲染结果支持 **diff 对比**，变更一目了然。
@@ -155,16 +167,17 @@ npm run dev:all
 
 ## 技术栈
 
-Electron 28 · React 18 · TypeScript 5 · Vite 5 · TailwindCSS 3 · Zustand 4 · Monaco Editor 4 · Python 3 · Jinja2 · FastAPI · LangChain
+Electron 28 · React 18 · TypeScript 5 · Vite 5 · TailwindCSS 3 · Zustand 4 · Monaco Editor 4 · Python 3 · Jinja2 · FastAPI · LangChain · Gitea · JWT · i18next
 
 ## 项目架构
 
 ```
 MagicCommander/
 ├── src/                  # 前端 (Electron + React)
-│   ├── components/       # UI 组件 (chat, layout, sidebar, dialogs)
-│   ├── stores/           # Zustand 状态管理
-│   ├── i18n/             # 12 语言国际化
+│   ├── components/       # UI 组件 (chat, cloud, layout, sidebar, dialogs)
+│   ├── stores/           # Zustand 状态管理 (ui, platform, cloud, chat, project)
+│   ├── i18n/             # 13 语言国际化
+│   ├── api/              # 云端 API 客户端 (platform.ts)
 │   └── types/            # TypeScript 类型定义
 ├── backend/              # Python CLI 后端
 │   ├── main.py           # 统一命令行入口
@@ -177,7 +190,7 @@ MagicCommander/
 ├── electron/             # Electron 主进程
 ├── public/               # 静态资源 (图标/文档)
 ├── resources/            # 嵌入式 Python 运行时
-└── docs/                 # 开发文档与计划
+└── docs/                 # 开发文档与计划 (PRD / Cloud / 部署指南)
 ```
 
 ---
@@ -197,6 +210,7 @@ MagicCommander/
 | `Ctrl+Shift+O` | 切换到输出结果 |
 | `Ctrl+Shift+W` | 切换到工作台 |
 | `Ctrl+Shift+H` | 切换到 AI 对话 |
+| `Ctrl+Shift+C` | 切换到云平台 |
 | `Ctrl+,` | 打开设置 |
 | `Ctrl+K Ctrl+S` | 打开快捷键列表 |
 | `Ctrl+Shift+P` | 命令面板 |
@@ -224,6 +238,7 @@ MagicCommander/
 
 | 版本 | 日期 | 更新内容 |
 |------|------|---------|
+| **3.5.0 Build 26072301** | 2026-07-23 | **Cloud Connect 云平台集成**：MagicCommander Platform 连接 (Gitea + FastAPI + JWT)、QR 扫码登录 (飞书/QQ/微信)、Token 自动刷新、模板市场 (搜索/分类/安装)、项目云端同步 (推送/拉取/冲突检测)、通知中心 (公告/版本更新)、用户资料管理、云端仪表盘、13 语言完整 i18n、UI 全面重构 (设置面板分5标签、ActivityBar 排序优化) |
 | **3.5.0 Build 26072101** | 2026-07-21 | **菜单系统重构**：Ctrl+S 去重、视图菜单歧义修复、快捷键注册表补齐(8→23)、标签页右键菜单、Alt+字母菜单导航、Cheatsheet i18n、命令面板(Ctrl+Shift+P)；**面板合并**：渲染操作+工作台合并(⚡闪电图标)、标签打印卡片、输出结果快捷跳转；**模板中心优化**：工具栏压缩、卡片内联展开+文件树、模板文件点击加载到编辑器、创建项目 Modal 对话框；**视觉统一**：暗色模式底色统一(Monaco自定义主题)、全局字体11→7种、JSON语法高亮；新增 IPC: readTemplateFile/readTemplateExcel |
 | **3.4.1 Build 26072006** | 2026-07-20 | 修复关于对话框版本号显示问题，触发正式编译发布 |
 | **3.4.0 Build 26072004** | 2026-07-20 | **Agent v2 智能编排引擎**：Planner/Validator/Context/Recovery/Reporter 五层架构、Skills Engine (7 预置 Skill + 半自动生成)、Memory System (用户画像+项目历史+操作习惯)、工具权限分级 (auto/notify/confirm) + 自主模式、27 工具 Agent 框架；**Chat UI 全面重构**：会话横向标签栏 + 溢出历史下拉、AI 自动提炼会话标题、模式/自主模式精简到设置、字体大小可调节、清除/新建图标语义修正；**可靠性修复**：render/dry-run JSON 解析 (平衡括号提取)、工具结果进度过滤、XML/JSON 截断容错解析、确认级工具权限修正 (semi_auto 也需确认) |

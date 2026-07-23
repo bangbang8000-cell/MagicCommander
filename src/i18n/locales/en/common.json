@@ -434,6 +434,19 @@
       "title": "Software Update",
       "checkButton": "Check for Updates"
     },
+    "platform": {
+      "title": "Platform Connection",
+      "desc": "Connect to MagicCommander Platform",
+      "serverUrl": "Server URL",
+      "testConnection": "Test Connection",
+      "loginStatus": "Login Status",
+      "loggedIn": "Logged In",
+      "notLoggedIn": "Not Logged In"
+    },
+    "about": {
+      "desc": "Intelligent Network Configuration Management Tool",
+      "version": "Version"
+    },
     "comingSoon": "Coming Soon"
   },
   "window": {
@@ -444,5 +457,14 @@
   },
   "loading": {
     "loading": "Loading..."
+  },
+  "auth": {
+    "platformLogin": "Platform Login",
+    "selectPlatform": "Select Login Method",
+    "loginSuccess": "Login Successful",
+    "loginDone": "Login Successful",
+    "qrExpired": "QR Code Expired",
+    "qrExpiresIn": "QR code valid for 10 minutes",
+    "scanHint": "Scan QR code with {platform}"
   }
 }

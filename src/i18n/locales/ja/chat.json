@@ -1,0 +1,74 @@
+{
+  "title": "AI チャット",
+  "newChat": "新規チャット",
+  "clearChat": "チャットをクリア",
+  "role": {
+    "user": "あなた",
+    "assistant": "AI アシスタント"
+  },
+  "mode": {
+    "template": "テンプレートアシスタント",
+    "templateDesc": "プロジェクトテンプレートの作成と最適化",
+    "config": "設定Q&A",
+    "configDesc": "プロジェクト設定の分析と生成",
+    "general": "汎用アシスタント",
+    "generalDesc": "自由な質問とヘルプ"
+  },
+  "input": {
+    "placeholder": "メッセージを入力... (Enter で送信, Shift+Enter で改行)",
+    "send": "送信",
+    "attach": "ファイル添付",
+    "sending": "送信中..."
+  },
+  "attachment": {
+    "template": "テンプレートファイル",
+    "excel": "Excel パラメータ",
+    "yaml": "YAML 設定",
+    "config": "設定ファイル",
+    "document": "ドキュメント",
+    "other": "その他"
+  },
+  "empty": {
+    "title": "チャットを開始",
+    "desc": "チャットモードを選択し、質問を入力するかファイルを添付して分析を開始"
+  },
+  "session": {
+    "newChat": "新規チャット",
+    "delete": "チャットを削除",
+    "noSessions": "チャット履歴なし",
+    "list": "セッション一覧",
+    "justNow": "たった今",
+    "minAgo": "分前",
+    "hourAgo": "時間前",
+    "yesterday": "昨日"
+  },
+  "aihub": {
+    "status": {
+      "starting": "AI サービス起動中...",
+      "running": "AI サービス実行中",
+      "stopped": "AI サービス未起動",
+      "error": "AI サービスエラー",
+      "installing": "AI 依存関係インストール中..."
+    },
+    "provider": {
+      "select": "モデル選択",
+      "configure": "AI 設定 → 設定",
+      "noProvider": "設定で API Key を設定してください"
+    },
+    "error": {
+      "timeout": "リクエストタイムアウト、再試行してください",
+      "network": "ネットワークエラー、接続を確認してください",
+      "unknown": "不明なエラーが発生しました",
+      "retry": "再試行",
+      "cancel": "キャンセル",
+      "hubFailed": "AI Hub の起動に失敗しました。Python 環境を確認してください。設定ページで接続テストが可能です。",
+      "noModel": "AI モデルが選択されていません。設定ページで Provider を設定してください。",
+      "serviceNotRunning": "AI サービスが起動していません"
+    }
+  },
+  "autonomy": {
+    "advisor": "アドバイザーモード",
+    "semiAuto": "半自動",
+    "fullAuto": "全自動"
+  }
+}

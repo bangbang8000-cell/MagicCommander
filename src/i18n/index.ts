@@ -8,6 +8,7 @@ import { initReactI18next } from 'react-i18next'
 
 import commonZh from './locales/zh-CN/common.json'
 import chatZh from './locales/zh-CN/chat.json'
+import cloudZh from './locales/zh-CN/cloud.json'
 import editorZh from './locales/zh-CN/editor.json'
 import projectZh from './locales/zh-CN/project.json'
 import errorsZh from './locales/zh-CN/errors.json'
@@ -23,6 +24,7 @@ import terminalZhTw from './locales/zh-TW/terminal.json'
 
 import commonEn from './locales/en/common.json'
 import chatEn from './locales/en/chat.json'
+import cloudEn from './locales/en/cloud.json'
 import editorEn from './locales/en/editor.json'
 import projectEn from './locales/en/project.json'
 import errorsEn from './locales/en/errors.json'
@@ -104,6 +106,7 @@ i18n.use(initReactI18next).init({
     'zh-CN': {
       common: commonZh,
       chat: chatZh,
+      cloud: cloudZh,
       editor: editorZh,
       project: projectZh,
       errors: errorsZh,
@@ -121,6 +124,7 @@ i18n.use(initReactI18next).init({
     en: {
       common: commonEn,
       chat: chatEn,
+      cloud: cloudEn,
       editor: editorEn,
       project: projectEn,
       errors: errorsEn,
@@ -210,7 +214,7 @@ i18n.use(initReactI18next).init({
   },
   lng: 'zh-CN',
   fallbackLng: 'zh-CN',
-  ns: ['common', 'chat', 'editor', 'project', 'errors', 'welcome', 'terminal'],
+  ns: ['common', 'chat', 'cloud', 'editor', 'project', 'errors', 'welcome', 'terminal'],
   defaultNS: 'common',
   interpolation: {
     escapeValue: false,

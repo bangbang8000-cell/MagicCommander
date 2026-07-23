@@ -42,6 +42,7 @@ export interface ElectronAPI {
   shell: { showItemInFolder: (path: string) => Promise<void> }
   aihub: AIHubIpcApi
   window: WindowIpcApi
+  platform: PlatformIpcApi
   onMenuNewProject: (callback: () => void) => () => void
   versions: {
     node: string
@@ -96,7 +97,12 @@ export interface ProjectIpcApi {
   writeFile: (id: number, filePath: string, content: string, projectName?: string) => Promise<void>
   readDocx: (id: number, filePath: string, projectName?: string) => Promise<string>
   readDocxBuffer: (id: number, filePath: string, projectName?: string) => Promise<ArrayBuffer>
-  listFiles: (id: string, fileType?: string) => Promise<unknown>
+  listFiles: (id: string, fileType?: string) => Promise<string[]>
+  installRemoteTemplate: (data: { name: string; zipData: string; owner: string }) => Promise<void>
+  getLocalSha: (projectName: string) => Promise<string | null>
+  collectProjectFiles: (projectName: string) => Promise<{ path: string; content: string }[]>
+  installRemoteProject: (data: { name: string; zipData: string; owner: string }) => Promise<void>
+  batchGetLocalSha: (projectNames: string[]) => Promise<Record<string, string | null>>
 }
 
 // ============================================================
@@ -283,4 +289,14 @@ export interface AIHubIpcApi {
   ) => Promise<string>
   saveSkill: (name: string, content: string) => Promise<{ status: string; name: string }>
   onStream: (callback: (data: AIHubStreamData) => void) => () => void
+}
+
+// ============================================================
+// Platform API (云服务)
+// ============================================================
+
+export interface PlatformIpcApi {
+  saveToken: (token: string) => Promise<void>
+  loadToken: () => Promise<string | null>
+  clearToken: () => Promise<void>
 }

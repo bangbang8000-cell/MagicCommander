@@ -65,7 +65,8 @@
     "readExampleFailed": "Failed to read example templates: {{message}}",
     "savedAsTemplate": "Saved as template: {{name}}",
     "deletedProjects": "Deleted {{count}} projects",
-    "exampleDesc": "Select an example project from the example directory to copy to workspace"
+    "exampleDesc": "Select an example project from the example directory to copy to workspace",
+    "pushSuccess": "Project \"{{name}}\" pushed to cloud"
   },
   "template": {
     "noTemplates": "No templates",
@@ -98,8 +99,14 @@
     },
     "edit": {
       "title": "Edit Template Info",
+      "name": "Template Name",
       "namePlaceholder": "Template Name",
+      "description": "Description",
       "descPlaceholder": "Description",
+      "category": "Category",
+      "public": "Visibility",
+      "publicHint": "Public",
+      "privateHint": "Private",
       "scenarioPlaceholder": "Scenario",
       "sourcePlaceholder": "Source Project",
       "inputPlaceholder": "Input requirements, one per line",
@@ -116,6 +123,20 @@
     },
     "category": {
       "all": "All"
+    },
+    "createProject": "Create Project from Template",
+    "create": "Create",
+    "creating": "Creating...",
+    "publish": "Publish to Market",
+    "publishing": "Publishing...",
+    "publishSuccess": "Template \"{name}\" published successfully",
+    "noFilesToPublish": "No publishable files in template",
+    "pubCategory": {
+      "switch": "Switch",
+      "router": "Router",
+      "firewall": "Firewall",
+      "server": "Server",
+      "other": "Other"
     }
   },
   "search": {

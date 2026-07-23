@@ -1,0 +1,74 @@
+{
+  "title": "AI 對話",
+  "newChat": "新增對話",
+  "clearChat": "清除對話",
+  "role": {
+    "user": "你",
+    "assistant": "AI 助手"
+  },
+  "mode": {
+    "template": "模板助手",
+    "templateDesc": "建立和最佳化專案模板",
+    "config": "設定問答",
+    "configDesc": "專案設定分析與產生",
+    "general": "通用助手",
+    "generalDesc": "自由問答與幫助"
+  },
+  "input": {
+    "placeholder": "輸入訊息... (Enter 傳送, Shift+Enter 換行)",
+    "send": "傳送",
+    "attach": "上傳附件",
+    "sending": "傳送中..."
+  },
+  "attachment": {
+    "template": "模板檔案",
+    "excel": "Excel 參數表",
+    "yaml": "YAML 設定",
+    "config": "設定檔",
+    "document": "文件",
+    "other": "其他"
+  },
+  "empty": {
+    "title": "開始對話",
+    "desc": "選擇一種對話模式，輸入您的問題或上傳附件開始分析"
+  },
+  "session": {
+    "newChat": "新對話",
+    "delete": "刪除對話",
+    "noSessions": "暫無對話記錄",
+    "list": "會話列表",
+    "justNow": "剛剛",
+    "minAgo": "分鐘前",
+    "hourAgo": "小時前",
+    "yesterday": "昨天"
+  },
+  "aihub": {
+    "status": {
+      "starting": "AI 服務啟動中...",
+      "running": "AI 服務執行中",
+      "stopped": "AI 服務未啟動",
+      "error": "AI 服務異常",
+      "installing": "AI 依賴安裝中..."
+    },
+    "provider": {
+      "select": "選擇模型",
+      "configure": "設定 AI → 設定",
+      "noProvider": "請先在設定中設定 API Key"
+    },
+    "error": {
+      "timeout": "請求逾時，請重試",
+      "network": "網路錯誤，請檢查網路連線",
+      "unknown": "發生未知錯誤",
+      "retry": "重試",
+      "cancel": "取消",
+      "hubFailed": "AI Hub 啟動失敗，請檢查 Python 環境是否就緒。可前往設定頁面測試連線。",
+      "noModel": "未選擇 AI 模型。請前往設定頁面設定 Provider。",
+      "serviceNotRunning": "AI 服務未啟動"
+    }
+  },
+  "autonomy": {
+    "advisor": "顧問模式",
+    "semiAuto": "半自動",
+    "fullAuto": "全自動"
+  }
+}

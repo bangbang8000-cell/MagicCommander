@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react'
 import clsx from 'clsx'
 import { useTranslation } from 'react-i18next'
-import { Edit3, Plus, Trash2, ChevronRight, FileText, FileCode, Folder, Table2 } from 'lucide-react'
+import { Edit3, Plus, Trash2, ChevronRight, FileText, FileCode, Folder, Table2, Upload } from 'lucide-react'
 import { useProjectStore } from '@/stores/project.store'
 import { useEditorStore } from '@/stores/editor.store'
 import { useUIStore } from '@/stores/ui.store'
@@ -112,9 +112,10 @@ type TemplateCardProps = {
   onCreateProject: () => void
   onEdit: () => void
   onDelete: () => void
+  onPublish?: () => void
 }
 
-export function TemplateCard({ template, selected, onSelect, onCreateProject, onEdit, onDelete }: TemplateCardProps) {
+export function TemplateCard({ template, selected, onSelect, onCreateProject, onEdit, onDelete, onPublish }: TemplateCardProps) {
   const { t } = useTranslation('project')
   const isDark = useUIStore((s) => s.isDark)
   const projects = useProjectStore((s) => s.projects)
@@ -234,6 +235,15 @@ export function TemplateCard({ template, selected, onSelect, onCreateProject, on
           >
             <Trash2 size={12} />
           </button>
+          {onPublish && (
+            <button
+              onClick={(e) => { e.stopPropagation(); onPublish() }}
+              className="p-1 rounded hover:bg-indigo-50 dark:hover:bg-indigo-900/20 text-indigo-500"
+              title={t('template.publish') || '发布到市场'}
+            >
+              <Upload size={12} />
+            </button>
+          )}
         </div>
       </div>
 

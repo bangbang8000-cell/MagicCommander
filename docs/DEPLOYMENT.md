@@ -35,6 +35,11 @@ npm run dev:electron
 ```
 MagicCommander/
 ├── src/                  # 前端源码 (React + TypeScript)
+│   ├── components/       # UI 组件 (chat, cloud, layout, sidebar, dialogs)
+│   ├── stores/           # Zustand 状态管理 (ui, platform, cloud, chat, project)
+│   ├── i18n/             # 13 语言国际化
+│   ├── api/              # 云端 API 客户端 (platform.ts)
+│   └── types/            # TypeScript 类型定义
 ├── electron/             # Electron 主进程 (TypeScript)
 ├── backend/              # Python CLI 后端
 ├── ai_hub/               # AI Hub 服务 (FastAPI)
@@ -203,6 +208,90 @@ MagicCommander 使用 `electron-updater` 实现自动更新：
 - 检测到新版本后提示用户下载
 - 下载完成后提示重启安装
 - 用户也可手动通过菜单栏 "工具 → 检查更新" 触发
+
+## Cloud Connect — 云平台集成 (v3.5.0)
+
+### 架构说明
+
+MagicCommander v3.5.0 支持连接自建 MagicCommander Platform，实现团队协作功能：
+
+```
+MagicCommander Client (Electron)
+    │
+    ├── 平台 API (FastAPI + JWT)
+    │   ├── /api/v1/auth/*          # 认证 (飞书/QQ/微信扫码 + JWT)
+    │   ├── /api/v1/templates/*     # 模板市场 CRUD + 搜索 + 下载
+    │   ├── /api/v1/projects/*      # 项目管理 (列表/搜索/统计)
+    │   ├── /api/v1/notifications/* # 通知公告
+    │   ├── /api/v1/user/*          # 用户档案管理
+    │   └── /api/v1/client/*        # 客户端版本检查
+    │
+    └── Gitea (Git 托管)
+        └── /api/v1/repos/*         # 项目仓库存档下载
+```
+
+### 服务端部署
+
+MagicCommander Platform 服务端需独立部署在 Linux 服务器（建议 Ubuntu 22.04）：
+
+```bash
+# 1. 克隆平台仓库
+git clone https://github.com/bangbang8000-cell/MagicCommander-Platform.git
+cd MagicCommander-Platform
+
+# 2. 配置环境变量
+cp .env.example .env
+nano .env
+# 必须配置:
+#   DATABASE_URL=postgresql://...
+#   JWT_SECRET_KEY=<随机密钥>
+#   FEISHU_APP_ID=xxx          # 飞书应用 ID (可选)
+#   FEISHU_APP_SECRET=xxx      # 飞书应用密钥 (可选)
+#   FEISHU_REDIRECT_URI=...    # 飞书回调地址 (可选)
+
+# 3. 启动服务 (Docker)
+docker compose up -d
+
+# 4. 验证服务
+curl http://localhost:18720/api/v1/health
+```
+
+### 客户端连接配置
+
+1. 打开 MagicCommander 设置面板 → **平台连接** 标签
+2. 填写服务器地址（如 `http://81.71.11.33`）
+3. 点击"测试连接"确认连通性
+4. 点击云平台侧边栏图标登录
+
+### 支持的功能
+
+| 功能 | 说明 |
+|------|------|
+| QR 扫码登录 | 飞书 / QQ / 微信，JWT Token 72h 自动刷新 |
+| 模板市场 | 浏览/搜索/安装云端模板，支持分类筛选 |
+| 项目同步 | Push 推送本地到云端 / Pull 拉取云端到本地 / 冲突检测 |
+| 通知中心 | 平台公告和版本更新提醒 |
+| 用户档案 | 个人信息管理、平台账号绑定 |
+
+### 云端 API 代理配置 (Nginx)
+
+如果服务端使用 Nginx 反向代理，需要配置 Gitea 仓库下载路由：
+
+```nginx
+# MagicCommander Platform
+location /api/v1/ {
+    proxy_pass http://127.0.0.1:18720/api/v1/;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+}
+
+# Gitea 仓库存档 (项目 Pull 下载)
+location /api/v1/repos/ {
+    proxy_pass http://127.0.0.1:3000/api/v1/repos/;
+    proxy_set_header Host $host;
+    proxy_set_header Authorization $http_authorization;
+}
+```
 
 ## AI Hub 组件部署
 

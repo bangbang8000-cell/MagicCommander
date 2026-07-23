@@ -11,6 +11,7 @@ import type { RemoteTemplate } from '@/api/platform'
 import { TemplateCard } from './TemplateCard'
 import { TemplateEditDialog } from './TemplateEditDialog'
 import { TemplateListToolbar } from './TemplateListToolbar'
+import { PublishDialog } from '@/components/cloud/PublishDialog'
 
 type TemplateCenterPanelProps = {
   onCreateProjectName?: (name: string) => string
@@ -30,6 +31,7 @@ export function TemplateCenterPanel({ onCreateProjectName }: TemplateCenterPanel
   const remoteTemplates = usePlatformStore((s) => s.remoteTemplates)
   const remoteLoading = usePlatformStore((s) => s.remoteLoading)
   const remoteError = usePlatformStore((s) => s.remoteError)
+  const downloadTemplate = usePlatformStore((s) => s.downloadTemplate)
   const fetchRemoteTemplates = usePlatformStore((s) => s.fetchRemoteTemplates)
 
   const [tab, setTab] = useState<'local' | 'remote'>('local')
@@ -38,6 +40,7 @@ export function TemplateCenterPanel({ onCreateProjectName }: TemplateCenterPanel
   const [category, setCategory] = useState<string>('all')
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null)
   const [editingTemplate, setEditingTemplate] = useState<TemplateInfo | null>(null)
+  const [publishingTemplate, setPublishingTemplate] = useState<TemplateInfo | null>(null)
 
   // 创建项目弹窗
   const [createDialogOpen, setCreateDialogOpen] = useState(false)
@@ -125,9 +128,14 @@ export function TemplateCenterPanel({ onCreateProjectName }: TemplateCenterPanel
     }
   }, [tab, fetchRemoteTemplates])
 
-  const handleDownloadRemote = (tpl: RemoteTemplate) => {
-    const url = `http://localhost:18720/api/templates/${tpl.owner}/${tpl.name}/download`
-    window.open(url, '_blank')
+  const handleDownloadRemote = async (tpl: RemoteTemplate) => {
+    try {
+      await downloadTemplate(tpl.owner, tpl.name)
+      showSuccess(`模板 "${tpl.name}" 安装成功`)
+      fetchTemplates() // 刷新本地模板列表
+    } catch (err) {
+      showError((err as Error).message)
+    }
   }
 
   return (
@@ -184,6 +192,7 @@ export function TemplateCenterPanel({ onCreateProjectName }: TemplateCenterPanel
                   onCreateProject={() => openCreateDialog(template)}
                   onEdit={() => setEditingTemplate(template)}
                   onDelete={() => removeTemplate(template)}
+                  onPublish={loggedIn ? () => setPublishingTemplate(template) : undefined}
                 />
               ))
             )}
@@ -254,6 +263,13 @@ export function TemplateCenterPanel({ onCreateProjectName }: TemplateCenterPanel
           if (!editingTemplate) return Promise.resolve()
           return editTemplate(editingTemplate, meta)
         }}
+      />
+
+      {/* 发布模板弹窗 */}
+      <PublishDialog
+        open={publishingTemplate !== null}
+        template={publishingTemplate}
+        onClose={() => setPublishingTemplate(null)}
       />
 
       {/* 创建项目弹窗 */}

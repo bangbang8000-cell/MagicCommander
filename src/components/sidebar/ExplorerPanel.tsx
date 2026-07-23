@@ -13,6 +13,9 @@ import { TemplateCenterPanel } from './template/TemplateCenterPanel'
 import { Star, Clock, Folder } from 'lucide-react'
 import clsx from 'clsx'
 import { useTranslation } from 'react-i18next'
+import { usePlatformStore } from '@/stores/platform.store'
+import { PushDialog } from '@/components/cloud/PushDialog'
+import { PullDialog } from '@/components/cloud/PullDialog'
 
 
 type TemplateOption = 'example' | 'empty'
@@ -53,6 +56,12 @@ export function ExplorerPanel() {
   const [saveTemplateOpen, setSaveTemplateOpen] = useState(false)
   const [newTemplateName, setNewTemplateName] = useState('')
   const [saveTemplateLoading, setSaveTemplateLoading] = useState(false)
+  const [pushDialogProject, setPushDialogProject] = useState<string | null>(null)
+  const [pullDialogProject, setPullDialogProject] = useState<string | null>(null)
+
+  const syncStatuses = usePlatformStore((s) => s.syncStatuses)
+  const loggedIn = usePlatformStore((s) => s.loggedIn)
+  const checkSyncStatus = usePlatformStore((s) => s.checkSyncStatus)
 
   const { t } = useTranslation(['project', 'common'])
 
@@ -94,6 +103,13 @@ export function ExplorerPanel() {
       clearCreateTrigger()
     }
   }, [pendingCreateDialog, clearCreateTrigger])
+
+  // 检查项目同步状态（登录后）
+  useEffect(() => {
+    if (loggedIn && projects.length > 0) {
+      checkSyncStatus(projects.map((p) => ({ name: p.name })))
+    }
+  }, [loggedIn, projects, checkSyncStatus])
 
   const handleCreateProject = async () => {
     const trimmed = newProjectName.trim()
@@ -309,6 +325,7 @@ export function ExplorerPanel() {
                             key={p.id}
                             project={p}
                             status={projectStatuses[p.name]}
+                            syncStatus={syncStatuses[p.name]}
                             selected={selectedProject?.name === p.name}
                             checked={selectedIds.has(p.id)}
                             favorite={true}
@@ -322,6 +339,8 @@ export function ExplorerPanel() {
                               const workspacePath = await window.electron.app.getPath('workspace')
                               window.electron.shell.showItemInFolder(`${workspacePath}/${p.name}`)
                             }}
+                            onPush={loggedIn ? () => setPushDialogProject(p.name) : undefined}
+                            onPull={loggedIn ? () => setPullDialogProject(p.name) : undefined}
                           />
                         ))}
                       </div>
@@ -337,6 +356,7 @@ export function ExplorerPanel() {
                             key={p.id}
                             project={p}
                             status={projectStatuses[p.name]}
+                            syncStatus={syncStatuses[p.name]}
                             selected={selectedProject?.name === p.name}
                             checked={selectedIds.has(p.id)}
                             favorite={false}
@@ -350,6 +370,8 @@ export function ExplorerPanel() {
                               const workspacePath = await window.electron.app.getPath('workspace')
                               window.electron.shell.showItemInFolder(`${workspacePath}/${p.name}`)
                             }}
+                            onPush={loggedIn ? () => setPushDialogProject(p.name) : undefined}
+                            onPull={loggedIn ? () => setPullDialogProject(p.name) : undefined}
                           />
                         ))}
                       </div>
@@ -365,6 +387,7 @@ export function ExplorerPanel() {
                             key={p.id}
                             project={p}
                             status={projectStatuses[p.name]}
+                            syncStatus={syncStatuses[p.name]}
                             selected={selectedProject?.name === p.name}
                             checked={selectedIds.has(p.id)}
                             favorite={false}
@@ -378,6 +401,8 @@ export function ExplorerPanel() {
                               const workspacePath = await window.electron.app.getPath('workspace')
                               window.electron.shell.showItemInFolder(`${workspacePath}/${p.name}`)
                             }}
+                            onPush={loggedIn ? () => setPushDialogProject(p.name) : undefined}
+                            onPull={loggedIn ? () => setPullDialogProject(p.name) : undefined}
                           />
                         ))}
                       </div>
@@ -572,6 +597,31 @@ export function ExplorerPanel() {
           </div>
         </div>
       </Modal>
+
+      {pushDialogProject && (
+        <PushDialog
+          projectName={pushDialogProject}
+          onClose={() => setPushDialogProject(null)}
+          onSuccess={() => {
+            setPushDialogProject(null)
+            showSuccess(t('explorer.pushSuccess', { name: pushDialogProject }))
+          }}
+        />
+      )}
+
+      {pullDialogProject && (
+        <PullDialog
+          owner=""
+          repo={pullDialogProject}
+          projectName={pullDialogProject}
+          existsLocally={false}
+          onClose={() => setPullDialogProject(null)}
+          onSuccess={() => {
+            setPullDialogProject(null)
+            showSuccess(t('explorer.pullSuccess', { name: pullDialogProject }))
+          }}
+        />
+      )}
     </div>
   )
 }

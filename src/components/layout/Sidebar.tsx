@@ -5,6 +5,7 @@ import clsx from 'clsx'
 import type { ReactNode } from 'react'
 
 const PANEL_TITLE_KEYS: Record<ActivityType, string> = {
+  cloud: 'cloud:title',
   search: 'common:sidebar.search',
   explorer: 'menu.projectExplorer',
   output: 'menu.outputResults',

@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import { useUIStore, type ActivityType } from '@/stores/ui.store'
-import { Search, FolderOpen, Zap, FileCheck, MessageSquare, Settings, PanelLeftClose, PanelLeft } from 'lucide-react'
+import { Search, FolderOpen, Zap, FileCheck, MessageSquare, Settings, Cloud, PanelLeftClose, PanelLeft } from 'lucide-react'
 import clsx from 'clsx'
 
 interface ActivityItem {
@@ -21,6 +21,7 @@ const ACTIVITY_LABEL_KEYS: Record<string, string> = {
 
 const activities: ActivityItem[] = [
   { id: 'search', icon: <Search size={20} />, labelKey: 'common:sidebar.search', shortcut: 'Ctrl+Shift+F' },
+  { id: 'cloud', icon: <Cloud size={20} />, labelKey: 'cloud:title', shortcut: 'Ctrl+Shift+C' },
   { id: 'chat', icon: <MessageSquare size={20} />, labelKey: 'chat:title', shortcut: 'Ctrl+Shift+H' },
   { id: 'explorer', icon: <FolderOpen size={20} />, labelKey: 'menu.projectExplorer', shortcut: 'Ctrl+Shift+E' },
   { id: 'workbench', icon: <Zap size={20} />, labelKey: 'menu.workbench', shortcut: 'Ctrl+Shift+W' },

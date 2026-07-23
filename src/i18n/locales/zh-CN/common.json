@@ -434,6 +434,19 @@
     "updates": {
       "title": "软件更新",
       "checkButton": "检查更新"
+    },
+    "platform": {
+      "title": "平台连接",
+      "desc": "连接 MagicCommander Platform",
+      "serverUrl": "服务器地址",
+      "testConnection": "测试连接",
+      "loginStatus": "登录状态",
+      "loggedIn": "已登录",
+      "notLoggedIn": "未登录"
+    },
+    "about": {
+      "desc": "智能网络配置管理工具",
+      "version": "版本"
     }
   },
   "window": {
@@ -449,5 +462,14 @@
   "commandPalette": {
     "placeholder": "输入命令名称搜索...",
     "noResults": "无匹配结果"
+  },
+  "auth": {
+    "platformLogin": "平台登录",
+    "selectPlatform": "选择登录方式",
+    "loginSuccess": "登录成功",
+    "loginDone": "登录成功",
+    "qrExpired": "二维码已过期",
+    "qrExpiresIn": "二维码 10 分钟内有效",
+    "scanHint": "请使用{platform}扫描二维码"
   }
 }

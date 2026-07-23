@@ -5,6 +5,8 @@ import { useLogStore } from './stores/log.store'
 import { useRenderStore } from './stores/render.store'
 import { useUIStore } from './stores/ui.store'
 import { useEditorStore, type EditorTab } from './stores/editor.store'
+import { usePlatformStore } from './stores/platform.store'
+import { client } from './api/platform'
 import { useHotkey } from './hooks/useHotkey'
 import { HOTKEY_REGISTRY } from './hooks/hotkeyRegistry'
 import { Header } from './components/layout/Header'
@@ -17,6 +19,7 @@ import { OutputPanel } from './components/sidebar/OutputPanel'
 import { SettingsPanel } from './components/sidebar/SettingsPanel'
 import { SearchPanel } from './components/sidebar/SearchPanel'
 import { ChatPanel } from './components/chat'
+import { CloudPanel } from './components/cloud/CloudPanel'
 import { EditorArea } from './components/editor/EditorArea'
 import { PanelArea } from './components/panel/PanelArea'
 import { ErrorBoundary } from './components/ErrorBoundary'
@@ -94,6 +97,14 @@ export default function App() {
       i18n.off('languageChanged', handleLanguageChanged)
     }
   }, [])
+
+  // 启动时检查云端版本更新
+  useEffect(() => {
+    if (!isInitialized) return
+    const { loggedIn } = usePlatformStore.getState()
+    if (!loggedIn) return
+    client.version().catch(() => {})
+  }, [isInitialized])
 
   const restoreTabs = useCallback((metas: EditorTabMeta[]) => {
     metas.forEach((meta) => {
@@ -277,6 +288,7 @@ export default function App() {
   )
   useHotkey('ctrl+shift+e', () => setActiveActivity('explorer'), [setActiveActivity])
   useHotkey('ctrl+shift+f', () => setActiveActivity('search'), [setActiveActivity])
+  useHotkey('ctrl+shift+c', () => setActiveActivity('cloud'), [setActiveActivity])
   useHotkey('ctrl+shift+r', () => setActiveActivity('workbench'), [setActiveActivity])
   useHotkey('ctrl+shift+o', () => setActiveActivity('output'), [setActiveActivity])
   useHotkey('ctrl+shift+w', () => setActiveActivity('workbench'), [setActiveActivity])
@@ -310,6 +322,8 @@ export default function App() {
         return <SettingsPanel />
       case 'chat':
         return <ChatPanel />
+      case 'cloud':
+        return <CloudPanel />
       default:
         return <SearchPanel />
     }

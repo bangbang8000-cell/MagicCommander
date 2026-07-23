@@ -40,6 +40,13 @@ const api = {
     readDocxBuffer: (id: number, filePath: string, projectName?: string) =>
       ipcRenderer.invoke('project:readDocxBuffer', id, filePath, projectName),
     listFiles: (id: string, fileType?: string) => ipcRenderer.invoke('project:listFiles', id, fileType),
+    installRemoteTemplate: (data: { name: string; zipData: string; owner: string }) =>
+      ipcRenderer.invoke('project:installRemoteTemplate', data),
+    getLocalSha: (projectName: string) => ipcRenderer.invoke('project:getLocalSha', projectName),
+    collectProjectFiles: (projectName: string) => ipcRenderer.invoke('project:collectProjectFiles', projectName),
+    installRemoteProject: (data: { name: string; zipData: string; owner: string }) =>
+      ipcRenderer.invoke('project:installRemoteProject', data),
+    batchGetLocalSha: (projectNames: string[]) => ipcRenderer.invoke('project:batchGetLocalSha', projectNames),
   },
   render: {
     project: (ids: string[]) => ipcRenderer.invoke('render:project', ids),
@@ -170,6 +177,11 @@ const api = {
       ipcRenderer.on('window:maximizeChange', handler)
       return () => ipcRenderer.removeListener('window:maximizeChange', handler)
     },
+  },
+  platform: {
+    saveToken: (token: string) => ipcRenderer.invoke('platform:saveToken', token),
+    loadToken: () => ipcRenderer.invoke('platform:loadToken'),
+    clearToken: () => ipcRenderer.invoke('platform:clearToken'),
   },
   onMenuNewProject: (cb: () => void) => {
     const handler = () => cb()

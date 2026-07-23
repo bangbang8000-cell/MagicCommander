@@ -65,7 +65,8 @@
     "readExampleFailed": "读取示例模板失败: {{message}}",
     "savedAsTemplate": "已保存为模板: {{name}}",
     "deletedProjects": "已删除 {{count}} 个项目",
-    "exampleDesc": "从 example 目录选择一个示例项目复制到 workspace"
+    "exampleDesc": "从 example 目录选择一个示例项目复制到 workspace",
+    "pushSuccess": "项目 \"{{name}}\" 已推送到云端"
   },
   "template": {
     "noTemplates": "暂无模板",
@@ -98,8 +99,14 @@
     },
     "edit": {
       "title": "编辑模板信息",
+      "name": "模板名称",
       "namePlaceholder": "模板名称",
+      "description": "描述",
       "descPlaceholder": "模板简介",
+      "category": "分类",
+      "public": "可见性",
+      "publicHint": "所有人可见",
+      "privateHint": "仅自己可见",
       "scenarioPlaceholder": "适用场景",
       "sourcePlaceholder": "来源项目",
       "inputPlaceholder": "输入要求，每行一项",
@@ -119,7 +126,18 @@
     },
     "createProject": "从模板创建项目",
     "create": "创建",
-    "creating": "创建中..."
+    "creating": "创建中...",
+    "publish": "发布到市场",
+    "publishing": "发布中...",
+    "publishSuccess": "模板 \"{name}\" 发布成功",
+    "noFilesToPublish": "模板中没有可发布的文件",
+    "pubCategory": {
+      "switch": "交换机",
+      "router": "路由器",
+      "firewall": "防火墙",
+      "server": "服务器",
+      "other": "其他"
+    }
   },
   "search": {
     "title": "搜索",
