@@ -261,24 +261,38 @@ MagicCommander/
 
 ## V3.0 路线图
 
-MagicCommander V3.0 将从"配置批量生成工具"升级为 **AI 驱动的网络配置工程平台**，分四个阶段推进：
+MagicCommander V3.0 升级为 **AI 驱动的网络配置工程平台**，分四个阶段推进：
 
 | 阶段 | 时间 | 状态 | 核心交付 |
 |------|------|------|---------|
-| [Alpha](https://github.com/bangbang8000-cell/MagicCommander/milestone/1) | 2026.07 - 2026.09 | 进行中 | AI Hub 框架 + 智能项目初始化 + 配置反向生成 + 模板调试沙盒 |
-| [Beta](https://github.com/bangbang8000-cell/MagicCommander/milestone/2) | 2026.10 - 2026.12 | 待开始 | 智能校对 + AI 对话助手 + Excel/Jinja2 增强 + 模板资产中心 |
-| [GA](https://github.com/bangbang8000-cell/MagicCommander/milestone/3) | 2027.01 - 2027.03 | 待开始 | 社区分享中心 + 协作审阅 + 项目生命周期 + 权限体系 + 多 LLM Provider |
-| [Scale](https://github.com/bangbang8000-cell/MagicCommander/milestone/4) | 2027.04 - 2027.06 | 待开始 | Git 集成 + Ansible/Nornir 推送 + 多租户 + 监控告警 |
+| [Alpha](https://github.com/bangbang8000-cell/MagicCommander/milestone/1) | 2026.07 - 2026.07 | 已完成 | AI Hub + Agent v2 + Cloud Connect 云平台集成 |
+| [Beta](https://github.com/bangbang8000-cell/MagicCommander/milestone/2) | 2026.08 - 2026.09 | 进行中 | 智能校对 + 增强搜索 + 模板资产中心 + Excel/Jinja2 深度集成 |
+| [GA](https://github.com/bangbang8000-cell/MagicCommander/milestone/3) | 2026.10 - 2026.12 | 待开始 | 社区分享中心 + 协作审阅 + 项目生命周期 + 权限体系 |
+| [Scale](https://github.com/bangbang8000-cell/MagicCommander/milestone/4) | 2027.01 - 2027.03 | 待开始 | Ansible/Nornir 推送 + CI/CD 流水线 + 多租户 + 监控告警 |
 
-**Alpha 阶段已完成**：AI Hub 核心框架 (FastAPI + 9 LLM Provider + Agent v2 27 Tools + SSE 流式)、Smart Agent 编排引擎 (Planner/Validator/Recovery/Skills/Memory)、AI 对话 Chat UI (会话标签+AI 标题)、多 Provider 智能路由、项目分析引擎 (analyze_project)、配置反向生成 (reverse_engineer_config)、模板推荐 (recommend_template)。
+**Alpha 阶段 (v3.0.0 → v3.5.0) 已完成交付**：
 
-**核心新增能力**：
-- AI 智能中心：借助大模型 API 实现配置生成、校对、优化建议、对话助手
-- 模板资产中心：结构化模板库 + 版本管理 + 质量评级 + 调试沙盒
-- 社区分享中心：模板/项目一键分享 + 公共社区广场 + 创作者体系
-- 技术栈扩展：FastAPI (AI Hub) + LangChain/LiteLLM (LLM 统一调度) + Ollama (本地模型)
+| Build | 版本 | 核心交付 |
+|-------|------|---------|
+| 26071401 | v3.0.0 | V3 基础架构：Electron 28 + React 18 + TypeScript 5，发布版检查更新 |
+| 26071602 | v3.0.4 | 质量基线：Monaco Jinja2 语法高亮、Markdown 标签打印、PDF 导出 |
+| 26071702 | v3.1.0 | Phase 1：模板中心、dry-run 预演、Jinja2/Excel 校验、diff 对比 |
+| 26071901 | v3.3.0 | AI Hub 核心：FastAPI + 9 LLM Provider + Agent 14 Tools + SSE 流式 |
+| 26072002 | v3.3.1 | 多 Provider 策略路由 + System Prompt 增强 |
+| 26072003 | v3.3.2 | 工具集扩展 14→27 + 项目分析引擎 + 自动优化建议 |
+| 26072004 | v3.4.0 | Agent v2 智能编排 (Planner/Validator/Recovery/Skills/Memory) + Chat UI 重构 |
+| 26072101 | v3.5.0 | 菜单系统重构 + 面板合并 + 命令面板 + 13 语言 |
+| **26072301** | **v3.5.0** | **Cloud Connect 云平台集成：模板市场 + 项目同步 + QR 扫码登录 + 通知中心** |
 
-**产品需求文档**：[PRD v2.0](docs/prd/magiccommander-prd_v2.0_2026-07-07/magiccommander-prd_v2.0_2026-07-07.html) | **开发计划与规范**：[Dev Spec v2.0](docs/spec/magiccommander-dev-spec_v2.0_2026-07-14/magiccommander-dev-spec_v2.0_2026-07-14.html) | **文档索引**：[docs/](docs/)
+**Beta 阶段进行中**：
+- 智能校对与配置自动修正
+- 增强搜索（全文搜索 + 正则 + 跨项目搜索）
+- 模板资产中心（版本管理 + 质量评级 + 调试沙盒）
+- Excel/Jinja2 深度集成（变量智能补全、依赖分析、模板片段复用）
+
+**技术栈**：Electron 28 · React 18 · TypeScript 5 · Vite 5 · TailwindCSS 3 · Zustand 4 · Monaco Editor 4 · Python 3.11 · Jinja2 · FastAPI · LangChain · Gitea · JWT · i18next (13 语言) · simple-git
+
+**产品需求文档**：[PRD v2.0](docs/prd/magiccommander-prd_v2.0_2026-07-07/magiccommander-prd_v2.0_2026-07-07.html) | **云平台集成 PRD**：[CLIENT_CLOUD_INTEGRATION_PRD.md](CLIENT_CLOUD_INTEGRATION_PRD.md) | **开发计划**：[CLOUD_DEVELOPMENT_PLAN.md](CLOUD_DEVELOPMENT_PLAN.md) | **文档索引**：[docs/](docs/)
 
 ---
 
