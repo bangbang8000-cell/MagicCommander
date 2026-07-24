@@ -20,6 +20,9 @@ interface PlatformState {
   remoteTemplates: RemoteTemplate[]
   remoteLoading: boolean
   remoteError: string | null
+  templatePage: number
+  templateTotal: number
+  templateLimit: number
   // Remote projects
   remoteProjects: RemoteProject[]
   remoteProjectsLoading: boolean
@@ -38,7 +41,7 @@ interface PlatformState {
   logout: () => void
   fetchUserProfile: () => Promise<void>
   updateUserProfile: (data: { full_name?: string; bio?: string }) => Promise<void>
-  fetchRemoteTemplates: (query?: string, category?: string) => Promise<void>
+  fetchRemoteTemplates: (query?: string, category?: string, page?: number, sort?: string) => Promise<void>
   downloadTemplate: (owner: string, repo: string) => Promise<void>
   publishTemplate: (data: { name: string; description: string; category: string; public: boolean; files: { path: string; content: string }[] }) => Promise<{ owner: string; repo: string }>
   // Project sync
@@ -65,6 +68,9 @@ export const usePlatformStore = create<PlatformState>()(
       remoteTemplates: [],
       remoteLoading: false,
       remoteError: null,
+      templatePage: 1,
+      templateTotal: 0,
+      templateLimit: 20,
       remoteProjects: [],
       remoteProjectsLoading: false,
       publicProjects: [],
@@ -138,12 +144,19 @@ export const usePlatformStore = create<PlatformState>()(
         set({ userProfile: profile })
       },
 
-      fetchRemoteTemplates: async (query?: string, category?: string) => {
+      fetchRemoteTemplates: async (query?: string, category?: string, page?: number, sort?: string) => {
         set({ remoteLoading: true, remoteError: null })
         try {
+          const p = page ?? 1
+          const limit = get().templateLimit
           const { templates: api } = await import('@/api/platform')
-          const res = await api.list(query, category)
-          set({ remoteTemplates: res.templates, remoteLoading: false })
+          const res = await api.list(query, category, p, limit, sort)
+          set({
+            remoteTemplates: res.templates,
+            templatePage: res.page || p,
+            templateTotal: res.total,
+            remoteLoading: false,
+          })
         } catch (err) {
           set({ remoteError: (err as Error).message, remoteLoading: false })
         }
@@ -207,15 +220,11 @@ export const usePlatformStore = create<PlatformState>()(
       pushProject: async (name: string, description: string, isPrivate: boolean) => {
         // Collect project files via IPC
         const files = await window.electron.project.collectProjectFiles(name)
-        // Create project on server
-        const result = await projects.create({ name, description, private: isPrivate })
-        // Upload files
-        const { templates: api } = await import('@/api/platform')
-        await api.publish({
+        // Create project with files directly (does NOT call templates.publish — no template topic)
+        const result = await projects.create({
           name,
           description,
-          category: 'project',
-          public: !isPrivate,
+          private: isPrivate,
           files,
         })
         return result
@@ -224,8 +233,7 @@ export const usePlatformStore = create<PlatformState>()(
       pullProject: async (owner: string, repo: string, projectName: string) => {
         const token = get().token
         const baseUrl = getBaseUrl()
-        // Use Gitea archive API via platform proxy
-        const url = `${baseUrl}/api/v1/repos/${owner}/${repo}/archive/main.zip`
+        const url = `${baseUrl}/api/v1/projects/${owner}/${repo}/download`
         const authToken = token
 
         const res = await fetch(url, {

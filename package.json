@@ -134,7 +134,7 @@
         }
       ],
       "icon": "public/icons/icon.ico",
-      "artifactName": "${productName}-Setup-${version}-build.26071601.${ext}"
+      "artifactName": "${productName}-Setup-${version}-build.26072401.${ext}"
     },
     "nsis": {
       "oneClick": false,
@@ -174,7 +174,7 @@
         }
       ],
       "icon": "public/icons/icon.png",
-      "artifactName": "${productName}-${version}-build.26071704-linux-${arch}.${ext}",
+      "artifactName": "${productName}-${version}-build.26072401-linux-${arch}.${ext}",
       "category": "Network",
       "maintainer": "Magic Commander Team"
     }

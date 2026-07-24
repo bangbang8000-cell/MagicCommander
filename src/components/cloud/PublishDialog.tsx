@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { usePlatformStore } from '@/stores/platform.store'
 import { useUIStore } from '@/stores/ui.store'
@@ -32,7 +32,7 @@ export function PublishDialog({ open, template, onClose }: PublishDialogProps) {
     { value: 'other', label: t('template.pubCategory.other') },
   ]
 
-  useMemo(() => {
+  useEffect(() => {
     if (open && template) {
       setName(template.name)
       setDescription(template.description || '')

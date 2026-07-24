@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { RefreshCw, Download, Trash2, Loader2, Cloud, Globe } from 'lucide-react'
+import { showError } from '@/components/ui/Toast'
 import { usePlatformStore } from '@/stores/platform.store'
 import type { RemoteProject } from '@/api/platform'
 import { SyncStatusBadge } from './SyncStatusBadge'
@@ -84,7 +85,7 @@ export function RemoteProjectView({ onPullSuccess, searchQuery }: RemoteProjectV
       try {
         await deleteRemoteProject(project.owner, project.name)
       } catch (err) {
-        alert((err as Error).message)
+        showError((err as Error).message)
       }
     },
     [deleteRemoteProject, t],

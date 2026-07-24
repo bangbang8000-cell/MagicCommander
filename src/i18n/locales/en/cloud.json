@@ -80,7 +80,15 @@
     "bindings": "Linked Accounts",
     "bind": "Bind",
     "unbind": "Unbind",
-    "openFolder": "Open Project Folder"
+    "openFolder": "Open Project Folder",
+    "showGiteaCreds": "Gitea Login Info",
+    "username": "Username",
+    "password": "Password",
+    "showPassword": "Show Password",
+    "hidePassword": "Hide Password",
+    "copyPassword": "Copy Password",
+    "passwordCopied": "Copied",
+    "clipboardHint": "Click \"Open Platform\" to log in. Password auto-clears from clipboard after 30s."
   },
   "settings": {
     "title": "Settings",
@@ -148,5 +156,15 @@
     "firewall": "Firewall",
     "wireless": "Wireless",
     "other": "Other"
+  },
+  "pagination": {
+    "info": "Page {{page}} / {{total}}",
+    "prev": "Previous",
+    "next": "Next"
+  },
+  "sort": {
+    "latest": "Latest",
+    "downloads": "Most Downloaded",
+    "name": "Name"
   }
 }

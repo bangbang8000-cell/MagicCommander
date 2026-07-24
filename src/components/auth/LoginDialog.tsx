@@ -5,6 +5,7 @@ import { Modal } from '@/components/ui/Modal'
 import { showError, showSuccess } from '@/components/ui/Toast'
 import { auth, type LoginPlatform, type AuthHealth } from '@/api/platform'
 import QRCode from 'qrcode'
+import { Loader2 } from 'lucide-react'
 
 interface LoginDialogProps {
   open: boolean
@@ -159,7 +160,10 @@ export function LoginDialog({ open, onClose }: LoginDialogProps) {
         )}
 
         {stage === 'loading' && (
-          <div className="text-sm text-gray-400">{t('app.loading')}</div>
+          <div className="flex flex-col items-center gap-3 py-4">
+            <Loader2 size={28} className="animate-spin text-indigo-400" />
+            <span className="text-sm text-gray-400">{t('app.loading')}</span>
+          </div>
         )}
 
         {stage === 'scanning' && qrDataUrl && (

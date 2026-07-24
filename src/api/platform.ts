@@ -125,7 +125,9 @@ export interface RemoteTemplate {
   html_url: string
   clone_url: string
   updated_at: string
+  created_at?: string
   topics?: string[]
+  downloads?: number
   files?: { path: string; size: number }[]
 }
 
@@ -172,7 +174,7 @@ export const projects = {
     )
   },
 
-  create: (data: { name: string; description: string; private: boolean; template_owner?: string; template_repo?: string }) =>
+  create: (data: { name: string; description: string; private: boolean; template_owner?: string; template_repo?: string; files?: { path: string; content: string }[] }) =>
     request<RemoteProject>('/api/v1/projects', { method: 'POST', body: JSON.stringify(data) }),
 
   delete: (owner: string, repo: string) =>
@@ -216,12 +218,15 @@ export const client = {
 }
 
 export const templates = {
-  list: (q?: string, category?: string) => {
+  list: (q?: string, category?: string, page?: number, limit?: number, sort?: string) => {
     const params = new URLSearchParams()
     if (q) params.set('q', q)
     if (category) params.set('category', category)
+    if (page !== undefined) params.set('page', String(page))
+    if (limit !== undefined) params.set('limit', String(limit))
+    if (sort) params.set('sort', sort)
     const qs = params.toString()
-    return request<{ templates: RemoteTemplate[]; total: number }>(`/api/v1/templates${qs ? '?' + qs : ''}`)
+    return request<{ templates: RemoteTemplate[]; total: number; page: number; limit: number }>(`/api/v1/templates${qs ? '?' + qs : ''}`)
   },
 
   detail: (owner: string, repo: string) =>
@@ -279,4 +284,10 @@ export const user = {
       method: 'PUT',
       body: JSON.stringify(data),
     }),
+
+  giteaCredentials: () =>
+    request<{ username: string; password: string; gitea_url: string }>(
+      '/api/v1/user/gitea-credentials',
+      { method: 'POST' },
+    ),
 }

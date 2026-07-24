@@ -83,8 +83,8 @@ export function SettingsPanel() {
   const [updateStatus, setUpdateStatus] = useState<string>('')
   const [checkingUpdate, setCheckingUpdate] = useState(false)
 
-  const BUILD = '26082301'
-  const VERSION = '3.5.0'
+  const BUILD = '26072401'
+  const VERSION = '3.5.2'
 
   // 获取工作区路径
   useEffect(() => {

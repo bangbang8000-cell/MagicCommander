@@ -82,7 +82,15 @@
     "bindings": "绑定账号",
     "bind": "绑定",
     "unbind": "解绑",
-    "openFolder": "打开项目文件夹"
+    "openFolder": "打开项目文件夹",
+    "showGiteaCreds": "Gitea 登录信息",
+    "username": "用户名",
+    "password": "密码",
+    "showPassword": "显示密码",
+    "hidePassword": "隐藏密码",
+    "copyPassword": "复制密码",
+    "passwordCopied": "已复制",
+    "clipboardHint": "点击「打开平台」登录。密码将在30秒后自动清除剪贴板。"
   },
   "settings": {
     "title": "设置",
@@ -150,5 +158,15 @@
     "firewall": "防火墙",
     "wireless": "无线",
     "other": "其他"
+  },
+  "pagination": {
+    "info": "第 {{page}} / {{total}} 页",
+    "prev": "上一页",
+    "next": "下一页"
+  },
+  "sort": {
+    "latest": "最近更新",
+    "downloads": "下载最多",
+    "name": "名称"
   }
 }

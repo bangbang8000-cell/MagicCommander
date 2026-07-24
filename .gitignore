@@ -54,3 +54,14 @@ workspace/.mc_ai_secrets.json
 
 # AI Hub runtime data
 ai_hub/project_history/
+
+# Trae IDE state
+.superpowers/
+
+# Price scraper (standalone tool)
+price_scraper/
+output/
+run_scraper.bat
+
+# Trae HTML share packages
+.trae-html-share-packages/

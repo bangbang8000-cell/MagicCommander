@@ -1,8 +1,8 @@
+import { useEffect, useState, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useEffect, useState } from 'react'
 import { usePlatformStore } from '@/stores/platform.store'
 import { useUIStore } from '@/stores/ui.store'
-import { LogOut, User, ExternalLink, Edit3, Mail, MapPin, Globe, Check, X } from 'lucide-react'
+import { LogOut, User, ExternalLink, Edit3, Mail, MapPin, Globe, Check, X, KeyRound, Copy, Loader2, Eye, EyeOff } from 'lucide-react'
 import clsx from 'clsx'
 
 interface UserProfileViewProps {
@@ -23,9 +23,18 @@ export function UserProfileView({ onClose }: UserProfileViewProps) {
   const [editName, setEditName] = useState('')
   const [editBio, setEditBio] = useState('')
   const [saving, setSaving] = useState(false)
+  const [showCredentials, setShowCredentials] = useState(false)
+  const [giteaCreds, setGiteaCreds] = useState<{username: string; password: string} | null>(null)
+  const [credsLoading, setCredsLoading] = useState(false)
+  const [credsError, setCredsError] = useState('')
+  const [copied, setCopied] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
+  const [profileLoading, setProfileLoading] = useState(true)
+  const clipboardTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
-    fetchUserProfile()
+    setProfileLoading(true)
+    fetchUserProfile().finally(() => setProfileLoading(false))
   }, [fetchUserProfile])
 
   const displayName = userProfile?.full_name || username || 'Unknown'
@@ -38,6 +47,46 @@ export function UserProfileView({ onClose }: UserProfileViewProps) {
   const handleLogout = () => {
     logout()
     onClose()
+  }
+
+  const handleResetGiteaPassword = async () => {
+    setCredsLoading(true)
+    setCredsError('')
+    try {
+      const { user: api } = await import('@/api/platform')
+      const creds = await api.giteaCredentials()
+      setGiteaCreds(creds)
+      setShowCredentials(true)
+    } catch (err) {
+      setCredsError((err as Error).message)
+    } finally {
+      setCredsLoading(false)
+    }
+  }
+
+  const handleCopyPassword = () => {
+    if (giteaCreds?.password) {
+      navigator.clipboard.writeText(giteaCreds.password)
+      setCopied(true)
+
+      // Auto-clear clipboard after 30 seconds
+      if (clipboardTimerRef.current) clearTimeout(clipboardTimerRef.current)
+      clipboardTimerRef.current = setTimeout(() => {
+        navigator.clipboard.writeText('').catch(() => {})
+        setCopied(false)
+      }, 30000)
+
+      setTimeout(() => setCopied(false), 2000)
+    }
+  }
+
+  const handleClearClipboard = () => {
+    navigator.clipboard.writeText('').catch(() => {})
+    setCopied(false)
+    if (clipboardTimerRef.current) {
+      clearTimeout(clipboardTimerRef.current)
+      clipboardTimerRef.current = null
+    }
   }
 
   const handleOpenPlatform = () => {
@@ -134,26 +183,34 @@ export function UserProfileView({ onClose }: UserProfileViewProps) {
     )}>
       {/* 用户信息头部 */}
       <div className="px-4 py-3 border-b border-gray-700">
-        <div className="flex items-center gap-3">
-          <div className={clsx(
-            'w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium shrink-0',
-            'bg-indigo-600 text-white',
-          )}>
-            {displayName?.[0]?.toUpperCase() || '?'}
+        {profileLoading ? (
+          <div className="flex items-center justify-center py-4">
+            <Loader2 size={18} className="animate-spin text-gray-400" />
           </div>
-          <div className="min-w-0 flex-1">
-            <div className={clsx('text-sm font-medium truncate', isDark ? 'text-gray-200' : 'text-gray-900')}>
-              {displayName}
+        ) : (
+          <>
+            <div className="flex items-center gap-3">
+              <div className={clsx(
+                'w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium shrink-0',
+                'bg-indigo-600 text-white',
+              )}>
+                {displayName?.[0]?.toUpperCase() || '?'}
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className={clsx('text-sm font-medium truncate', isDark ? 'text-gray-200' : 'text-gray-900')}>
+                  {displayName}
+                </div>
+                <div className={clsx('text-xs', isDark ? 'text-gray-500' : 'text-gray-400')}>
+                  @{username || 'unknown'}
+                </div>
+              </div>
             </div>
-            <div className={clsx('text-xs', isDark ? 'text-gray-500' : 'text-gray-400')}>
-              @{username || 'unknown'}
-            </div>
-          </div>
-        </div>
-        {bio && (
-          <div className={clsx('text-xs mt-2', isDark ? 'text-gray-400' : 'text-gray-500')}>
-            {bio}
-          </div>
+            {bio && (
+              <div className={clsx('text-xs mt-2', isDark ? 'text-gray-400' : 'text-gray-500')}>
+                {bio}
+              </div>
+            )}
+          </>
         )}
       </div>
 
@@ -226,6 +283,65 @@ export function UserProfileView({ onClose }: UserProfileViewProps) {
           <ExternalLink size={14} />
           {t('cloud:profile.openPlatform')}
         </button>
+
+        <button
+          onClick={handleResetGiteaPassword}
+          disabled={credsLoading}
+          className={clsx(
+            'w-full flex items-center gap-3 px-4 py-2 text-sm transition-colors',
+            isDark ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-700 hover:bg-gray-100',
+            credsLoading && 'opacity-50',
+          )}
+        >
+          <KeyRound size={14} />
+          {credsLoading ? t('app.loading') : t('cloud:profile.showGiteaCreds') || 'Gitea Login Info'}
+        </button>
+
+        {credsError && (
+          <div className="px-4 py-1 text-xs text-red-400">{credsError}</div>
+        )}
+
+        {showCredentials && giteaCreds && (
+          <div className={clsx(
+            'mx-4 mb-2 p-2 rounded text-xs space-y-1.5',
+            isDark ? 'bg-gray-700' : 'bg-gray-100',
+          )}>
+            <div className={clsx(isDark ? 'text-gray-300' : 'text-gray-700')}>
+              {t('cloud:profile.username') || 'Username'}: <span className="font-mono font-medium">{giteaCreds.username}</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <span className={clsx(isDark ? 'text-gray-300' : 'text-gray-700')}>
+                {t('cloud:profile.password') || 'Password'}:{' '}
+                <span className="font-mono font-medium">
+                  {showPassword ? giteaCreds.password : '•'.repeat(Math.min(giteaCreds.password.length, 16))}
+                </span>
+              </span>
+              <button
+                onClick={() => setShowPassword(!showPassword)}
+                className={clsx(
+                  'p-0.5 rounded transition-colors',
+                  isDark ? 'hover:bg-gray-600 text-gray-400' : 'hover:bg-gray-200 text-gray-500',
+                )}
+                title={showPassword ? (t('cloud:profile.hidePassword') || 'Hide') : (t('cloud:profile.showPassword') || 'Show')}
+              >
+                {showPassword ? <EyeOff size={12} /> : <Eye size={12} />}
+              </button>
+              <button
+                onClick={handleCopyPassword}
+                className={clsx(
+                  'p-0.5 rounded transition-colors',
+                  isDark ? 'hover:bg-gray-600 text-gray-400' : 'hover:bg-gray-200 text-gray-500',
+                )}
+                title={t('cloud:profile.copyPassword') || 'Copy'}
+              >
+                {copied ? <Check size={12} className="text-green-500" /> : <Copy size={12} />}
+              </button>
+            </div>
+            <div className={clsx('text-[10px]', isDark ? 'text-gray-500' : 'text-gray-400')}>
+              {t('cloud:profile.clipboardHint') || 'Click "Open Platform" to log in. Password auto-clears from clipboard after 30s.'}
+            </div>
+          </div>
+        )}
 
         <div className={clsx('my-1 border-t', isDark ? 'border-gray-700' : 'border-gray-200')} />
 
