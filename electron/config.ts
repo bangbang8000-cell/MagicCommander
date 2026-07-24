@@ -299,9 +299,9 @@ export const APP_CONFIG = {
 
   // 版本信息
   VERSION: {
-    CURRENT: '3.5.2',
-    BUILD: '26072402',
-    DISPLAY: 'v3.5.2 Build 26072402',
+    CURRENT: '3.5.3',
+    BUILD: '26072403',
+    DISPLAY: 'v3.5.3 Build 26072403',
     MIN_SUPPORTED_PYTHON: '3.8',
   },
 }

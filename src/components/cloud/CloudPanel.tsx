@@ -23,7 +23,7 @@ interface SearchResultItem {
 
 export function CloudPanel() {
   const { t } = useTranslation()
-  const [activeTab, setActiveTab] = useState<CloudTab>('dashboard')
+  const [activeTab, setActiveTab] = useState<CloudTab>('search')
   const [showLogin, setShowLogin] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
 
@@ -37,8 +37,8 @@ export function CloudPanel() {
   const loggedIn = usePlatformStore((s) => s.loggedIn)
 
   const tabs: { id: CloudTab; icon: React.ReactNode; labelKey: string }[] = [
-    { id: 'dashboard', icon: <LayoutDashboard size={14} />, labelKey: 'cloud:panel.tabDashboard' },
     { id: 'search', icon: <Search size={14} />, labelKey: 'cloud:panel.tabSearch' },
+    { id: 'dashboard', icon: <LayoutDashboard size={14} />, labelKey: 'cloud:panel.tabDashboard' },
     { id: 'templates', icon: <Package size={14} />, labelKey: 'cloud:panel.tabTemplates' },
     { id: 'projects', icon: <Cloud size={14} />, labelKey: 'cloud:panel.tabProjects' },
   ]
@@ -248,17 +248,6 @@ export function CloudPanel() {
           </button>
         )}
       </div>
-
-      {/* Search bar (only for templates/projects tabs) */}
-      {activeTab !== 'dashboard' && activeTab !== 'search' && (
-        <div className="px-4 py-2 border-b border-gray-200 dark:border-gray-700">
-          <SearchInput
-            value={searchQuery}
-            onChange={setSearchQuery}
-            placeholder={t('cloud:search.placeholder')}
-          />
-        </div>
-      )}
 
       {/* Tab bar */}
       <div className="flex border-b border-gray-200 dark:border-gray-700">

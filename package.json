@@ -1,6 +1,6 @@
 {
   "name": "magiccommander",
-  "version": "3.5.2",
+  "version": "3.5.3",
   "description": "MagicCommander - 网络设备配置管理工具",
   "main": "dist-electron/main.js",
   "author": "Magic Commander Team",
@@ -134,7 +134,7 @@
         }
       ],
       "icon": "public/icons/icon.ico",
-      "artifactName": "${productName}-Setup-${version}-build.26072402.${ext}"
+      "artifactName": "${productName}-Setup-${version}-build.26072403.${ext}"
     },
     "nsis": {
       "oneClick": false,
@@ -174,7 +174,7 @@
         }
       ],
       "icon": "public/icons/icon.png",
-      "artifactName": "${productName}-${version}-build.26072402-linux-${arch}.${ext}",
+      "artifactName": "${productName}-${version}-build.26072403-linux-${arch}.${ext}",
       "category": "Network",
       "maintainer": "Magic Commander Team"
     }
