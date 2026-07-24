@@ -599,7 +599,7 @@ export function Header({ onCheatsheet }: HeaderProps) {
       <AboutDialog
         open={aboutOpen}
         onClose={() => setAboutOpen(false)}
-version={buildInfo.displayVersion}
+displayVersion={buildInfo.displayVersion}
         updateStatus={updateStatus}
         updateBusy={updateBusy}
         onCheckUpdate={handleCheckUpdate}

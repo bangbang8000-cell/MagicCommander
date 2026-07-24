@@ -231,7 +231,7 @@ export const useUIStore = create<UIState>()(
           },
         })),
 
-      autonomyMode: 'semi_auto',
+      autonomyMode: 'full_auto',
       setAutonomyMode: (mode) => set({ autonomyMode: mode }),
 
       generalSettings: {

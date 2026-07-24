@@ -131,14 +131,23 @@
   },
   "panel": {
     "tabDashboard": "仪表盘",
+    "tabSearch": "搜索",
     "tabTemplates": "模板市场",
     "tabProjects": "远程项目",
     "title": "MagicCommander Platform"
   },
   "search": {
     "placeholder": "搜索项目名称或描述...",
-    "noResults": "未找到匹配的项目",
-    "noResultsTemplates": "未找到匹配的模板"
+    "noResults": "未找到匹配的结果",
+    "noResultsTemplates": "未找到匹配的模板",
+    "typeProject": "项目名",
+    "typeTemplate": "模板名",
+    "typeFilename": "文件名",
+    "typeContent": "文件内容",
+    "typePlaceholder": "搜索{type}...",
+    "loginHint": "登录后可搜索云端项目、模板和文件",
+    "startHint": "输入关键词开始搜索",
+    "resultCount": "共 {count} 条结果"
   },
   "projects": {
     "my": "我的项目",

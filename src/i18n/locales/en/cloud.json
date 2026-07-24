@@ -129,14 +129,23 @@
   },
   "panel": {
     "tabDashboard": "Dashboard",
+    "tabSearch": "Search",
     "tabTemplates": "Template Market",
     "tabProjects": "Remote Projects",
     "title": "MagicCommander Platform"
   },
   "search": {
     "placeholder": "Search project name or description...",
-    "noResults": "No matching projects found",
-    "noResultsTemplates": "No matching templates found"
+    "noResults": "No matching results found",
+    "noResultsTemplates": "No matching templates found",
+    "typeProject": "Project Name",
+    "typeTemplate": "Template Name",
+    "typeFilename": "File Name",
+    "typeContent": "File Content",
+    "typePlaceholder": "Search {type}...",
+    "loginHint": "Login to search cloud projects, templates and files",
+    "startHint": "Enter keywords to start searching",
+    "resultCount": "{count} results"
   },
   "projects": {
     "my": "My Projects",

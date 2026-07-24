@@ -301,7 +301,7 @@ export const APP_CONFIG = {
   VERSION: {
     CURRENT: '3.5.2',
     BUILD: '26072402',
-    DISPLAY: 'V3.5.2 Build 26072402',
+    DISPLAY: 'v3.5.2 Build 26072402',
     MIN_SUPPORTED_PYTHON: '3.8',
   },
 }

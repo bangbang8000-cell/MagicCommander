@@ -253,6 +253,38 @@ export const health = {
   check: () => request<{ status: string; service: string }>('/api/v1/health'),
 }
 
+// --- Search ---
+export interface FileSearchResult {
+  repo: string
+  owner: string
+  path: string
+  size: number
+}
+
+export interface ContentSearchResult {
+  repo: string
+  owner: string
+  path: string
+  line: number
+  snippet: string
+}
+
+export const search = {
+  files: (q: string, limit?: number) => {
+    const params = new URLSearchParams()
+    params.set('q', q)
+    if (limit !== undefined) params.set('limit', String(limit))
+    return request<{ results: FileSearchResult[]; total: number }>(`/api/v1/search/files?${params.toString()}`)
+  },
+
+  content: (q: string, limit?: number) => {
+    const params = new URLSearchParams()
+    params.set('q', q)
+    if (limit !== undefined) params.set('limit', String(limit))
+    return request<{ results: ContentSearchResult[]; total: number }>(`/api/v1/search/content?${params.toString()}`)
+  },
+}
+
 // --- User ---
 export interface UserProfile {
   user_id: number
