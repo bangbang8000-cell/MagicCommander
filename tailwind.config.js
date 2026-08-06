@@ -6,9 +6,9 @@ export default {
     extend: {
       colors: {
         primary: {
-          50: '#eff6ff', 100: '#dbeafe', 200: '#bfdbfe', 300: '#93c5fd',
-          400: '#60a5fa', 500: '#3b82f6', 600: '#2563eb', 700: '#1d4ed8',
-          800: '#1e40af', 900: '#1e3a8a',
+          50: '#e6fff4', 100: '#b3ffe0', 200: '#80ffcd', 300: '#4dffb9',
+          400: '#1affa6', 500: '#00e5a0', 600: '#00b880', 700: '#008a60',
+          800: '#005c40', 900: '#003d2a',
         },
         gray: {
           50: '#f9fafb', 100: '#f3f4f6', 200: '#e5e7eb', 300: '#d1d5db',
@@ -29,13 +29,13 @@ export default {
           400: '#f87171', 500: '#ef4444', 600: '#dc2626', 700: '#b91c1c',
         },
         info: {
-          50: '#eff6ff', 100: '#dbeafe', 200: '#bfdbfe', 300: '#93c5fd',
-          400: '#60a5fa', 500: '#3b82f6', 600: '#2563eb', 700: '#1d4ed8',
+          50: '#e6fff4', 100: '#b3ffe0', 200: '#80ffcd', 300: '#4dffb9',
+          400: '#1affa6', 500: '#00e5a0', 600: '#00b880', 700: '#008a60',
         },
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', '-apple-system', 'Microsoft YaHei', 'sans-serif'],
-        mono: ['JetBrains Mono', 'Fira Code', 'Consolas', 'monospace'],
+        sans: ['"IBM Plex Sans"', 'system-ui', '-apple-system', 'Microsoft YaHei', 'sans-serif'],
+        mono: ['"JetBrains Mono"', 'Fira Code', 'Consolas', 'monospace'],
       },
       fontSize: {
         // 标题层级

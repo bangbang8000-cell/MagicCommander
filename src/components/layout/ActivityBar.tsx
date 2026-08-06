@@ -37,7 +37,7 @@ export function ActivityBar() {
   const toggleSidebar = useUIStore((s) => s.toggleSidebar)
 
   return (
-    <div className="w-12 flex flex-col items-center py-2 gap-0.5 shrink-0 bg-gray-100 dark:bg-gray-900 border-e border-gray-200 dark:border-gray-700">
+    <div className="w-12 flex flex-col items-center py-2 gap-0.5 shrink-0 bg-gray-100 dark:bg-gray-900/80 border-e border-gray-200 dark:border-gray-700/50">
       <div className="flex-1 flex flex-col items-center gap-0.5 w-full">
         {activities.map((item) => {
           const isActive = activeActivity === item.id
@@ -50,12 +50,13 @@ export function ActivityBar() {
               className={clsx(
                 'w-12 h-12 flex items-center justify-center relative transition-colors',
                 isActive
-                  ? 'text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-gray-700'
-                  : 'text-gray-500 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-gray-200 dark:hover:bg-gray-700',
+                  ? 'text-primary-500 dark:text-primary-400'
+                  : 'text-gray-500 dark:text-gray-400 hover:text-primary-500 dark:hover:text-primary-400 hover:bg-gray-200 dark:hover:bg-gray-700/50',
               )}
             >
               {isActive && (
-                <div className="absolute start-0 top-1.5 bottom-1.5 w-0.5 rounded-r bg-primary-500 dark:bg-primary-400" />
+                <div className="absolute start-0 top-1.5 bottom-1.5 w-0.5 rounded-r bg-primary-500 dark:bg-primary-400"
+                  style={{ boxShadow: '0 0 8px rgba(0, 229, 160, 0.4)' }} />
               )}
               {item.icon}
             </button>

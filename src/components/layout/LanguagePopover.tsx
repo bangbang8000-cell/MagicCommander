@@ -14,7 +14,7 @@ interface LanguagePopoverProps {
 }
 
 const LANGUAGES: SupportedLocale[] = [
-  'zh-CN', 'zh-TW', 'en', 'ja', 'ko', 'fr', 'de', 'es', 'pt', 'ru', 'ar', 'vi', 'th',
+  'zh-CN', 'zh-TW', 'en', 'ja', 'ko', 'fr',
 ]
 
 export function LanguagePopover({
@@ -33,13 +33,13 @@ export function LanguagePopover({
   }
 
   return (
-    <Popover open={open} onClose={onClose} isDark={isDark} className="min-w-[180px]">
+    <Popover open={open} onClose={onClose} isDark={isDark} className="min-w-[160px]">
       <div className="px-3 py-1">
         <h4 className={clsx('text-xs font-semibold', isDark ? 'text-gray-200' : 'text-gray-700')}>
           {t('menu.language')}
         </h4>
       </div>
-      <div className="max-h-[320px] overflow-y-auto">
+      <div className="max-h-[280px] overflow-y-auto">
         {LANGUAGES.map((lang) => {
           const isActive = lang === currentLanguage
           return (
@@ -50,10 +50,10 @@ export function LanguagePopover({
                 'w-full flex items-center justify-between px-3 py-1.5 text-xs text-left transition-colors',
                 isActive
                   ? isDark
-                    ? 'bg-blue-900/30 text-blue-300'
-                    : 'bg-blue-50 text-blue-700'
+                    ? 'bg-primary-500/10 text-primary-400'
+                    : 'bg-primary-50 text-primary-700'
                   : isDark
-                    ? 'text-gray-300 hover:bg-gray-700'
+                    ? 'text-gray-300 hover:bg-gray-700/50'
                     : 'text-gray-600 hover:bg-gray-100',
               )}
             >

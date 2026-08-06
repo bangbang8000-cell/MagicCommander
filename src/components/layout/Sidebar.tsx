@@ -39,12 +39,12 @@ export function Sidebar({ panels }: SidebarProps) {
     >
       <div
         className={clsx(
-          'flex items-center justify-between px-3 py-2 border-b shrink-0',
-          isDark ? 'border-gray-700 bg-gray-900/60' : 'border-gray-200 bg-gray-50 shadow-sm',
+          'flex items-center justify-between px-3 py-1 border-b shrink-0',
+          isDark ? 'border-gray-700/50 bg-gray-900/40' : 'border-gray-200 bg-gray-50',
         )}
       >
         <h3
-          className={clsx('text-xs font-semibold uppercase tracking-wider', isDark ? 'text-gray-300' : 'text-gray-600')}
+          className={clsx('text-caption font-medium', isDark ? 'text-gray-400' : 'text-gray-500')}
         >
           {t(PANEL_TITLE_KEYS[activeActivity] || 'common:noContent')}
         </h3>

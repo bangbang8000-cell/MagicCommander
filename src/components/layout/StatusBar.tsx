@@ -51,7 +51,7 @@ export function StatusBar() {
     <footer
       className={clsx(
         'h-6 flex items-center justify-between px-3 text-[11px] shrink-0 border-t',
-        isDark ? 'bg-gray-800 border-gray-700 text-gray-300' : 'bg-gray-50 border-gray-200 text-gray-600',
+        isDark ? 'bg-gray-800/80 border-gray-700/50 text-gray-400' : 'bg-gray-50 border-gray-200 text-gray-600',
       )}
     >
       <div className="flex items-center gap-3">

@@ -16,7 +16,8 @@
 
   /* 暗色模式基础样式 */
   .dark body {
-    @apply bg-gray-900 text-gray-100;
+    background: radial-gradient(ellipse at 50% 0%, #141b22 0%, #0a0e14 70%);
+    @apply text-gray-100;
   }
 
   /* 滚动条样式优化 */
@@ -89,18 +90,18 @@
 
   /* 卡片样式 */
   .card {
-    @apply bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm;
+    @apply bg-white dark:bg-gray-800/80 rounded-lg border border-gray-200 dark:border-gray-700/50 shadow-sm;
   }
 
-  /* 面板头部 */
+  /* 面板头部 - 瘦身版 */
   .panel-header {
-    @apply px-3 py-2 border-b border-gray-200 dark:border-gray-700 text-xs font-semibold uppercase tracking-wider;
+    @apply px-3 py-1 border-b border-gray-200 dark:border-gray-700/50 text-caption font-medium;
     @apply text-gray-500 dark:text-gray-400;
   }
 
   /* 边框分隔线 */
   .border-divider {
-    @apply border-gray-200 dark:border-gray-700;
+    @apply border-gray-200 dark:border-gray-700/50;
   }
 }
 

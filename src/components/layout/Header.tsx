@@ -396,7 +396,7 @@ export function Header({ onCheatsheet }: HeaderProps) {
         ref={menuRef}
         className={clsx(
           'h-10 flex items-center shrink-0 border-b select-none',
-          isDark ? 'bg-gray-800 border-gray-700' : 'bg-gray-100 border-gray-200',
+          isDark ? 'bg-gray-800/80 border-gray-700/50' : 'bg-gray-100 border-gray-200',
         )}
         style={{ WebkitAppRegion: 'drag' } as React.CSSProperties}
       >
@@ -414,7 +414,7 @@ export function Header({ onCheatsheet }: HeaderProps) {
                 className={clsx(
                   'h-full px-2.5 text-xs font-medium transition-colors',
                   openMenu === menu.id
-                    ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
+                    ? 'bg-primary-50 dark:bg-primary-500/10 text-primary-600 dark:text-primary-400'
                     : isDark
                       ? 'text-gray-300 hover:bg-gray-700'
                       : 'text-gray-600 hover:bg-gray-200',
