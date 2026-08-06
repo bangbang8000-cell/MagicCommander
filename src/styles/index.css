@@ -61,13 +61,13 @@
   }
 
   /* 正文 */
-  .text-body {
+  .type-body {
     @apply text-body text-gray-700 dark:text-gray-300;
   }
-  .text-body-sm {
+  .type-body-sm {
     @apply text-body-sm text-gray-700 dark:text-gray-300;
   }
-  .text-caption {
+  .type-caption {
     @apply text-caption text-gray-500 dark:text-gray-400;
   }
 
@@ -95,7 +95,7 @@
 
   /* 面板头部 - 瘦身版 */
   .panel-header {
-    @apply px-3 py-1 border-b border-gray-200 dark:border-gray-700/50 text-caption font-medium;
+    @apply px-3 py-1 border-b border-gray-200 dark:border-gray-700/50 text-xs font-medium;
     @apply text-gray-500 dark:text-gray-400;
   }
 
