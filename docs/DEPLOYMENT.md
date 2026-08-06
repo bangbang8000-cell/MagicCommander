@@ -253,13 +253,13 @@ nano .env
 docker compose up -d
 
 # 4. 验证服务
-curl http://localhost:18720/api/v1/health
+curl http://evergreenzhou.com/api/v1/health
 ```
 
 ### 客户端连接配置
 
 1. 打开 MagicCommander 设置面板 → **平台连接** 标签
-2. 填写服务器地址（如 `http://81.71.11.33`）
+2. 填写服务器地址（如 `http://evergreenzhou.com`）
 3. 点击"测试连接"确认连通性
 4. 点击云平台侧边栏图标登录
 

@@ -155,7 +155,7 @@
         }
       ],
       "icon": "public/icons/icon.icns",
-      "artifactName": "${productName}-${version}-build.26071402-mac-${arch}.${ext}",
+      "artifactName": "${productName}-${version}-build.26072403-mac-${arch}.${ext}",
       "category": "public.app-category.utilities"
     },
     "linux": {

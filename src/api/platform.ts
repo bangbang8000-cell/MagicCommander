@@ -1,4 +1,4 @@
-const DEFAULT_BASE_URL = 'http://localhost:18720'
+const DEFAULT_BASE_URL = 'http://evergreenzhou.com'
 
 let _baseUrl = DEFAULT_BASE_URL
 let _token: string | null = null

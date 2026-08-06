@@ -501,7 +501,7 @@ export function SettingsPanel() {
               <div>
                 <label className={clsx('text-[11px]', isDark ? 'text-gray-500' : 'text-gray-400')}>{t('common:settings.platform.serverUrl') || '服务器地址'}</label>
                 <div className="flex gap-1.5 mt-0.5">
-                  <input type="text" value={platformUrl} onChange={(e) => { setPlatformUrl(e.target.value); setPlatformTestResult(null) }} placeholder="http://81.71.11.33"
+                  <input type="text" value={platformUrl} onChange={(e) => { setPlatformUrl(e.target.value); setPlatformTestResult(null) }} placeholder="http://evergreenzhou.com"
                     className={clsx('flex-1 px-2.5 py-1.5 rounded text-xs outline-none', isDark ? 'bg-gray-900 text-gray-100 placeholder-gray-600 focus:ring-1 focus:ring-blue-500' : 'bg-white text-gray-900 placeholder-gray-400 focus:ring-1 focus:ring-blue-400 border border-gray-300')} />
                   <button onClick={handleTestPlatformConnection} disabled={testingPlatform || !platformUrl.trim()}
                     className={clsx('text-[11px] flex items-center gap-1 px-2.5 py-1.5 rounded whitespace-nowrap', testingPlatform || !platformUrl.trim() ? 'opacity-40 cursor-not-allowed' : (isDark ? 'bg-green-900/30 text-green-300 hover:bg-green-900/50' : 'bg-green-100 text-green-700 hover:bg-green-200'))}>

@@ -56,7 +56,7 @@ interface PlatformState {
 export const usePlatformStore = create<PlatformState>()(
   persist(
     (set, get) => ({
-      baseUrl: 'http://localhost:18720',
+      baseUrl: 'http://evergreenzhou.com',
       token: null,
       loggedIn: false,
       username: null,
@@ -278,7 +278,7 @@ export const usePlatformStore = create<PlatformState>()(
       }),
       onRehydrateStorage: () => async (state) => {
         if (state) {
-          setBaseUrl(state.baseUrl || 'http://localhost:18720')
+          setBaseUrl(state.baseUrl || 'http://evergreenzhou.com')
           // 从 safeStorage 恢复 Token
           try {
             const savedToken = await window.electron.platform.loadToken()

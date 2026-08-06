@@ -245,7 +245,7 @@ MagicCommander v3.5.0 supports connecting to a self-hosted cloud platform for te
 ### Connection Setup
 
 1. Open **Settings Panel** → **Platform Connection** tab
-2. Enter the server address (e.g., `http://81.71.11.33`)
+2. Enter the server address (e.g., `http://evergreenzhou.com`)
 3. Click **Test Connection** to verify connectivity
 4. Click the Cloud Platform icon in the sidebar to log in
 
