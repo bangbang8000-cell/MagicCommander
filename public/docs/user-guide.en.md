@@ -42,9 +42,13 @@ MagicCommander is a professional network device configuration management tool th
 |------|----------|----------|
 | Search | Global Search | Ctrl+Shift+F |
 | Explorer | Project File Browser | Ctrl+Shift+E |
-| Render Operations | Execute Rendering Tasks | Ctrl+Shift+R |
+| Template Center | Browse and Install Templates | - |
+| AI Chat | AI Assistant | Ctrl+Shift+H |
+| Cloud | Cloud Connect | Ctrl+Shift+C |
+| Workbench | Rendering & Output | Ctrl+Shift+R |
 | Label Print | Batch Print Labels | Ctrl+Shift+L |
 | Output Results | View Rendering Output | Ctrl+Shift+O |
+| Settings | App Settings | Ctrl+, |
 
 ### Menu Bar
 
@@ -198,17 +202,96 @@ AI can analyze project template and Excel file quality:
 
 ---
 
+## Agent v2 Intelligent Orchestration
+
+MagicCommander v3.4.0 introduced the Agent v2 intelligent orchestration engine, making the AI assistant smarter and more reliable.
+
+### Five-Layer Architecture
+
+| Layer | Function |
+|-------|----------|
+| Planner | Understand user intent, create execution plans |
+| Validator | Tool permission grading (auto/notify/confirm) |
+| Context Manager | Project structure scanning + variable reference tracking |
+| Executor | 27 built-in tools (rendering/analysis/validation/reverse engineering, etc.) |
+| Recovery | Error detection → auto-fix → retry |
+
+### Tool Permission Levels
+
+| Level | Icon | Behavior | Example Tools |
+|-------|------|----------|---------------|
+| Auto | Green | Execute automatically, no confirmation | list_projects, analyze_project |
+| Notify | Yellow | Notify user after execution | render_config, dry_run |
+| Confirm | Red | Require user confirmation | delete_project, delete_file |
+
+### Skills Engine
+
+- 7 preset Skills covering project creation, template enhancement, reverse configuration, etc.
+- Semi-automatic Skill generation through conversation
+- Skills stored in `ai_hub/skills/skills/` directory
+
+### Memory System
+
+- **User Profile**: Records preferences (frequently used Provider, language, workspace path)
+- **Project History**: Records operation history for each project
+- **Usage Patterns**: Records high-frequency operations to optimize future interactions
+
+---
+
+## Cloud Connect Platform Integration
+
+MagicCommander v3.5.0 supports connecting to a self-hosted cloud platform for team collaboration.
+
+### Connection Setup
+
+1. Open **Settings Panel** → **Platform Connection** tab
+2. Enter the server address (e.g., `http://81.71.11.33`)
+3. Click **Test Connection** to verify connectivity
+4. Click the Cloud Platform icon in the sidebar to log in
+
+### Key Features
+
+| Feature | Description |
+|---------|-------------|
+| QR Code Login | Feishu / QQ / WeChat scan, JWT Token auto-refresh (72h) |
+| Template Market | Browse/search/install cloud templates with category filtering |
+| Project Sync | Push local to cloud / Pull from cloud to local / Conflict detection |
+| Notification Center | Platform announcements and version update alerts |
+| User Profile | Profile management, platform account binding |
+
+### Using Template Market
+
+1. Click the **Cloud** icon in the activity bar
+2. Search or browse templates in the Template Market
+3. Click **Install** to download a template to the local Template Center
+4. Create new projects from cloud templates in the Template Center
+
+### Project Synchronization
+
+1. Right-click a project in the Project Explorer → **Push to Cloud**
+2. Browse cloud projects in the Cloud panel → click **Pull to Local**
+3. The system automatically detects sync status and shows conflict info
+
+---
+
 ## Shortcuts
 
 | Shortcut | Function |
 |----------|----------|
-| Ctrl+Shift+E | Open Project Explorer |
 | Ctrl+Shift+F | Global Search |
-| Ctrl+Shift+R | Open Rendering Operations |
-| Ctrl+Shift+L | Open Label Print |
-| Ctrl+Shift+O | Open Output Results |
+| Ctrl+Shift+E | Project Explorer |
+| Ctrl+Shift+R | Workbench (Rendering) |
+| Ctrl+Shift+L | Label Print |
+| Ctrl+Shift+O | Output Results |
+| Ctrl+Shift+H | AI Chat |
+| Ctrl+Shift+C | Cloud Platform |
+| Ctrl+Shift+P | Command Palette |
 | Ctrl+B | Toggle Sidebar |
-| F5 | Refresh Page |
+| Ctrl+J | Toggle Bottom Panel |
+| Ctrl+S | Save Current File |
+| Ctrl+W | Close Current Tab |
+| Ctrl+, | Open Settings |
+| Ctrl+K Ctrl+S | Keyboard Shortcuts |
 
 ---
 

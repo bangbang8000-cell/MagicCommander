@@ -15,7 +15,7 @@ export type TranslationKey = NestedKeyOf<typeof commonZh>
 
 /** 支持的语言代码 */
 export type SupportedLocale =
-  'zh-CN' | 'zh-TW' | 'en' | 'ja' | 'ko' | 'fr' | 'de' | 'es' | 'pt' | 'ru' | 'ar' | 'vi' | 'th'
+  | 'zh-CN' | 'zh-TW' | 'en' | 'ja' | 'ko' | 'fr'
 
 /** 语言名称映射 */
 export const LOCALE_NAMES: Record<SupportedLocale, string> = {
@@ -25,17 +25,10 @@ export const LOCALE_NAMES: Record<SupportedLocale, string> = {
   ja: '日本語',
   ko: '한국어',
   fr: 'Français',
-  de: 'Deutsch',
-  es: 'Español',
-  pt: 'Português',
-  ru: 'Русский',
-  ar: 'العربية',
-  vi: 'Tiếng Việt',
-  th: 'ไทย',
 }
 
-/** RTL 语言列表 */
-export const RTL_LOCALES: SupportedLocale[] = ['ar']
+/** RTL 语言列表（当前无 RTL 语言） */
+export const RTL_LOCALES: SupportedLocale[] = []
 
 /** 语言图标文字标识（用于 Header 按钮） */
 export const LANGUAGE_ICON_CHARS: Record<SupportedLocale, string> = {
@@ -45,11 +38,4 @@ export const LANGUAGE_ICON_CHARS: Record<SupportedLocale, string> = {
   ja: 'あ',
   ko: '한',
   fr: 'F',
-  de: 'D',
-  es: 'E',
-  pt: 'P',
-  ru: 'Р',
-  ar: 'ع',
-  vi: 'V',
-  th: 'ท',
 }

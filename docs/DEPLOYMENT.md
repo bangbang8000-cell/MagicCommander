@@ -37,7 +37,7 @@ MagicCommander/
 ├── src/                  # 前端源码 (React + TypeScript)
 │   ├── components/       # UI 组件 (chat, cloud, layout, sidebar, dialogs)
 │   ├── stores/           # Zustand 状态管理 (ui, platform, cloud, chat, project)
-│   ├── i18n/             # 13 语言国际化
+│   ├── i18n/             # 6 语言国际化
 │   ├── api/              # 云端 API 客户端 (platform.ts)
 │   └── types/            # TypeScript 类型定义
 ├── electron/             # Electron 主进程 (TypeScript)

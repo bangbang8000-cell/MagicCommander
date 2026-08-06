@@ -52,55 +52,6 @@ import errorsFr from './locales/fr/errors.json'
 import welcomeFr from './locales/fr/welcome.json'
 import terminalFr from './locales/fr/terminal.json'
 
-import commonDe from './locales/de/common.json'
-import editorDe from './locales/de/editor.json'
-import projectDe from './locales/de/project.json'
-import errorsDe from './locales/de/errors.json'
-import welcomeDe from './locales/de/welcome.json'
-import terminalDe from './locales/de/terminal.json'
-
-import commonEs from './locales/es/common.json'
-import editorEs from './locales/es/editor.json'
-import projectEs from './locales/es/project.json'
-import errorsEs from './locales/es/errors.json'
-import welcomeEs from './locales/es/welcome.json'
-import terminalEs from './locales/es/terminal.json'
-
-import commonPt from './locales/pt/common.json'
-import editorPt from './locales/pt/editor.json'
-import projectPt from './locales/pt/project.json'
-import errorsPt from './locales/pt/errors.json'
-import welcomePt from './locales/pt/welcome.json'
-import terminalPt from './locales/pt/terminal.json'
-
-import commonRu from './locales/ru/common.json'
-import editorRu from './locales/ru/editor.json'
-import projectRu from './locales/ru/project.json'
-import errorsRu from './locales/ru/errors.json'
-import welcomeRu from './locales/ru/welcome.json'
-import terminalRu from './locales/ru/terminal.json'
-
-import commonAr from './locales/ar/common.json'
-import editorAr from './locales/ar/editor.json'
-import projectAr from './locales/ar/project.json'
-import errorsAr from './locales/ar/errors.json'
-import welcomeAr from './locales/ar/welcome.json'
-import terminalAr from './locales/ar/terminal.json'
-
-import commonVi from './locales/vi/common.json'
-import editorVi from './locales/vi/editor.json'
-import projectVi from './locales/vi/project.json'
-import errorsVi from './locales/vi/errors.json'
-import welcomeVi from './locales/vi/welcome.json'
-import terminalVi from './locales/vi/terminal.json'
-
-import commonTh from './locales/th/common.json'
-import editorTh from './locales/th/editor.json'
-import projectTh from './locales/th/project.json'
-import errorsTh from './locales/th/errors.json'
-import welcomeTh from './locales/th/welcome.json'
-import terminalTh from './locales/th/terminal.json'
-
 i18n.use(initReactI18next).init({
   resources: {
     'zh-CN': {
@@ -154,62 +105,6 @@ i18n.use(initReactI18next).init({
       errors: errorsFr,
       welcome: welcomeFr,
       terminal: terminalFr,
-    },
-    de: {
-      common: commonDe,
-      editor: editorDe,
-      project: projectDe,
-      errors: errorsDe,
-      welcome: welcomeDe,
-      terminal: terminalDe,
-    },
-    es: {
-      common: commonEs,
-      editor: editorEs,
-      project: projectEs,
-      errors: errorsEs,
-      welcome: welcomeEs,
-      terminal: terminalEs,
-    },
-    pt: {
-      common: commonPt,
-      editor: editorPt,
-      project: projectPt,
-      errors: errorsPt,
-      welcome: welcomePt,
-      terminal: terminalPt,
-    },
-    ru: {
-      common: commonRu,
-      editor: editorRu,
-      project: projectRu,
-      errors: errorsRu,
-      welcome: welcomeRu,
-      terminal: terminalRu,
-    },
-    ar: {
-      common: commonAr,
-      editor: editorAr,
-      project: projectAr,
-      errors: errorsAr,
-      welcome: welcomeAr,
-      terminal: terminalAr,
-    },
-    vi: {
-      common: commonVi,
-      editor: editorVi,
-      project: projectVi,
-      errors: errorsVi,
-      welcome: welcomeVi,
-      terminal: terminalVi,
-    },
-    th: {
-      common: commonTh,
-      editor: editorTh,
-      project: projectTh,
-      errors: errorsTh,
-      welcome: welcomeTh,
-      terminal: terminalTh,
     },
   },
   lng: 'zh-CN',

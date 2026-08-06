@@ -167,7 +167,7 @@ npm run dev:all
 
 ## 技术栈
 
-Electron 28 · React 18 · TypeScript 5 · Vite 5 · TailwindCSS 3 · Zustand 4 · Monaco Editor 4 · Python 3 · Jinja2 · FastAPI · LangChain · Gitea · JWT · i18next
+Electron 28 · React 18 · TypeScript 5 · Vite 5 · TailwindCSS 3 · Zustand 4 · Monaco Editor 4 · Python 3 · Jinja2 · FastAPI · LangChain · Gitea · JWT · i18next (6 语言)
 
 ## 项目架构
 
@@ -176,7 +176,7 @@ MagicCommander/
 ├── src/                  # 前端 (Electron + React)
 │   ├── components/       # UI 组件 (chat, cloud, layout, sidebar, dialogs)
 │   ├── stores/           # Zustand 状态管理 (ui, platform, cloud, chat, project)
-│   ├── i18n/             # 13 语言国际化
+│   ├── i18n/             # 6 语言国际化
 │   ├── api/              # 云端 API 客户端 (platform.ts)
 │   └── types/            # TypeScript 类型定义
 ├── backend/              # Python CLI 后端
@@ -238,6 +238,8 @@ MagicCommander/
 
 | 版本 | 日期 | 更新内容 |
 |------|------|---------|
+| **3.5.3 Build 26072403** | 2026-07-24 | **搜索体验重构**：AI 搜索面板升级为默认主视图，移除子搜索面板，统一搜索入口；修复模板 API 路由和连接问题 |
+| **3.5.2 Build 26072402** | 2026-07-24 | **Phase 2 UX 全面升级**：Toast 错误提示、分页排序、下载计数、密码掩码、加载状态优化、国际化完善 |
 | **3.5.0 Build 26072301** | 2026-07-23 | **Cloud Connect 云平台集成**：MagicCommander Platform 连接 (Gitea + FastAPI + JWT)、QR 扫码登录 (飞书/QQ/微信)、Token 自动刷新、模板市场 (搜索/分类/安装)、项目云端同步 (推送/拉取/冲突检测)、通知中心 (公告/版本更新)、用户资料管理、云端仪表盘、13 语言完整 i18n、UI 全面重构 (设置面板分5标签、ActivityBar 排序优化) |
 | **3.5.0 Build 26072101** | 2026-07-21 | **菜单系统重构**：Ctrl+S 去重、视图菜单歧义修复、快捷键注册表补齐(8→23)、标签页右键菜单、Alt+字母菜单导航、Cheatsheet i18n、命令面板(Ctrl+Shift+P)；**面板合并**：渲染操作+工作台合并(⚡闪电图标)、标签打印卡片、输出结果快捷跳转；**模板中心优化**：工具栏压缩、卡片内联展开+文件树、模板文件点击加载到编辑器、创建项目 Modal 对话框；**视觉统一**：暗色模式底色统一(Monaco自定义主题)、全局字体11→7种、JSON语法高亮；新增 IPC: readTemplateFile/readTemplateExcel |
 | **3.4.1 Build 26072006** | 2026-07-20 | 修复关于对话框版本号显示问题，触发正式编译发布 |
@@ -281,8 +283,9 @@ MagicCommander V3.0 升级为 **AI 驱动的网络配置工程平台**，分四�
 | 26072002 | v3.3.1 | 多 Provider 策略路由 + System Prompt 增强 |
 | 26072003 | v3.3.2 | 工具集扩展 14→27 + 项目分析引擎 + 自动优化建议 |
 | 26072004 | v3.4.0 | Agent v2 智能编排 (Planner/Validator/Recovery/Skills/Memory) + Chat UI 重构 |
-| 26072101 | v3.5.0 | 菜单系统重构 + 面板合并 + 命令面板 + 13 语言 |
-| **26072301** | **v3.5.0** | **Cloud Connect 云平台集成：模板市场 + 项目同步 + QR 扫码登录 + 通知中心** |
+| 26072101 | v3.5.0 | 菜单系统重构 + 面板合并 + 命令面板 + 6 语言 |
+| **26072402** | **v3.5.2** | **Phase 2 UX 全面升级：Toast 错误 + 分页排序 + 密码掩码 + 加载状态** |
+| **26072403** | **v3.5.3** | **搜索体验重构：AI 搜索升级为默认主视图 + 模板 API 修复** |
 
 **Beta 阶段进行中**：
 - 智能校对与配置自动修正
@@ -290,7 +293,7 @@ MagicCommander V3.0 升级为 **AI 驱动的网络配置工程平台**，分四�
 - 模板资产中心（版本管理 + 质量评级 + 调试沙盒）
 - Excel/Jinja2 深度集成（变量智能补全、依赖分析、模板片段复用）
 
-**技术栈**：Electron 28 · React 18 · TypeScript 5 · Vite 5 · TailwindCSS 3 · Zustand 4 · Monaco Editor 4 · Python 3.11 · Jinja2 · FastAPI · LangChain · Gitea · JWT · i18next (13 语言) · simple-git
+**技术栈**：Electron 28 · React 18 · TypeScript 5 · Vite 5 · TailwindCSS 3 · Zustand 4 · Monaco Editor 4 · Python 3.11 · Jinja2 · FastAPI · LangChain · Gitea · JWT · i18next (6 语言) · simple-git
 
 **产品需求文档**：[PRD v2.0](docs/prd/magiccommander-prd_v2.0_2026-07-07/magiccommander-prd_v2.0_2026-07-07.html) | **云平台集成 PRD**：[CLIENT_CLOUD_INTEGRATION_PRD.md](CLIENT_CLOUD_INTEGRATION_PRD.md) | **开发计划**：[CLOUD_DEVELOPMENT_PLAN.md](CLOUD_DEVELOPMENT_PLAN.md) | **文档索引**：[docs/](docs/)
 
