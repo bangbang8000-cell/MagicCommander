@@ -102,18 +102,18 @@ export function DashboardView() {
             <div className="text-[10px] text-blue-500 dark:text-blue-400">{t('cloud:dashboard.myTemplates')}</div>
           </div>
         </div>
-        <div className="flex items-center gap-3 p-3 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-100 dark:border-green-800">
-          <FolderGit2 size={18} className="text-green-500 shrink-0" />
+        <div className="flex items-center gap-3 p-3 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800">
+          <FolderGit2 size={18} className="text-blue-500 shrink-0" />
           <div>
-            <div className="text-lg font-bold text-green-700 dark:text-green-300">{d.project_count}</div>
-            <div className="text-[10px] text-green-500 dark:text-green-400">{t('cloud:dashboard.myProjects')}</div>
+            <div className="text-lg font-bold text-blue-700 dark:text-blue-300">{d.project_count}</div>
+            <div className="text-[10px] text-blue-500 dark:text-blue-400">{t('cloud:dashboard.myProjects')}</div>
           </div>
         </div>
-        <div className="flex items-center gap-3 p-3 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800">
-          <Wifi size={18} className="text-emerald-500 shrink-0" />
+        <div className="flex items-center gap-3 p-3 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800">
+          <Wifi size={18} className="text-blue-500 shrink-0" />
           <div>
-            <div className="text-lg font-bold text-emerald-700 dark:text-emerald-300">●</div>
-            <div className="text-[10px] text-emerald-500 dark:text-emerald-400">{t('cloud:dashboard.connected')}</div>
+            <div className="text-lg font-bold text-blue-700 dark:text-blue-300">●</div>
+            <div className="text-[10px] text-blue-500 dark:text-blue-400">{t('cloud:dashboard.connected')}</div>
           </div>
         </div>
       </div>

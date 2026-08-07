@@ -151,7 +151,7 @@ export function ChatMessageBubble({ message, isDark, fontSizeClass = 'text-sm' }
           'w-8 h-8 rounded-full flex items-center justify-center shrink-0 mt-0.5',
           isUser
             ? (isDark ? 'bg-blue-600' : 'bg-blue-500')
-            : (isDark ? 'bg-emerald-600' : 'bg-emerald-500'),
+            : (isDark ? 'bg-blue-600' : 'bg-blue-500'),
         )}
       >
         {isUser ? (

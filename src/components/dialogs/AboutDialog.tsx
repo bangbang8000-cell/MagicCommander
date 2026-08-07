@@ -151,7 +151,7 @@ export function AboutDialog({
           {updateStatus?.status === 'downloaded' && (
             <button
               onClick={onInstallUpdate}
-              className="w-full px-3 py-1.5 text-xs rounded-md bg-green-600 text-white hover:bg-green-700 transition-colors"
+              className="w-full px-3 py-1.5 text-xs rounded-md bg-primary-500 text-white hover:bg-primary-600 transition-colors"
             >
               {t('updates.installButton')}
             </button>

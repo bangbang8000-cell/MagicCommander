@@ -131,7 +131,7 @@ export function UpdatePopover({
         {status === 'downloaded' && (
           <button
             onClick={onInstallUpdate}
-            className="w-full flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs rounded bg-green-600 text-white hover:bg-green-700 transition-colors"
+            className="w-full flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs rounded bg-primary-500 text-white hover:bg-primary-600 transition-colors"
           >
             <CheckCircle size={12} />
             {t('updates.installButton')}
