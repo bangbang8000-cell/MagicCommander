@@ -3,7 +3,7 @@ from yaml import dump
 import logging
 import os
 import jinja2
-from jinja2 import Environment, FileSystemLoader, ext
+from jinja2 import Environment, FileSystemLoader, ChoiceLoader, ext
 from jinja2.sandbox import SandboxedEnvironment
 from pandas import read_excel
 from numpy import int64 as numpy_int64
@@ -218,7 +218,12 @@ class Base:
 
         jinja2_extensions = (jinja2.ext.do, jinja2.ext.i18n, jinja2.ext.loopcontrols)
         # 使用 SandboxedEnvironment 防止模板中执行任意 Python 代码（RCE）
-        env = SandboxedEnvironment(loader=FileSystemLoader(template_path), extensions=jinja2_extensions)
+        # ChoiceLoader：模板优先，其次工作区 snippets/ 片段库，支持 {% include 'xxx.j2' %} 复用片段
+        loaders = [FileSystemLoader(template_path)]
+        snippets_dir = os.path.join(self.workspace, 'snippets')
+        if os.path.isdir(snippets_dir):
+            loaders.append(FileSystemLoader(snippets_dir))
+        env = SandboxedEnvironment(loader=ChoiceLoader(loaders), extensions=jinja2_extensions)
 
         for info in self.devices.values():
             hostname_now = info['设备名']
@@ -235,6 +240,38 @@ class Base:
             with open(output_path, 'w', encoding='utf-8') as f:
                 f.write(output)
 
+    def _build_env(self, template_path: str) -> SandboxedEnvironment:
+        """构建渲染环境：项目模板目录 + 工作区 snippets/ 片段库（支持 include 复用）"""
+        loaders = [FileSystemLoader(template_path)]
+        snippets_dir = os.path.join(self.workspace, 'snippets')
+        if os.path.isdir(snippets_dir):
+            loaders.append(FileSystemLoader(snippets_dir))
+        return SandboxedEnvironment(loader=ChoiceLoader(loaders))
+
+    def render_preview(self, template_file: str, project_name: str) -> list[dict]:
+        """调试沙盒：渲染指定模板文件，对项目内每台设备的数据输出预览（不写文件）"""
+        template_path = os.path.join(self.workspace, project_name, 'templates')
+        # 去除 templates/ 前缀：loader 基准目录已是 templates
+        template_name = template_file
+        for prefix in ('templates/', 'templates\\'):
+            if template_name.startswith(prefix):
+                template_name = template_name[len(prefix):]
+                break
+        env = self._build_env(template_path)
+        results = []
+        for info in self.devices.values():
+            hostname_now = info.get('设备名', '')
+            try:
+                output = env.get_template(template_name).render(hostname=hostname_now, info=info)
+            except Exception as e:
+                output = f'[渲染错误] {e}'
+            results.append({
+                'project': project_name,
+                'device': hostname_now,
+                'content': output,
+            })
+        return results
+
     def render_dry_run(self, templates: str, project_name: str, out_name_type: str) -> list[dict]:
         """渲染预览：不写文件，返回渲染输出内容列表"""
         template_path = os.path.join(self.workspace, project_name, templates)
@@ -246,7 +283,7 @@ class Base:
         else:
             return []
 
-        env = SandboxedEnvironment(loader=FileSystemLoader(template_path))
+        env = self._build_env(template_path)
         results = []
 
         for info in self.devices.values():

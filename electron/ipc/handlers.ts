@@ -286,6 +286,16 @@ export function setupIpcHandlers(window: BrowserWindow): void {
 
   ipcMain.handle('project:listTemplates', async () => listTemplateInfosFromDir(getTemplateDir()))
 
+  // 项目依赖分析：模板 ↔ Excel 列 反向索引（P1 智能分析底座）
+  ipcMain.handle('project:analyze', async (_e, id: string): Promise<unknown> => {
+    return await renderHandler.runPythonCommand(['analyze', 'project', String(id)], true)
+  })
+
+  // 智能校对：模板语法 / 缺失列 / 数据空值（P1 渲染后自动验证）
+  ipcMain.handle('project:proofread', async (_e, id: string): Promise<unknown> => {
+    return await renderHandler.runPythonCommand(['proofread', 'project', String(id)], true)
+  })
+
   ipcMain.handle('template:analyze', async (_e, templateId: string): Promise<unknown> => {
     const templateDir = resolveTemplateDir(templateId)
     if (!templateDir || !fs.existsSync(templateDir)) throw new Error(`模板不存在: ${templateId}`)
@@ -546,6 +556,23 @@ export function setupIpcHandlers(window: BrowserWindow): void {
     return tree
   })
 
+  // 项目信息查询 API — 返回项目路径与目录结构（excel/templates/para/output/yaml 是否存在）
+  ipcMain.handle(
+    'project:info',
+    async (
+      _e,
+      id: string,
+    ): Promise<{
+      id: number
+      name: string
+      path: string
+      exists: boolean
+      structure: { excel: boolean; templates: boolean; para: boolean; output: boolean; yaml: boolean }
+    }> => {
+      return await renderHandler.runPythonCommand(['project', 'info', String(id), '--format', 'json'], true)
+    },
+  )
+
   // 项目参数查询 API — 按 Python 项目列表解析 ID，避免与界面列表不一致
   ipcMain.handle('project:parameters', async (_e, id: string): Promise<Array<{ file: string; path: string }>> => {
     const projectDir = await getProjectPathById(id)
@@ -729,6 +756,89 @@ export function setupIpcHandlers(window: BrowserWindow): void {
     },
   )
 
+  // ===== 模板片段库（workspace/snippets）=====
+  const snippetsDir = path.join(getWorkspaceDir(), 'snippets')
+  const snippetsIndexPath = path.join(snippetsDir, 'snippets.json')
+
+  const readSnippetsIndex = (): Array<Record<string, unknown>> => {
+    try {
+      if (fs.existsSync(snippetsIndexPath)) {
+        const data = JSON.parse(fs.readFileSync(snippetsIndexPath, 'utf-8'))
+        return Array.isArray(data) ? data : []
+      }
+    } catch {
+      /* 忽略损坏的索引 */
+    }
+    return []
+  }
+
+  ipcMain.handle(
+    'snippet:list',
+    async (): Promise<Array<{ name: string; file: string; description: string; category: string }>> => {
+      const items = readSnippetsIndex()
+      const files = fs.existsSync(snippetsDir) ? fs.readdirSync(snippetsDir).filter((f) => f.endsWith('.j2')) : []
+      const indexed = new Set(items.map((i) => String(i.file)))
+      for (const f of files) {
+        if (!indexed.has(f)) {
+          items.push({ name: f.replace(/\.j2$/, ''), file: f, description: '', category: '通用' })
+        }
+      }
+      return items as Array<{ name: string; file: string; description: string; category: string }>
+    },
+  )
+
+  ipcMain.handle('snippet:get', async (_e, file: string): Promise<string> => {
+    const full = buildSafePath(snippetsDir, String(file))
+    if (!full || !fs.existsSync(full)) throw new Error('片段不存在')
+    return fs.readFileSync(full, 'utf-8')
+  })
+
+  ipcMain.handle(
+    'snippet:save',
+    async (
+      _e,
+      data: { name: string; content: string; description?: string; category?: string },
+    ): Promise<{ file: string }> => {
+      const fileName =
+        String(data.name)
+          .replace(/\.j2$/i, '')
+          .replace(/[\\/:*?"<>|]/g, '_') + '.j2'
+      const full = buildSafePath(snippetsDir, fileName)
+      if (!full) throw new Error('片段名称无效')
+      fs.mkdirSync(snippetsDir, { recursive: true })
+      fs.writeFileSync(full, String(data.content ?? ''), 'utf-8')
+      const items = readSnippetsIndex()
+      const existing = items.find((i) => i.file === fileName)
+      if (existing) {
+        Object.assign(existing, {
+          description: data.description ?? '',
+          category: data.category ?? '通用',
+          updatedAt: Date.now(),
+        })
+      } else {
+        items.push({
+          name: String(data.name).replace(/\.j2$/i, ''),
+          file: fileName,
+          description: data.description ?? '',
+          category: data.category ?? '通用',
+          createdAt: Date.now(),
+        })
+      }
+      fs.mkdirSync(snippetsDir, { recursive: true })
+      fs.writeFileSync(snippetsIndexPath, JSON.stringify(items, null, 2), 'utf-8')
+      return { file: fileName }
+    },
+  )
+
+  ipcMain.handle('snippet:delete', async (_e, file: string): Promise<void> => {
+    const full = buildSafePath(snippetsDir, String(file))
+    if (!full) throw new Error('片段名称无效')
+    if (fs.existsSync(full)) fs.unlinkSync(full)
+    const items = readSnippetsIndex().filter((i) => i.file !== String(file))
+    fs.mkdirSync(snippetsDir, { recursive: true })
+    fs.writeFileSync(snippetsIndexPath, JSON.stringify(items, null, 2), 'utf-8')
+  })
+
   // 渲染 API（通过 Python 后端执行）
   ipcMain.handle('render:project', async (_e, ids: string[]): Promise<void> => {
     return await renderHandler.renderProject(ids)
@@ -760,6 +870,77 @@ export function setupIpcHandlers(window: BrowserWindow): void {
       return await renderHandler.runPythonCommand(args, true)
     },
   )
+
+  // 模板调试沙盒：仅渲染指定模板文件，输出预览（不写文件）
+  ipcMain.handle('template:preview', async (_e, projectId: string, templatePath: string): Promise<unknown> => {
+    const pathValidation = validateFilePath(String(templatePath))
+    if (!pathValidation.valid) throw new Error(pathValidation.error || '模板路径无效')
+    return await renderHandler.runPythonCommand(['template', 'preview', String(projectId), String(templatePath)], true)
+  })
+
+  // 模板版本历史（.template_history/<key>/）：快照 / 列表 / 恢复
+  const templateHistoryDir = async (projectId: string | number, templatePath: string): Promise<string> => {
+    const projectDir = await getProjectPath(projectId)
+    const safeKey = String(templatePath).replace(/[^a-zA-Z0-9_一-鿿.-]/g, '_')
+    return path.join(projectDir, '.template_history', safeKey)
+  }
+
+  ipcMain.handle('template:history', async (_e, projectId, templatePath): Promise<unknown[]> => {
+    const histDir = await templateHistoryDir(projectId, templatePath)
+    const manifestPath = path.join(histDir, 'manifest.json')
+    try {
+      if (fs.existsSync(manifestPath)) {
+        const data = JSON.parse(fs.readFileSync(manifestPath, 'utf-8'))
+        return Array.isArray(data) ? data : []
+      }
+    } catch {
+      /* 忽略损坏清单 */
+    }
+    return []
+  })
+
+  ipcMain.handle('template:snapshot', async (_e, projectId, templatePath, note): Promise<unknown[]> => {
+    const projectDir = await getProjectPath(projectId)
+    const full = buildSafePath(projectDir, String(templatePath))
+    if (!full || !fs.existsSync(full)) throw new Error('模板文件不存在')
+    const content = fs.readFileSync(full, 'utf-8')
+    const histDir = await templateHistoryDir(projectId, templatePath)
+    fs.mkdirSync(histDir, { recursive: true })
+    const version = String(Date.now())
+    fs.writeFileSync(path.join(histDir, `${version}.j2`), content, 'utf-8')
+    const manifestPath = path.join(histDir, 'manifest.json')
+    const items = (() => {
+      try {
+        if (fs.existsSync(manifestPath)) {
+          const d = JSON.parse(fs.readFileSync(manifestPath, 'utf-8'))
+          return Array.isArray(d) ? d : []
+        }
+      } catch {
+        /* ignore */
+      }
+      return []
+    })()
+    items.push({
+      version,
+      timestamp: new Date().toISOString(),
+      note: note || '',
+      file: `${version}.j2`,
+      templatePath: String(templatePath),
+    })
+    fs.writeFileSync(manifestPath, JSON.stringify(items, null, 2), 'utf-8')
+    return items
+  })
+
+  ipcMain.handle('template:restore', async (_e, projectId, templatePath, version): Promise<void> => {
+    const projectDir = await getProjectPath(projectId)
+    const histDir = await templateHistoryDir(projectId, templatePath)
+    const snapshotFile = path.join(histDir, `${String(version)}.j2`)
+    if (!fs.existsSync(snapshotFile)) throw new Error('版本不存在')
+    const content = fs.readFileSync(snapshotFile, 'utf-8')
+    const full = buildSafePath(projectDir, String(templatePath))
+    if (!full) throw new Error('模板路径不安全')
+    fs.writeFileSync(full, content, 'utf-8')
+  })
 
   // 校验
   ipcMain.handle('validate:template', async (_e, ids: string[]): Promise<unknown> => {
@@ -1097,6 +1278,7 @@ export function setupIpcHandlers(window: BrowserWindow): void {
       provider?: string,
       attachments?: Array<{ id: string; name: string; type: string; path: string; size: number }>,
       autonomyMode?: string,
+      projectName?: string,
     ): Promise<string> => {
       let fullContent = ''
       await aiHubService.sendChatMessage(
@@ -1106,6 +1288,7 @@ export function setupIpcHandlers(window: BrowserWindow): void {
         provider,
         attachments,
         autonomyMode,
+        projectName,
         (chunk: string) => {
           fullContent += chunk
           if (!window.isDestroyed()) {

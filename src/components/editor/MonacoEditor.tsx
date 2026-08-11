@@ -8,6 +8,8 @@ type EditorInstance = Parameters<OnMount>[0]
 import { useEditorStore, type EditorTab } from '@/stores/editor.store'
 import { useUIStore } from '@/stores/ui.store'
 import { showError, showSuccess } from '@/components/ui/Toast'
+import { SnippetPalette } from './SnippetPalette'
+import { TemplateAssetPanel } from './TemplateAssetPanel'
 
 const EXT_MAP: Record<string, string> = {
   '.yaml': 'yaml',
@@ -242,6 +244,8 @@ export function MonacoEditor({ tab }: MonacoEditorProps) {
 
   const language = getLanguage(tab.filePath, tab.fileType)
   const monacoTheme = isDark ? 'mc-dark' : 'vs'
+  // 片段面板仅对模板文件（.j2 / template）显示，便于 include/宏 复用
+  const showSnippetPalette = language === 'jinja' || tab.fileType === 'template'
 
   const handleMount: OnMount = (editor, monaco) => {
     editorRef.current = editor
@@ -463,6 +467,8 @@ export function MonacoEditor({ tab }: MonacoEditorProps) {
           onMount={handleMount}
         />
       )}
+      {showSnippetPalette && <SnippetPalette editor={editorRef.current} isDark={isDark} />}
+      {showSnippetPalette && <TemplateAssetPanel tab={tab} isDark={isDark} />}
     </div>
   )
 }

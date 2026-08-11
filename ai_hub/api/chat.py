@@ -26,6 +26,7 @@ class ChatRequest(BaseModel):
     provider: Optional[str] = None
     attachments: Optional[list[dict]] = None
     autonomy_mode: str = "semi_auto"
+    project_name: Optional[str] = None
 
 
 class ProviderInfo(BaseModel):
@@ -82,7 +83,8 @@ async def send_message(req: ChatRequest):
 
     session = get_or_create_session(req.session_id)
     session.set_provider(req.provider)
-    session.set_mode(req.mode)
+    # 带入客户端当前选中的项目名，让 AI 感知项目上下文（记忆/校验/系统提示词）
+    session.set_mode(req.mode, req.project_name or "")
     session.autonomy_mode = req.autonomy_mode
 
     session.add_user_message(req.message, req.attachments)

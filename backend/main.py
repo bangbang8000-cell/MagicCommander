@@ -144,6 +144,21 @@ def main():
     analyze_project_parser = analyze_subparsers.add_parser('project', help='分析项目')
     analyze_project_parser.add_argument('ids', help='项目ID或名称')
 
+    # 智能校对
+    proofread_parser = subparsers.add_parser('proofread', help='智能校对项目（模板语法/缺失列/数据空值）')
+    proofread_subparsers = proofread_parser.add_subparsers(title='校对操作', dest='subcommand', help='校对子命令')
+
+    proofread_project_parser = proofread_subparsers.add_parser('project', help='校对项目')
+    proofread_project_parser.add_argument('ids', help='项目ID或名称')
+
+    # 模板调试沙盒
+    template_parser = subparsers.add_parser('template', help='模板操作')
+    template_subparsers = template_parser.add_subparsers(title='模板操作', dest='subcommand', help='模板子命令')
+
+    template_preview_parser = template_subparsers.add_parser('preview', help='调试沙盒：渲染指定模板文件')
+    template_preview_parser.add_argument('ids', help='项目ID或名称')
+    template_preview_parser.add_argument('template', help='模板文件相对路径（如 templates/ASW.j2）')
+
     # 标签功能命令
     label_parser = subparsers.add_parser('label', help='标签功能操作')
     label_subparsers = label_parser.add_subparsers(title='标签操作', dest='subcommand', help='标签子命令')
@@ -235,6 +250,10 @@ def main():
             handle_diff_command(processor, args)
         elif args.command == 'analyze':
             handle_analyze_command(processor, args)
+        elif args.command == 'proofread':
+            handle_proofread_command(processor, args)
+        elif args.command == 'template':
+            handle_template_command(processor, args)
         else:
             print_error(f'未知命令: {args.command}')
             sys.exit(1)
@@ -575,11 +594,8 @@ def handle_render_command(processor, args):
         print_success(f'项目配置渲染完成')
         
     elif args.subcommand == 'yaml':
-        # 渲染YAML文件
-        if args.format == 'device_sn':
-            processor.execute_render(target_str, 'device_sn')
-        else:
-            processor.execute_yaml(target_str)
+        # 渲染YAML文件（device_sn 时输出到 yaml-sn 目录；不渲染配置文本）
+        processor.execute_yaml(target_str, args.format)
         print_success(f'YAML文件渲染完成')
 
     elif args.subcommand == 'undo':
@@ -693,6 +709,33 @@ def handle_analyze_command(processor, args):
 
         report = analyze_project(project_path)
         print(json.dumps(report, ensure_ascii=False))
+
+
+def handle_proofread_command(processor, args):
+    """智能校对项目（模板语法/缺失列/数据空值）"""
+    from proofread import proofread_project
+
+    target_ids = process_project_ids(args.ids, processor.project_name)
+
+    for idx in target_ids:
+        project_name = processor.project_name[idx]
+        project_path = os.path.join(WORKSPACE_DIR, project_name)
+
+        report = proofread_project(project_path)
+        print(json.dumps(report, ensure_ascii=False))
+
+
+def handle_template_command(processor, args):
+    """模板调试沙盒"""
+    target_str = convert_to_project_string(process_project_ids(args.ids, processor.project_name))
+
+    if args.subcommand == 'preview':
+        # 安全校验模板相对路径，禁止穿越到项目外
+        if '..' in args.template or args.template.startswith(('/', '\\')):
+            print_error(f'模板路径无效: {args.template}')
+            sys.exit(1)
+        processor.execute_template_preview(target_str, args.template)
+        print_success(f'模板预览完成')
 
 def handle_file_command(processor, args):
     """处理文件操作命令"""

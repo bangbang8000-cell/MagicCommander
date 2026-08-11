@@ -15,6 +15,7 @@ import {
 } from 'lucide-react'
 import { useChatStore, sendMessage } from '@/stores/chat.store'
 import { useUIStore } from '@/stores/ui.store'
+import { useProjectStore } from '@/stores/project.store'
 import { ChatMessageBubble } from './ChatMessageBubble'
 import { ChatInput } from './ChatInput'
 
@@ -174,7 +175,9 @@ export function ChatPanel() {
     setLastError(null)
     const store = useChatStore.getState()
     try {
-      await sendMessage(store, inputValue.trim(), store.currentMode, [...store.pendingAttachments])
+      // 带入当前选中的项目名，让 AI 感知项目上下文（记忆/校验/系统提示词）
+      const projectName = useProjectStore.getState().selectedProject?.name
+      await sendMessage(store, inputValue.trim(), store.currentMode, [...store.pendingAttachments], projectName)
       // 首轮对话完成后异步生成标题
       const ses = useChatStore.getState().getActiveSession()
       if (ses && ses.messages.filter((m) => m.role === 'user').length === 1) {

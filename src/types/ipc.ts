@@ -89,8 +89,27 @@ export interface ProjectIpcApi {
     filePath: string,
   ) => Promise<{ name: string; headers: string[]; rows: Record<string, unknown>[] }[]>
   getWorkspaceIndex: () => Promise<WorkspaceIndex>
+  analyze: (id: string) => Promise<ProjectAnalysisReport>
+  proofread: (id: string) => Promise<ProjectProofreadReport>
+  listSnippets: () => Promise<SnippetInfo[]>
+  getSnippet: (file: string) => Promise<string>
+  saveSnippet: (data: {
+    name: string
+    content: string
+    description?: string
+    category?: string
+  }) => Promise<{ file: string }>
+  deleteSnippet: (file: string) => Promise<void>
+  templatePreview: (
+    projectId: string,
+    templatePath: string,
+  ) => Promise<{ results: Array<{ project: string; device: string; content: string }> }>
+  templateHistory: (projectId: number, templatePath: string) => Promise<TemplateVersion[]>
+  templateSnapshot: (projectId: number, templatePath: string, note?: string) => Promise<TemplateVersion[]>
+  templateRestore: (projectId: number, templatePath: string, version: string) => Promise<void>
   delete: (ids: string[]) => Promise<void>
   getStructure: (name: string) => Promise<FileTreeNode[]>
+  info: (id: string) => Promise<ProjectInfoDetail>
   parameters: (id: string) => Promise<Array<{ file: string; path: string }>>
   readExcel: (id: number, filePath: string, projectName?: string) => Promise<ExcelSheet[]>
   writeExcel: (id: number, filePath: string, sheets: ExcelSheet[], projectName?: string) => Promise<void>
@@ -104,6 +123,84 @@ export interface ProjectIpcApi {
   collectProjectFiles: (projectName: string) => Promise<{ path: string; content: string }[]>
   installRemoteProject: (data: { name: string; zipData: string; owner: string }) => Promise<void>
   batchGetLocalSha: (projectNames: string[]) => Promise<Record<string, string | null>>
+}
+
+/** 项目信息详情（来自后端 project info 命令） */
+export interface ProjectInfoDetail {
+  id: number
+  name: string
+  path: string
+  exists: boolean
+  structure: {
+    excel: boolean
+    templates: boolean
+    para: boolean
+    output: boolean
+    yaml: boolean
+  }
+}
+
+/** 模板片段信息（workspace/snippets） */
+export interface SnippetInfo {
+  name: string
+  file: string
+  description: string
+  category: string
+}
+
+/** 模板历史版本 */
+export interface TemplateVersion {
+  version: string
+  timestamp: string
+  note: string
+  file: string
+  templatePath: string
+}
+
+/** 项目智能校对报告（来自后端 proofread project） */
+export interface ProjectProofreadReport {
+  status: string
+  project: string
+  issues: Array<{
+    level: 'error' | 'warning'
+    type: 'syntax' | 'missing_column' | 'empty_value'
+    template?: string
+    column?: string
+    sheet?: string
+    device?: string
+    message: string
+  }>
+  summary: { total: number; errors: number; warnings: number }
+}
+
+/** 项目依赖分析报告（来自后端 analyze project，模板 ↔ Excel 列反向索引） */
+export interface ProjectAnalysisReport {
+  status: string
+  project: string
+  templates: Array<{
+    file: string
+    variables: string[]
+    unique_vars: number
+    complexity: number
+    suggestions: Array<{ level: 'warning' | 'info'; message: string }>
+  }>
+  excel_files: unknown[]
+  dependencies: {
+    /** 每个模板引用的列 */
+    template_columns: Record<string, string[]>
+    /** 每列被哪些模板引用（反向索引） */
+    column_templates: Record<string, string[]>
+    /** 模板引用列来自哪些 Excel 表 */
+    template_excel_sheets: Record<string, string[]>
+    /** 未被任何模板引用的列（按 文件 / sheet） */
+    unused_columns_by_sheet: Record<string, string[]>
+  }
+  cross_reference?: {
+    missing_by_template?: Record<string, string[]>
+    template_vars_missing_in_excel?: string[]
+    excel_columns_unused_in_templates?: Record<string, string[]>
+  }
+  summary: { total_suggestions: number; warnings: number; infos: number }
 }
 
 // ============================================================
@@ -272,6 +369,7 @@ export interface AIHubIpcApi {
     provider?: string,
     attachments?: AIHubAttachment[],
     autonomyMode?: 'advisor' | 'semi_auto' | 'full_auto',
+    projectName?: string,
   ) => Promise<string>
   clearSession: (sessionId: string) => Promise<void>
   getProviders: () => Promise<AIHubProvider[]>

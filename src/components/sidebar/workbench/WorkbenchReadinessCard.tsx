@@ -2,10 +2,10 @@ import { FileCode, CheckCircle2, XCircle, AlertCircle, ShieldCheck, Check } from
 import clsx from 'clsx'
 import { useTranslation } from 'react-i18next'
 import type { ValidationResult } from '@/types/render'
+import type { ProjectInfoDetail } from '@/types/ipc'
 
 type WorkbenchReadinessCardProps = {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- projectInfo 运行时形状与消费方期望不一致，待数据模型重构
-  projectInfo: any
+  projectInfo: ProjectInfoDetail | null
   isDark: boolean
   selectedProject: boolean
   isValidationRunning: boolean
@@ -30,7 +30,7 @@ export function WorkbenchReadinessCard({
   const { t } = useTranslation('project')
   const structure = projectInfo?.structure
 
-  const items = [
+  const items: { key: keyof NonNullable<typeof structure>; label: string; description: string }[] = [
     { key: 'excel', label: 'Excel', description: t('workbench.excelDesc') },
     { key: 'templates', label: 'Templates', description: t('workbench.templateDesc') },
     { key: 'para', label: 'para.xlsx', description: t('workbench.paraDesc') },

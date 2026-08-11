@@ -398,5 +398,58 @@
     "confirmDeleteYamlMessage": "确定要删除所有YAML文件吗？",
     "confirmDeleteSn": "确认删除流水号",
     "confirmDeleteSnMessage": "确定要删除所有流水号吗？"
+  },
+  "dependencyAnalysis": {
+    "title": "依赖分析",
+    "desc": "模板 ↔ Excel 列反向索引",
+    "refresh": "刷新",
+    "loading": "分析中...",
+    "run": "开始分析",
+    "noData": "暂无数据（请先选择项目）",
+    "templateColumns": "模板引用列",
+    "columnTemplates": "列 → 模板",
+    "missing": "缺失列",
+    "unused": "未使用列",
+    "sources": "数据来源",
+    "noTemplates": "没有 .j2 模板",
+    "error": "分析失败"
+  },
+  "proofread": {
+    "title": "智能校对",
+    "refresh": "校对",
+    "run": "开始校对",
+    "loading": "校对中...",
+    "noIssues": "✓ 未发现问题",
+    "errors": "错误",
+    "warnings": "警告",
+    "total": "问题"
+  },
+  "snippet": {
+    "title": "片段",
+    "save": "保存",
+    "savePlaceholder": "选区另存为片段...",
+    "inserted": "已插入",
+    "deleted": "已删除",
+    "saved": "片段已保存",
+    "empty": "暂无片段",
+    "insert": "插入",
+    "insertContent": "插入内容",
+    "insertInclude": "插入 include",
+    "delete": "删除"
+  },
+  "templateAsset": {
+    "title": "模板资产",
+    "versions": "版本",
+    "preview": "预览",
+    "snapshot": "快照",
+    "restore": "恢复",
+    "previewRun": "预览渲染",
+    "historyEmpty": "暂无版本",
+    "notePlaceholder": "版本备注(可选)",
+    "restored": "已恢复版本",
+    "snapshotted": "已创建快照",
+    "previewEmpty": "点击预览渲染查看输出",
+    "device": "设备",
+    "showAll": "全部"
   }
 }

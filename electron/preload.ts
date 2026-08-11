@@ -21,8 +21,24 @@ const api = {
     readTemplateExcel: (templateId: string, filePath: string) =>
       ipcRenderer.invoke('project:readTemplateExcel', templateId, filePath),
     getWorkspaceIndex: () => ipcRenderer.invoke('project:getWorkspaceIndex'),
+    analyze: (id: string) => ipcRenderer.invoke('project:analyze', id),
+    proofread: (id: string) => ipcRenderer.invoke('project:proofread', id),
+    listSnippets: () => ipcRenderer.invoke('snippet:list'),
+    getSnippet: (file: string) => ipcRenderer.invoke('snippet:get', file),
+    saveSnippet: (data: { name: string; content: string; description?: string; category?: string }) =>
+      ipcRenderer.invoke('snippet:save', data),
+    deleteSnippet: (file: string) => ipcRenderer.invoke('snippet:delete', file),
+    templatePreview: (projectId: string, templatePath: string) =>
+      ipcRenderer.invoke('template:preview', projectId, templatePath),
+    templateHistory: (projectId: number, templatePath: string) =>
+      ipcRenderer.invoke('template:history', projectId, templatePath),
+    templateSnapshot: (projectId: number, templatePath: string, note?: string) =>
+      ipcRenderer.invoke('template:snapshot', projectId, templatePath, note),
+    templateRestore: (projectId: number, templatePath: string, version: string) =>
+      ipcRenderer.invoke('template:restore', projectId, templatePath, version),
     delete: (ids: string[]) => ipcRenderer.invoke('project:delete', ids),
     getStructure: (name: string) => ipcRenderer.invoke('project:structure', name),
+    info: (id: string) => ipcRenderer.invoke('project:info', id),
     parameters: (name: string) => ipcRenderer.invoke('project:parameters', name),
     readExcel: (id: number, filePath: string, projectName?: string) =>
       ipcRenderer.invoke('project:readExcel', id, filePath, projectName),
@@ -141,7 +157,8 @@ const api = {
       provider?: string,
       attachments?: Array<{ id: string; name: string; type: string; path: string; size: number }>,
       autonomyMode?: string,
-    ) => ipcRenderer.invoke('aihub:chat', sessionId, message, mode, provider, attachments, autonomyMode),
+      projectName?: string,
+    ) => ipcRenderer.invoke('aihub:chat', sessionId, message, mode, provider, attachments, autonomyMode, projectName),
     clearSession: (sessionId: string) => ipcRenderer.invoke('aihub:clearSession', sessionId),
     getProviders: () => ipcRenderer.invoke('aihub:getProviders'),
     configureProvider: (provider: string, apiKey: string, model?: string, baseUrl?: string) =>

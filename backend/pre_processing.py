@@ -477,6 +477,30 @@ class PreProcessing:
             }
         }, ensure_ascii=False))
 
+    def execute_template_preview(self, word: str, template_file: str):
+        """调试沙盒：仅渲染指定模板文件，对项目内每台设备输出预览（不写文件）"""
+        self.target_project_name = []
+        self.target_project_num = []
+        self.project_para = []
+        self.process_project_num(word)
+
+        self._load_target_para()
+
+        results = []
+        for i in range(0, len(self.target_project_name)):
+            name = self.target_project_name[i]
+            ba = Base(self.workspace)
+            self._process_project_sheets(ba, name, self.target_project_num[i], 0, 1)
+            results.extend(ba.render_preview(template_file, name))
+
+        print(json.dumps({
+            'status': 'complete',
+            'message': f'模板预览完成，共 {len(results)} 个设备',
+            'data': {
+                'results': results,
+            }
+        }, ensure_ascii=False))
+
     def validate_template(self, word: str):
         """校验 Jinja2 模板语法"""
         self.target_project_name = []
@@ -631,8 +655,11 @@ class PreProcessing:
             'data': {'results': results},
         }, ensure_ascii=False))
 
-    def execute_yaml(self, word: str):
-        """执行选中项目的yaml创建"""
+    def execute_yaml(self, word: str, out_name_type: str = 'device_name'):
+        """执行选中项目的yaml创建
+
+        out_name_type: 'device_name' → yaml/ 目录，'device_sn' → yaml-sn/ 目录
+        """
         time_str = strftime("%Y_%m_%d_%H_%M_%S", localtime())
         self.target_project_name = []
         self.target_project_num = []
@@ -644,12 +671,14 @@ class PreProcessing:
         total_steps = self._calc_render_steps(include_template_render=False)
         current_step = 0
 
+        yaml_dir = 'yaml-sn' if out_name_type == 'device_sn' else 'yaml'
+
         for i in range(0, len(self.target_project_name)):
             name = self.target_project_name[i]
             ba = Base(self.workspace)
             current_step = self._process_project_sheets(ba, name, self.target_project_num[i], current_step, total_steps)
 
-            ba.out_base_info('yaml', name, time_str, 'device_name')
+            ba.out_base_info(yaml_dir, name, time_str, out_name_type)
             current_step += 1
             self._emit_progress(
                 current_step,

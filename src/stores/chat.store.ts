@@ -297,6 +297,7 @@ export async function sendMessage(
   content: string,
   mode: ChatMode,
   attachments: ChatAttachment[],
+  projectName?: string,
 ) {
   const sessionId = store.activeSessionId
   if (!sessionId) return
@@ -405,6 +406,7 @@ export async function sendMessage(
         size: a.size,
       })),
       useUIStore.getState().autonomyMode,
+      projectName,
     )
 
     const timeoutPromise = new Promise<string>((_, reject) => setTimeout(() => reject(new Error('timeout')), timeoutMs))

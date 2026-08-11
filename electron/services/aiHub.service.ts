@@ -363,6 +363,7 @@ export class AIHubService extends EventEmitter {
     provider?: string,
     attachments?: Array<{ id: string; name: string; type: string; path: string; size: number }>,
     autonomyMode: string = 'semi_auto',
+    projectName?: string,
     onChunk?: (text: string) => void,
   ): Promise<string> {
     const response = await fetch(`${this.baseUrl}/api/chat/send`, {
@@ -375,6 +376,7 @@ export class AIHubService extends EventEmitter {
         provider,
         attachments,
         autonomy_mode: autonomyMode,
+        project_name: projectName,
       }),
     })
 

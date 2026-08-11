@@ -271,42 +271,91 @@ def analyze_project(project_path: str) -> dict:
                 'file': os.path.basename(xlsx_path), 'error': str(e)
             })
 
-    # 交叉引用：模板变量 vs Excel 列名
-    all_template_vars = set()
-    for tmpl in report['templates']:
-        all_template_vars.update(tmpl.get('variables', []))
-
-    all_excel_headers = set()
+    # === 依赖分析：模板 ↔ Excel 列 反向索引 ===
+    # 每列 → 来源 (excel 文件, sheet)
+    column_sources: dict[str, set[tuple[str, str]]] = defaultdict(set)
+    # 每个 (文件, sheet) → 列
+    sheet_columns: dict[tuple[str, str], set[str]] = defaultdict(set)
     for xl in report['excel_files']:
-        for sheet_info in xl.get('sheets', {}).values():
+        fname = xl.get('file', '')
+        for sheet_name, sheet_info in xl.get('sheets', {}).items():
+            if not isinstance(sheet_info, dict):
+                continue
             for h in sheet_info.get('headers', []):
-                if isinstance(h, str):
-                    all_excel_headers.add(h)
+                if isinstance(h, str) and h.strip():
+                    column_sources[h.strip()].add((fname, sheet_name))
+                    sheet_columns[(fname, sheet_name)].add(h.strip())
 
-    if all_template_vars and all_excel_headers:
-        # 模板用到但 Excel 中没有的变量
-        # 提取变量名（去掉前缀 info[' 和 ']）
-        var_names = set()
-        for v in all_template_vars:
+    def _template_column_names(vars_list, all_columns) -> tuple[set[str], set[str]]:
+        """提取模板引用的列名，返回 (实际列引用, 明确缺失的 info 引用)。
+
+        - info['x'] / info.x → 明确的数据列引用
+        - 裸变量名只有在与 Excel 列匹配时才计入（避免循环变量等噪音）
+        """
+        info_cols = set()
+        bare = set()
+        for v in vars_list:
             if "['" in v and "']" in v:
-                name = v.split("['")[-1].rstrip("']")
-                var_names.add(name)
+                info_cols.add(v.split("['")[-1].rstrip("']"))
             elif v.startswith('info.'):
-                var_names.add(v[5:])
+                info_cols.add(v[5:])
             else:
-                var_names.add(v)
+                bare.add(v)
+        # 纯数字列名视为索引访问噪音（info['0']），忽略
+        info_cols = {c for c in info_cols if c and not c.isdigit()}
+        bare = {c for c in bare if c and not c.isdigit()}
+        cols = (info_cols | {c for c in bare if c in all_columns})
+        missing = {c for c in info_cols if c not in all_columns}
+        return cols, missing
 
-        vars_without_excel = var_names - all_excel_headers
-        excel_without_vars = all_excel_headers - var_names
+    all_columns = set(column_sources.keys())
+    template_columns: dict[str, list[str]] = {}
+    column_templates: dict[str, set[str]] = defaultdict(set)
+    template_excel_sheets: dict[str, list[str]] = {}
+    missing_by_template: dict[str, list[str]] = {}
 
-        if vars_without_excel:
-            report['cross_reference']['template_vars_missing_in_excel'] = sorted(vars_without_excel)
-            report['summary']['total_suggestions'] += 1
-            report['summary']['warnings'] += 1
+    for tmpl in report['templates']:
+        tname = tmpl.get('file', '')
+        if not tname or 'error' in tmpl:
+            continue
+        cols, missing = _template_column_names(tmpl.get('variables', []), all_columns)
+        template_columns[tname] = sorted(cols)
+        for c in cols:
+            column_templates[c].add(tname)
+        if missing:
+            missing_by_template[tname] = sorted(missing)
+        srcs = set()
+        for c in cols:
+            for fs in column_sources.get(c, ()):
+                srcs.add(f"{fs[0]} / {fs[1]}")
+        template_excel_sheets[tname] = sorted(srcs)
 
-        if excel_without_vars:
-            report['cross_reference']['excel_columns_unused_in_templates'] = sorted(excel_without_vars)
-            report['summary']['total_suggestions'] += 1
-            report['summary']['infos'] += 1
+    referenced_columns = set(column_templates.keys())
+    unused_by_sheet: dict[str, list[str]] = {}
+    for (fname, sname), cols in sheet_columns.items():
+        unused = sorted(cols - referenced_columns)
+        if unused:
+            unused_by_sheet[f"{fname} / {sname}"] = unused
+
+    report['dependencies'] = {
+        'template_columns': template_columns,                     # 每个模板引用的列
+        'column_templates': {c: sorted(v) for c, v in column_templates.items()},  # 每列被哪些模板引用（反向索引）
+        'template_excel_sheets': template_excel_sheets,           # 模板引用列来自哪些表
+        'unused_columns_by_sheet': unused_by_sheet,               # 未被任何模板引用的列（按表）
+    }
+
+    # 交叉引用问题（按模板细粒度；missing_by_template 已在上面模板循环中计算）
+    if missing_by_template:
+        report['cross_reference']['missing_by_template'] = missing_by_template
+        report['summary']['total_suggestions'] += 1
+        report['summary']['warnings'] += 1
+        all_missing = sorted({c for m in missing_by_template.values() for c in m})
+        report['cross_reference']['template_vars_missing_in_excel'] = all_missing
+        report['summary']['total_suggestions'] += 1
+        report['summary']['warnings'] += 1
+    if unused_by_sheet:
+        report['cross_reference']['excel_columns_unused_in_templates'] = unused_by_sheet
+        report['summary']['total_suggestions'] += 1
+        report['summary']['infos'] += 1
 
     return report

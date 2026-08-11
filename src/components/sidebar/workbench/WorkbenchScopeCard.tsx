@@ -2,11 +2,11 @@ import { FolderOpen, ExternalLink, X } from 'lucide-react'
 import clsx from 'clsx'
 import { useTranslation } from 'react-i18next'
 import type { ProjectInfo, ProjectStatus } from '@/types/project'
+import type { ProjectInfoDetail } from '@/types/ipc'
 
 type WorkbenchScopeCardProps = {
   selectedProject: ProjectInfo | null
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- projectInfo 运行时形状与消费方期望不一致，待数据模型重构
-  projectInfo: any
+  projectInfo: ProjectInfoDetail | null
   projects: ProjectInfo[]
   selectedProjectIds: string[]
   projectStatuses: Record<string, ProjectStatus>

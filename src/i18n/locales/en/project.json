@@ -397,5 +397,58 @@
     "confirmDeleteYamlMessage": "Are you sure you want to delete all YAML files?",
     "confirmDeleteSn": "Confirm Delete Serial Numbers",
     "confirmDeleteSnMessage": "Are you sure you want to delete all serial numbers?"
+  },
+  "dependencyAnalysis": {
+    "title": "Dependency Analysis",
+    "desc": "Template ↔ Excel column reverse index",
+    "refresh": "Refresh",
+    "loading": "Analyzing...",
+    "run": "Analyze",
+    "noData": "No data (select a project first)",
+    "templateColumns": "Template columns",
+    "columnTemplates": "Column → templates",
+    "missing": "Missing columns",
+    "unused": "Unused columns",
+    "sources": "Sources",
+    "noTemplates": "No .j2 templates",
+    "error": "Analysis failed"
+  },
+  "proofread": {
+    "title": "Proofread",
+    "refresh": "Proofread",
+    "run": "Run proofread",
+    "loading": "Proofreading...",
+    "noIssues": "✓ No issues found",
+    "errors": "Errors",
+    "warnings": "Warnings",
+    "total": "Issues"
+  },
+  "snippet": {
+    "title": "Snippets",
+    "save": "Save",
+    "savePlaceholder": "Save selection as snippet...",
+    "inserted": "Inserted",
+    "deleted": "Deleted",
+    "saved": "Snippet saved",
+    "empty": "No snippets",
+    "insert": "Insert",
+    "insertContent": "Insert content",
+    "insertInclude": "Insert include",
+    "delete": "Delete"
+  },
+  "templateAsset": {
+    "title": "Template Assets",
+    "versions": "Versions",
+    "preview": "Preview",
+    "snapshot": "Snapshot",
+    "restore": "Restore",
+    "previewRun": "Render preview",
+    "historyEmpty": "No versions yet",
+    "notePlaceholder": "Version note (optional)",
+    "restored": "Version restored",
+    "snapshotted": "Snapshot created",
+    "previewEmpty": "Click render preview to see output",
+    "device": "Device",
+    "showAll": "All"
   }
 }

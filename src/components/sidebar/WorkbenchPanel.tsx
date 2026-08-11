@@ -2,12 +2,15 @@ import { useProjectStore } from '@/stores/project.store'
 import { useRenderStore } from '@/stores/render.store'
 import { useEditorStore, type EditorTab } from '@/stores/editor.store'
 import { useUIStore } from '@/stores/ui.store'
+import type { ProjectInfoDetail } from '@/types/ipc'
 import { showSuccess, showError } from '@/components/ui/Toast'
 import { useTranslation } from 'react-i18next'
 import clsx from 'clsx'
 import React, { useState, useEffect } from 'react'
 import { WorkbenchScopeCard } from './workbench/WorkbenchScopeCard'
 import { WorkbenchReadinessCard } from './workbench/WorkbenchReadinessCard'
+import { WorkbenchDependencyCard } from './workbench/WorkbenchDependencyCard'
+import { WorkbenchProofreadCard } from './workbench/WorkbenchProofreadCard'
 import { WorkbenchOutputCard } from './workbench/WorkbenchOutputCard'
 import { WorkbenchLabelCard } from './workbench/WorkbenchLabelCard'
 import { WorkbenchActionCard } from './workbench/WorkbenchActionCard'
@@ -49,13 +52,12 @@ export const WorkbenchPanel = React.memo(function WorkbenchPanel() {
   const isDark = useUIStore((s) => s.isDark)
   const setActiveActivity = useUIStore((s) => s.setActiveActivity)
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- projectInfo 运行时形状为 parameters() 数组，与消费方期望的项目信息对象不一致，需在数据模型重构中统一
-  const [projectInfo, setProjectInfo] = useState<any>(null)
+  const [projectInfo, setProjectInfo] = useState<ProjectInfoDetail | null>(null)
 
   useEffect(() => {
     if (selectedProject) {
       window.electron.project
-        .parameters(String(selectedProject.id))
+        .info(String(selectedProject.id))
         .then(setProjectInfo)
         .catch(() => setProjectInfo(null))
     } else {
@@ -179,6 +181,14 @@ export const WorkbenchPanel = React.memo(function WorkbenchPanel() {
           onValidateExcel={handleValidateExcel}
           onClearValidation={clearValidationResults}
         />
+
+        <div className={clsx('border-t', isDark ? 'border-gray-700' : 'border-gray-200')} />
+
+        <WorkbenchDependencyCard selectedProject={selectedProject} isDark={isDark} />
+
+        <div className={clsx('border-t', isDark ? 'border-gray-700' : 'border-gray-200')} />
+
+        <WorkbenchProofreadCard selectedProject={selectedProject} isDark={isDark} />
 
         <div className={clsx('border-t', isDark ? 'border-gray-700' : 'border-gray-200')} />
 
