@@ -1,6 +1,6 @@
 {
   "name": "magiccommander",
-  "version": "3.6.0",
+  "version": "3.6.1",
   "description": "MagicCommander - 网络设备配置管理工具",
   "main": "dist-electron/main.js",
   "author": "Magic Commander Team",
@@ -43,6 +43,7 @@
     "iconv-lite": "^0.7.2",
     "lucide-react": "^0.344.0",
     "mammoth": "^1.12.0",
+    "monaco-editor": "^0.55.1",
     "qrcode": "^1.5.4",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",

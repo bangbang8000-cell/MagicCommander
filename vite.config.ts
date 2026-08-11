@@ -17,7 +17,7 @@ export default defineConfig({
           'state-vendor': ['zustand'],
           'ui-vendor': ['lucide-react'],
           'excel-vendor': ['xlsx'],
-          'monaco-vendor': ['@monaco-editor/react'],
+          'monaco-vendor': ['monaco-editor', '@monaco-editor/react'],
           'resizable-vendor': ['react-resizable-panels'],
         },
       },
