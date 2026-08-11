@@ -3,8 +3,6 @@
  * 用于加载页面展示
  * 翻译键存储在 welcome.json 的 networkQuotes 命名空间下
  */
-import i18n from '@/i18n'
-
 const QUOTE_KEYS = [
   'welcome:networkQuotes.q0',
   'welcome:networkQuotes.q1',

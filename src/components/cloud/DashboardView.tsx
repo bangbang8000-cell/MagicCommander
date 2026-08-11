@@ -4,10 +4,7 @@ import { usePlatformStore } from '@/stores/platform.store'
 import { useUIStore } from '@/stores/ui.store'
 import { client } from '@/api/platform'
 import type { RemoteTemplate, RemoteProject } from '@/api/platform'
-import {
-  LayoutDashboard, Package, FolderGit2, Wifi, WifiOff,
-  Loader2, ExternalLink, Clock,
-} from 'lucide-react'
+import { Package, FolderGit2, Wifi, WifiOff, Loader2, ExternalLink, Clock } from 'lucide-react'
 
 interface DashboardData {
   template_count: number
@@ -68,7 +65,9 @@ export function DashboardView() {
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center h-full text-gray-400 dark:text-gray-500 gap-3 p-8">
-        <p className="text-sm text-red-500">{t('cloud:dashboard.loadFailed')}: {error}</p>
+        <p className="text-sm text-red-500">
+          {t('cloud:dashboard.loadFailed')}: {error}
+        </p>
         <button
           onClick={fetchDashboard}
           className="px-4 py-2 text-xs text-white bg-primary-500 hover:bg-primary-600 rounded-md transition-colors"
@@ -144,10 +143,15 @@ export function DashboardView() {
         ) : (
           <div className="space-y-1">
             {d.recent_templates.slice(0, 5).map((item, i) => (
-              <div key={i} className="flex items-center justify-between py-1.5 px-2 rounded hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+              <div
+                key={i}
+                className="flex items-center justify-between py-1.5 px-2 rounded hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+              >
                 <div className="flex items-center gap-2 min-w-0">
                   <Package size={12} className="text-gray-400 shrink-0" />
-                  <span className="text-xs text-gray-700 dark:text-gray-300 truncate">{item.owner}/{item.name}</span>
+                  <span className="text-xs text-gray-700 dark:text-gray-300 truncate">
+                    {item.owner}/{item.name}
+                  </span>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
                   <span className="text-[10px] text-gray-400 flex items-center gap-1">
@@ -180,7 +184,10 @@ export function DashboardView() {
         ) : (
           <div className="space-y-1">
             {d.recent_projects.slice(0, 5).map((p, i) => (
-              <div key={i} className="flex items-center justify-between py-1.5 px-2 rounded hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+              <div
+                key={i}
+                className="flex items-center justify-between py-1.5 px-2 rounded hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+              >
                 <div className="flex items-center gap-2 min-w-0">
                   <FolderGit2 size={12} className="text-gray-400 shrink-0" />
                   <span className="text-xs text-gray-700 dark:text-gray-300 truncate">{p.full_name}</span>

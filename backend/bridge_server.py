@@ -22,7 +22,7 @@ _progress_lock = threading.Lock()
 def _python(*args: str, timeout: int = 120) -> dict:
     """Run main.py with args and return parsed JSON lines."""
     cmd = [sys.executable, str(BACKEND_DIR / "main.py"), *args]
-    result = subprocess.run(cmd, capture_output=True, text=True, cwd=str(BACKEND_DIR), timeout=timeout)
+    result = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", cwd=str(BACKEND_DIR), timeout=timeout)
     lines = []
     for line in result.stdout.splitlines():
         try:
@@ -38,7 +38,7 @@ def _python_stream(*args: str, timeout: int = 120) -> dict:
     """Run main.py with args, stream progress lines via global queue, return final output."""
     cmd = [sys.executable, str(BACKEND_DIR / "main.py"), *args]
     proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                            text=True, cwd=str(BACKEND_DIR))
+                            text=True, encoding="utf-8", cwd=str(BACKEND_DIR))
     lines = []
     try:
         for line in proc.stdout:

@@ -53,7 +53,12 @@ export function WorkbenchLabelCard({ selectedProjectIds, isDark }: WorkbenchLabe
     <>
       <div className={clsx('border-t', isDark ? 'border-gray-700' : 'border-gray-200')} />
       <div>
-        <h4 className={clsx('text-xs font-semibold mb-2 flex items-center gap-1', isDark ? 'text-gray-200' : 'text-gray-700')}>
+        <h4
+          className={clsx(
+            'text-xs font-semibold mb-2 flex items-center gap-1',
+            isDark ? 'text-gray-200' : 'text-gray-700',
+          )}
+        >
           <FileText size={12} />
           {t('label.title')}
         </h4>
@@ -111,7 +116,12 @@ export function WorkbenchLabelCard({ selectedProjectIds, isDark }: WorkbenchLabe
         </div>
 
         {showPrintConfig && (
-          <div className={clsx('mt-2 border rounded p-2 space-y-2', isDark ? 'bg-gray-800/60 border-gray-700' : 'bg-gray-50 border-gray-200')}>
+          <div
+            className={clsx(
+              'mt-2 border rounded p-2 space-y-2',
+              isDark ? 'bg-gray-800/60 border-gray-700' : 'bg-gray-50 border-gray-200',
+            )}
+          >
             <h5 className={clsx('text-[11px] font-semibold', isDark ? 'text-gray-200' : 'text-gray-700')}>
               {t('label.printConfig')}
             </h5>
@@ -122,8 +132,13 @@ export function WorkbenchLabelCard({ selectedProjectIds, isDark }: WorkbenchLabe
                 </label>
                 <select
                   value={printConfig.format}
-                  onChange={(e) => setPrintConfig((p) => ({ ...p, format: e.target.value as any }))}
-                  className={clsx('flex-1 px-1 py-0.5 border rounded', isDark ? 'bg-gray-900 border-gray-600 text-gray-200' : 'bg-white border-gray-300 text-gray-900')}
+                  onChange={(e) =>
+                    setPrintConfig((p) => ({ ...p, format: e.target.value as LabelPrintConfig['format'] }))
+                  }
+                  className={clsx(
+                    'flex-1 px-1 py-0.5 border rounded',
+                    isDark ? 'bg-gray-900 border-gray-600 text-gray-200' : 'bg-white border-gray-300 text-gray-900',
+                  )}
                 >
                   <option value="A4">A4</option>
                   <option value="A5">A5</option>
@@ -136,8 +151,13 @@ export function WorkbenchLabelCard({ selectedProjectIds, isDark }: WorkbenchLabe
                 </label>
                 <select
                   value={printConfig.orientation}
-                  onChange={(e) => setPrintConfig((p) => ({ ...p, orientation: e.target.value as any }))}
-                  className={clsx('flex-1 px-1 py-0.5 border rounded', isDark ? 'bg-gray-900 border-gray-600 text-gray-200' : 'bg-white border-gray-300 text-gray-900')}
+                  onChange={(e) =>
+                    setPrintConfig((p) => ({ ...p, orientation: e.target.value as LabelPrintConfig['orientation'] }))
+                  }
+                  className={clsx(
+                    'flex-1 px-1 py-0.5 border rounded',
+                    isDark ? 'bg-gray-900 border-gray-600 text-gray-200' : 'bg-white border-gray-300 text-gray-900',
+                  )}
                 >
                   <option value="portrait">{t('label.portrait')}</option>
                   <option value="landscape">{t('label.landscape')}</option>
@@ -153,7 +173,10 @@ export function WorkbenchLabelCard({ selectedProjectIds, isDark }: WorkbenchLabe
                   onChange={(e) => setPrintConfig((p) => ({ ...p, labelsPerPage: parseInt(e.target.value) || 1 }))}
                   min={1}
                   max={32}
-                  className={clsx('flex-1 px-1 py-0.5 border rounded w-16', isDark ? 'bg-gray-900 border-gray-600 text-gray-200' : 'bg-white border-gray-300 text-gray-900')}
+                  className={clsx(
+                    'flex-1 px-1 py-0.5 border rounded w-16',
+                    isDark ? 'bg-gray-900 border-gray-600 text-gray-200' : 'bg-white border-gray-300 text-gray-900',
+                  )}
                 />
               </div>
             </div>

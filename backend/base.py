@@ -4,6 +4,7 @@ import logging
 import os
 import jinja2
 from jinja2 import Environment, FileSystemLoader, ext
+from jinja2.sandbox import SandboxedEnvironment
 from pandas import read_excel
 from numpy import int64 as numpy_int64
 from time import strftime, localtime
@@ -130,7 +131,8 @@ class Base:
         """读取赋值表的内容"""
         mid_path = self.workspace
         filepath = os.path.join(mid_path, project_name, filename, document)
-        data = read_excel(filepath, sheet_name=None, keep_default_na=False)
+        # 只读取目标 sheet，避免解析工作簿全部 sheet（大数据量性能优化）
+        data = read_excel(filepath, sheet_name=[sheet], keep_default_na=False)
 
         for sheet1, value in data.items():
             if sheet1 != sheet:
@@ -148,7 +150,7 @@ class Base:
         """读取参数表的内容"""
         mid_path = self.workspace
         filepath = os.path.join(mid_path, project_name, filename, document)
-        data = read_excel(filepath, sheet_name=None, keep_default_na=False)
+        data = read_excel(filepath, sheet_name=[sheet], keep_default_na=False)
 
         for info in self.devices.values():
             hostname_now = info['设备名']
@@ -165,7 +167,7 @@ class Base:
         """读取对称表的内容"""
         mid_path = self.workspace
         filepath = os.path.join(mid_path, project_name, filename, document)
-        data = read_excel(filepath, sheet_name=None, keep_default_na=False)
+        data = read_excel(filepath, sheet_name=[sheet], keep_default_na=False)
 
         for excel_sheet, value in data.items():
             if excel_sheet != sheet:
@@ -215,7 +217,8 @@ class Base:
             self._ensure_dir(os.path.join(output_base, r))
 
         jinja2_extensions = (jinja2.ext.do, jinja2.ext.i18n, jinja2.ext.loopcontrols)
-        env = Environment(loader=FileSystemLoader(template_path), extensions=jinja2_extensions)
+        # 使用 SandboxedEnvironment 防止模板中执行任意 Python 代码（RCE）
+        env = SandboxedEnvironment(loader=FileSystemLoader(template_path), extensions=jinja2_extensions)
 
         for info in self.devices.values():
             hostname_now = info['设备名']
@@ -243,7 +246,7 @@ class Base:
         else:
             return []
 
-        env = Environment(loader=FileSystemLoader(template_path))
+        env = SandboxedEnvironment(loader=FileSystemLoader(template_path))
         results = []
 
         for info in self.devices.values():

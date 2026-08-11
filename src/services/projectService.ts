@@ -8,17 +8,30 @@ import type { LabelPrintConfig } from '@/types'
 
 const electron = window.electron
 
+export interface FileTreeNode {
+  name: string
+  path: string
+  isDirectory: boolean
+  children?: FileTreeNode[]
+}
+
+export interface ExcelSheet {
+  name: string
+  headers: string[]
+  rows: Record<string, unknown>[]
+}
+
 export interface ProjectService {
   listProjects(): Promise<ProjectInfo[]>
   createProject(name: string): Promise<void>
   deleteProject(ids: string[]): Promise<void>
-  getProjectStructure(name: string): Promise<any[]>
-  getProjectParameters(id: string): Promise<any[]>
+  getProjectStructure(name: string): Promise<FileTreeNode[]>
+  getProjectParameters(id: string): Promise<Array<{ file: string; path: string }>>
   readFile(projectId: number, filePath: string): Promise<string>
   writeFile(projectId: number, filePath: string, content: string): Promise<void>
-  listFiles(projectId: string, fileType?: string): Promise<any[]>
-  readExcel(projectId: number, filePath: string): Promise<any[]>
-  writeExcel(projectId: number, filePath: string, sheets: any[]): Promise<void>
+  listFiles(projectId: string, fileType?: string): Promise<Array<{ name: string; path: string; isDirectory: boolean }>>
+  readExcel(projectId: number, filePath: string): Promise<ExcelSheet[]>
+  writeExcel(projectId: number, filePath: string, sheets: ExcelSheet[]): Promise<void>
   readDocx(projectId: number, filePath: string): Promise<string>
   readDocxBuffer(projectId: number, filePath: string): Promise<ArrayBuffer>
   renderProject(ids: string[]): Promise<void>
@@ -64,7 +77,7 @@ class ProjectServiceImpl implements ProjectService {
     }
   }
 
-  async getProjectStructure(name: string): Promise<any[]> {
+  async getProjectStructure(name: string): Promise<FileTreeNode[]> {
     try {
       return (await electron.project.getStructure(name)) || []
     } catch (error) {
@@ -73,10 +86,10 @@ class ProjectServiceImpl implements ProjectService {
     }
   }
 
-  async getProjectParameters(id: string): Promise<any[]> {
+  async getProjectParameters(id: string): Promise<Array<{ file: string; path: string }>> {
     try {
       const result = await electron.project.parameters(id)
-      return (result as any[]) || []
+      return (result as Array<{ file: string; path: string }>) || []
     } catch (error) {
       console.error('[ProjectService] getProjectParameters error:', error)
       throw error
@@ -101,17 +114,20 @@ class ProjectServiceImpl implements ProjectService {
     }
   }
 
-  async listFiles(projectId: string, fileType?: string): Promise<any[]> {
+  async listFiles(
+    projectId: string,
+    fileType?: string,
+  ): Promise<Array<{ name: string; path: string; isDirectory: boolean }>> {
     try {
       const result = await electron.project.listFiles(projectId, fileType)
-      return (result as any[]) || []
+      return (result as Array<{ name: string; path: string; isDirectory: boolean }>) || []
     } catch (error) {
       console.error('[ProjectService] listFiles error:', error)
       throw error
     }
   }
 
-  async readExcel(projectId: number, filePath: string): Promise<any[]> {
+  async readExcel(projectId: number, filePath: string): Promise<ExcelSheet[]> {
     try {
       return (await electron.project.readExcel(projectId, filePath)) || []
     } catch (error) {
@@ -120,7 +136,7 @@ class ProjectServiceImpl implements ProjectService {
     }
   }
 
-  async writeExcel(projectId: number, filePath: string, sheets: any[]): Promise<void> {
+  async writeExcel(projectId: number, filePath: string, sheets: ExcelSheet[]): Promise<void> {
     try {
       await electron.project.writeExcel(projectId, filePath, sheets)
     } catch (error) {

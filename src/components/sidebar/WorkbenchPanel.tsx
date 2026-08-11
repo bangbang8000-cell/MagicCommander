@@ -49,6 +49,7 @@ export const WorkbenchPanel = React.memo(function WorkbenchPanel() {
   const isDark = useUIStore((s) => s.isDark)
   const setActiveActivity = useUIStore((s) => s.setActiveActivity)
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- projectInfo 运行时形状为 parameters() 数组，与消费方期望的项目信息对象不一致，需在数据模型重构中统一
   const [projectInfo, setProjectInfo] = useState<any>(null)
 
   useEffect(() => {
@@ -203,10 +204,7 @@ export const WorkbenchPanel = React.memo(function WorkbenchPanel() {
           onDeleteYaml={handleDeleteYaml}
         />
 
-        <WorkbenchLabelCard
-          selectedProjectIds={selectedProjectIds}
-          isDark={isDark}
-        />
+        <WorkbenchLabelCard selectedProjectIds={selectedProjectIds} isDark={isDark} />
 
         <div className={clsx('border-t', isDark ? 'border-gray-700' : 'border-gray-200')} />
 
@@ -223,11 +221,7 @@ export const WorkbenchPanel = React.memo(function WorkbenchPanel() {
         {dryRunResults.length > 0 && (
           <>
             <div className={clsx('border-t', isDark ? 'border-gray-700' : 'border-gray-200')} />
-            <WorkbenchDryRunResults
-              results={dryRunResults}
-              isDark={isDark}
-              onClear={clearDryRunResults}
-            />
+            <WorkbenchDryRunResults results={dryRunResults} isDark={isDark} onClear={clearDryRunResults} />
           </>
         )}
 

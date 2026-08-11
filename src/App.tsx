@@ -3,7 +3,7 @@ import clsx from 'clsx'
 import { useProjectStore } from './stores/project.store'
 import { useLogStore } from './stores/log.store'
 import { useRenderStore } from './stores/render.store'
-import { useUIStore } from './stores/ui.store'
+import { useUIStore, type ActivityType } from './stores/ui.store'
 import { useEditorStore, type EditorTab } from './stores/editor.store'
 import { usePlatformStore } from './stores/platform.store'
 import { client } from './api/platform'
@@ -30,19 +30,16 @@ import { LoadingScreen } from './components/common/LoadingScreen'
 import { errorService } from '@/services/errorService'
 import type { EditorTabMeta } from './types/editor'
 import i18n from './i18n'
-import { RTL_LOCALES } from './i18n/resources'
+import { RTL_LOCALES, type SupportedLocale } from './i18n/resources'
 
 export default function App() {
   const fetchProjects = useProjectStore((s) => s.fetchProjects)
   const selectProject = useProjectStore((s) => s.selectProject)
   const createProject = useProjectStore((s) => s.createProject)
-  const subscribeProgress = useRenderStore((s) => s.subscribeProgress)
-  const subscribeLog = useLogStore((s) => s.subscribeLog)
   const panelVisible = useUIStore((s) => s.panelVisible)
   const toggleSidebar = useUIStore((s) => s.toggleSidebar)
   const setActiveActivity = useUIStore((s) => s.setActiveActivity)
   const isDark = useUIStore((s) => s.isDark)
-  const theme = useUIStore((s) => s.theme)
   const openFile = useEditorStore((s) => s.openFile)
   const saveActiveTab = useEditorStore((s) => s.saveActiveTab)
   const closeTab = useEditorStore((s) => s.closeTab)
@@ -88,7 +85,7 @@ export default function App() {
   useEffect(() => {
     const handleLanguageChanged = (lng: string) => {
       const root = document.documentElement
-      root.dir = RTL_LOCALES.includes(lng as any) ? 'rtl' : 'ltr'
+      root.dir = RTL_LOCALES.includes(lng as SupportedLocale) ? 'rtl' : 'ltr'
       root.lang = lng
     }
     handleLanguageChanged(i18n.language)
@@ -128,9 +125,15 @@ export default function App() {
     const { subscribeProgress } = useRenderStore.getState()
     const { subscribeLog, subscribeRenderProgressLog, addLog } = useLogStore.getState()
 
-    subscribeProgress && (progressUnsubRef.current = subscribeProgress())
-    subscribeLog && (logUnsubRef.current = subscribeLog())
-    subscribeRenderProgressLog && (renderLogUnsubRef.current = subscribeRenderProgressLog())
+    if (subscribeProgress) {
+      progressUnsubRef.current = subscribeProgress()
+    }
+    if (subscribeLog) {
+      logUnsubRef.current = subscribeLog()
+    }
+    if (subscribeRenderProgressLog) {
+      renderLogUnsubRef.current = subscribeRenderProgressLog()
+    }
 
     addLog('info', '应用启动完成')
     const safeLogWrite = (level: string, message: string) => {
@@ -138,7 +141,9 @@ export default function App() {
         if (window.electron && window.electron.log) {
           window.electron.log.write(level, message)
         }
-      } catch {}
+      } catch {
+        /* 忽略预期错误 */
+      }
     }
     safeLogWrite('info', '应用启动完成')
     const versions = window.electron?.versions
@@ -154,7 +159,12 @@ export default function App() {
     addLog('info', `Electron 环境已就绪`)
     addLog('info', `运行平台: ${platform} (${arch})`)
 
-    const waitForHydration = (store: any): Promise<void> => {
+    const waitForHydration = (store: {
+      persist: {
+        hasHydrated: () => boolean
+        onFinishHydration: (cb: () => void) => () => void
+      }
+    }): Promise<void> => {
       return new Promise((resolve) => {
         if (store.persist.hasHydrated()) {
           resolve()
@@ -185,7 +195,7 @@ export default function App() {
         const projectsCount = projState.projects.length
 
         if (savedProjectName !== null && projectsCount > 0) {
-          const matched = projState.projects.find((p: any) => p.name === savedProjectName)
+          const matched = projState.projects.find((p: { name: string }) => p.name === savedProjectName)
           if (matched) {
             selectProjectRef.current(matched)
           }
@@ -232,7 +242,7 @@ export default function App() {
       logUnsubRef.current = null
       renderLogUnsubRef.current = null
     }
-  }, [])
+  }, [restoreTabs])
 
   const [cheatsheetPending, setCheatsheetPending] = useState(false)
   useHotkey('k', () => setCheatsheetPending(true), [])
@@ -249,28 +259,120 @@ export default function App() {
 
   // 命令面板：从快捷键注册表 + 菜单构建统一命令列表
   const commandItems = useMemo<CommandItem[]>(() => {
-    const handler = (activity: string) => () => setActiveActivity(activity as any)
+    const handler = (activity: string) => () => setActiveActivity(activity as ActivityType)
     const extra: CommandItem[] = [
-      { id: 'newProject', label: i18n.t('common:menu.newProject'), category: '文件', shortcut: 'Ctrl+N', action: () => createProject(`Project_${Date.now().toString(36).toUpperCase()}`) },
-      { id: 'openProjectDir', label: i18n.t('common:menu.openProjectDir'), category: '文件', action: async () => { try { const p = await window.electron?.app?.getPath?.('workspace'); if (p) window.electron?.shell?.showItemInFolder?.(p); } catch {} } },
-      { id: 'undo', label: i18n.t('common:menu.undo'), category: '编辑', shortcut: 'Ctrl+Z', action: () => document.execCommand('undo') },
-      { id: 'redo', label: i18n.t('common:menu.redo'), category: '编辑', shortcut: 'Ctrl+Y', action: () => document.execCommand('redo') },
-      { id: 'copy', label: i18n.t('common:menu.copy'), category: '编辑', shortcut: 'Ctrl+C', action: () => document.execCommand('copy') },
-      { id: 'paste', label: i18n.t('common:menu.paste'), category: '编辑', shortcut: 'Ctrl+V', action: () => document.execCommand('paste') },
-      { id: 'cheatsheet', label: i18n.t('common:menu.cheatsheet'), category: '视图', shortcut: 'Ctrl+K Ctrl+S', action: () => setCheatsheetOpen(true) },
+      {
+        id: 'newProject',
+        label: i18n.t('common:menu.newProject'),
+        category: '文件',
+        shortcut: 'Ctrl+N',
+        action: () => createProject(`Project_${Date.now().toString(36).toUpperCase()}`),
+      },
+      {
+        id: 'openProjectDir',
+        label: i18n.t('common:menu.openProjectDir'),
+        category: '文件',
+        action: async () => {
+          try {
+            const p = await window.electron?.app?.getPath?.('workspace')
+            if (p) window.electron?.shell?.showItemInFolder?.(p)
+          } catch {
+            /* 忽略预期错误 */
+          }
+        },
+      },
+      {
+        id: 'undo',
+        label: i18n.t('common:menu.undo'),
+        category: '编辑',
+        shortcut: 'Ctrl+Z',
+        action: () => document.execCommand('undo'),
+      },
+      {
+        id: 'redo',
+        label: i18n.t('common:menu.redo'),
+        category: '编辑',
+        shortcut: 'Ctrl+Y',
+        action: () => document.execCommand('redo'),
+      },
+      {
+        id: 'copy',
+        label: i18n.t('common:menu.copy'),
+        category: '编辑',
+        shortcut: 'Ctrl+C',
+        action: () => document.execCommand('copy'),
+      },
+      {
+        id: 'paste',
+        label: i18n.t('common:menu.paste'),
+        category: '编辑',
+        shortcut: 'Ctrl+V',
+        action: () => document.execCommand('paste'),
+      },
+      {
+        id: 'cheatsheet',
+        label: i18n.t('common:menu.cheatsheet'),
+        category: '视图',
+        shortcut: 'Ctrl+K Ctrl+S',
+        action: () => setCheatsheetOpen(true),
+      },
     ]
     const fromRegistry: CommandItem[] = HOTKEY_REGISTRY.map((h) => {
       let action: () => void
       switch (h.combo) {
-        case 'ctrl+s': action = () => saveActiveTab(); break
-        case 'ctrl+w': action = () => { const s = useEditorStore.getState(); const tid = s.splitMode !== 'none' && s.splitTabs.some(t => t.id === s.activeSplitTabId) ? s.activeSplitTabId : s.activeTabId; if (tid) closeTab(tid); }; break
-        case 'ctrl+shift+t': action = () => reopenLastClosed(); break
-        case 'ctrl+b': action = () => toggleSidebar(); break
-        case 'ctrl+j': action = () => useUIStore.getState().togglePanel(); break
-        case 'ctrl+\\\\': action = () => useEditorStore.getState().setSplitMode(useEditorStore.getState().splitMode === 'vertical' ? 'none' : 'vertical'); break
-        case 'ctrl+k ctrl+s': action = () => setCheatsheetOpen(true); break
-        case 'f5': action = () => window.location.reload(); break
-        default: action = () => handler(h.combo.includes('shift+h') ? 'chat' : h.combo.includes('shift+e') ? 'explorer' : h.combo.includes('shift+f') ? 'search' : h.combo.includes('shift+r') ? 'workbench' : h.combo.includes('shift+o') ? 'output' : h.combo.includes('shift+w') ? 'workbench' : h.combo.includes(',') ? 'settings' : 'search')
+        case 'ctrl+s':
+          action = () => saveActiveTab()
+          break
+        case 'ctrl+w':
+          action = () => {
+            const s = useEditorStore.getState()
+            const tid =
+              s.splitMode !== 'none' && s.splitTabs.some((t) => t.id === s.activeSplitTabId)
+                ? s.activeSplitTabId
+                : s.activeTabId
+            if (tid) closeTab(tid)
+          }
+          break
+        case 'ctrl+shift+t':
+          action = () => reopenLastClosed()
+          break
+        case 'ctrl+b':
+          action = () => toggleSidebar()
+          break
+        case 'ctrl+j':
+          action = () => useUIStore.getState().togglePanel()
+          break
+        case 'ctrl+\\\\':
+          action = () =>
+            useEditorStore
+              .getState()
+              .setSplitMode(useEditorStore.getState().splitMode === 'vertical' ? 'none' : 'vertical')
+          break
+        case 'ctrl+k ctrl+s':
+          action = () => setCheatsheetOpen(true)
+          break
+        case 'f5':
+          action = () => window.location.reload()
+          break
+        default:
+          action = () =>
+            handler(
+              h.combo.includes('shift+h')
+                ? 'chat'
+                : h.combo.includes('shift+e')
+                  ? 'explorer'
+                  : h.combo.includes('shift+f')
+                    ? 'search'
+                    : h.combo.includes('shift+r')
+                      ? 'workbench'
+                      : h.combo.includes('shift+o')
+                        ? 'output'
+                        : h.combo.includes('shift+w')
+                          ? 'workbench'
+                          : h.combo.includes(',')
+                            ? 'settings'
+                            : 'search',
+            )
       }
       return { id: h.combo, label: h.label, category: h.category, shortcut: h.combo, action }
     })

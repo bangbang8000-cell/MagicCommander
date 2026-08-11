@@ -1,6 +1,11 @@
 import fs from 'fs'
 import path from 'path'
-import { computeProjectStatus, listTemplateInfosFromDir, type TemplateInfo, type TemplateProjectStatus } from './template.service'
+import {
+  computeProjectStatus,
+  listTemplateInfosFromDir,
+  type TemplateInfo,
+  type TemplateProjectStatus,
+} from './template.service'
 
 const INDEX_FILE = 'mc-workspace.json'
 
@@ -23,7 +28,9 @@ export interface WorkspaceIndex {
 }
 
 function isProjectLikeDir(dirPath: string): boolean {
-  return ['para.xlsx', 'excel', 'templates', 'output', 'yaml', 'output-label'].some((name) => fs.existsSync(path.join(dirPath, name)))
+  return ['para.xlsx', 'excel', 'templates', 'output', 'yaml', 'output-label'].some((name) =>
+    fs.existsSync(path.join(dirPath, name)),
+  )
 }
 
 export function scanWorkspaceIndex(workspaceDir: string): WorkspaceIndex {
@@ -57,7 +64,11 @@ export function scanWorkspaceIndex(workspaceDir: string): WorkspaceIndex {
 
 export function writeWorkspaceIndex(workspaceDir: string, index: WorkspaceIndex): void {
   fs.mkdirSync(workspaceDir, { recursive: true })
-  fs.writeFileSync(path.join(workspaceDir, INDEX_FILE), JSON.stringify({ ...index, updatedAt: new Date().toISOString() }, null, 2), 'utf-8')
+  fs.writeFileSync(
+    path.join(workspaceDir, INDEX_FILE),
+    JSON.stringify({ ...index, updatedAt: new Date().toISOString() }, null, 2),
+    'utf-8',
+  )
 }
 
 export function readWorkspaceIndex(workspaceDir: string): WorkspaceIndex {

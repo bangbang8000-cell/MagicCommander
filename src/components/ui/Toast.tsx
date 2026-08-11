@@ -18,6 +18,10 @@ let toastId = 0
 export function ToastContainer() {
   const [toasts, setToasts] = useState<ToastItem[]>([])
 
+  const removeToast = useCallback((id: number) => {
+    setToasts((prev) => prev.filter((t) => t.id !== id))
+  }, [])
+
   useEffect(() => {
     const show = (type: ToastType, message: string, duration = 4000) => {
       const id = ++toastId
@@ -34,11 +38,7 @@ export function ToastContainer() {
       delete (window as Window & { __showToast?: unknown }).__showToast
       delete (window as Window & { __removeToast?: unknown }).__removeToast
     }
-  }, [])
-
-  const removeToast = useCallback((id: number) => {
-    setToasts((prev) => prev.filter((t) => t.id !== id))
-  }, [])
+  }, [removeToast])
 
   return (
     <div className="fixed bottom-4 end-4 z-[100] flex flex-col gap-2 pointer-events-none">

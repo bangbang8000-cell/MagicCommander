@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { usePlatformStore } from '@/stores/platform.store'
 import { useUIStore } from '@/stores/ui.store'
 import { client, type VersionInfo } from '@/api/platform'
-import { Cloud, CloudOff, CloudRain, Wifi } from 'lucide-react'
+import { Cloud } from 'lucide-react'
 import clsx from 'clsx'
 
 type ConnectionState = 'unknown' | 'checking' | 'connected' | 'error'
@@ -68,10 +68,14 @@ export function CloudStatusIndicator() {
 
   const colorClass = (() => {
     switch (connState) {
-      case 'connected': return loggedIn ? 'text-green-400' : 'text-yellow-400'
-      case 'error': return 'text-red-400'
-      case 'checking': return 'text-gray-400 animate-pulse'
-      default: return 'text-gray-500'
+      case 'connected':
+        return loggedIn ? 'text-green-400' : 'text-yellow-400'
+      case 'error':
+        return 'text-red-400'
+      case 'checking':
+        return 'text-gray-400 animate-pulse'
+      default:
+        return 'text-gray-500'
     }
   })()
 
@@ -80,13 +84,20 @@ export function CloudStatusIndicator() {
     const parts: string[] = []
     switch (connState) {
       case 'connected':
-        parts.push(loggedIn
-          ? `${t('cloud:status.connected')} - ${t('cloud:status.loggedIn') || '已登录'}`
-          : `${t('cloud:status.connected')} - ${t('cloud:status.notLoggedIn')}`)
+        parts.push(
+          loggedIn
+            ? `${t('cloud:status.connected')} - ${t('cloud:status.loggedIn') || '已登录'}`
+            : `${t('cloud:status.connected')} - ${t('cloud:status.notLoggedIn')}`,
+        )
         break
-      case 'error': parts.push(t('cloud:status.error')); break
-      case 'checking': parts.push(t('cloud:status.connecting')); break
-      default: parts.push(t('cloud:status.disconnected'))
+      case 'error':
+        parts.push(t('cloud:status.error'))
+        break
+      case 'checking':
+        parts.push(t('cloud:status.connecting'))
+        break
+      default:
+        parts.push(t('cloud:status.disconnected'))
     }
     if (hasUpdate && versionInfo) {
       parts.push(`${t('cloud:status.updateAvailable') || '有新版本'}: ${versionInfo.latest_version}`)

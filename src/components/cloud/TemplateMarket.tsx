@@ -1,9 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
-import {
-  Package, Download, Loader2, Clock, Tag, User, ChevronLeft, ChevronRight,
-  ArrowDown, ArrowUp,
-} from 'lucide-react'
+import { Package, Download, Loader2, Clock, Tag, User, ChevronLeft, ChevronRight } from 'lucide-react'
 import { usePlatformStore } from '@/stores/platform.store'
 import { showError } from '@/components/ui/Toast'
 import type { RemoteTemplate } from '@/api/platform'
@@ -23,14 +20,8 @@ export function TemplateMarket({ searchQuery }: TemplateMarketProps) {
   const [sort, setSort] = useState<SortKey>('updated')
   const [installing, setInstalling] = useState<string | null>(null)
 
-  const {
-    remoteTemplates,
-    remoteLoading,
-    templateTotal,
-    loggedIn,
-    fetchRemoteTemplates,
-    downloadTemplate,
-  } = usePlatformStore()
+  const { remoteTemplates, remoteLoading, templateTotal, loggedIn, fetchRemoteTemplates, downloadTemplate } =
+    usePlatformStore()
 
   // Reset page when search or category changes
   useEffect(() => {
@@ -98,7 +89,10 @@ export function TemplateMarket({ searchQuery }: TemplateMarketProps) {
           {sortOptions.map((opt) => (
             <button
               key={opt.key}
-              onClick={() => { setSort(opt.key); setPage(1) }}
+              onClick={() => {
+                setSort(opt.key)
+                setPage(1)
+              }}
               className={`px-1.5 py-1 rounded text-[10px] transition-colors ${
                 sort === opt.key
                   ? 'bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200 font-medium'
@@ -127,9 +121,7 @@ export function TemplateMarket({ searchQuery }: TemplateMarketProps) {
 
         {loggedIn && !remoteLoading && remoteTemplates.length === 0 && (
           <div className="p-8 text-center text-sm text-gray-400 dark:text-gray-500">
-            {searchQuery
-              ? t('cloud:search.noResultsTemplates')
-              : t('cloud:noTemplates')}
+            {searchQuery ? t('cloud:search.noResultsTemplates') : t('cloud:noTemplates')}
           </div>
         )}
 
@@ -144,17 +136,13 @@ export function TemplateMarket({ searchQuery }: TemplateMarketProps) {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <Package size={14} className="text-primary-500 shrink-0" />
-                    <span className="text-sm font-medium text-gray-900 dark:text-white truncate">
-                      {template.name}
-                    </span>
+                    <span className="text-sm font-medium text-gray-900 dark:text-white truncate">{template.name}</span>
                     <span className="text-[10px] px-1 py-0.5 rounded bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400">
                       {template.category || t('cloud:categories.other') || '其他'}
                     </span>
                   </div>
                   {template.description && (
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-2">
-                      {template.description}
-                    </p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-2">{template.description}</p>
                   )}
                   <div className="flex items-center gap-3 mt-1.5">
                     <span className="text-[10px] text-gray-400 dark:text-gray-500 flex items-center gap-1">
@@ -174,7 +162,10 @@ export function TemplateMarket({ searchQuery }: TemplateMarketProps) {
                     {template.topics && template.topics.length > 0 && (
                       <span className="text-[10px] text-gray-400 dark:text-gray-500 flex items-center gap-1">
                         <Tag size={10} />
-                        {template.topics.filter(t => t !== 'magiccommander-template' && !t.startsWith('category-')).slice(0, 3).join(', ')}
+                        {template.topics
+                          .filter((t) => t !== 'magiccommander-template' && !t.startsWith('category-'))
+                          .slice(0, 3)
+                          .join(', ')}
                       </span>
                     )}
                   </div>
@@ -199,9 +190,7 @@ export function TemplateMarket({ searchQuery }: TemplateMarketProps) {
       {/* Pagination */}
       {loggedIn && totalPages > 1 && (
         <div className="flex items-center justify-between px-4 py-2 border-t border-gray-200 dark:border-gray-700 text-xs text-gray-500 dark:text-gray-400">
-          <span>
-            {t('cloud:pagination.info', { page, total: totalPages }) || `${page} / ${totalPages}`}
-          </span>
+          <span>{t('cloud:pagination.info', { page, total: totalPages }) || `${page} / ${totalPages}`}</span>
           <div className="flex items-center gap-1">
             <button
               onClick={() => setPage((p) => Math.max(1, p - 1))}
@@ -227,9 +216,7 @@ export function TemplateMarket({ searchQuery }: TemplateMarketProps) {
                   key={pageNum}
                   onClick={() => setPage(pageNum)}
                   className={`min-w-[24px] h-6 rounded text-center ${
-                    pageNum === page
-                      ? 'bg-primary-500 text-white'
-                      : 'hover:bg-gray-100 dark:hover:bg-gray-700'
+                    pageNum === page ? 'bg-primary-500 text-white' : 'hover:bg-gray-100 dark:hover:bg-gray-700'
                   }`}
                 >
                   {pageNum}

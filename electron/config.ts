@@ -6,6 +6,7 @@
 import * as path from 'path'
 import * as fs from 'fs'
 import { app } from 'electron'
+import versionJson from '../version.json'
 
 // 开发环境判断
 export const isDev = process.env.NODE_ENV === 'development' || !app.isPackaged
@@ -244,6 +245,14 @@ export function getCrashDumpsDir(): string {
   return crashDir
 }
 
+/** 从 version.json 读取版本信息（唯一事实来源） */
+const versionInfo: {
+  version: string
+  build: string
+  displayVersion: string
+  releaseDate: string
+} = versionJson
+
 /**
  * 应用配置常量
  */
@@ -297,11 +306,11 @@ export const APP_CONFIG = {
     UI_STATE_KEY: 'mc-ui-state',
   },
 
-  // 版本信息
+  // 版本信息（单一事实来源为仓库根目录 version.json）
   VERSION: {
-    CURRENT: '3.5.4',
-    BUILD: '26072403',
-    DISPLAY: 'V3.5.4 Build 26072403',
+    CURRENT: versionInfo.version,
+    BUILD: versionInfo.build,
+    DISPLAY: versionInfo.displayVersion,
     MIN_SUPPORTED_PYTHON: '3.8',
   },
 }

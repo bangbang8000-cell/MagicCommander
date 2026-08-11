@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useEditorStore } from '@/stores/editor.store'
+import { useEditorStore, type EditorTab } from '@/stores/editor.store'
 import { useUIStore } from '@/stores/ui.store'
 import { X, SplitSquareVertical, Layout, RotateCcw } from 'lucide-react'
 import clsx from 'clsx'
@@ -9,7 +9,6 @@ import { ExcelViewer } from './ExcelViewer'
 import { WordViewer } from './WordViewer'
 import { MarkdownViewer } from '@/components/common/MarkdownViewer'
 import { ContextMenu } from '@/components/ui/ContextMenu'
-import { UnsupportedViewer } from './UnsupportedViewer'
 import { Modal } from '@/components/ui/Modal'
 import { getFileTypeIcon } from '@/config/icons'
 
@@ -43,12 +42,26 @@ export function EditorArea() {
     }
   }, [openTabs, activeTabId, setActiveTab])
 
-  const activeTab = openTabs.find((t) => t.id === activeTabId) || null
-  const activeSplitTab = splitTabs.find((t) => t.id === activeSplitTabId) || null
-
   const pendingTab = [...openTabs, ...splitTabs].find((t) => t.id === pendingCloseTabId)
 
-  const renderEditor = (tab: typeof activeTab) => {
+  /**
+   * keep-alive 渲染：同时挂载所有打开的标签，仅显示活跃的。
+   * 避免切换标签时 Monaco 实例卸载重建（丢失 undo/redo 栈），并减少重新加载。
+   */
+  const renderKeepAlive = (tabs: typeof openTabs, activeId: string | null) => {
+    if (tabs.length === 0) return renderEditor(null)
+    return (
+      <div className="w-full h-full">
+        {tabs.map((tab) => (
+          <div key={tab.id} className={`w-full h-full ${tab.id === activeId ? '' : 'hidden'}`}>
+            {renderEditor(tab)}
+          </div>
+        ))}
+      </div>
+    )
+  }
+
+  const renderEditor = (tab: EditorTab | null) => {
     if (!tab) {
       return (
         <div
@@ -279,9 +292,7 @@ export function EditorArea() {
       <div className="w-full h-full flex flex-col">
         <div className={`flex-1 flex flex-col min-h-0 ${isDark ? 'bg-gray-900' : 'bg-white'}`}>
           {renderTabBar(openTabs, activeTabId, false)}
-          <div className="flex-1 min-h-0 relative overflow-hidden">
-            <div className="w-full h-full">{renderEditor(activeTab)}</div>
-          </div>
+          <div className="flex-1 min-h-0 relative overflow-hidden">{renderKeepAlive(openTabs, activeTabId)}</div>
         </div>
         {renderUnsavedModal()}
       </div>
@@ -298,15 +309,11 @@ export function EditorArea() {
           )}
         >
           {renderTabBar(openTabs, activeTabId, false)}
-          <div className="flex-1 min-h-0 relative overflow-hidden">
-            <div className="w-full h-full">{renderEditor(activeTab)}</div>
-          </div>
+          <div className="flex-1 min-h-0 relative overflow-hidden">{renderKeepAlive(openTabs, activeTabId)}</div>
         </div>
         <div className={clsx('flex-1 flex flex-col min-h-0', isDark ? 'bg-gray-900' : 'bg-white')}>
           {renderTabBar(splitTabs, activeSplitTabId, true)}
-          <div className="flex-1 min-h-0 relative overflow-hidden">
-            <div className="w-full h-full">{renderEditor(activeSplitTab)}</div>
-          </div>
+          <div className="flex-1 min-h-0 relative overflow-hidden">{renderKeepAlive(splitTabs, activeSplitTabId)}</div>
         </div>
       </div>
       {renderUnsavedModal()}

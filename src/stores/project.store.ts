@@ -34,9 +34,9 @@ interface ProjectState {
   clearCreateTrigger: () => void
 }
 
-const normalizeProjects = (rawProjects: any[]): ProjectInfo[] =>
+const normalizeProjects = (rawProjects: Array<{ id?: number; name?: string; index?: number }>): ProjectInfo[] =>
   Array.isArray(rawProjects)
-    ? rawProjects.map((p: any) => ({
+    ? rawProjects.map((p) => ({
         id: p.id ?? 0,
         name: String(p.name ?? ''),
         index: p.index ?? 0,

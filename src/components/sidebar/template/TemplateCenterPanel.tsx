@@ -50,16 +50,13 @@ export function TemplateCenterPanel({ onCreateProjectName }: TemplateCenterPanel
 
   useEffect(() => {
     fetchTemplates().catch((err) => showError(t('template.readFailed', { message: (err as Error).message })))
-  }, [fetchTemplates])
+  }, [fetchTemplates, t])
 
   const visibleTemplates = useMemo(() => {
     const lower = query.trim().toLowerCase()
     let filtered = lower
       ? templates.filter((item) =>
-          [item.name, item.description, item.scenario, item.sourceProject]
-            .join(' ')
-            .toLowerCase()
-            .includes(lower),
+          [item.name, item.description, item.scenario, item.sourceProject].join(' ').toLowerCase().includes(lower),
         )
       : templates
     if (category !== 'all') {
@@ -78,9 +75,7 @@ export function TemplateCenterPanel({ onCreateProjectName }: TemplateCenterPanel
   }, [templates])
 
   const openCreateDialog = (template: TemplateInfo) => {
-    const defaultName = onCreateProjectName
-      ? onCreateProjectName(template.name)
-      : `${template.name}-project`
+    const defaultName = onCreateProjectName ? onCreateProjectName(template.name) : `${template.name}-project`
     setCreateDialogName(defaultName)
     setCreateDialogTemplate(template)
     setCreateDialogOpen(true)
@@ -146,9 +141,7 @@ export function TemplateCenterPanel({ onCreateProjectName }: TemplateCenterPanel
           onClick={() => setTab('local')}
           className={clsx(
             'flex-1 py-2 text-xs font-medium transition-colors',
-            tab === 'local'
-              ? 'text-indigo-400 border-b-2 border-indigo-400'
-              : 'text-gray-500 hover:text-gray-300',
+            tab === 'local' ? 'text-indigo-400 border-b-2 border-indigo-400' : 'text-gray-500 hover:text-gray-300',
           )}
         >
           本地
@@ -157,9 +150,7 @@ export function TemplateCenterPanel({ onCreateProjectName }: TemplateCenterPanel
           onClick={() => setTab('remote')}
           className={clsx(
             'flex-1 py-2 text-xs font-medium transition-colors',
-            tab === 'remote'
-              ? 'text-indigo-400 border-b-2 border-indigo-400'
-              : 'text-gray-500 hover:text-gray-300',
+            tab === 'remote' ? 'text-indigo-400 border-b-2 border-indigo-400' : 'text-gray-500 hover:text-gray-300',
           )}
         >
           远程
@@ -201,17 +192,9 @@ export function TemplateCenterPanel({ onCreateProjectName }: TemplateCenterPanel
       ) : (
         /* Remote templates tab */
         <div className="flex-1 overflow-auto p-2 space-y-1.5">
-          {!loggedIn && (
-            <div className="text-xs text-gray-500 p-2 text-center">
-              请先登录平台以浏览远程模板
-            </div>
-          )}
-          {remoteLoading && (
-            <div className="text-xs text-gray-500 p-2 text-center">加载中...</div>
-          )}
-          {remoteError && (
-            <div className="text-xs text-red-400 p-2 text-center">{remoteError}</div>
-          )}
+          {!loggedIn && <div className="text-xs text-gray-500 p-2 text-center">请先登录平台以浏览远程模板</div>}
+          {remoteLoading && <div className="text-xs text-gray-500 p-2 text-center">加载中...</div>}
+          {remoteError && <div className="text-xs text-red-400 p-2 text-center">{remoteError}</div>}
           {loggedIn && !remoteLoading && remoteTemplates.length === 0 && (
             <div className="text-xs text-gray-500 p-2 text-center">暂无远程模板</div>
           )}
@@ -232,14 +215,14 @@ export function TemplateCenterPanel({ onCreateProjectName }: TemplateCenterPanel
                       {tpl.owner}/{tpl.name}
                     </div>
                     {tpl.description && (
-                      <p className={clsx('text-[11px] mt-0.5 line-clamp-2', isDark ? 'text-gray-400' : 'text-gray-500')}>
+                      <p
+                        className={clsx('text-[11px] mt-0.5 line-clamp-2', isDark ? 'text-gray-400' : 'text-gray-500')}
+                      >
                         {tpl.description}
                       </p>
                     )}
                     {tpl.updated_at && (
-                      <p className="text-[10px] text-gray-500 mt-1">
-                        {new Date(tpl.updated_at).toLocaleDateString()}
-                      </p>
+                      <p className="text-[10px] text-gray-500 mt-1">{new Date(tpl.updated_at).toLocaleDateString()}</p>
                     )}
                   </div>
                   <button
@@ -313,7 +296,9 @@ export function TemplateCenterPanel({ onCreateProjectName }: TemplateCenterPanel
               type="text"
               value={createDialogName}
               onChange={(e) => setCreateDialogName(e.target.value)}
-              onKeyDown={(e) => { if (e.key === 'Enter') handleCreate() }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') handleCreate()
+              }}
               autoFocus
               className={clsx(
                 'w-full px-3 py-2 text-sm rounded border outline-none focus:border-primary-400',

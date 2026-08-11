@@ -122,10 +122,15 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: Export build number (from version.json)
+        id: version
+        run: node -e "require('fs').appendFileSync(process.env.GITHUB_OUTPUT, 'build=' + require('./version.json').build + '\n')"
+
       - name: Package (${{ matrix.platform }})
         run: npx electron-builder --${{ matrix.platform }} --publish=never
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          MC_BUILD: ${{ steps.version.outputs.build }}
 
       - name: Upload artifacts
         if: success()

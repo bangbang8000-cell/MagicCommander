@@ -2,7 +2,7 @@ import { useProjectStore } from '@/stores/project.store'
 import { useRenderStore } from '@/stores/render.store'
 import { useEditorStore } from '@/stores/editor.store'
 import { Button } from '@/components/ui/Button'
-import { Play, FileText, RefreshCw, FolderOpen, FileCheck, FileCode, FileOutput } from 'lucide-react'
+import { Play, RefreshCw, FolderOpen, FileCheck, FileCode, FileOutput } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useState, useEffect } from 'react'
 
@@ -24,6 +24,7 @@ export function ConfigPanel() {
   const currentMessage = useRenderStore((s) => s.currentMessage)
   const openFile = useEditorStore((s) => s.openFile)
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- projectInfo 运行时形状为 parameters() 数组，与消费方期望的项目信息对象不一致，需在数据模型重构中统一
   const [projectInfo, setProjectInfo] = useState<any>(null)
 
   useEffect(() => {

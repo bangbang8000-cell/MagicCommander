@@ -4,7 +4,6 @@
  */
 
 import { exec } from 'child_process'
-import { app } from 'electron'
 import * as fs from 'fs'
 import * as path from 'path'
 import { getBackendDir, APP_CONFIG } from '../config'
@@ -48,7 +47,7 @@ export async function checkPythonEnv(): Promise<PythonEnvInfo> {
       isCompatible,
       error: isCompatible ? null : `Python 版本过低，需要 ${minVersion} 或更高版本`,
     }
-  } catch (error) {
+  } catch {
     return {
       available: false,
       version: null,

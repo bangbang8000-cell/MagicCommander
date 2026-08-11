@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import type { ValidationResult } from '@/types/render'
 
 type WorkbenchReadinessCardProps = {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- projectInfo 运行时形状与消费方期望不一致，待数据模型重构
   projectInfo: any
   isDark: boolean
   selectedProject: boolean
@@ -52,13 +53,7 @@ export function WorkbenchReadinessCard({
                 key={item.key}
                 className={clsx(
                   'flex items-center gap-1.5 text-[11px] px-1.5 py-0.5',
-                  exists
-                    ? isDark
-                      ? 'text-green-400'
-                      : 'text-green-600'
-                    : isDark
-                      ? 'text-gray-500'
-                      : 'text-gray-400',
+                  exists ? (isDark ? 'text-green-400' : 'text-green-600') : isDark ? 'text-gray-500' : 'text-gray-400',
                 )}
               >
                 {exists ? <CheckCircle2 size={12} /> : <XCircle size={12} />}
@@ -74,7 +69,9 @@ export function WorkbenchReadinessCard({
               onClick={onOpenParaConfig}
               className={clsx(
                 'flex items-center gap-1 px-2 py-1 text-[11px] rounded transition-colors',
-                isDark ? 'text-gray-400 hover:text-gray-200 hover:bg-gray-700' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100',
+                isDark
+                  ? 'text-gray-400 hover:text-gray-200 hover:bg-gray-700'
+                  : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100',
               )}
             >
               <FileCode size={10} /> {t('workbench.openPara')}
@@ -84,7 +81,9 @@ export function WorkbenchReadinessCard({
               disabled={isValidationRunning}
               className={clsx(
                 'flex items-center gap-1 px-2 py-1 text-[11px] rounded transition-colors',
-                isDark ? 'text-gray-400 hover:text-gray-200 hover:bg-gray-700' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100',
+                isDark
+                  ? 'text-gray-400 hover:text-gray-200 hover:bg-gray-700'
+                  : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100',
               )}
             >
               <ShieldCheck size={10} /> {t('workbench.validateTemplate')}
@@ -94,7 +93,9 @@ export function WorkbenchReadinessCard({
               disabled={isValidationRunning}
               className={clsx(
                 'flex items-center gap-1 px-2 py-1 text-[11px] rounded transition-colors',
-                isDark ? 'text-gray-400 hover:text-gray-200 hover:bg-gray-700' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100',
+                isDark
+                  ? 'text-gray-400 hover:text-gray-200 hover:bg-gray-700'
+                  : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100',
               )}
             >
               <ShieldCheck size={10} /> {t('workbench.validateData')}
@@ -109,7 +110,10 @@ export function WorkbenchReadinessCard({
                 </span>
                 <button
                   onClick={onClearValidation}
-                  className={clsx('text-[11px]', isDark ? 'text-gray-500 hover:text-gray-300' : 'text-gray-400 hover:text-gray-600')}
+                  className={clsx(
+                    'text-[11px]',
+                    isDark ? 'text-gray-500 hover:text-gray-300' : 'text-gray-400 hover:text-gray-600',
+                  )}
                 >
                   {t('workbench.clear')}
                 </button>
@@ -120,10 +124,16 @@ export function WorkbenchReadinessCard({
                   className={clsx(
                     'text-[11px] px-2 py-1 rounded',
                     r.status === 'pass'
-                      ? isDark ? 'bg-green-900/30 text-green-300' : 'bg-green-50 text-green-700'
+                      ? isDark
+                        ? 'bg-green-900/30 text-green-300'
+                        : 'bg-green-50 text-green-700'
                       : r.status === 'warn'
-                        ? isDark ? 'bg-yellow-900/30 text-yellow-300' : 'bg-yellow-50 text-yellow-700'
-                        : isDark ? 'bg-red-900/30 text-red-300' : 'bg-red-50 text-red-700',
+                        ? isDark
+                          ? 'bg-yellow-900/30 text-yellow-300'
+                          : 'bg-yellow-50 text-yellow-700'
+                        : isDark
+                          ? 'bg-red-900/30 text-red-300'
+                          : 'bg-red-50 text-red-700',
                   )}
                 >
                   <div className="flex items-center gap-1">

@@ -98,6 +98,9 @@ class AIHubSettings(BaseSettings):
     # 模板目录（由 Electron 传入）
     template_dir: str = ""
 
+    # 本地鉴权 token（由 Electron 生成并传入，所有 /api/* 请求必须携带）
+    auth_token: str = ""
+
     model_config = {"env_prefix": "MC_AI_", "extra": "allow"}
 
     def get_provider_config(self, provider: str) -> ProviderConfig:

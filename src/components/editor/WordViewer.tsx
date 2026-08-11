@@ -84,7 +84,7 @@ export function WordViewer({ tab }: { tab: EditorTab }) {
         loadingFilePathRef.current = null
       }
     }
-  }, [tab.filePath, tab.projectId])
+  }, [tab.filePath, tab.projectId, tab.projectName])
 
   useEffect(() => {
     isMountedRef.current = true

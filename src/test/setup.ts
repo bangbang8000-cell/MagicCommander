@@ -1,6 +1,6 @@
 import '@testing-library/jest-dom'
-;(globalThis as any).window = globalThis
-;(globalThis as any).window.electron = {
+;(globalThis as unknown as { window: typeof globalThis }).window = globalThis
+;(globalThis as unknown as { window: { electron: Record<string, unknown> } }).window.electron = {
   project: {
     list: async () => [],
     create: async () => {},

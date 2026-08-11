@@ -6,6 +6,7 @@ const api = {
     list: () => ipcRenderer.invoke('project:list'),
     listExamples: () => ipcRenderer.invoke('project:listExamples'),
     listTemplates: () => ipcRenderer.invoke('project:listTemplates'),
+    analyzeTemplate: (templateId: string) => ipcRenderer.invoke('template:analyze', templateId),
     getTemplate: (id: string) => ipcRenderer.invoke('project:getTemplate', id),
     create: (name: string, options?: { template?: string; empty?: boolean }) =>
       ipcRenderer.invoke('project:create', name, options),
@@ -28,7 +29,7 @@ const api = {
     writeExcel: (
       id: number,
       filePath: string,
-      sheets: { name: string; headers: string[]; rows: Record<string, any>[] }[],
+      sheets: { name: string; headers: string[]; rows: Record<string, unknown>[] }[],
       projectName?: string,
     ) => ipcRenderer.invoke('project:writeExcel', id, filePath, sheets, projectName),
     readFile: (id: number, filePath: string, projectName?: string) =>
@@ -54,8 +55,7 @@ const api = {
     projectSn: (ids: string[]) => ipcRenderer.invoke('render:project-sn', ids),
     yamlSn: (ids: string[]) => ipcRenderer.invoke('render:yaml-sn', ids),
     undo: (ids: string[]) => ipcRenderer.invoke('render:undo', ids),
-    dryRun: (ids: string[], format?: 'device_name' | 'device_sn') =>
-      ipcRenderer.invoke('render:dry-run', ids, format),
+    dryRun: (ids: string[], format?: 'device_name' | 'device_sn') => ipcRenderer.invoke('render:dry-run', ids, format),
     onProgress: (callback: (progress: unknown) => void) => {
       const handler = (_e: unknown, data: unknown) => callback(data)
       ipcRenderer.on('render:progress', handler)
@@ -149,8 +149,7 @@ const api = {
     setDefaultProvider: (provider: string) => ipcRenderer.invoke('aihub:setDefaultProvider', provider),
     testConnection: (provider: string, apiKey: string, baseUrl: string, model: string) =>
       ipcRenderer.invoke('aihub:testConnection', provider, apiKey, baseUrl, model),
-    fetchModels: (baseUrl: string, apiKey: string) =>
-      ipcRenderer.invoke('aihub:fetchModels', baseUrl, apiKey),
+    fetchModels: (baseUrl: string, apiKey: string) => ipcRenderer.invoke('aihub:fetchModels', baseUrl, apiKey),
     syncProviders: (
       configs: Array<{ provider: string; apiKey: string; model: string; baseUrl: string }>,
       defaultProvider: string,

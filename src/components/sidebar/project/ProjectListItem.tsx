@@ -44,7 +44,10 @@ export function ProjectListItem({
       // No sync status - show push button if available
       return onPush ? (
         <button
-          onClick={(event) => { event.stopPropagation(); onPush() }}
+          onClick={(event) => {
+            event.stopPropagation()
+            onPush()
+          }}
           className="p-0.5 rounded shrink-0 leading-none text-gray-400 dark:text-gray-500 hover:text-primary-500 transition-colors pt-0.5"
           title={t('cloud:sync.push')}
         >
@@ -58,7 +61,10 @@ export function ProjectListItem({
       case 'local_ahead':
         return onPush ? (
           <button
-            onClick={(event) => { event.stopPropagation(); onPush() }}
+            onClick={(event) => {
+              event.stopPropagation()
+              onPush()
+            }}
             className="p-0.5 rounded shrink-0 leading-none text-gray-400 dark:text-gray-500 hover:text-primary-500 transition-colors pt-0.5"
             title={t('cloud:sync.push')}
           >
@@ -69,7 +75,10 @@ export function ProjectListItem({
       case 'remote_ahead':
         return onPull ? (
           <button
-            onClick={(event) => { event.stopPropagation(); onPull() }}
+            onClick={(event) => {
+              event.stopPropagation()
+              onPull()
+            }}
             className="p-0.5 rounded shrink-0 leading-none text-gray-400 dark:text-gray-500 hover:text-primary-500 transition-colors pt-0.5"
             title={t('cloud:sync.pull')}
           >
@@ -79,7 +88,10 @@ export function ProjectListItem({
       case 'conflict':
         return onResolve ? (
           <button
-            onClick={(event) => { event.stopPropagation(); onResolve() }}
+            onClick={(event) => {
+              event.stopPropagation()
+              onResolve()
+            }}
             className="p-0.5 rounded shrink-0 leading-none text-red-400 hover:text-red-500 transition-colors pt-0.5"
             title={t('cloud:sync.resolveConflict')}
           >

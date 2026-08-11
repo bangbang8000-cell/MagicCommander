@@ -113,7 +113,8 @@
     "projectNameEmpty": "專案名稱不能為空",
     "projectNameExists": "專案已存在",
     "projectCreated": "專案 \"{{name}}\" 建立成功",
-    "projectNamePlaceholder": "輸入專案名稱（不能包含 \\ / : * ? \" < > |）"
+    "projectNamePlaceholder": "輸入專案名稱（不能包含 \\ / : * ? \" < > |）",
+    "allProjects": "全部專案"
   },
   "workbench": {
     "title": "工作台",

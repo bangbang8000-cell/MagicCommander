@@ -83,7 +83,8 @@
       "noScenario": "No scenario set",
       "noDescription": "No description",
       "sourceProject": "Source: {{name}}",
-      "unknown": "Unknown"
+      "unknown": "Unknown",
+      "quality": "Quality: {{score}}"
     },
     "detail": {
       "selectHint": "Select a template to view details",
@@ -196,7 +197,8 @@
     "projectNameEmpty": "Project name cannot be empty",
     "projectNameExists": "Project already exists",
     "projectCreated": "Project \"{{name}}\" created successfully",
-    "projectNamePlaceholder": "Enter project name (cannot contain \\ / : * ? \" < > |)"
+    "projectNamePlaceholder": "Enter project name (cannot contain \\ / : * ? \" < > |)",
+    "allProjects": "All projects"
   },
   "workbench": {
     "title": "Workbench",
@@ -256,8 +258,6 @@
     "portrait": "Portrait",
     "landscape": "Landscape",
     "executeAction": "Actions",
-    "batchRender": "Batch Render ({{count}})",
-    "renderCurrentOnly": "Render Current Only",
     "dryRunPreview": "Preview Render",
     "deleteOutput": "Delete Output",
     "deleteYaml": "Delete YAML",
@@ -277,8 +277,7 @@
     "scope": "Scope",
     "openProjectDir": "Open Project Directory",
     "scopeHint": "Please select a project from the project browser",
-    "selectedCount": "{{selected}} / {{total}} projects selected",
-    "processing": "Processing..."
+    "selectedCount": "{{selected}} / {{total}} projects selected"
   },
   "config": {
     "title": "Configuration",

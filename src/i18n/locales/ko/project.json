@@ -113,7 +113,8 @@
     "projectNameEmpty": "프로젝트 이름은 비워둘 수 없습니다",
     "projectNameExists": "프로젝트가 이미 존재합니다",
     "projectCreated": "프로젝트 \"{{name}}\"이(가) 생성되었습니다",
-    "projectNamePlaceholder": "프로젝트 이름 입력 (\\ / : * ? \" < > | 사용 불가)"
+    "projectNamePlaceholder": "프로젝트 이름 입력 (\\ / : * ? \" < > | 사용 불가)",
+    "allProjects": "모든 프로젝트"
   },
   "workbench": {
     "title": "워크벤치",

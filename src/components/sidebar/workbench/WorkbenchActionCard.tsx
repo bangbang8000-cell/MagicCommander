@@ -40,7 +40,12 @@ export function WorkbenchActionCard({
         <button
           onClick={onBatchRender}
           disabled={isRendering || selectedProjectIds.length === 0}
-          className={clsx(btnBase, isDark ? 'bg-primary-600 hover:bg-primary-500 text-white' : 'bg-primary-600 hover:bg-primary-700 text-white')}
+          className={clsx(
+            btnBase,
+            isDark
+              ? 'bg-primary-600 hover:bg-primary-500 text-white'
+              : 'bg-primary-600 hover:bg-primary-700 text-white',
+          )}
         >
           <Play size={12} />
           {t('workbench.batchRender', { count: selectedProjectIds.length })}
@@ -48,7 +53,12 @@ export function WorkbenchActionCard({
         <button
           onClick={onSingleRender}
           disabled={isRendering || !selectedProject}
-          className={clsx(btnBase, isDark ? 'bg-primary-900/40 hover:bg-primary-800/40 text-primary-200' : 'bg-primary-50 hover:bg-primary-100 text-primary-700')}
+          className={clsx(
+            btnBase,
+            isDark
+              ? 'bg-primary-900/40 hover:bg-primary-800/40 text-primary-200'
+              : 'bg-primary-50 hover:bg-primary-100 text-primary-700',
+          )}
         >
           <Play size={12} />
           {t('workbench.renderCurrentOnly')}

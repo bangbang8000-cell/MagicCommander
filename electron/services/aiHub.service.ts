@@ -2,9 +2,10 @@
  * AI Hub 服务
  * 管理 Python AI 子进程的生命周期、健康检查和通信
  */
-import { spawn, ChildProcess } from 'child_process'
+import { spawn, execSync, ChildProcess } from 'child_process'
 import * as path from 'path'
 import * as fs from 'fs'
+import crypto from 'crypto'
 import { EventEmitter } from 'events'
 import { getPythonPath, getBackendDir, getWorkspaceDir, getTemplateDir } from '../config'
 import { logger } from '../utils/logger'
@@ -27,6 +28,21 @@ export class AIHubService extends EventEmitter {
   private restartDelay: number = 3000
   private healthCheckTimer: NodeJS.Timeout | null = null
   private depsChecked: boolean = false
+  private authToken: string = ''
+  private startingPromise: Promise<void> | null = null
+  private restartTimer: NodeJS.Timeout | null = null
+
+  /** 生成/复用本地鉴权 token，防止本机任意网页调用 AI Hub 服务 */
+  private ensureAuthToken(): string {
+    if (!this.authToken) {
+      this.authToken = crypto.randomBytes(24).toString('hex')
+    }
+    return this.authToken
+  }
+
+  private authHeaders(): Record<string, string> {
+    return { 'X-MC-Auth-Token': this.ensureAuthToken() }
+  }
 
   get baseUrl(): string {
     return `http://${this.host}:${this.port}`
@@ -55,7 +71,11 @@ export class AIHubService extends EventEmitter {
     }
 
     // 快速检查关键依赖是否已安装
-    const checkResult = this.runPythonSync(pythonPath, ['-c', 'import fastapi; import uvicorn; import openai; print("OK")'], aiHubDir)
+    const checkResult = this.runPythonSync(
+      pythonPath,
+      ['-c', 'import fastapi; import uvicorn; import openai; print("OK")'],
+      aiHubDir,
+    )
     if (checkResult?.trim() === 'OK') {
       logger.info('[AIHub] Dependencies already installed')
       this.depsChecked = true
@@ -106,7 +126,6 @@ export class AIHubService extends EventEmitter {
 
   private runPythonSync(pythonPath: string, args: string[], cwd: string): string | null {
     try {
-      const { execSync } = require('child_process')
       return execSync([pythonPath, ...args].join(' '), {
         cwd,
         encoding: 'utf-8',
@@ -119,14 +138,24 @@ export class AIHubService extends EventEmitter {
   }
 
   /**
-   * 启动 AI Hub 子进程
+   * 启动 AI Hub 子进程（并发去重：重复调用复用同一启动流程）
    */
   async start(): Promise<void> {
     if (this.process) {
       logger.info('[AIHub] Already running')
       return
     }
+    if (this.startingPromise) {
+      // 已有启动流程在进行中，复用其结果，避免重复 spawn 抢占端口
+      return this.startingPromise
+    }
+    this.startingPromise = this.doStart().finally(() => {
+      this.startingPromise = null
+    })
+    return this.startingPromise
+  }
 
+  private async doStart(): Promise<void> {
     const pythonPath = getPythonPath()
     const backendDir = getBackendDir()
     const workspaceDir = getWorkspaceDir()
@@ -148,11 +177,18 @@ export class AIHubService extends EventEmitter {
 
     const args = [
       path.join(aiHubDir, 'main.py'),
-      '--port', String(this.port),
-      '--host', this.host,
-      '--workspace', workspaceDir,
-      '--template-dir', templateDir,
-      '--backend-dir', backendDir,
+      '--port',
+      String(this.port),
+      '--host',
+      this.host,
+      '--workspace',
+      workspaceDir,
+      '--template-dir',
+      templateDir,
+      '--backend-dir',
+      backendDir,
+      '--auth-token',
+      this.ensureAuthToken(),
     ]
 
     logger.info(`[AIHub] Starting: ${pythonPath} ${args.join(' ')}`)
@@ -213,19 +249,41 @@ export class AIHubService extends EventEmitter {
       proc.on('exit', (code, signal) => {
         clearTimeout(timeout)
         logger.info(`[AIHub] Process exited: code=${code} signal=${signal}`)
+        // 仅当退出的确实是当前进程时才清理状态并调度重启，
+        // 避免旧进程晚退出时清掉新进程的句柄（health 重启交错场景）
+        if (this.process !== proc) {
+          logger.info('[AIHub] Exit from stale process, ignoring')
+          return
+        }
         this.process = null
         this.status = { ...this.status, running: false }
         this.stopHealthCheck()
         this.emit('stopped', { code, signal })
 
-        // 自动重启
-        if (started && this.restartAttempts < this.maxRestarts) {
-          this.restartAttempts++
-          logger.info(`[AIHub] Auto-restart attempt ${this.restartAttempts}/${this.maxRestarts}`)
-          setTimeout(() => this.start().catch((e) => logger.error(`[AIHub] Restart failed: ${e.message}`)), this.restartDelay)
+        // 自动重启（指数退避，由单一调度入口控制）
+        if (started) {
+          this.scheduleRestart()
         }
       })
     })
+  }
+
+  /**
+   * 调度重启：指数退避 + 上限控制，统一重启入口避免健康检查与退出回调叠加触发。
+   */
+  private scheduleRestart(): void {
+    if (this.restartAttempts >= this.maxRestarts) {
+      logger.error('[AIHub] 达到最大重启次数，停止自动重启')
+      return
+    }
+    this.restartAttempts++
+    const delay = Math.min(this.restartDelay * Math.pow(2, this.restartAttempts - 1), 30000)
+    logger.info(`[AIHub] Auto-restart attempt ${this.restartAttempts}/${this.maxRestarts} in ${delay}ms`)
+    if (this.restartTimer) clearTimeout(this.restartTimer)
+    this.restartTimer = setTimeout(() => {
+      this.restartTimer = null
+      this.start().catch((e) => logger.error(`[AIHub] Restart failed: ${e.message}`))
+    }, delay)
   }
 
   /**
@@ -233,6 +291,11 @@ export class AIHubService extends EventEmitter {
    */
   async stop(): Promise<void> {
     this.stopHealthCheck()
+    // 主动停止时取消待执行的重启定时器
+    if (this.restartTimer) {
+      clearTimeout(this.restartTimer)
+      this.restartTimer = null
+    }
     if (!this.process) return
 
     return new Promise((resolve) => {
@@ -263,6 +326,7 @@ export class AIHubService extends EventEmitter {
     try {
       const response = await fetch(`${this.baseUrl}/api/chat/health`, {
         signal: AbortSignal.timeout(5000),
+        headers: this.authHeaders(),
       })
       return response.ok
     } catch {
@@ -276,8 +340,8 @@ export class AIHubService extends EventEmitter {
       const healthy = await this.healthCheck()
       if (!healthy && this.status.running) {
         logger.warn('[AIHub] Health check failed, restarting...')
+        // 停止进程 → 触发 exit 回调 → scheduleRestart 统一调度重启（避免双重重启）
         await this.stop()
-        this.start().catch((e) => logger.error(`[AIHub] Restart after health failure: ${e.message}`))
       }
     }, 30000) // 每 30 秒检查一次
   }
@@ -303,7 +367,7 @@ export class AIHubService extends EventEmitter {
   ): Promise<string> {
     const response = await fetch(`${this.baseUrl}/api/chat/send`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...this.authHeaders() },
       body: JSON.stringify({
         session_id: sessionId,
         message,
@@ -358,6 +422,7 @@ export class AIHubService extends EventEmitter {
   async clearSession(sessionId: string): Promise<void> {
     await fetch(`${this.baseUrl}/api/chat/clear?session_id=${encodeURIComponent(sessionId)}`, {
       method: 'POST',
+      headers: this.authHeaders(),
     })
   }
 
@@ -365,7 +430,7 @@ export class AIHubService extends EventEmitter {
    * 获取 Provider 列表
    */
   async getProviders(): Promise<Array<{ name: string; model: string; enabled: boolean; is_default: boolean }>> {
-    const response = await fetch(`${this.baseUrl}/api/chat/providers`)
+    const response = await fetch(`${this.baseUrl}/api/chat/providers`, { headers: this.authHeaders() })
     const data = await response.json()
     return data.providers || []
   }
@@ -376,7 +441,7 @@ export class AIHubService extends EventEmitter {
   async configureProvider(provider: string, apiKey: string, model?: string, baseUrl?: string): Promise<void> {
     await fetch(`${this.baseUrl}/api/chat/config`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...this.authHeaders() },
       body: JSON.stringify({ provider, api_key: apiKey, model, base_url: baseUrl }),
     })
   }
@@ -387,7 +452,7 @@ export class AIHubService extends EventEmitter {
   async setDefaultProvider(provider: string): Promise<void> {
     await fetch(`${this.baseUrl}/api/chat/config/default`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...this.authHeaders() },
       body: JSON.stringify({ provider }),
     })
   }
@@ -395,10 +460,15 @@ export class AIHubService extends EventEmitter {
   /**
    * 测试 Provider 连接
    */
-  async testConnection(provider: string, apiKey: string, baseUrl: string, model: string): Promise<{ status: string; message: string }> {
+  async testConnection(
+    provider: string,
+    apiKey: string,
+    baseUrl: string,
+    model: string,
+  ): Promise<{ status: string; message: string }> {
     const response = await fetch(`${this.baseUrl}/api/chat/test`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...this.authHeaders() },
       body: JSON.stringify({ provider, api_key: apiKey, base_url: baseUrl, model }),
     })
     return await response.json()
@@ -431,8 +501,32 @@ export class AIHubService extends EventEmitter {
     defaultProvider: string,
   ): string {
     // 关键词匹配规则
-    const codeKeywords = ['创建', '生成', '模板', '渲染', 'render', 'template', 'create', '新建', '编写', '写', '生成配置']
-    const analysisKeywords = ['分析', '对比', '审查', 'review', 'diff', 'compare', 'analyze', '检查', '查看', '评估', '校验']
+    const codeKeywords = [
+      '创建',
+      '生成',
+      '模板',
+      '渲染',
+      'render',
+      'template',
+      'create',
+      '新建',
+      '编写',
+      '写',
+      '生成配置',
+    ]
+    const analysisKeywords = [
+      '分析',
+      '对比',
+      '审查',
+      'review',
+      'diff',
+      'compare',
+      'analyze',
+      '检查',
+      '查看',
+      '评估',
+      '校验',
+    ]
     const simpleKeywords = ['列表', '列出', 'list', 'show', '显示', '帮助', 'help', '你好', 'hello', '是什么']
 
     const lowerMsg = message.toLowerCase()
@@ -456,7 +550,7 @@ export class AIHubService extends EventEmitter {
   async saveSkill(name: string, content: string): Promise<{ status: string; name: string }> {
     const response = await fetch(`${this.baseUrl}/api/chat/skill/save`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...this.authHeaders() },
       body: JSON.stringify({ name, content }),
     })
     return await response.json()
@@ -468,7 +562,7 @@ export class AIHubService extends EventEmitter {
   async fetchModels(baseUrl: string, apiKey: string): Promise<{ status: string; models: string[]; message?: string }> {
     const response = await fetch(`${this.baseUrl}/api/chat/models`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...this.authHeaders() },
       body: JSON.stringify({ base_url: baseUrl, api_key: apiKey }),
     })
     return await response.json()

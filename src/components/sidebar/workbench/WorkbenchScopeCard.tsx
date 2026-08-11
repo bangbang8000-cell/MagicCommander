@@ -5,6 +5,7 @@ import type { ProjectInfo, ProjectStatus } from '@/types/project'
 
 type WorkbenchScopeCardProps = {
   selectedProject: ProjectInfo | null
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- projectInfo 运行时形状与消费方期望不一致，待数据模型重构
   projectInfo: any
   projects: ProjectInfo[]
   selectedProjectIds: string[]
@@ -32,7 +33,12 @@ export function WorkbenchScopeCard({
       </h4>
 
       {selectedProject ? (
-        <div className={clsx('rounded border p-2 text-xs space-y-1', isDark ? 'bg-gray-800/60 border-gray-700' : 'bg-gray-50 border-gray-200')}>
+        <div
+          className={clsx(
+            'rounded border p-2 text-xs space-y-1',
+            isDark ? 'bg-gray-800/60 border-gray-700' : 'bg-gray-50 border-gray-200',
+          )}
+        >
           <div className="flex justify-between">
             <span className={isDark ? 'text-gray-400' : 'text-gray-500'}>{t('workbench.currentProject')}</span>
             <span className={clsx('font-medium', isDark ? 'text-gray-200' : 'text-gray-700')}>
@@ -42,7 +48,12 @@ export function WorkbenchScopeCard({
           {projectInfo?.path && (
             <div className="flex justify-between">
               <span className={isDark ? 'text-gray-400' : 'text-gray-500'}>{t('workbench.path')}</span>
-              <span className={clsx('font-medium text-[11px] truncate max-w-[140px]', isDark ? 'text-gray-200' : 'text-gray-700')}>
+              <span
+                className={clsx(
+                  'font-medium text-[11px] truncate max-w-[140px]',
+                  isDark ? 'text-gray-200' : 'text-gray-700',
+                )}
+              >
                 {projectInfo.path}
               </span>
             </div>
@@ -51,7 +62,9 @@ export function WorkbenchScopeCard({
             onClick={onOpenFolder}
             className={clsx(
               'flex items-center gap-1 px-2 py-1 mt-1 text-[11px] rounded transition-colors w-full',
-              isDark ? 'text-gray-400 hover:text-gray-200 hover:bg-gray-700' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100',
+              isDark
+                ? 'text-gray-400 hover:text-gray-200 hover:bg-gray-700'
+                : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100',
             )}
           >
             <ExternalLink size={10} /> {t('workbench.openProjectDir')}
@@ -68,7 +81,9 @@ export function WorkbenchScopeCard({
               {t('workbench.selectedCount', { selected: selectedProjectIds.length, total: projects.length })}
             </span>
           </div>
-          <div className={clsx('flex flex-wrap gap-1 max-h-24 overflow-auto', isDark ? 'text-gray-300' : 'text-gray-700')}>
+          <div
+            className={clsx('flex flex-wrap gap-1 max-h-24 overflow-auto', isDark ? 'text-gray-300' : 'text-gray-700')}
+          >
             {projects.map((p) => {
               const selected = selectedProjectIds.includes(String(p.id))
               const status = projectStatuses[p.name]

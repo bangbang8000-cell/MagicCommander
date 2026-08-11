@@ -23,7 +23,7 @@ class ErrorBoundaryClass extends Component<Props, State> {
     return { hasError: true, error }
   }
 
-  componentDidCatch(error: Error, info: { componentStack?: string }) {
+  componentDidCatch(error: Error, _info: { componentStack?: string }) {
     errorService.handleError(error, 'ErrorBoundary')
   }
 

@@ -80,33 +80,72 @@ export function collectProjectFiles(projectDir: string): { path: string; content
 
 /**
  * 安装远程项目到 workspace（解压 zip）
+ * targetPath 由调用方预先校验（合法项目名 + 位于工作区内）
  */
 export async function installRemoteProject(
   zipData: string,
   workspaceDir: string,
   projectName: string,
   owner: string,
+  targetPath?: string,
 ): Promise<void> {
   const AdmZip = (await import('adm-zip')).default
   const buffer = Buffer.from(zipData, 'base64')
   const zip = new AdmZip(buffer)
 
-  const targetPath = path.join(workspaceDir, projectName)
+  const target = targetPath || path.join(workspaceDir, projectName)
 
   // Check if project already exists
-  if (fs.existsSync(targetPath)) {
+  if (fs.existsSync(target)) {
     throw new Error(`项目已存在: ${projectName}`)
   }
 
-  // Extract all files
-  zip.extractAllTo(targetPath, true)
+  // 逐条目安全解压：拒绝绝对路径与 ../ 穿越，防止 zip-slip
+  const entries = zip.getEntries()
+  for (const entry of entries) {
+    const entryName = entry.entryName.replace(/\\/g, '/')
+    const segments = entryName.split('/').filter((seg) => seg.length > 0)
+    if (segments.includes('..') || path.isAbsolute(entryName)) {
+      fs.rmSync(target, { recursive: true, force: true })
+      throw new Error('压缩包包含不安全的文件路径，已取消安装')
+    }
+    const destPath = path.join(target, entryName)
+    if (!isPathSafeLocal(destPath, target)) {
+      fs.rmSync(target, { recursive: true, force: true })
+      throw new Error('压缩包包含不安全的文件路径，已取消安装')
+    }
+    if (entry.isDirectory) {
+      fs.mkdirSync(destPath, { recursive: true })
+    } else {
+      fs.mkdirSync(path.dirname(destPath), { recursive: true })
+      fs.writeFileSync(destPath, entry.getData())
+    }
+  }
 
   // Save sync metadata
-  const metaFile = path.join(targetPath, '.mc-sync.json')
-  fs.writeFileSync(metaFile, JSON.stringify({
-    source: 'remote',
-    owner,
-    repo: projectName,
-    installedAt: new Date().toISOString(),
-  }, null, 2), 'utf-8')
+  const metaFile = path.join(target, '.mc-sync.json')
+  fs.writeFileSync(
+    metaFile,
+    JSON.stringify(
+      {
+        source: 'remote',
+        owner,
+        repo: projectName,
+        installedAt: new Date().toISOString(),
+      },
+      null,
+      2,
+    ),
+    'utf-8',
+  )
+}
+
+/** 本地路径包含校验（避免引入 electron 层依赖） */
+function isPathSafeLocal(fullPath: string, baseDir: string): boolean {
+  try {
+    const relative = path.relative(path.resolve(baseDir), path.resolve(fullPath))
+    return !relative.startsWith('..') && !path.isAbsolute(relative)
+  } catch {
+    return false
+  }
 }

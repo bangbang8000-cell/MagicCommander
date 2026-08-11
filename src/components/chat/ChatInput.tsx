@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import { useRef, useCallback, type KeyboardEvent } from 'react'
 import clsx from 'clsx'
-import { Send, Paperclip, X, Loader2 } from 'lucide-react'
+import { Send, Paperclip, Loader2 } from 'lucide-react'
 import { useChatStore } from '@/stores/chat.store'
 import { AttachmentPreview } from './AttachmentPreview'
 
@@ -62,13 +62,7 @@ export function ChatInput({ isDark, onSend }: ChatInputProps) {
       {pendingAttachments.length > 0 && (
         <div className="flex flex-wrap gap-2 px-3 pt-2">
           {pendingAttachments.map((att) => (
-            <AttachmentPreview
-              key={att.id}
-              attachment={att}
-              isDark={isDark}
-              compact
-              onRemove={removeAttachment}
-            />
+            <AttachmentPreview key={att.id} attachment={att} isDark={isDark} compact onRemove={removeAttachment} />
           ))}
         </div>
       )}
@@ -122,7 +116,9 @@ export function ChatInput({ isDark, onSend }: ChatInputProps) {
             'p-2 rounded-lg transition-colors shrink-0',
             canSend
               ? 'bg-blue-500 text-white hover:bg-blue-600'
-              : (isDark ? 'bg-gray-700 text-gray-500' : 'bg-gray-200 text-gray-400'),
+              : isDark
+                ? 'bg-gray-700 text-gray-500'
+                : 'bg-gray-200 text-gray-400',
           )}
           title={t('chat:input.send')}
         >

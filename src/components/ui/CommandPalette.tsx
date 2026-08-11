@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useUIStore } from '@/stores/ui.store'
-import { HOTKEY_REGISTRY } from '@/hooks/hotkeyRegistry'
 import { HotkeyKeys } from '@/components/ui/Kbd'
 import clsx from 'clsx'
 
@@ -30,8 +29,7 @@ export function CommandPalette({ open, onClose, commands }: CommandPaletteProps)
   const filtered = query
     ? commands.filter(
         (c) =>
-          c.label.toLowerCase().includes(query.toLowerCase()) ||
-          c.category.toLowerCase().includes(query.toLowerCase()),
+          c.label.toLowerCase().includes(query.toLowerCase()) || c.category.toLowerCase().includes(query.toLowerCase()),
       )
     : commands
 

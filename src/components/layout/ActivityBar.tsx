@@ -1,6 +1,16 @@
 import { useTranslation } from 'react-i18next'
 import { useUIStore, type ActivityType } from '@/stores/ui.store'
-import { Search, FolderOpen, Zap, FileCheck, MessageSquare, Settings, Cloud, PanelLeftClose, PanelLeft } from 'lucide-react'
+import {
+  Search,
+  FolderOpen,
+  Zap,
+  FileCheck,
+  MessageSquare,
+  Settings,
+  Cloud,
+  PanelLeftClose,
+  PanelLeft,
+} from 'lucide-react'
 import clsx from 'clsx'
 
 interface ActivityItem {
@@ -8,15 +18,6 @@ interface ActivityItem {
   icon: React.ReactNode
   labelKey: string
   shortcut: string
-}
-
-const ACTIVITY_LABEL_KEYS: Record<string, string> = {
-  search: 'menu.projectExplorer',
-  explorer: 'menu.projectExplorer',
-  output: 'menu.outputResults',
-  chat: 'chat:title',
-  workbench: 'menu.workbench',
-  settings: 'common:settings.title',
 }
 
 const activities: ActivityItem[] = [
@@ -55,8 +56,10 @@ export function ActivityBar() {
               )}
             >
               {isActive && (
-                <div className="absolute start-0 top-1.5 bottom-1.5 w-0.5 rounded-r bg-primary-500 dark:bg-primary-400"
-                  style={{ boxShadow: '0 0 8px rgba(0, 229, 160, 0.4)' }} />
+                <div
+                  className="absolute start-0 top-1.5 bottom-1.5 w-0.5 rounded-r bg-primary-500 dark:bg-primary-400"
+                  style={{ boxShadow: '0 0 8px rgba(0, 229, 160, 0.4)' }}
+                />
               )}
               {item.icon}
             </button>

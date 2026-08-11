@@ -1,6 +1,5 @@
 import { app, BrowserWindow, ipcMain, Menu, shell } from 'electron'
 import * as path from 'path'
-import * as fs from 'fs'
 import { setupIpcHandlers } from './ipc/handlers'
 import { initializeAppDirs, initializeWorkspace, isDev } from './config'
 import { updateService } from './services/update.service'
@@ -17,6 +16,21 @@ class MagicCommanderApp {
 
   async initialize(): Promise<void> {
     await app.whenReady()
+
+    // 单实例锁：避免多开实例共享工作区、抢占 AI Hub 端口
+    const gotLock = app.requestSingleInstanceLock()
+    if (!gotLock) {
+      logger.warn('已有实例在运行，退出当前进程')
+      app.quit()
+      return
+    }
+    app.on('second-instance', () => {
+      if (this.mainWindow) {
+        if (this.mainWindow.isMinimized()) this.mainWindow.restore()
+        this.mainWindow.focus()
+      }
+    })
+
     initializeWorkspace()
     this.createMainWindow()
     Menu.setApplicationMenu(null)
@@ -105,7 +119,6 @@ class MagicCommanderApp {
   }
 
   private createMainWindow(): void {
-    const isWin = process.platform === 'win32'
     const isMac = process.platform === 'darwin'
     const isLinux = process.platform === 'linux'
 
@@ -124,7 +137,8 @@ class MagicCommanderApp {
         preload: path.join(__dirname, 'preload.js'),
         contextIsolation: true,
         nodeIntegration: false,
-        sandbox: false,
+        // 启用渲染进程沙箱：preload 仅使用 contextBridge/ipcRenderer，兼容沙箱
+        sandbox: true,
       },
     })
 
@@ -144,8 +158,32 @@ class MagicCommanderApp {
     this.mainWindow.show()
 
     this.mainWindow.webContents.setWindowOpenHandler(({ url }) => {
-      shell.openExternal(url)
+      // 仅允许 http/https 协议外链，防止 file://、ms-*、自定义协议被 markdown 链接触发
+      if (/^https?:\/\//i.test(url)) {
+        shell.openExternal(url)
+      }
       return { action: 'deny' }
+    })
+
+    // 渲染进程崩溃恢复：崩溃/无响应时自动重载，避免白屏
+    this.mainWindow.webContents.on('render-process-gone', (_event, details) => {
+      logger.error(`[Renderer] 渲染进程异常退出: ${details.reason}`, details)
+      if (details.reason !== 'clean-exit') {
+        setTimeout(() => {
+          if (this.mainWindow && !this.mainWindow.isDestroyed()) {
+            logger.info('[Renderer] 自动重载渲染进程')
+            this.mainWindow.webContents.reload()
+          }
+        }, 1000)
+      }
+    })
+    this.mainWindow.webContents.on('unresponsive', () => {
+      logger.warn('[Renderer] 渲染进程无响应，尝试重载')
+      setTimeout(() => {
+        if (this.mainWindow && !this.mainWindow.isDestroyed()) {
+          this.mainWindow.webContents.reload()
+        }
+      }, 3000)
     })
 
     this.mainWindow.webContents.on('context-menu', (event, params) => {

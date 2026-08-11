@@ -144,13 +144,14 @@ export const SearchPanel = React.memo(function SearchPanel() {
   const [searchTrigger, setSearchTrigger] = useState(0)
   const [selectedTypes, setSelectedTypes] = useState<Set<string>>(new Set())
   const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set())
+  const [searchAllProjects, setSearchAllProjects] = useState(false)
   const isDark = useUIStore((s) => s.isDark)
   const inputRef = useRef<HTMLInputElement>(null)
 
   const selectedProject = useProjectStore((s) => s.selectedProject)
   const projectStructure = useProjectStore((s) => s.projectStructure)
-  const projects = useProjectStore((s) => s.projects)
   const loadStructure = useProjectStore((s) => s.loadStructure)
+  const allProjects = useProjectStore((s) => s.projects)
 
   const openFile = useEditorStore((s) => s.openFile)
 
@@ -182,51 +183,69 @@ export const SearchPanel = React.memo(function SearchPanel() {
     setFilenameResults(matched)
   }, [projectStructure, keywords, selectedProject, selectedTypes])
 
-  // 文件内容搜索：读取所有文本文件，逐行匹配
+  // 文件内容搜索：读取所有文本文件，逐行匹配（支持单项目/全部项目）
   const performContentSearch = useCallback(async () => {
-    if (!selectedProject || keywords.length === 0) {
+    if (keywords.length === 0) {
       setContentResults([])
       return
     }
     setLoading(true)
     try {
-      const allFiles = flattenFiles(projectStructure)
-      let textFiles = allFiles.filter((f) => isTextFile(f.name))
-      // 文件类型过滤
-      if (selectedTypes.size > 0) {
-        textFiles = textFiles.filter((f) => selectedTypes.has(getNodeFileType(f.name)))
+      // 收集 (项目, 文件树) 列表：单项目用当前选中项目，全部项目遍历 projects
+      const searchScopes: { id: number; name: string; files: FileNode[] }[] = []
+      if (searchAllProjects) {
+        for (const proj of allProjects) {
+          try {
+            const structure = (await window.electron.project.getStructure(proj.name)) as unknown as FileNode[]
+            searchScopes.push({ id: proj.id, name: proj.name, files: Array.isArray(structure) ? structure : [] })
+          } catch {
+            continue
+          }
+        }
+      } else if (selectedProject) {
+        searchScopes.push({ id: Number(selectedProject.id), name: selectedProject.name, files: projectStructure })
       }
+
       const matches: ContentMatch[] = []
 
-      for (const file of textFiles) {
-        try {
-          const content = (await window.electron?.project?.readFile(
-            Number(selectedProject.id),
-            file.path,
-          )) as unknown as string | undefined
+      for (const scope of searchScopes) {
+        let textFiles = flattenFiles(scope.files).filter((f) => isTextFile(f.name))
+        // 文件类型过滤
+        if (selectedTypes.size > 0) {
+          textFiles = textFiles.filter((f) => selectedTypes.has(getNodeFileType(f.name)))
+        }
 
-          const text = typeof content === 'string' ? content : ''
-          const lines = text.split(/\r?\n/)
-          for (let i = 0; i < lines.length; i++) {
-            const line = lines[i]
-            const lineLower = line.toLowerCase()
-            const matchAll = keywords.every((kw) => lineLower.includes(kw.toLowerCase()))
-            if (matchAll) {
-              const ranges = findLineMatches(line, keywords)
-              if (ranges.length > 0) {
-                matches.push({
-                  file,
-                  relativePath: getSearchResultPath(selectedProject, file),
-                  lineNum: i + 1,
-                  lineText: line,
-                  matches: ranges,
-                })
+        for (const file of textFiles) {
+          try {
+            const content = (await window.electron?.project?.readFile(scope.id, file.path)) as unknown as
+              string | undefined
+
+            const text = typeof content === 'string' ? content : ''
+            const lines = text.split(/\r?\n/)
+            for (let i = 0; i < lines.length; i++) {
+              const line = lines[i]
+              const lineLower = line.toLowerCase()
+              const matchAll = keywords.every((kw) => lineLower.includes(kw.toLowerCase()))
+              if (matchAll) {
+                const ranges = findLineMatches(line, keywords)
+                if (ranges.length > 0) {
+                  const displayPath = searchAllProjects
+                    ? `${scope.name}/${file.path}`
+                    : getSearchResultPath(selectedProject, file)
+                  matches.push({
+                    file,
+                    relativePath: displayPath,
+                    lineNum: i + 1,
+                    lineText: line,
+                    matches: ranges,
+                  })
+                }
               }
             }
+          } catch {
+            // 单个文件读取失败，跳过
+            continue
           }
-        } catch {
-          // 单个文件读取失败，跳过
-          continue
         }
       }
       setContentResults(matches)
@@ -236,7 +255,7 @@ export const SearchPanel = React.memo(function SearchPanel() {
     } finally {
       setLoading(false)
     }
-  }, [projectStructure, keywords, selectedProject, selectedTypes])
+  }, [projectStructure, keywords, selectedProject, selectedTypes, searchAllProjects, allProjects])
 
   // 执行搜索
   useEffect(() => {
@@ -398,6 +417,22 @@ export const SearchPanel = React.memo(function SearchPanel() {
             <RefreshCw size={12} />
           </button>
         </div>
+
+        {/* 跨项目搜索切换 */}
+        <label
+          className={clsx(
+            'flex items-center gap-1.5 text-[11px] cursor-pointer select-none',
+            isDark ? 'text-gray-400' : 'text-gray-600',
+          )}
+        >
+          <input
+            type="checkbox"
+            checked={searchAllProjects}
+            onChange={(e) => setSearchAllProjects(e.target.checked)}
+            className="accent-primary-500"
+          />
+          {t('search.allProjects')}
+        </label>
 
         {/* Tab 切换 + 文件类型过滤 */}
         <div className="flex flex-col gap-1">

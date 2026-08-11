@@ -40,7 +40,11 @@ export function ProjectListToolbar({
         >
           <ArrowUpDown size={14} />
         </button>
-        <button onClick={onCreate} className="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-700" title={t('projectList.newProject')}>
+        <button
+          onClick={onCreate}
+          className="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
+          title={t('projectList.newProject')}
+        >
           <Plus size={14} />
         </button>
         <button

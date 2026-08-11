@@ -17,7 +17,6 @@ import { usePlatformStore } from '@/stores/platform.store'
 import { PushDialog } from '@/components/cloud/PushDialog'
 import { PullDialog } from '@/components/cloud/PullDialog'
 
-
 type TemplateOption = 'example' | 'empty'
 type ExplorerTab = 'projects' | 'templates'
 
@@ -179,9 +178,10 @@ export function ExplorerPanel() {
 
   const filtered = search ? projects.filter((p) => p.name.toLowerCase().includes(search.toLowerCase())) : projects
 
-  const sorted = sortBy === 'date'
-    ? [...filtered].sort((a, b) => (b.id ?? 0) - (a.id ?? 0))
-    : [...filtered].sort((a, b) => a.name.localeCompare(b.name))
+  const sorted =
+    sortBy === 'date'
+      ? [...filtered].sort((a, b) => (b.id ?? 0) - (a.id ?? 0))
+      : [...filtered].sort((a, b) => a.name.localeCompare(b.name))
 
   const favoriteList = sorted.filter((p) => favoriteProjects.includes(p.name))
   const recentList = sorted.filter((p) => recentProjects.includes(p.name) && !favoriteProjects.includes(p.name))
@@ -280,10 +280,12 @@ export function ExplorerPanel() {
               <div className="px-3 py-1.5 text-xs font-semibold uppercase tracking-wider flex items-center justify-between bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-300">
                 <div className="flex items-center gap-2">
                   <span>{t('explorer.projectList')}</span>
-                  <span className={clsx(
-                    'text-[11px] px-1.5 py-0.5 rounded-full font-normal',
-                    'bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300',
-                  )}>
+                  <span
+                    className={clsx(
+                      'text-[11px] px-1.5 py-0.5 rounded-full font-normal',
+                      'bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300',
+                    )}
+                  >
                     {sorted.length}
                   </span>
                 </div>
@@ -585,9 +587,13 @@ export function ExplorerPanel() {
         }
       >
         <div className="space-y-3">
-          <span dangerouslySetInnerHTML={{ __html: t('explorer.saveAsTemplateDesc', { name: selectedProject?.name }) }} />
+          <span
+            dangerouslySetInnerHTML={{ __html: t('explorer.saveAsTemplateDesc', { name: selectedProject?.name }) }}
+          />
           <div>
-            <label className="block text-xs font-medium mb-1.5 text-gray-700 dark:text-gray-300">{t('explorer.saveAsTemplateName')}</label>
+            <label className="block text-xs font-medium mb-1.5 text-gray-700 dark:text-gray-300">
+              {t('explorer.saveAsTemplateName')}
+            </label>
             <input
               type="text"
               value={newTemplateName}

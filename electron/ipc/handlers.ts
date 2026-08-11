@@ -1,17 +1,32 @@
-import { ipcMain, BrowserWindow, shell, safeStorage } from 'electron'
+import { ipcMain, BrowserWindow, shell, safeStorage, app, dialog } from 'electron'
+import { spawn } from 'child_process'
 import { RenderHandler } from './render.handler'
 import * as fs from 'fs'
 import * as path from 'path'
+import * as XLSX from 'xlsx'
+import iconv from 'iconv-lite'
+import mammoth from 'mammoth'
+import packageJson from '../../package.json'
 import {
   validateFilePath,
   validateFileContent,
   buildSafePath,
+  isPathSafe,
   isFileTypeAllowed,
   isFileAccessible,
   validateProjectName,
 } from '../utils/security'
 import { logger } from '../utils/logger'
-import { getBackendDir, getExampleDir, getTemplateDir, getWorkspaceDir, getUserDataDir, APP_CONFIG } from '../config'
+import {
+  getBackendDir,
+  getExampleDir,
+  getTemplateDir,
+  getWorkspaceDir,
+  getUserDataDir,
+  getPythonPath,
+  APP_CONFIG,
+} from '../config'
+import electronI18n from '../electron-i18n'
 import {
   listTemplateInfosFromDir,
   readTemplateMeta,
@@ -22,19 +37,29 @@ import { readWorkspaceIndex, refreshWorkspaceIndex } from '../services/workspace
 import { aiHubService, type AIHubStatus } from '../services/aiHub.service'
 import { getLocalCommitSha, collectProjectFiles, installRemoteProject } from '../utils/git'
 
-function readExcelByPath(filePath: string): { name: string; headers: string[]; rows: Record<string, any>[] }[] {
+function errorMessage(err: unknown): string {
+  return err instanceof Error ? err.message : String(err)
+}
+
+function readExcelByPath(filePath: string): { name: string; headers: string[]; rows: Record<string, unknown>[] }[] {
   if (!fs.existsSync(filePath)) {
     throw new Error(`文件不存在: ${filePath}`)
   }
-  const XLSX = require('xlsx')
   const workbook = XLSX.readFile(filePath)
   const sheetNames = workbook.SheetNames
   return sheetNames.map((name: string) => {
     const worksheet = workbook.Sheets[name]
-    const rows: Record<string, any>[] = XLSX.utils.sheet_to_json(worksheet, { defval: '' })
+    const rows: Record<string, unknown>[] = XLSX.utils.sheet_to_json(worksheet, { defval: '' })
     const headers = rows.length > 0 ? Object.keys(rows[0]) : []
     return { name, headers, rows }
   })
+}
+
+interface FileTreeNode {
+  name: string
+  path: string
+  isDirectory: boolean
+  children?: FileTreeNode[]
 }
 
 function isProjectLikeDir(dirPath: string): boolean {
@@ -46,7 +71,11 @@ function copyDirRecursive(src: string, dest: string, options?: { skipRuntimeDirs
   const entries = fs.readdirSync(src, { withFileTypes: true })
   for (const entry of entries) {
     if (entry.name.startsWith('.') || entry.name === '__pycache__') continue
-    if (options?.skipRuntimeDirs && ['output', 'yaml', 'output-label', 'output-label-md', 'output-label-pdf'].includes(entry.name)) continue
+    if (
+      options?.skipRuntimeDirs &&
+      ['output', 'yaml', 'output-label', 'output-label-md', 'output-label-pdf'].includes(entry.name)
+    )
+      continue
     const srcPath = path.join(src, entry.name)
     const destPath = path.join(dest, entry.name)
     if (entry.isDirectory()) copyDirRecursive(srcPath, destPath, options)
@@ -78,6 +107,51 @@ function ensureTemplateForPython(templateName: string): void {
 
 function refreshWorkspace(): void {
   refreshWorkspaceIndex(getWorkspaceDir())
+}
+
+/**
+ * 校验 IPC 请求来自可信的渲染进程（本应用窗口）。
+ * 防止第三方 iframe / 注入页面调用任意路径读写的 file:* API。
+ */
+function isTrustedSender(event: Electron.IpcMainInvokeEvent): boolean {
+  try {
+    const frameUrl = event.senderFrame?.url || ''
+    if (app.isPackaged) return frameUrl.startsWith('file://')
+    return frameUrl.startsWith('http://localhost:') || frameUrl.startsWith('file://')
+  } catch {
+    return false
+  }
+}
+
+/**
+ * 安全解析模板 ID 对应的模板目录。
+ * 校验模板名合法且解析后的路径严格落在模板根目录内，
+ * 防止 `id='..'` 之类的路径穿越删除/读写模板根目录之外的文件。
+ */
+function resolveTemplateDir(templateId: string): string | null {
+  if (!templateId || typeof templateId !== 'string') return null
+  const validation = validateProjectName(templateId)
+  if (!validation.valid) return null
+
+  const templateRoot = getTemplateDir()
+  const fullPath = path.join(templateRoot, templateId)
+  if (!isPathSafe(fullPath, templateRoot)) return null
+  return fullPath
+}
+
+/**
+ * 安全解析项目名对应的项目目录。
+ * 校验项目名合法且解析后的路径严格落在工作区目录内。
+ */
+function resolveProjectDir(projectName: string): string | null {
+  if (!projectName || typeof projectName !== 'string') return null
+  const validation = validateProjectName(projectName)
+  if (!validation.valid) return null
+
+  const workspace = getWorkspaceDir()
+  const fullPath = path.join(workspace, projectName)
+  if (!isPathSafe(fullPath, workspace)) return null
+  return fullPath
 }
 
 function escapeHtml(value: string): string {
@@ -180,7 +254,7 @@ export function setupIpcHandlers(window: BrowserWindow): void {
 
   const resolveProjectById = async (id: string | number): Promise<{ id: number; name: string; index: number }> => {
     const projects = await renderHandler.listProjects()
-    const project = projects.find((p: any) => String(p.id) === String(id))
+    const project = projects.find((p: { id: number; name: string; index: number }) => String(p.id) === String(id))
     if (!project) throw new Error(`未找到项目: ${id}`)
     return project
   }
@@ -193,7 +267,7 @@ export function setupIpcHandlers(window: BrowserWindow): void {
   const getProjectPath = async (id: string | number, projectName?: string): Promise<string> => {
     if (projectName) {
       const projects = await renderHandler.listProjects()
-      const project = projects.find((p: any) => p.name === projectName)
+      const project = projects.find((p: { id: number; name: string; index: number }) => p.name === projectName)
       if (project) return path.join(getWorkspaceDir(), project.name)
     }
     return getProjectPathById(id)
@@ -212,6 +286,37 @@ export function setupIpcHandlers(window: BrowserWindow): void {
 
   ipcMain.handle('project:listTemplates', async () => listTemplateInfosFromDir(getTemplateDir()))
 
+  ipcMain.handle('template:analyze', async (_e, templateId: string): Promise<unknown> => {
+    const templateDir = resolveTemplateDir(templateId)
+    if (!templateDir || !fs.existsSync(templateDir)) throw new Error(`模板不存在: ${templateId}`)
+    // 调用 Python analyzer 分析模板目录，返回质量报告
+    return await new Promise((resolve) => {
+      const pythonCmd = getPythonPath()
+      const backendDir = getBackendDir()
+      const script = `import sys, json; sys.path.insert(0, ${JSON.stringify(backendDir)}); from analyzer import analyze_project; print(json.dumps(analyze_project(${JSON.stringify(templateDir)}), ensure_ascii=False))`
+      const proc = spawn(pythonCmd, ['-c', script], {
+        stdio: ['ignore', 'pipe', 'pipe'],
+      })
+      let out = ''
+      let err = ''
+      proc.stdout.on('data', (d: Buffer) => {
+        out += d.toString()
+      })
+      proc.stderr.on('data', (d: Buffer) => {
+        err += d.toString()
+      })
+      proc.on('close', () => {
+        try {
+          const lastLine = out.trim().split('\n').filter(Boolean).pop() || ''
+          resolve(JSON.parse(lastLine))
+        } catch {
+          resolve({ status: 'error', message: err.trim() || '分析失败' })
+        }
+      })
+      proc.on('error', (e: Error) => resolve({ status: 'error', message: e.message }))
+    })
+  })
+
   ipcMain.handle('project:getTemplate', async (_e, id: string) => {
     const template = listTemplateInfosFromDir(getTemplateDir()).find((item) => item.id === id)
     if (!template) throw new Error(`模板不存在: ${id}`)
@@ -219,12 +324,13 @@ export function setupIpcHandlers(window: BrowserWindow): void {
   })
 
   ipcMain.handle('project:readTemplateFile', async (_e, templateId: string, filePath: string): Promise<string> => {
+    const templateDir = resolveTemplateDir(templateId)
+    if (!templateDir) throw new Error('模板不存在或名称无效')
     const pathValidation = validateFilePath(filePath)
     if (!pathValidation.valid) throw new Error(pathValidation.error || '文件路径无效')
     if (!isFileTypeAllowed(filePath)) throw new Error('不支持该文件类型')
 
-    const templateDir = getTemplateDir()
-    const fullPath = buildSafePath(path.join(templateDir, templateId), filePath)
+    const fullPath = buildSafePath(templateDir, filePath)
     if (!fullPath) throw new Error('文件路径不安全')
     if (!isFileAccessible(fullPath)) throw new Error(`文件不存在: ${filePath}`)
 
@@ -237,15 +343,16 @@ export function setupIpcHandlers(window: BrowserWindow): void {
       _e,
       templateId: string,
       filePath: string,
-    ): Promise<{ name: string; headers: string[]; rows: Record<string, any>[] }[]> => {
+    ): Promise<{ name: string; headers: string[]; rows: Record<string, unknown>[] }[]> => {
+      const templateDir = resolveTemplateDir(templateId)
+      if (!templateDir) throw new Error('模板不存在或名称无效')
       const pathValidation = validateFilePath(filePath)
       if (!pathValidation.valid) throw new Error(pathValidation.error || '文件路径无效')
 
       const ext = path.extname(filePath).toLowerCase()
       if (!['.xlsx', '.xls'].includes(ext)) throw new Error('仅支持 Excel 文件')
 
-      const templateDir = getTemplateDir()
-      const fullPath = buildSafePath(path.join(templateDir, templateId), filePath)
+      const fullPath = buildSafePath(templateDir, filePath)
       if (!fullPath) throw new Error('文件路径不安全')
       if (!isFileAccessible(fullPath)) throw new Error(`文件不存在: ${filePath}`)
 
@@ -284,69 +391,102 @@ export function setupIpcHandlers(window: BrowserWindow): void {
     },
   )
 
-  ipcMain.handle('project:saveAsTemplate', async (_e, projectName: string, templateName: string, meta: Partial<TemplateMeta>): Promise<void> => {
-    const projectPath = path.join(getWorkspaceDir(), projectName)
-    if (!fs.existsSync(projectPath) || !isProjectLikeDir(projectPath)) {
-      throw new Error(`项目不存在或结构无效: ${projectName}`)
-    }
-    const nameValidation = validateFilePath(templateName)
-    if (!nameValidation.valid || templateName.includes('/') || templateName.includes('\\')) {
-      throw new Error('模板名称无效')
-    }
-    const templateDir = getTemplateDir()
-    const targetPath = path.join(templateDir, templateName)
-    if (fs.existsSync(targetPath)) throw new Error(`模板已存在: ${templateName}`)
-    copyDirRecursive(projectPath, targetPath, { skipRuntimeDirs: true })
-    writeTemplateMeta(targetPath, { ...meta, name: meta.name || templateName, sourceProject: projectName })
-    refreshWorkspace()
-  })
+  ipcMain.handle(
+    'project:saveAsTemplate',
+    async (_e, projectName: string, templateName: string, meta: Partial<TemplateMeta>): Promise<void> => {
+      const projectPath = path.join(getWorkspaceDir(), projectName)
+      if (!fs.existsSync(projectPath) || !isProjectLikeDir(projectPath)) {
+        throw new Error(`项目不存在或结构无效: ${projectName}`)
+      }
+      const nameValidation = validateFilePath(templateName)
+      if (!nameValidation.valid || templateName.includes('/') || templateName.includes('\\')) {
+        throw new Error('模板名称无效')
+      }
+      const templateDir = getTemplateDir()
+      const targetPath = path.join(templateDir, templateName)
+      if (fs.existsSync(targetPath)) throw new Error(`模板已存在: ${templateName}`)
+      copyDirRecursive(projectPath, targetPath, { skipRuntimeDirs: true })
+      writeTemplateMeta(targetPath, { ...meta, name: meta.name || templateName, sourceProject: projectName })
+      refreshWorkspace()
+    },
+  )
 
   ipcMain.handle('project:updateTemplateMeta', async (_e, id: string, meta: Partial<TemplateMeta>): Promise<void> => {
-    const targetPath = path.join(getTemplateDir(), id)
-    if (!fs.existsSync(targetPath)) throw new Error(`模板不存在: ${id}`)
+    const targetPath = resolveTemplateDir(id)
+    if (!targetPath || !fs.existsSync(targetPath)) throw new Error(`模板不存在: ${id}`)
     const current = readTemplateMeta(targetPath, id)
     writeTemplateMeta(targetPath, { ...current, ...meta })
     refreshWorkspace()
   })
 
   ipcMain.handle('project:deleteTemplate', async (_e, id: string): Promise<void> => {
-    const targetPath = path.join(getTemplateDir(), id)
-    if (!fs.existsSync(targetPath)) throw new Error(`模板不存在: ${id}`)
+    const targetPath = resolveTemplateDir(id)
+    if (!targetPath || !fs.existsSync(targetPath)) throw new Error(`模板不存在: ${id}`)
     fs.rmSync(targetPath, { recursive: true, force: true })
     refreshWorkspace()
   })
 
-  ipcMain.handle('project:installRemoteTemplate', async (_e, data: { name: string; zipData: string; owner: string }): Promise<void> => {
-    const AdmZip = (await import('adm-zip')).default
-    const templateDir = getTemplateDir()
+  ipcMain.handle(
+    'project:installRemoteTemplate',
+    async (_e, data: { name: string; zipData: string; owner: string }): Promise<void> => {
+      const AdmZip = (await import('adm-zip')).default
+      const templateDir = resolveTemplateDir(data.name)
+      if (!templateDir) throw new Error('模板名称无效')
 
-    // Decode base64 zip data
-    const buffer = Buffer.from(data.zipData, 'base64')
-    const zip = new AdmZip(buffer)
+      // Decode base64 zip data
+      const buffer = Buffer.from(data.zipData, 'base64')
+      const zip = new AdmZip(buffer)
 
-    const targetName = data.name
-    const targetPath = path.join(templateDir, targetName)
+      const targetPath = templateDir
 
-    // Check if template already exists
-    if (fs.existsSync(targetPath)) {
-      throw new Error(`模板已存在: ${targetName}`)
-    }
+      // Check if template already exists
+      if (fs.existsSync(targetPath)) {
+        throw new Error(`模板已存在: ${data.name}`)
+      }
 
-    // Extract all files
-    zip.extractAllTo(targetPath, true)
+      // 逐条目安全解压：拒绝绝对路径与 ../ 穿越，防止 zip-slip
+      const entries = zip.getEntries()
+      for (const entry of entries) {
+        const entryName = entry.entryName.replace(/\\/g, '/')
+        const segments = entryName.split('/').filter((seg) => seg.length > 0)
+        if (segments.includes('..') || path.isAbsolute(entryName)) {
+          fs.rmSync(targetPath, { recursive: true, force: true })
+          throw new Error('压缩包包含不安全的文件路径，已取消安装')
+        }
+        const destPath = path.join(targetPath, entryName)
+        if (!isPathSafe(destPath, targetPath)) {
+          fs.rmSync(targetPath, { recursive: true, force: true })
+          throw new Error('压缩包包含不安全的文件路径，已取消安装')
+        }
+        if (entry.isDirectory) {
+          fs.mkdirSync(destPath, { recursive: true })
+        } else {
+          fs.mkdirSync(path.dirname(destPath), { recursive: true })
+          fs.writeFileSync(destPath, entry.getData())
+        }
+      }
 
-    // Save metadata
-    const metaFile = path.join(targetPath, '.mc-template-meta.json')
-    fs.writeFileSync(metaFile, JSON.stringify({
-      name: targetName,
-      source: 'remote',
-      owner: data.owner,
-      installedAt: new Date().toISOString(),
-    }, null, 2), 'utf-8')
+      // Save metadata
+      const metaFile = path.join(targetPath, '.mc-template-meta.json')
+      fs.writeFileSync(
+        metaFile,
+        JSON.stringify(
+          {
+            name: data.name,
+            source: 'remote',
+            owner: data.owner,
+            installedAt: new Date().toISOString(),
+          },
+          null,
+          2,
+        ),
+        'utf-8',
+      )
 
-    refreshWorkspace()
-    logger.info(`模板安装成功: ${data.owner}/${targetName}`)
-  })
+      refreshWorkspace()
+      logger.info(`模板安装成功: ${data.owner}/${data.name}`)
+    },
+  )
 
   ipcMain.handle('project:saveAsExample', async (_e, projectName: string, exampleName: string): Promise<void> => {
     const projectPath = path.join(getWorkspaceDir(), projectName)
@@ -370,15 +510,15 @@ export function setupIpcHandlers(window: BrowserWindow): void {
     refreshWorkspace()
   })
 
-  ipcMain.handle('project:structure', async (_e, name: string): Promise<any[]> => {
-    const projectPath = path.join(getWorkspaceDir(), String(name))
-    if (!fs.existsSync(projectPath)) {
+  ipcMain.handle('project:structure', async (_e, name: string): Promise<FileTreeNode[]> => {
+    const projectPath = resolveProjectDir(String(name))
+    if (!projectPath || !fs.existsSync(projectPath)) {
       return []
     }
 
-    async function buildFileTree(dirPath: string, basePath: string): Promise<any[]> {
+    async function buildFileTree(dirPath: string, basePath: string): Promise<FileTreeNode[]> {
       const entries = await fs.promises.readdir(dirPath, { withFileTypes: true })
-      const result: any[] = []
+      const result: FileTreeNode[] = []
       for (const entry of entries) {
         const entryName = entry.name.toLowerCase()
         if (entryName === '__pycache__' || entryName.startsWith('.')) continue
@@ -407,7 +547,7 @@ export function setupIpcHandlers(window: BrowserWindow): void {
   })
 
   // 项目参数查询 API — 按 Python 项目列表解析 ID，避免与界面列表不一致
-  ipcMain.handle('project:parameters', async (_e, id: string): Promise<any[]> => {
+  ipcMain.handle('project:parameters', async (_e, id: string): Promise<Array<{ file: string; path: string }>> => {
     const projectDir = await getProjectPathById(id)
     const excelDir = path.join(projectDir, 'excel')
     if (!fs.existsSync(excelDir)) return []
@@ -480,33 +620,36 @@ export function setupIpcHandlers(window: BrowserWindow): void {
     },
   )
 
-  ipcMain.handle('project:listFiles', async (_e, id: string, fileType?: string): Promise<any[]> => {
-    const projectDir = await getProjectPathById(id)
-    if (!fs.existsSync(projectDir)) return []
-    const files: string[] = []
-    function walk(dir: string) {
-      const entries = fs.readdirSync(dir, { withFileTypes: true })
-      for (const entry of entries) {
-        const fullPath = path.join(dir, entry.name)
-        if (entry.isDirectory()) walk(fullPath)
-        else {
-          const ext = entry.name.slice(entry.name.lastIndexOf('.')).toLowerCase()
-          if (!fileType) {
-            files.push(path.relative(projectDir, fullPath).replace(/\\/g, '/'))
-          } else if (
-            fileType === 'text' &&
-            ['.txt', '.yml', '.yaml', '.j2', '.jinja', '.jinja2', '.html', '.json', '.md'].includes(ext)
-          ) {
-            files.push(path.relative(projectDir, fullPath).replace(/\\/g, '/'))
-          } else if (fileType === 'excel' && ['.xlsx', '.xls'].includes(ext)) {
-            files.push(path.relative(projectDir, fullPath).replace(/\\/g, '/'))
+  ipcMain.handle(
+    'project:listFiles',
+    async (_e, id: string, fileType?: string): Promise<Array<{ name: string; path: string; isDirectory: boolean }>> => {
+      const projectDir = await getProjectPathById(id)
+      if (!fs.existsSync(projectDir)) return []
+      const files: string[] = []
+      function walk(dir: string) {
+        const entries = fs.readdirSync(dir, { withFileTypes: true })
+        for (const entry of entries) {
+          const fullPath = path.join(dir, entry.name)
+          if (entry.isDirectory()) walk(fullPath)
+          else {
+            const ext = entry.name.slice(entry.name.lastIndexOf('.')).toLowerCase()
+            if (!fileType) {
+              files.push(path.relative(projectDir, fullPath).replace(/\\/g, '/'))
+            } else if (
+              fileType === 'text' &&
+              ['.txt', '.yml', '.yaml', '.j2', '.jinja', '.jinja2', '.html', '.json', '.md'].includes(ext)
+            ) {
+              files.push(path.relative(projectDir, fullPath).replace(/\\/g, '/'))
+            } else if (fileType === 'excel' && ['.xlsx', '.xls'].includes(ext)) {
+              files.push(path.relative(projectDir, fullPath).replace(/\\/g, '/'))
+            }
           }
         }
       }
-    }
-    walk(projectDir)
-    return files.map((f) => ({ name: f, path: f, isDirectory: false }))
-  })
+      walk(projectDir)
+      return files.map((f) => ({ name: f, path: f, isDirectory: false }))
+    },
+  )
 
   // 项目 Excel 读写（已使用文件系统直接读写）
   ipcMain.handle(
@@ -516,7 +659,7 @@ export function setupIpcHandlers(window: BrowserWindow): void {
       projectId: number,
       filePath: string,
       projectName?: string,
-    ): Promise<{ name: string; headers: string[]; rows: Record<string, any>[] }[]> => {
+    ): Promise<{ name: string; headers: string[]; rows: Record<string, unknown>[] }[]> => {
       // 安全校验：文件路径
       const pathValidation = validateFilePath(filePath)
       if (!pathValidation.valid) {
@@ -551,7 +694,7 @@ export function setupIpcHandlers(window: BrowserWindow): void {
       _e,
       projectId: number,
       filePath: string,
-      sheets: { name: string; headers: string[]; rows: Record<string, any>[] }[],
+      sheets: { name: string; headers: string[]; rows: Record<string, unknown>[] }[],
       projectName?: string,
     ): Promise<void> => {
       // 安全校验：文件路径
@@ -576,7 +719,6 @@ export function setupIpcHandlers(window: BrowserWindow): void {
 
       const dir = path.dirname(fullPath)
       if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
-      const XLSX = require('xlsx')
       const wb = XLSX.utils.book_new()
       for (const sheet of sheets) {
         const ws = XLSX.utils.json_to_sheet(sheet.rows, { header: sheet.headers })
@@ -610,25 +752,31 @@ export function setupIpcHandlers(window: BrowserWindow): void {
   })
 
   // 渲染预览
-  ipcMain.handle('render:dry-run', async (_e, ids: string[], format?: 'device_name' | 'device_sn'): Promise<any> => {
-    const args = ['render', 'dry-run', ids.join(',')]
-    if (format === 'device_sn') args.push('--format', 'device_sn')
-    return await renderHandler.runPythonCommand(args, true)
-  })
+  ipcMain.handle(
+    'render:dry-run',
+    async (_e, ids: string[], format?: 'device_name' | 'device_sn'): Promise<unknown> => {
+      const args = ['render', 'dry-run', ids.join(',')]
+      if (format === 'device_sn') args.push('--format', 'device_sn')
+      return await renderHandler.runPythonCommand(args, true)
+    },
+  )
 
   // 校验
-  ipcMain.handle('validate:template', async (_e, ids: string[]): Promise<any> => {
+  ipcMain.handle('validate:template', async (_e, ids: string[]): Promise<unknown> => {
     return await renderHandler.runPythonCommand(['validate', 'template', ids.join(',')], true)
   })
 
-  ipcMain.handle('validate:excel', async (_e, ids: string[]): Promise<any> => {
+  ipcMain.handle('validate:excel', async (_e, ids: string[]): Promise<unknown> => {
     return await renderHandler.runPythonCommand(['validate', 'excel', ids.join(',')], true)
   })
 
   // Diff 对比
-  ipcMain.handle('diff:compare', async (_e, project: string, device: string, content: string, format: string): Promise<any> => {
-    return await renderHandler.runPythonCommand(['diff', project, device, content, '--format', format], true)
-  })
+  ipcMain.handle(
+    'diff:compare',
+    async (_e, project: string, device: string, content: string, format: string): Promise<unknown> => {
+      return await renderHandler.runPythonCommand(['diff', project, device, content, '--format', format], true)
+    },
+  )
 
   // 删除操作 API（通过 Python 后端执行）
   ipcMain.handle('delete:output', async (_e, ids: string[]): Promise<void> => {
@@ -680,7 +828,8 @@ export function setupIpcHandlers(window: BrowserWindow): void {
   })
 
   // 文件操作API
-  ipcMain.handle('file:read', async (_e, filePath: string): Promise<string> => {
+  ipcMain.handle('file:read', async (e, filePath: string): Promise<string> => {
+    if (!isTrustedSender(e)) throw new Error('无权执行该操作')
     logger.info('[file:read] 请求路径:', filePath)
     if (!fs.existsSync(filePath)) {
       logger.error('[file:read] 文件不存在:', filePath)
@@ -690,7 +839,6 @@ export function setupIpcHandlers(window: BrowserWindow): void {
     let text = buffer.toString('utf-8')
     if (text.includes('\uFFFD')) {
       try {
-        const iconv = require('iconv-lite')
         text = iconv.decode(buffer, 'gbk')
       } catch {
         logger.warn('[file:read] iconv-lite 加载失败，使用 UTF-8 结果')
@@ -700,7 +848,10 @@ export function setupIpcHandlers(window: BrowserWindow): void {
     return text
   })
 
-  ipcMain.handle('file:write', async (_e, filePath: string, content: string): Promise<void> => {
+  ipcMain.handle('file:write', async (e, filePath: string, content: string): Promise<void> => {
+    if (!isTrustedSender(e)) throw new Error('无权执行该操作')
+    const contentValidation = validateFileContent(content)
+    if (!contentValidation.valid) throw new Error(contentValidation.error || '文件内容无效')
     const dir = path.dirname(filePath)
     if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir, { recursive: true })
@@ -708,25 +859,28 @@ export function setupIpcHandlers(window: BrowserWindow): void {
     fs.writeFileSync(filePath, content, 'utf-8')
   })
 
-  ipcMain.handle('file:exists', async (_e, filePath: string): Promise<boolean> => {
+  ipcMain.handle('file:exists', async (e, filePath: string): Promise<boolean> => {
+    if (!isTrustedSender(e)) throw new Error('无权执行该操作')
     const exists = fs.existsSync(filePath)
     return exists
   })
 
   ipcMain.handle(
     'file:readExcel',
-    async (_e, filePath: string): Promise<{ name: string; headers: string[]; rows: Record<string, any>[] }[]> => {
+    async (e, filePath: string): Promise<{ name: string; headers: string[]; rows: Record<string, unknown>[] }[]> => {
+      if (!isTrustedSender(e)) throw new Error('无权执行该操作')
       try {
         return readExcelByPath(filePath)
-      } catch (err: any) {
-        logger.error('[file:readExcel] 错误:', err.message)
+      } catch (err) {
+        logger.error('[file:readExcel] 错误:', errorMessage(err))
         throw err
       }
     },
   )
 
   // 文件读取 API —— Word 文档
-  ipcMain.handle('file:readDocx', async (_e, filePath: string): Promise<string> => {
+  ipcMain.handle('file:readDocx', async (e, filePath: string): Promise<string> => {
+    if (!isTrustedSender(e)) throw new Error('无权执行该操作')
     logger.info('[file:readDocx] 请求:', filePath)
     if (!fs.existsSync(filePath)) {
       logger.error('[file:readDocx] 文件不存在:', filePath)
@@ -737,13 +891,12 @@ export function setupIpcHandlers(window: BrowserWindow): void {
       throw new Error('请将 .doc 文件在 Word 中另存为 .docx 格式后再打开')
     }
     try {
-      const mammoth = require('mammoth')
       const result = await mammoth.extractRawText({ path: filePath })
       logger.info('[file:readDocx] 读取成功，文本长度:', String(result.value).length)
       return result.value
-    } catch (err: any) {
-      logger.error('[file:readDocx] 解析失败:', err.message)
-      throw new Error('解析 Word 文档失败: ' + (err.message || String(err)))
+    } catch (err) {
+      logger.error('[file:readDocx] 解析失败:', errorMessage(err))
+      throw new Error('解析 Word 文档失败: ' + errorMessage(err))
     }
   })
 
@@ -753,8 +906,8 @@ export function setupIpcHandlers(window: BrowserWindow): void {
     async (_e, projectId: number, filePath: string, projectName?: string): Promise<string> => {
       logger.info('[project:readDocx] 请求', { projectId, projectName, filePath })
       const projectDir = await getProjectPath(projectId, projectName)
-      const fullPath = path.join(projectDir, String(filePath))
-      logger.info('[project:readDocx] 完整路径:', fullPath)
+      const fullPath = buildSafePath(projectDir, String(filePath))
+      if (!fullPath) throw new Error('文件路径不安全')
       if (!fs.existsSync(fullPath)) throw new Error(`文件不存在: ${fullPath}`)
 
       const ext = fullPath.slice(fullPath.lastIndexOf('.')).toLowerCase()
@@ -762,13 +915,12 @@ export function setupIpcHandlers(window: BrowserWindow): void {
         throw new Error('请将 .doc 文件在 Word 中另存为 .docx 格式后再打开')
       }
       try {
-        const mammoth = require('mammoth')
         const result = await mammoth.extractRawText({ path: fullPath })
         logger.info('[project:readDocx] 读取成功，文本长度:', String(result.value).length)
         return result.value
-      } catch (err: any) {
-        logger.error('[project:readDocx] 解析失败:', err.message)
-        throw new Error('解析 Word 文档失败: ' + (err.message || String(err)))
+      } catch (err) {
+        logger.error('[project:readDocx] 解析失败:', errorMessage(err))
+        throw new Error('解析 Word 文档失败: ' + errorMessage(err))
       }
     },
   )
@@ -779,8 +931,8 @@ export function setupIpcHandlers(window: BrowserWindow): void {
     async (_e, projectId: number, filePath: string, projectName?: string): Promise<ArrayBuffer> => {
       logger.info('[project:readDocxBuffer] 请求', { projectId, projectName, filePath })
       const projectDir = await getProjectPath(projectId, projectName)
-      const fullPath = path.join(projectDir, String(filePath))
-      logger.info('[project:readDocxBuffer] 完整路径:', fullPath)
+      const fullPath = buildSafePath(projectDir, String(filePath))
+      if (!fullPath) throw new Error('文件路径不安全')
       if (!fs.existsSync(fullPath)) throw new Error(`文件不存在: ${fullPath}`)
 
       const ext = fullPath.slice(fullPath.lastIndexOf('.')).toLowerCase()
@@ -792,9 +944,9 @@ export function setupIpcHandlers(window: BrowserWindow): void {
         const buffer = fs.readFileSync(fullPath)
         logger.info('[project:readDocxBuffer] 读取成功，文件大小:', buffer.length)
         return buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength)
-      } catch (err: any) {
-        logger.error('[project:readDocxBuffer] 读取失败:', err.message)
-        throw new Error('读取 Word 文档失败: ' + (err.message || String(err)))
+      } catch (err) {
+        logger.error('[project:readDocxBuffer] 读取失败:', errorMessage(err))
+        throw new Error('读取 Word 文档失败: ' + errorMessage(err))
       }
     },
   )
@@ -819,7 +971,7 @@ export function setupIpcHandlers(window: BrowserWindow): void {
   })
 
   ipcMain.handle('app:getVersion', async (): Promise<string> => {
-    return require('../../package.json').version
+    return packageJson.version
   })
 
   ipcMain.handle('app:getBuildInfo', async (): Promise<{ version: string; build: string; displayVersion: string }> => {
@@ -844,16 +996,61 @@ export function setupIpcHandlers(window: BrowserWindow): void {
   ipcMain.handle(
     'dialog:showMessage',
     async (_e, options: { type: 'info' | 'warning' | 'error'; title: string; message: string }): Promise<void> => {
-      // 在Electron中实现消息对话框
-      logger.info(`[${options.type}] ${options.title}: ${options.message}`)
+      const type = options.type === 'error' ? 'error' : options.type === 'warning' ? 'warning' : 'info'
+      await dialog.showMessageBox(window, {
+        type,
+        title: options.title,
+        message: options.message,
+      })
     },
   )
 
   ipcMain.handle('dialog:showConfirm', async (_e, options: { title: string; message: string }): Promise<boolean> => {
-    // 在Electron中实现确认对话框
-    logger.info(`[Confirm] ${options.title}: ${options.message}`)
-    return true // 默认返回确认
+    const result = await dialog.showMessageBox(window, {
+      type: 'question',
+      title: options.title,
+      message: options.message,
+      buttons: [electronI18n.t('common:app.yes', '确定'), electronI18n.t('common:app.no', '取消')],
+      defaultId: 0,
+      cancelId: 1,
+      noLink: true,
+    })
+    return result.response === 0
   })
+
+  ipcMain.handle(
+    'dialog:openFile',
+    async (
+      _e,
+      options: { title?: string; filters?: { name: string; extensions: string[] }[] },
+    ): Promise<string | null> => {
+      if (!isTrustedSender(_e)) throw new Error('无权执行该操作')
+      const result = await dialog.showOpenDialog(window, {
+        title: options?.title,
+        filters: options?.filters,
+        properties: ['openFile'],
+      })
+      if (result.canceled || result.filePaths.length === 0) return null
+      return result.filePaths[0]
+    },
+  )
+
+  ipcMain.handle(
+    'dialog:saveFile',
+    async (
+      _e,
+      options: { title?: string; defaultPath?: string; filters?: { name: string; extensions: string[] }[] },
+    ): Promise<string | null> => {
+      if (!isTrustedSender(_e)) throw new Error('无权执行该操作')
+      const result = await dialog.showSaveDialog(window, {
+        title: options?.title,
+        defaultPath: options?.defaultPath,
+        filters: options?.filters,
+      })
+      if (result.canceled || !result.filePath) return null
+      return result.filePath
+    },
+  )
 
   // 日志API
   ipcMain.handle('log:write', async (_e, level: string, message: string): Promise<void> => {
@@ -864,7 +1061,9 @@ export function setupIpcHandlers(window: BrowserWindow): void {
   })
 
   // Shell API
-  ipcMain.handle('shell:showItemInFolder', async (_e, filePath: string): Promise<void> => {
+  ipcMain.handle('shell:showItemInFolder', async (e, filePath: string): Promise<void> => {
+    if (!isTrustedSender(e)) throw new Error('无权执行该操作')
+    if (!fs.existsSync(filePath)) return
     shell.showItemInFolder(filePath)
   })
 
@@ -923,9 +1122,12 @@ export function setupIpcHandlers(window: BrowserWindow): void {
   })
 
   // AI Hub Provider 管理
-  ipcMain.handle('aihub:getProviders', async (): Promise<Array<{ name: string; model: string; enabled: boolean; is_default: boolean }>> => {
-    return await aiHubService.getProviders()
-  })
+  ipcMain.handle(
+    'aihub:getProviders',
+    async (): Promise<Array<{ name: string; model: string; enabled: boolean; is_default: boolean }>> => {
+      return await aiHubService.getProviders()
+    },
+  )
 
   ipcMain.handle(
     'aihub:configureProvider',
@@ -941,7 +1143,13 @@ export function setupIpcHandlers(window: BrowserWindow): void {
   // AI Hub 测试连接
   ipcMain.handle(
     'aihub:testConnection',
-    async (_e, provider: string, apiKey: string, baseUrl: string, model: string): Promise<{ status: string; message: string }> => {
+    async (
+      _e,
+      provider: string,
+      apiKey: string,
+      baseUrl: string,
+      model: string,
+    ): Promise<{ status: string; message: string }> => {
       return await aiHubService.testConnection(provider, apiKey, baseUrl, model)
     },
   )
@@ -1013,33 +1221,49 @@ export function setupIpcHandlers(window: BrowserWindow): void {
   // ===== 项目同步 =====
 
   ipcMain.handle('project:getLocalSha', async (_e, projectName: string): Promise<string | null> => {
-    const projectDir = path.join(getWorkspaceDir(), projectName)
+    const projectDir = resolveProjectDir(projectName)
+    if (!projectDir || !fs.existsSync(projectDir)) return null
     return getLocalCommitSha(projectDir)
   })
 
-  ipcMain.handle('project:collectProjectFiles', async (_e, projectName: string): Promise<{ path: string; content: string }[]> => {
-    const projectDir = path.join(getWorkspaceDir(), projectName)
-    if (!fs.existsSync(projectDir)) {
-      throw new Error(`项目不存在: ${projectName}`)
-    }
-    return collectProjectFiles(projectDir)
-  })
+  ipcMain.handle(
+    'project:collectProjectFiles',
+    async (_e, projectName: string): Promise<{ path: string; content: string }[]> => {
+      const projectDir = resolveProjectDir(projectName)
+      if (!projectDir || !fs.existsSync(projectDir)) {
+        throw new Error(`项目不存在: ${projectName}`)
+      }
+      return collectProjectFiles(projectDir)
+    },
+  )
 
-  ipcMain.handle('project:installRemoteProject', async (_e, data: { name: string; zipData: string; owner: string }): Promise<void> => {
-    const workspaceDir = getWorkspaceDir()
-    await installRemoteProject(data.zipData, workspaceDir, data.name, data.owner)
-    refreshWorkspace()
-    logger.info(`远程项目安装成功: ${data.owner}/${data.name}`)
-  })
+  ipcMain.handle(
+    'project:installRemoteProject',
+    async (_e, data: { name: string; zipData: string; owner: string }): Promise<void> => {
+      const projectDir = resolveProjectDir(data.name)
+      if (!projectDir) throw new Error('项目名称无效')
+      const workspaceDir = getWorkspaceDir()
+      await installRemoteProject(data.zipData, workspaceDir, data.name, data.owner, projectDir)
+      refreshWorkspace()
+      logger.info(`远程项目安装成功: ${data.owner}/${data.name}`)
+    },
+  )
 
-  ipcMain.handle('project:batchGetLocalSha', async (_e, projectNames: string[]): Promise<Record<string, string | null>> => {
-    const result: Record<string, string | null> = {}
-    for (const name of projectNames) {
-      const projectDir = path.join(getWorkspaceDir(), name)
-      result[name] = await getLocalCommitSha(projectDir)
-    }
-    return result
-  })
+  ipcMain.handle(
+    'project:batchGetLocalSha',
+    async (_e, projectNames: string[]): Promise<Record<string, string | null>> => {
+      const result: Record<string, string | null> = {}
+      for (const name of projectNames) {
+        const projectDir = resolveProjectDir(name)
+        if (projectDir && fs.existsSync(projectDir)) {
+          result[name] = await getLocalCommitSha(projectDir)
+        } else {
+          result[name] = null
+        }
+      }
+      return result
+    },
+  )
 
   // ===== 平台 Token 安全存储 =====
   ipcMain.handle('platform:saveToken', async (_e, token: string): Promise<void> => {

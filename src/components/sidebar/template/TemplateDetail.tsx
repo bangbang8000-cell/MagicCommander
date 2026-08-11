@@ -17,7 +17,9 @@ export function TemplateDetail({ template }: TemplateDetailProps) {
     <div className="h-full overflow-auto p-3 text-xs space-y-3">
       <div>
         <div className="font-medium text-sm">{template.name}</div>
-        <div className="text-gray-500 dark:text-gray-400 mt-1">{template.description || t('template.detail.noDescription')}</div>
+        <div className="text-gray-500 dark:text-gray-400 mt-1">
+          {template.description || t('template.detail.noDescription')}
+        </div>
       </div>
       <div className="grid grid-cols-2 gap-2 text-[11px]">
         <div>
@@ -37,7 +39,9 @@ export function TemplateDetail({ template }: TemplateDetailProps) {
         <div className="text-gray-500 dark:text-gray-400 mb-1">{t('template.detail.inputRequirements')}</div>
         {template.inputRequirements.length > 0 ? (
           <ul className="list-disc pl-4 space-y-0.5">
-            {template.inputRequirements.map((item) => <li key={item}>{item}</li>)}
+            {template.inputRequirements.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
           </ul>
         ) : (
           <div>{t('template.detail.notSet')}</div>

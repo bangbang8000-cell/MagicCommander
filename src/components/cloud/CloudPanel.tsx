@@ -55,58 +55,61 @@ export function CloudPanel() {
   }, [])
 
   // Perform cloud search
-  const doSearch = useCallback(async (q: string, type: SearchType) => {
-    if (!q.trim() || !loggedIn) {
-      setSearchResults([])
-      setSearchTotal(0)
-      return
-    }
-    setSearchLoading(true)
-    setSearchError('')
-    try {
-      const { search: searchApi } = await import('@/api/platform')
-
-      if (type === 'project') {
-        const { projects: projectApi } = await import('@/api/platform')
-        const res = await projectApi.search(q)
-        const mapped = (res.projects || []).map((p: { name: string; owner: string; description?: string }) => ({
-          repo: p.name,
-          owner: p.owner,
-          path: p.name,
-          size: 0,
-          snippet: p.description || '',
-        }))
-        setSearchResults(mapped)
-        setSearchTotal(mapped.length)
-      } else if (type === 'template') {
-        const { templates: templateApi } = await import('@/api/platform')
-        const res = await templateApi.list(q)
-        const mapped = (res.templates || []).map((t: { name: string; owner: string; description?: string }) => ({
-          repo: t.name,
-          owner: t.owner,
-          path: t.name,
-          size: 0,
-          snippet: t.description || '',
-        }))
-        setSearchResults(mapped)
-        setSearchTotal(res.total || mapped.length)
-      } else if (type === 'filename') {
-        const res = await searchApi.files(q)
-        setSearchResults(res.results.map(r => ({ ...r, size: r.size || 0 })))
-        setSearchTotal(res.total)
-      } else if (type === 'content') {
-        const res = await searchApi.content(q)
-        setSearchResults(res.results.map(r => ({ ...r, size: 0 })))
-        setSearchTotal(res.total)
+  const doSearch = useCallback(
+    async (q: string, type: SearchType) => {
+      if (!q.trim() || !loggedIn) {
+        setSearchResults([])
+        setSearchTotal(0)
+        return
       }
-    } catch (e: unknown) {
-      setSearchError(e instanceof Error ? e.message : t('cloud:loadFailed'))
-      setSearchResults([])
-      setSearchTotal(0)
-    } finally {
-      setSearchLoading(false)
-    }
-  }, [loggedIn, t])
+      setSearchLoading(true)
+      setSearchError('')
+      try {
+        const { search: searchApi } = await import('@/api/platform')
+
+        if (type === 'project') {
+          const { projects: projectApi } = await import('@/api/platform')
+          const res = await projectApi.search(q)
+          const mapped = (res.projects || []).map((p: { name: string; owner: string; description?: string }) => ({
+            repo: p.name,
+            owner: p.owner,
+            path: p.name,
+            size: 0,
+            snippet: p.description || '',
+          }))
+          setSearchResults(mapped)
+          setSearchTotal(mapped.length)
+        } else if (type === 'template') {
+          const { templates: templateApi } = await import('@/api/platform')
+          const res = await templateApi.list(q)
+          const mapped = (res.templates || []).map((t: { name: string; owner: string; description?: string }) => ({
+            repo: t.name,
+            owner: t.owner,
+            path: t.name,
+            size: 0,
+            snippet: t.description || '',
+          }))
+          setSearchResults(mapped)
+          setSearchTotal(res.total || mapped.length)
+        } else if (type === 'filename') {
+          const res = await searchApi.files(q)
+          setSearchResults(res.results.map((r) => ({ ...r, size: r.size || 0 })))
+          setSearchTotal(res.total)
+        } else if (type === 'content') {
+          const res = await searchApi.content(q)
+          setSearchResults(res.results.map((r) => ({ ...r, size: 0 })))
+          setSearchTotal(res.total)
+        }
+      } catch (e: unknown) {
+        setSearchError(e instanceof Error ? e.message : t('cloud:loadFailed'))
+        setSearchResults([])
+        setSearchTotal(0)
+      } finally {
+        setSearchLoading(false)
+      }
+    },
+    [loggedIn, t],
+  )
 
   // Debounced search
   useEffect(() => {
@@ -136,7 +139,7 @@ export function CloudPanel() {
         {/* Search type selector + input */}
         <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700 space-y-2">
           <div className="flex gap-1.5 flex-wrap">
-            {searchTypes.map(st => (
+            {searchTypes.map((st) => (
               <button
                 key={st.id}
                 onClick={() => setSearchType(st.id)}
@@ -154,7 +157,9 @@ export function CloudPanel() {
           <SearchInput
             value={searchQuery}
             onChange={setSearchQuery}
-            placeholder={t('cloud:search.typePlaceholder', { type: searchTypes.find(s => s.id === searchType)?.label || '' })}
+            placeholder={t('cloud:search.typePlaceholder', {
+              type: searchTypes.find((s) => s.id === searchType)?.label || '',
+            })}
           />
         </div>
 
@@ -187,14 +192,10 @@ export function CloudPanel() {
                 >
                   <div className="flex items-start gap-2">
                     <div className="flex-1 min-w-0">
-                      <div className="text-xs font-medium text-gray-800 dark:text-gray-200 truncate">
-                        {item.path}
-                      </div>
+                      <div className="text-xs font-medium text-gray-800 dark:text-gray-200 truncate">{item.path}</div>
                       <div className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
                         {item.owner}/{item.repo}
-                        {item.line !== undefined && (
-                          <span className="ml-2">L{item.line}</span>
-                        )}
+                        {item.line !== undefined && <span className="ml-2">L{item.line}</span>}
                       </div>
                       {item.snippet && (
                         <div className="text-xs text-gray-500 dark:text-gray-400 mt-1 font-mono bg-gray-100 dark:bg-gray-800 rounded px-1.5 py-0.5 truncate">
@@ -236,9 +237,7 @@ export function CloudPanel() {
     <div className="flex flex-col h-full bg-white dark:bg-gray-800">
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-2 border-b border-gray-200 dark:border-gray-700">
-        <h2 className="text-sm font-semibold text-gray-900 dark:text-white">
-          {t('cloud:panel.title')}
-        </h2>
+        <h2 className="text-sm font-semibold text-gray-900 dark:text-white">{t('cloud:panel.title')}</h2>
         {!loggedIn && (
           <button
             onClick={() => setShowLogin(true)}
@@ -269,17 +268,10 @@ export function CloudPanel() {
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-hidden">
-        {renderContent()}
-      </div>
+      <div className="flex-1 overflow-hidden">{renderContent()}</div>
 
       {/* Login dialog */}
-      {showLogin && (
-        <LoginDialog
-          open={showLogin}
-          onClose={() => setShowLogin(false)}
-        />
-      )}
+      {showLogin && <LoginDialog open={showLogin} onClose={() => setShowLogin(false)} />}
     </div>
   )
 }

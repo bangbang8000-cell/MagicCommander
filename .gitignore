@@ -65,3 +65,4 @@ run_scraper.bat
 
 # Trae HTML share packages
 .trae-html-share-packages/
+workspace/*/.render_cache/

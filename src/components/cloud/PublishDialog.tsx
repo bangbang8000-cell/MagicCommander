@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { usePlatformStore } from '@/stores/platform.store'
 import { useUIStore } from '@/stores/ui.store'
@@ -65,7 +65,9 @@ export function PublishDialog({ open, template, onClose }: PublishDialogProps) {
                 content = await window.electron.project.readTemplateFile(template.id, item.path)
               }
               files.push({ path: prefix + item.name, content })
-            } catch { /* skip files that can't be read */ }
+            } catch {
+              /* skip files that can't be read */
+            }
           }
         }
       }
@@ -116,9 +118,7 @@ export function PublishDialog({ open, template, onClose }: PublishDialogProps) {
             disabled={publishing || !name.trim()}
             className={clsx(
               'px-4 py-1.5 text-sm rounded text-white transition-colors',
-              publishing || !name.trim()
-                ? 'bg-indigo-500/50 cursor-not-allowed'
-                : 'bg-indigo-600 hover:bg-indigo-500',
+              publishing || !name.trim() ? 'bg-indigo-500/50 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-500',
             )}
           >
             {publishing ? t('template.publishing') : t('template.publish')}
@@ -170,13 +170,13 @@ export function PublishDialog({ open, template, onClose }: PublishDialogProps) {
             onChange={(e) => setCategory(e.target.value)}
             className={clsx(
               'w-full mt-1 px-3 py-2 rounded border text-sm',
-              isDark
-                ? 'bg-gray-800 border-gray-600 text-gray-100'
-                : 'bg-white border-gray-300 text-gray-900',
+              isDark ? 'bg-gray-800 border-gray-600 text-gray-100' : 'bg-white border-gray-300 text-gray-900',
             )}
           >
             {CATEGORIES.map((cat) => (
-              <option key={cat.value} value={cat.value}>{cat.label}</option>
+              <option key={cat.value} value={cat.value}>
+                {cat.label}
+              </option>
             ))}
           </select>
         </div>
@@ -192,9 +192,7 @@ export function PublishDialog({ open, template, onClose }: PublishDialogProps) {
             className="rounded"
           />
           <span className={clsx('text-xs', isDark ? 'text-gray-500' : 'text-gray-400')}>
-            {isPublic
-              ? t('template.edit.publicHint')
-              : t('template.edit.privateHint')}
+            {isPublic ? t('template.edit.publicHint') : t('template.edit.privateHint')}
           </span>
         </div>
       </div>

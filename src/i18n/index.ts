@@ -16,6 +16,8 @@ import welcomeZh from './locales/zh-CN/welcome.json'
 import terminalZh from './locales/zh-CN/terminal.json'
 
 import commonZhTw from './locales/zh-TW/common.json'
+import chatZhTw from './locales/zh-TW/chat.json'
+import cloudZhTw from './locales/zh-TW/cloud.json'
 import editorZhTw from './locales/zh-TW/editor.json'
 import projectZhTw from './locales/zh-TW/project.json'
 import errorsZhTw from './locales/zh-TW/errors.json'
@@ -32,6 +34,8 @@ import welcomeEn from './locales/en/welcome.json'
 import terminalEn from './locales/en/terminal.json'
 
 import commonJa from './locales/ja/common.json'
+import chatJa from './locales/ja/chat.json'
+import cloudJa from './locales/ja/cloud.json'
 import editorJa from './locales/ja/editor.json'
 import projectJa from './locales/ja/project.json'
 import errorsJa from './locales/ja/errors.json'
@@ -39,6 +43,8 @@ import welcomeJa from './locales/ja/welcome.json'
 import terminalJa from './locales/ja/terminal.json'
 
 import commonKo from './locales/ko/common.json'
+import chatKo from './locales/ko/chat.json'
+import cloudKo from './locales/ko/cloud.json'
 import editorKo from './locales/ko/editor.json'
 import projectKo from './locales/ko/project.json'
 import errorsKo from './locales/ko/errors.json'
@@ -46,6 +52,8 @@ import welcomeKo from './locales/ko/welcome.json'
 import terminalKo from './locales/ko/terminal.json'
 
 import commonFr from './locales/fr/common.json'
+import chatFr from './locales/fr/chat.json'
+import cloudFr from './locales/fr/cloud.json'
 import editorFr from './locales/fr/editor.json'
 import projectFr from './locales/fr/project.json'
 import errorsFr from './locales/fr/errors.json'
@@ -66,6 +74,8 @@ i18n.use(initReactI18next).init({
     },
     'zh-TW': {
       common: commonZhTw,
+      chat: chatZhTw,
+      cloud: cloudZhTw,
       editor: editorZhTw,
       project: projectZhTw,
       errors: errorsZhTw,
@@ -84,6 +94,8 @@ i18n.use(initReactI18next).init({
     },
     ja: {
       common: commonJa,
+      chat: chatJa,
+      cloud: cloudJa,
       editor: editorJa,
       project: projectJa,
       errors: errorsJa,
@@ -92,6 +104,8 @@ i18n.use(initReactI18next).init({
     },
     ko: {
       common: commonKo,
+      chat: chatKo,
+      cloud: cloudKo,
       editor: editorKo,
       project: projectKo,
       errors: errorsKo,
@@ -100,6 +114,8 @@ i18n.use(initReactI18next).init({
     },
     fr: {
       common: commonFr,
+      chat: chatFr,
+      cloud: cloudFr,
       editor: editorFr,
       project: projectFr,
       errors: errorsFr,

@@ -16,6 +16,15 @@ from config import WORKSPACE_DIR
 logger = logging.getLogger(__name__)
 
 
+def _resolve_project_file(project_dir: str, rel_path: str) -> str:
+    """安全拼接项目内相对路径，防止 '../' 穿越读取/写入项目目录之外的文件。"""
+    project_abs = os.path.abspath(project_dir)
+    full_path = os.path.abspath(os.path.join(project_abs, rel_path))
+    if full_path != project_abs and not full_path.startswith(project_abs + os.sep):
+        raise ValueError(f'文件路径不安全: {rel_path}')
+    return full_path
+
+
 def main():
     # 创建主解析器
     parser = argparse.ArgumentParser(
@@ -349,10 +358,10 @@ def handle_project_command(processor, args):
             project_name = processor.project_name[project_id - 1]
             project_dir = os.path.join(WORKSPACE_DIR, project_name)
             
-            file_path = os.path.join(project_dir, 'excel', args.file)
+            file_path = _resolve_project_file(os.path.join(project_dir, 'excel'), args.file)
             if not os.path.exists(file_path):
                 raise FileNotFoundError(f'文件不存在: {file_path}')
-            
+
             import openpyxl
             wb = openpyxl.load_workbook(file_path, data_only=True)
             sheet_name = args.sheet or wb.sheetnames[0]
@@ -398,10 +407,10 @@ def handle_project_command(processor, args):
             project_name = processor.project_name[project_id - 1]
             project_dir = os.path.join(WORKSPACE_DIR, project_name)
             
-            file_path = os.path.join(project_dir, 'excel', args.file)
+            file_path = _resolve_project_file(os.path.join(project_dir, 'excel'), args.file)
             if not os.path.exists(file_path):
                 raise FileNotFoundError(f'文件不存在: {file_path}')
-            
+
             data = json.loads(args.data)
             sheet_name = data.get('sheet', 'Sheet1')
             headers = data.get('headers', [])
@@ -444,10 +453,10 @@ def handle_project_command(processor, args):
             project_name = processor.project_name[project_id - 1]
             project_dir = os.path.join(WORKSPACE_DIR, project_name)
             
-            file_path = os.path.join(project_dir, args.path)
+            file_path = _resolve_project_file(project_dir, args.path)
             if not os.path.exists(file_path):
                 raise FileNotFoundError(f'文件不存在: {file_path}')
-            
+
             with open(file_path, 'r', encoding='utf-8') as f:
                 content = f.read()
             
@@ -473,9 +482,9 @@ def handle_project_command(processor, args):
             project_name = processor.project_name[project_id - 1]
             project_dir = os.path.join(WORKSPACE_DIR, project_name)
             
-            file_path = os.path.join(project_dir, args.path)
+            file_path = _resolve_project_file(project_dir, args.path)
             os.makedirs(os.path.dirname(file_path), exist_ok=True)
-            
+
             with open(file_path, 'w', encoding='utf-8') as f:
                 f.write(args.content)
             

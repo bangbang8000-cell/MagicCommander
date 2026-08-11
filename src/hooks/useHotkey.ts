@@ -53,6 +53,8 @@ export function useHotkey(
   const comboRef = useRef<KeyCombo>(typeof combo === 'string' ? parseKeyCombo(combo) : combo)
   comboRef.current = typeof combo === 'string' ? parseKeyCombo(combo) : combo
 
+  // 通用包装 hook：依赖数组由调用方显式传入，静态分析无法验证 handler 的依赖
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const callback = useCallback(handler, deps)
 
   useEffect(() => {

@@ -1,8 +1,17 @@
 import type { TemplateInfo, TemplateMeta, WorkspaceIndex } from './project'
+import type { ExcelSheet } from './editor'
 
 // ============================================================
 // IPC 协议类型 - 所有 IPC 消息的请求 / 响应 / 事件类型
 // ============================================================
+
+/** 项目文件树节点 */
+export interface FileTreeNode {
+  name: string
+  path: string
+  isDirectory: boolean
+  children?: FileTreeNode[]
+}
 
 // ============================================================
 // 通用类型
@@ -64,9 +73,10 @@ declare global {
 // ============================================================
 
 export interface ProjectIpcApi {
-  list: () => Promise<unknown[]>
+  list: () => Promise<Array<{ id: number; name: string; index: number }>>
   listExamples: () => Promise<string[]>
   listTemplates: () => Promise<TemplateInfo[]>
+  analyzeTemplate: (templateId: string) => Promise<unknown>
   getTemplate: (id: string) => Promise<TemplateInfo>
   create: (name: string, options?: { template?: string; empty?: boolean }) => Promise<void>
   saveAsExample: (projectName: string, exampleName: string) => Promise<void>
@@ -77,27 +87,18 @@ export interface ProjectIpcApi {
   readTemplateExcel: (
     templateId: string,
     filePath: string,
-  ) => Promise<{ name: string; headers: string[]; rows: Record<string, any>[] }[]>
+  ) => Promise<{ name: string; headers: string[]; rows: Record<string, unknown>[] }[]>
   getWorkspaceIndex: () => Promise<WorkspaceIndex>
   delete: (ids: string[]) => Promise<void>
-  getStructure: (name: string) => Promise<unknown[]>
-  parameters: (id: string) => Promise<unknown>
-  readExcel: (
-    id: number,
-    filePath: string,
-    projectName?: string,
-  ) => Promise<{ name: string; headers: string[]; rows: Record<string, any>[] }[]>
-  writeExcel: (
-    id: number,
-    filePath: string,
-    sheets: { name: string; headers: string[]; rows: Record<string, any>[] }[],
-    projectName?: string,
-  ) => Promise<void>
+  getStructure: (name: string) => Promise<FileTreeNode[]>
+  parameters: (id: string) => Promise<Array<{ file: string; path: string }>>
+  readExcel: (id: number, filePath: string, projectName?: string) => Promise<ExcelSheet[]>
+  writeExcel: (id: number, filePath: string, sheets: ExcelSheet[], projectName?: string) => Promise<void>
   readFile: (id: number, filePath: string, projectName?: string) => Promise<string>
   writeFile: (id: number, filePath: string, content: string, projectName?: string) => Promise<void>
   readDocx: (id: number, filePath: string, projectName?: string) => Promise<string>
   readDocxBuffer: (id: number, filePath: string, projectName?: string) => Promise<ArrayBuffer>
-  listFiles: (id: string, fileType?: string) => Promise<string[]>
+  listFiles: (id: string, fileType?: string) => Promise<Array<{ name: string; path: string; isDirectory: boolean }>>
   installRemoteTemplate: (data: { name: string; zipData: string; owner: string }) => Promise<void>
   getLocalSha: (projectName: string) => Promise<string | null>
   collectProjectFiles: (projectName: string) => Promise<{ path: string; content: string }[]>
@@ -276,7 +277,12 @@ export interface AIHubIpcApi {
   getProviders: () => Promise<AIHubProvider[]>
   configureProvider: (provider: string, apiKey: string, model?: string, baseUrl?: string) => Promise<void>
   setDefaultProvider: (provider: string) => Promise<void>
-  testConnection: (provider: string, apiKey: string, baseUrl: string, model: string) => Promise<{ status: string; message: string }>
+  testConnection: (
+    provider: string,
+    apiKey: string,
+    baseUrl: string,
+    model: string,
+  ) => Promise<{ status: string; message: string }>
   fetchModels: (baseUrl: string, apiKey: string) => Promise<{ status: string; models: string[]; message?: string }>
   syncProviders: (
     configs: Array<{ provider: string; apiKey: string; model: string; baseUrl: string }>,

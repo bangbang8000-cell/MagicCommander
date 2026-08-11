@@ -84,7 +84,7 @@ export interface WorkspaceProjectInfo extends ProjectInfo {
   status: ProjectStatus
 }
 
-export interface TemplateStructureSummary extends ProjectStatus {}
+export type TemplateStructureSummary = ProjectStatus
 
 export interface TemplateMeta {
   name: string

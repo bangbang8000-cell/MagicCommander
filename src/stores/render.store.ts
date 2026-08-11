@@ -1,5 +1,11 @@
 import { create } from 'zustand'
-import type { LabelPrintConfig, RenderConfig, DryRunDeviceResult, DryRunResponse, ValidationResult } from '@/types/render'
+import type {
+  LabelPrintConfig,
+  RenderConfig,
+  DryRunDeviceResult,
+  DryRunResponse,
+  ValidationResult,
+} from '@/types/render'
 
 type RenderTaskType = 'project' | 'yaml' | 'label' | 'general' | 'validate'
 
@@ -263,7 +269,7 @@ export const useRenderStore = create<RenderState>((set, get) => {
         dryRunResults: [],
       })
       try {
-        const data = await window.electron.render.dryRun(ids, format) as DryRunResponse | null
+        const data = (await window.electron.render.dryRun(ids, format)) as DryRunResponse | null
         const results = (data?.results ?? []) as DryRunDeviceResult[]
         set({
           ...clearTaskFlags(),
@@ -293,7 +299,7 @@ export const useRenderStore = create<RenderState>((set, get) => {
         validationResults: null,
       })
       try {
-        const data = await window.electron.render.validateTemplate(ids) as { results: ValidationResult[] } | null
+        const data = (await window.electron.render.validateTemplate(ids)) as { results: ValidationResult[] } | null
         const results = (data?.results ?? []) as ValidationResult[]
         set({
           ...clearTaskFlags(),
@@ -319,7 +325,7 @@ export const useRenderStore = create<RenderState>((set, get) => {
         validationResults: null,
       })
       try {
-        const data = await window.electron.render.validateExcel(ids) as { results: ValidationResult[] } | null
+        const data = (await window.electron.render.validateExcel(ids)) as { results: ValidationResult[] } | null
         const results = (data?.results ?? []) as ValidationResult[]
         set({
           ...clearTaskFlags(),
@@ -343,7 +349,9 @@ export const useRenderStore = create<RenderState>((set, get) => {
         return () => {}
       }
 
-      const handler = (data: any) => {
+      const handler = (raw: unknown) => {
+        if (!raw || typeof raw !== 'object') return
+        const data = raw as { status?: string; message?: string; data?: { progress?: number } }
         if (data.status === 'progress') {
           set({
             progress: data.data?.progress || 0,
@@ -363,7 +371,7 @@ export const useRenderStore = create<RenderState>((set, get) => {
         } else if (data.status === 'error') {
           set((state) => ({
             ...clearTaskFlags(),
-            errors: [...state.errors, data.message],
+            errors: [...state.errors, data.message ?? ''],
           }))
         } else if (data.status === 'start') {
           set({

@@ -1,0 +1,84 @@
+{
+  "title": "AI Chat",
+  "newChat": "New Chat",
+  "clearChat": "Clear Chat",
+  "role": {
+    "user": "You",
+    "assistant": "AI Assistant"
+  },
+  "mode": {
+    "template": "Template Helper",
+    "templateDesc": "Create and optimize project templates",
+    "config": "Config Q&A",
+    "configDesc": "Project configuration analysis and generation",
+    "general": "General Assistant",
+    "generalDesc": "Free Q&A and help"
+  },
+  "input": {
+    "placeholder": "Type a message... (Enter to send, Shift+Enter for new line)",
+    "send": "Send",
+    "attach": "Upload attachment",
+    "sending": "Sending..."
+  },
+  "attachment": {
+    "template": "Template file",
+    "excel": "Excel parameter table",
+    "yaml": "YAML config",
+    "config": "Config file",
+    "document": "Document",
+    "other": "Other file"
+  },
+  "empty": {
+    "title": "Start a conversation",
+    "desc": "Choose a chat mode, ask a question or upload an attachment to get started"
+  },
+  "session": {
+    "newChat": "New",
+    "delete": "Delete",
+    "noSessions": "No history",
+    "list": "Sessions",
+    "justNow": "Just now",
+    "minAgo": "m ago",
+    "hourAgo": "h ago",
+    "yesterday": "Yesterday"
+  },
+  "aihub": {
+    "status": {
+      "starting": "AI service starting...",
+      "running": "AI service running",
+      "stopped": "AI service stopped",
+      "error": "AI service error",
+      "installing": "Installing AI dependencies..."
+    },
+    "provider": {
+      "select": "Select model",
+      "configure": "Configure AI → Settings",
+      "noProvider": "Please configure API Key in Settings"
+    },
+    "error": {
+      "timeout": "Request timed out, please retry",
+      "network": "Network error, please check your connection",
+      "unknown": "An unknown error occurred",
+      "retry": "Retry",
+      "cancel": "Cancel",
+      "hubFailed": "AI Hub failed to start. Please check the Python environment. Go to Settings to test the connection.",
+      "noModel": "No AI model selected. Please configure a Provider in Settings.",
+      "serviceNotRunning": "AI service not running"
+    }
+  },
+  "autonomy": {
+    "label": "Autonomy",
+    "advisor": "Advisor",
+    "semiAuto": "Semi-Auto",
+    "fullAuto": "Full-Auto"
+  },
+  "plan": {
+    "title": "Execution Plan"
+  },
+  "skill": {
+    "savePrompt": "Save this workflow as a Skill for future reuse?",
+    "save": "Save",
+    "ignore": "Ignore",
+    "saved": "Skill saved"
+  }
+}

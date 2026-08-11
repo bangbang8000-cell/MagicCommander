@@ -179,13 +179,6 @@ export function getActivityIcon(activityType: string): LucideIcon {
   return ACTIVITY_ICONS[activityType as keyof typeof ACTIVITY_ICONS] || FolderOpen
 }
 
-/**
- * 获取空状态图标组件
- */
-export function getEmptyStateIcon(type: string): LucideIcon {
-  return EMPTY_STATE_ICONS[type as keyof typeof EMPTY_STATE_ICONS] || FileText
-}
-
 // ========== 导出所有图标组件（供直接使用） ==========
 
 export {

@@ -3,9 +3,8 @@ import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import clsx from 'clsx'
 import { User, Bot, Copy, Check, Save, X } from 'lucide-react'
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback, useMemo, memo } from 'react'
 import type { ChatMessage } from '@/types/chat'
-import { formatFileSize } from '@/types/chat'
 import { AttachmentPreview } from './AttachmentPreview'
 import { PlanDisplay } from './PlanDisplay'
 import type { PlanStep } from './PlanDisplay'
@@ -30,7 +29,7 @@ function parsePlanSteps(content: string): { steps: PlanStep[]; cleanedContent: s
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i]
     // 匹配 "1. xxx — 使用工具: tool" 或 "1. xxx - tool" 格式
-    if (/^\d+[.、)]\s/.test(line.trim()) && /[—\-]\s*(?:使用工具[:：]?\s*)?\w+/.test(line)) {
+    if (/^\d+[.、)]\s/.test(line.trim()) && /[—-]\s*(?:使用工具[:：]?\s*)?\w+/.test(line)) {
       planLines.push(line)
     } else if (line.trim() === '') {
       continue // 跳过空行
@@ -43,7 +42,7 @@ function parsePlanSteps(content: string): { steps: PlanStep[]; cleanedContent: s
   if (planLines.length === 0) return { steps: [], cleanedContent: content }
 
   const steps: PlanStep[] = planLines.map((line) => {
-    const stepMatch = line.match(/^(\d+)[.、)]\s*(.+?)\s*[—\-]\s*(?:使用工具[:：]?\s*)?(\S+)/)
+    const stepMatch = line.match(/^(\d+)[.、)]\s*(.+?)\s*[—-]\s*(?:使用工具[:：]?\s*)?(\S+)/)
     if (stepMatch) {
       return {
         step: parseInt(stepMatch[1], 10),
@@ -89,7 +88,11 @@ function detectSkillSuggestion(content: string): { skillName: string; skillConte
   return null
 }
 
-export function ChatMessageBubble({ message, isDark, fontSizeClass = 'text-sm' }: ChatMessageBubbleProps) {
+export const ChatMessageBubble = memo(function ChatMessageBubble({
+  message,
+  isDark,
+  fontSizeClass = 'text-sm',
+}: ChatMessageBubbleProps) {
   const { t } = useTranslation()
   const [copied, setCopied] = useState(false)
   const [skillSaved, setSkillSaved] = useState(false)
@@ -112,7 +115,9 @@ export function ChatMessageBubble({ message, isDark, fontSizeClass = 'text-sm' }
       await navigator.clipboard.writeText(message.content)
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
-    } catch {}
+    } catch {
+      /* 忽略预期错误 */
+    }
   }, [message.content])
 
   const handleSaveSkill = useCallback(async () => {
@@ -127,38 +132,22 @@ export function ChatMessageBubble({ message, isDark, fontSizeClass = 'text-sm' }
 
   if (isSystem) {
     return (
-      <div
-        className={clsx(
-          'px-4 py-2 text-xs text-center italic',
-          isDark ? 'text-gray-500' : 'text-gray-400',
-        )}
-      >
+      <div className={clsx('px-4 py-2 text-xs text-center italic', isDark ? 'text-gray-500' : 'text-gray-400')}>
         {message.content}
       </div>
     )
   }
 
   return (
-    <div
-      className={clsx(
-        'flex gap-3 px-4 py-3 group',
-        isUser ? (isDark ? 'bg-gray-800/50' : 'bg-gray-50') : '',
-      )}
-    >
+    <div className={clsx('flex gap-3 px-4 py-3 group', isUser ? (isDark ? 'bg-gray-800/50' : 'bg-gray-50') : '')}>
       {/* 头像 */}
       <div
         className={clsx(
           'w-8 h-8 rounded-full flex items-center justify-center shrink-0 mt-0.5',
-          isUser
-            ? (isDark ? 'bg-blue-600' : 'bg-blue-500')
-            : (isDark ? 'bg-blue-600' : 'bg-blue-500'),
+          isUser ? (isDark ? 'bg-blue-600' : 'bg-blue-500') : isDark ? 'bg-blue-600' : 'bg-blue-500',
         )}
       >
-        {isUser ? (
-          <User size={16} className="text-white" />
-        ) : (
-          <Bot size={16} className="text-white" />
-        )}
+        {isUser ? <User size={16} className="text-white" /> : <Bot size={16} className="text-white" />}
       </div>
 
       {/* 消息内容 */}
@@ -207,9 +196,7 @@ export function ChatMessageBubble({ message, isDark, fontSizeClass = 'text-sm' }
           <div
             className={clsx(
               'mt-2 flex items-center gap-2 px-2.5 py-1.5 rounded-lg border text-xs',
-              isDark
-                ? 'border-blue-800 bg-blue-900/30 text-blue-300'
-                : 'border-blue-200 bg-blue-50 text-blue-700',
+              isDark ? 'border-blue-800 bg-blue-900/30 text-blue-300' : 'border-blue-200 bg-blue-50 text-blue-700',
             )}
           >
             <span className="flex-1">{t('chat:skill.savePrompt')}</span>
@@ -217,9 +204,7 @@ export function ChatMessageBubble({ message, isDark, fontSizeClass = 'text-sm' }
               onClick={handleSaveSkill}
               className={clsx(
                 'flex items-center gap-0.5 px-2 py-0.5 rounded text-xs transition-colors',
-                isDark
-                  ? 'bg-blue-700 hover:bg-blue-600 text-white'
-                  : 'bg-blue-500 hover:bg-blue-600 text-white',
+                isDark ? 'bg-blue-700 hover:bg-blue-600 text-white' : 'bg-blue-500 hover:bg-blue-600 text-white',
               )}
             >
               <Save size={10} />
@@ -238,12 +223,7 @@ export function ChatMessageBubble({ message, isDark, fontSizeClass = 'text-sm' }
           </div>
         )}
         {skillSaved && (
-          <div
-            className={clsx(
-              'mt-2 px-2.5 py-1 rounded text-xs',
-              isDark ? 'text-green-400' : 'text-green-600',
-            )}
-          >
+          <div className={clsx('mt-2 px-2.5 py-1 rounded text-xs', isDark ? 'text-green-400' : 'text-green-600')}>
             {t('chat:skill.saved')}
           </div>
         )}
@@ -254,10 +234,7 @@ export function ChatMessageBubble({ message, isDark, fontSizeClass = 'text-sm' }
             {message.metadata.tools.map((tool) => (
               <span
                 key={tool}
-                className={clsx(
-                  'text-[11px] px-1.5 py-0.5 rounded',
-                  isDark ? 'bg-gray-700' : 'bg-gray-200',
-                )}
+                className={clsx('text-[11px] px-1.5 py-0.5 rounded', isDark ? 'bg-gray-700' : 'bg-gray-200')}
               >
                 {tool}
               </span>
@@ -279,4 +256,4 @@ export function ChatMessageBubble({ message, isDark, fontSizeClass = 'text-sm' }
       </button>
     </div>
   )
-}
+})

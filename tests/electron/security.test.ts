@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { escapePythonArg } from '../../electron/utils/security'
+import { escapePythonArg, validateProjectName, isPathSafe, validateFilePath, isFileTypeAllowed, validateFileContent, buildSafePath, isFileAccessible } from '../../electron/utils/security'
 
 describe('escapePythonArg', () => {
   describe('空格保留', () => {
@@ -141,5 +141,105 @@ describe('escapePythonArg', () => {
     it('at 符号替换为下划线', () => {
       expect(escapePythonArg('user@host')).toBe('user_host')
     })
+  })
+})
+describe('validateProjectName', () => {
+  it('拒绝路径穿越 ..', () => {
+    expect(validateProjectName('..').valid).toBe(false)
+    expect(validateProjectName('../evil').valid).toBe(false)
+    expect(validateProjectName('a/../b').valid).toBe(false)
+  })
+
+  it('拒绝路径分隔符', () => {
+    expect(validateProjectName('a/b').valid).toBe(false)
+    expect(validateProjectName('a\\b').valid).toBe(false)
+  })
+
+  it('拒绝空值与超长名称', () => {
+    expect(validateProjectName('').valid).toBe(false)
+    expect(validateProjectName('   ').valid).toBe(false)
+    expect(validateProjectName('a'.repeat(200)).valid).toBe(false)
+  })
+
+  it('接受合法项目名', () => {
+    expect(validateProjectName('test1').valid).toBe(true)
+    expect(validateProjectName('接入交换机-ASW').valid).toBe(true)
+    expect(validateProjectName('my_project.v1').valid).toBe(true)
+  })
+})
+
+describe('isPathSafe', () => {
+  const base = 'C:/workspace'
+
+  it('拒绝跳出基础目录的相对路径', () => {
+    expect(isPathSafe('C:/workspace/../outside', base)).toBe(false)
+    expect(isPathSafe('C:/outside', base)).toBe(false)
+  })
+
+  it('接受基础目录内的路径', () => {
+    expect(isPathSafe('C:/workspace/project1/templates/ASW.j2', base)).toBe(true)
+    expect(isPathSafe('C:/workspace/test1', base)).toBe(true)
+  })
+})
+
+describe('validateFilePath', () => {
+  it('拒绝路径穿越 ..', () => {
+    expect(validateFilePath('../evil').valid).toBe(false)
+    expect(validateFilePath('a/../../b').valid).toBe(false)
+  })
+
+  it('拒绝敏感路径模式', () => {
+    expect(validateFilePath('.env').valid).toBe(false)
+    expect(validateFilePath('.git/config').valid).toBe(false)
+    expect(validateFilePath('x/package.json').valid).toBe(false)
+  })
+
+  it('接受普通相对路径', () => {
+    expect(validateFilePath('templates/ASW.j2').valid).toBe(true)
+    expect(validateFilePath('excel/hostname.xlsx').valid).toBe(true)
+  })
+})
+
+describe('isFileTypeAllowed', () => {
+  it('允许白名单扩展名', () => {
+    expect(isFileTypeAllowed('config.j2')).toBe(true)
+    expect(isFileTypeAllowed('data.xlsx')).toBe(true)
+    expect(isFileTypeAllowed('out.txt')).toBe(true)
+    expect(isFileTypeAllowed('meta.yaml')).toBe(true)
+  })
+
+  it('拒绝非白名单扩展名', () => {
+    expect(isFileTypeAllowed('evil.exe')).toBe(false)
+    expect(isFileTypeAllowed('script.js')).toBe(false)
+    expect(isFileTypeAllowed('noext')).toBe(false)
+  })
+})
+
+describe('validateFileContent', () => {
+  it('空内容允许', () => {
+    expect(validateFileContent('').valid).toBe(true)
+  })
+
+  it('超长内容拒绝', () => {
+    expect(validateFileContent('a'.repeat(11 * 1024 * 1024)).valid).toBe(false)
+  })
+})
+
+describe('buildSafePath', () => {
+  const base = 'C:/workspace'
+
+  it('拒绝越界相对路径', () => {
+    expect(buildSafePath(base, '../outside.txt')).toBeNull()
+    expect(buildSafePath(base, 'a/../../outside.txt')).toBeNull()
+  })
+
+  it('返回安全完整路径', () => {
+    expect(buildSafePath(base, 'proj/templates/ASW.j2')?.replace(/\\/g, '/')).toBe('C:/workspace/proj/templates/ASW.j2')
+  })
+})
+
+describe('isFileAccessible', () => {
+  it('不存在的文件返回 false', () => {
+    expect(isFileAccessible('C:/no/such/file.txt')).toBe(false)
   })
 })

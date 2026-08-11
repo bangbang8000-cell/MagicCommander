@@ -1,6 +1,18 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import { auth, setToken, setBaseUrl, getBaseUrl, projects, client, user, type RemoteTemplate, type RemoteProject, type SyncStatusResponse, type LoginPlatform, type UserProfile } from '@/api/platform'
+import {
+  auth,
+  setToken,
+  setBaseUrl,
+  getBaseUrl,
+  projects,
+  user,
+  type RemoteTemplate,
+  type RemoteProject,
+  type SyncStatusResponse,
+  type LoginPlatform,
+  type UserProfile,
+} from '@/api/platform'
 
 interface PlatformState {
   // Config
@@ -43,7 +55,13 @@ interface PlatformState {
   updateUserProfile: (data: { full_name?: string; bio?: string }) => Promise<void>
   fetchRemoteTemplates: (query?: string, category?: string, page?: number, sort?: string) => Promise<void>
   downloadTemplate: (owner: string, repo: string) => Promise<void>
-  publishTemplate: (data: { name: string; description: string; category: string; public: boolean; files: { path: string; content: string }[] }) => Promise<{ owner: string; repo: string }>
+  publishTemplate: (data: {
+    name: string
+    description: string
+    category: string
+    public: boolean
+    files: { path: string; content: string }[]
+  }) => Promise<{ owner: string; repo: string }>
   // Project sync
   fetchRemoteProjects: () => Promise<void>
   searchPublicProjects: (q: string, page?: number) => Promise<void>
@@ -98,7 +116,9 @@ export const usePlatformStore = create<PlatformState>()(
           // 使用 safeStorage 加密保存 Token
           try {
             await window.electron.platform.saveToken(status.token)
-          } catch { /* ignore if not available */ }
+          } catch {
+            /* ignore if not available */
+          }
           set({
             token: status.token,
             loggedIn: true,
@@ -126,7 +146,9 @@ export const usePlatformStore = create<PlatformState>()(
         // 清除 safeStorage 中的 Token
         try {
           window.electron.platform.clearToken()
-        } catch { /* ignore */ }
+        } catch {
+          /* ignore */
+        }
         set({ token: null, loggedIn: false, username: null, userId: null, userProfile: null })
       },
 
@@ -264,7 +286,7 @@ export const usePlatformStore = create<PlatformState>()(
         await projects.delete(owner, repo)
         // Refresh list
         const { remoteProjects } = get()
-        set({ remoteProjects: remoteProjects.filter(p => p.owner !== owner || p.name !== repo) })
+        set({ remoteProjects: remoteProjects.filter((p) => p.owner !== owner || p.name !== repo) })
       },
     }),
     {
@@ -285,9 +307,11 @@ export const usePlatformStore = create<PlatformState>()(
             if (savedToken) {
               setToken(savedToken)
             }
-          } catch { /* ignore */ }
+          } catch {
+            /* ignore */
+          }
         }
       },
-    }
-  )
+    },
+  ),
 )

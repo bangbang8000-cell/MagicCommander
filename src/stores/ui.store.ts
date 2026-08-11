@@ -123,197 +123,203 @@ export const useUIStore = create<UIState>()(
   subscribeWithSelector(
     persist(
       (set) => ({
-      activeActivity: 'search',
-      setActiveActivity: (activity) => set({ activeActivity: activity }),
+        activeActivity: 'search',
+        setActiveActivity: (activity) => set({ activeActivity: activity }),
 
-      sidebarVisible: true,
-      toggleSidebar: () => set((s) => ({ sidebarVisible: !s.sidebarVisible })),
+        sidebarVisible: true,
+        toggleSidebar: () => set((s) => ({ sidebarVisible: !s.sidebarVisible })),
 
-      panelVisible: true,
-      activePanel: 'log',
-      togglePanel: () => set((s) => ({ panelVisible: !s.panelVisible })),
-      setActivePanel: (panel) => set({ activePanel: panel, panelVisible: true }),
+        panelVisible: true,
+        activePanel: 'log',
+        togglePanel: () => set((s) => ({ panelVisible: !s.panelVisible })),
+        setActivePanel: (panel) => set({ activePanel: panel, panelVisible: true }),
 
-      theme: 'light',
-      setTheme: (theme) => {
-        const isDark =
-          theme === 'system'
-            ? (typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches)
-            : theme === 'dark'
-        set({ theme, isDark })
-      },
-      cycleTheme: () =>
-        set((s) => {
-          const next = s.theme === 'light' ? 'dark' : s.theme === 'dark' ? 'system' : 'light'
+        theme: 'light',
+        setTheme: (theme) => {
           const isDark =
-            next === 'system'
-              ? (typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches)
-              : next === 'dark'
-          return { theme: next, isDark }
-        }),
+            theme === 'system'
+              ? typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches
+              : theme === 'dark'
+          set({ theme, isDark })
+        },
+        cycleTheme: () =>
+          set((s) => {
+            const next = s.theme === 'light' ? 'dark' : s.theme === 'dark' ? 'system' : 'light'
+            const isDark =
+              next === 'system'
+                ? typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches
+                : next === 'dark'
+            return { theme: next, isDark }
+          }),
 
-      isDark: false,
-      toggleDark: () => set((s) => ({ isDark: !s.isDark, theme: s.isDark ? 'light' : 'dark' })),
-      syncSystemTheme: () =>
-        set((s) => {
-          if (s.theme !== 'system') return {}
-          return { isDark: typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches }
-        }),
-
-      activeProjectId: null,
-      setActiveProjectId: (id) => set({ activeProjectId: id }),
-
-      cursorPosition: null,
-      setCursorPosition: (pos) => set({ cursorPosition: pos }),
-
-      hasSeenWelcome: false,
-      dismissWelcome: () => set({ hasSeenWelcome: true, welcomeOpen: false }),
-
-      welcomeOpen: false,
-      setWelcomeOpen: (v) => set({ welcomeOpen: v }),
-
-      syncScroll: false,
-      toggleSyncScroll: () => set((s) => ({ syncScroll: !s.syncScroll })),
-
-      sidebarPx: LAYOUT_SIDEBAR_DEFAULT,
-      setSidebarPx: (px) => set({ sidebarPx: Math.max(LAYOUT_SIDEBAR_MIN, px) }),
-
-      bottomPx: LAYOUT_BOTTOM_DEFAULT,
-      setBottomPx: (px) => set({ bottomPx: Math.max(LAYOUT_BOTTOM_MIN, px) }),
-
-      explorerProjectListHeight: LAYOUT_PROJECT_LIST_DEFAULT,
-      setExplorerProjectListHeight: (px) => set({ explorerProjectListHeight: Math.max(LAYOUT_INTERNAL_MIN, px) }),
-
-      templateListHeight: LAYOUT_TEMPLATE_LIST_DEFAULT,
-      setTemplateListHeight: (px) => set({ templateListHeight: Math.max(LAYOUT_INTERNAL_MIN, px) }),
-
-      resetPanelSizes: () => {
-        if (typeof window !== 'undefined') {
-          // 清除本地存储中的旧值，确保下一次启动使用新默认
-          try {
-            localStorage.removeItem('mc-ui-state')
-          } catch {}
-        }
-        set({
-          sidebarPx: LAYOUT_SIDEBAR_DEFAULT,
-          bottomPx: LAYOUT_BOTTOM_DEFAULT,
-          explorerProjectListHeight: LAYOUT_PROJECT_LIST_DEFAULT,
-          templateListHeight: LAYOUT_TEMPLATE_LIST_DEFAULT,
-        })
-      },
-
-      language: 'zh-CN',
-      setLanguage: (language) => set({ language }),
-
-      aiConfig: {
-        defaultProvider: 'deepseek',
-        routingEnabled: false,
-        routingRules: [
-          { taskType: 'code', provider: 'deepseek' },
-          { taskType: 'analysis', provider: 'deepseek' },
-          { taskType: 'simple', provider: 'deepseek' },
-          { taskType: 'complex', provider: 'deepseek' },
-        ],
-        providers: {},
-      },
-      setAIConfig: (config) => set((s) => ({ aiConfig: { ...s.aiConfig, ...config } })),
-      setProviderConfig: (key, config) =>
-        set((s) => ({
-          aiConfig: {
-            ...s.aiConfig,
-            providers: {
-              ...s.aiConfig.providers,
-              [key]: {
-                ...s.aiConfig.providers[key],
-                ...config,
-              },
-            },
-          },
-        })),
-
-      autonomyMode: 'full_auto',
-      setAutonomyMode: (mode) => set({ autonomyMode: mode }),
-
-      generalSettings: {
-        autoSave: true,
-        autoSaveInterval: 30,
-        checkUpdateOnStart: true,
-        fontSize: 'medium',
-      },
-      setGeneralSettings: (settings) =>
-        set((s) => ({ generalSettings: { ...s.generalSettings, ...settings } })),
-
-      advancedSettings: {
-        pythonPath: '',
-        debugMode: false,
-        proxy: '',
-        aiHubPort: 0,
-        aiHubAutoStart: true,
-      },
-      setAdvancedSettings: (settings) =>
-        set((s) => ({ advancedSettings: { ...s.advancedSettings, ...settings } })),
-    }),
-    {
-      name: 'mc-ui-state',
-      partialize: (state) => ({
-        activeActivity: state.activeActivity,
-        panelVisible: state.panelVisible,
-        sidebarVisible: state.sidebarVisible,
-        activeProjectId: state.activeProjectId,
-        isDark: state.isDark,
-        theme: state.theme,
-        hasSeenWelcome: state.hasSeenWelcome,
-        syncScroll: state.syncScroll,
-        sidebarPx: state.sidebarPx,
-        bottomPx: state.bottomPx,
-        explorerProjectListHeight: state.explorerProjectListHeight,
-        templateListHeight: state.templateListHeight,
-        language: state.language,
-        aiConfig: state.aiConfig,
-        generalSettings: state.generalSettings,
-        advancedSettings: state.advancedSettings,
-        autonomyMode: state.autonomyMode,
-      }),
-      onRehydrateStorage: () => {
-        return (state) => {
-          if (state) {
-            // 自动升级：低于最小值的旧像素值 → 升级为新默认
-            if (!state.sidebarPx || state.sidebarPx < LAYOUT_SIDEBAR_MIN) {
-              state.sidebarPx = LAYOUT_SIDEBAR_DEFAULT
+        isDark: false,
+        toggleDark: () => set((s) => ({ isDark: !s.isDark, theme: s.isDark ? 'light' : 'dark' })),
+        syncSystemTheme: () =>
+          set((s) => {
+            if (s.theme !== 'system') return {}
+            return {
+              isDark: typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches,
             }
-            if (!state.bottomPx || state.bottomPx < LAYOUT_BOTTOM_MIN) {
-              state.bottomPx = LAYOUT_BOTTOM_DEFAULT
-            }
-            if (!state.explorerProjectListHeight || state.explorerProjectListHeight < LAYOUT_INTERNAL_MIN) {
-              state.explorerProjectListHeight = LAYOUT_PROJECT_LIST_DEFAULT
-            }
-            if (!state.templateListHeight || state.templateListHeight < LAYOUT_INTERNAL_MIN) {
-              state.templateListHeight = LAYOUT_TEMPLATE_LIST_DEFAULT
-            }
+          }),
 
-            // AI 配置恢复：如果 providers 为空，尝试从文件备份恢复
-            if (state.aiConfig && Object.keys(state.aiConfig.providers || {}).length === 0) {
-              setTimeout(async () => {
-                try {
-                  if (typeof window !== 'undefined' && window.electron?.app?.restoreAiConfig) {
-                    const backup = await window.electron.app.restoreAiConfig()
-                    if (backup && typeof backup === 'object') {
-                      const b = backup as Record<string, unknown>
-                      if (b.providers && typeof b.providers === 'object' && Object.keys(b.providers as object).length > 0) {
-                        useUIStore.getState().setAIConfig(b as Partial<AIConfig>)
-                      }
-                    }
-                  }
-                } catch {
-                  // 备份文件不存在或损坏，静默忽略
-                }
-              }, 200)
+        activeProjectId: null,
+        setActiveProjectId: (id) => set({ activeProjectId: id }),
+
+        cursorPosition: null,
+        setCursorPosition: (pos) => set({ cursorPosition: pos }),
+
+        hasSeenWelcome: false,
+        dismissWelcome: () => set({ hasSeenWelcome: true, welcomeOpen: false }),
+
+        welcomeOpen: false,
+        setWelcomeOpen: (v) => set({ welcomeOpen: v }),
+
+        syncScroll: false,
+        toggleSyncScroll: () => set((s) => ({ syncScroll: !s.syncScroll })),
+
+        sidebarPx: LAYOUT_SIDEBAR_DEFAULT,
+        setSidebarPx: (px) => set({ sidebarPx: Math.max(LAYOUT_SIDEBAR_MIN, px) }),
+
+        bottomPx: LAYOUT_BOTTOM_DEFAULT,
+        setBottomPx: (px) => set({ bottomPx: Math.max(LAYOUT_BOTTOM_MIN, px) }),
+
+        explorerProjectListHeight: LAYOUT_PROJECT_LIST_DEFAULT,
+        setExplorerProjectListHeight: (px) => set({ explorerProjectListHeight: Math.max(LAYOUT_INTERNAL_MIN, px) }),
+
+        templateListHeight: LAYOUT_TEMPLATE_LIST_DEFAULT,
+        setTemplateListHeight: (px) => set({ templateListHeight: Math.max(LAYOUT_INTERNAL_MIN, px) }),
+
+        resetPanelSizes: () => {
+          if (typeof window !== 'undefined') {
+            // 清除本地存储中的旧值，确保下一次启动使用新默认
+            try {
+              localStorage.removeItem('mc-ui-state')
+            } catch {
+              /* 忽略预期错误 */
             }
           }
-        }
+          set({
+            sidebarPx: LAYOUT_SIDEBAR_DEFAULT,
+            bottomPx: LAYOUT_BOTTOM_DEFAULT,
+            explorerProjectListHeight: LAYOUT_PROJECT_LIST_DEFAULT,
+            templateListHeight: LAYOUT_TEMPLATE_LIST_DEFAULT,
+          })
+        },
+
+        language: 'zh-CN',
+        setLanguage: (language) => set({ language }),
+
+        aiConfig: {
+          defaultProvider: 'deepseek',
+          routingEnabled: false,
+          routingRules: [
+            { taskType: 'code', provider: 'deepseek' },
+            { taskType: 'analysis', provider: 'deepseek' },
+            { taskType: 'simple', provider: 'deepseek' },
+            { taskType: 'complex', provider: 'deepseek' },
+          ],
+          providers: {},
+        },
+        setAIConfig: (config) => set((s) => ({ aiConfig: { ...s.aiConfig, ...config } })),
+        setProviderConfig: (key, config) =>
+          set((s) => ({
+            aiConfig: {
+              ...s.aiConfig,
+              providers: {
+                ...s.aiConfig.providers,
+                [key]: {
+                  ...s.aiConfig.providers[key],
+                  ...config,
+                },
+              },
+            },
+          })),
+
+        autonomyMode: 'full_auto',
+        setAutonomyMode: (mode) => set({ autonomyMode: mode }),
+
+        generalSettings: {
+          autoSave: true,
+          autoSaveInterval: 30,
+          checkUpdateOnStart: true,
+          fontSize: 'medium',
+        },
+        setGeneralSettings: (settings) => set((s) => ({ generalSettings: { ...s.generalSettings, ...settings } })),
+
+        advancedSettings: {
+          pythonPath: '',
+          debugMode: false,
+          proxy: '',
+          aiHubPort: 0,
+          aiHubAutoStart: true,
+        },
+        setAdvancedSettings: (settings) => set((s) => ({ advancedSettings: { ...s.advancedSettings, ...settings } })),
+      }),
+      {
+        name: 'mc-ui-state',
+        partialize: (state) => ({
+          activeActivity: state.activeActivity,
+          panelVisible: state.panelVisible,
+          sidebarVisible: state.sidebarVisible,
+          activeProjectId: state.activeProjectId,
+          isDark: state.isDark,
+          theme: state.theme,
+          hasSeenWelcome: state.hasSeenWelcome,
+          syncScroll: state.syncScroll,
+          sidebarPx: state.sidebarPx,
+          bottomPx: state.bottomPx,
+          explorerProjectListHeight: state.explorerProjectListHeight,
+          templateListHeight: state.templateListHeight,
+          language: state.language,
+          aiConfig: state.aiConfig,
+          generalSettings: state.generalSettings,
+          advancedSettings: state.advancedSettings,
+          autonomyMode: state.autonomyMode,
+        }),
+        onRehydrateStorage: () => {
+          return (state) => {
+            if (state) {
+              // 自动升级：低于最小值的旧像素值 → 升级为新默认
+              if (!state.sidebarPx || state.sidebarPx < LAYOUT_SIDEBAR_MIN) {
+                state.sidebarPx = LAYOUT_SIDEBAR_DEFAULT
+              }
+              if (!state.bottomPx || state.bottomPx < LAYOUT_BOTTOM_MIN) {
+                state.bottomPx = LAYOUT_BOTTOM_DEFAULT
+              }
+              if (!state.explorerProjectListHeight || state.explorerProjectListHeight < LAYOUT_INTERNAL_MIN) {
+                state.explorerProjectListHeight = LAYOUT_PROJECT_LIST_DEFAULT
+              }
+              if (!state.templateListHeight || state.templateListHeight < LAYOUT_INTERNAL_MIN) {
+                state.templateListHeight = LAYOUT_TEMPLATE_LIST_DEFAULT
+              }
+
+              // AI 配置恢复：如果 providers 为空，尝试从文件备份恢复
+              if (state.aiConfig && Object.keys(state.aiConfig.providers || {}).length === 0) {
+                setTimeout(async () => {
+                  try {
+                    if (typeof window !== 'undefined' && window.electron?.app?.restoreAiConfig) {
+                      const backup = await window.electron.app.restoreAiConfig()
+                      if (backup && typeof backup === 'object') {
+                        const b = backup as Record<string, unknown>
+                        if (
+                          b.providers &&
+                          typeof b.providers === 'object' &&
+                          Object.keys(b.providers as object).length > 0
+                        ) {
+                          useUIStore.getState().setAIConfig(b as Partial<AIConfig>)
+                        }
+                      }
+                    }
+                  } catch {
+                    // 备份文件不存在或损坏，静默忽略
+                  }
+                }, 200)
+              }
+            }
+          }
+        },
       },
-    },
-  ),
+    ),
   ),
 )
 

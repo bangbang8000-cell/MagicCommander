@@ -27,14 +27,7 @@ export function SyncStatusBadge({ syncStatus, className }: SyncStatusBadgeProps)
   const label = t(config.labelKey)
 
   return (
-    <span
-      className={clsx(
-        'inline-flex items-center gap-1 text-[10px]',
-        config.color,
-        className,
-      )}
-      title={label}
-    >
+    <span className={clsx('inline-flex items-center gap-1 text-[10px]', config.color, className)} title={label}>
       <Icon size={10} />
       {label}
     </span>

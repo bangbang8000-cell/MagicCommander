@@ -1,10 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import Editor, { type OnMount } from '@monaco-editor/react'
+import type * as monacoEditor from 'monaco-editor'
+
+type MonacoInstance = Parameters<OnMount>[1]
+type EditorInstance = Parameters<OnMount>[0]
 import { useEditorStore, type EditorTab } from '@/stores/editor.store'
 import { useUIStore } from '@/stores/ui.store'
 import { showError, showSuccess } from '@/components/ui/Toast'
-
 
 const EXT_MAP: Record<string, string> = {
   '.yaml': 'yaml',
@@ -29,6 +32,85 @@ function getLanguage(filePath: string, fileType: string): string {
   return 'plaintext'
 }
 
+/** Jinja2 常用控制块与过滤器，用于补全 */
+const JINJA_KEYWORDS = [
+  'for',
+  'endfor',
+  'if',
+  'endif',
+  'else',
+  'elif',
+  'set',
+  'block',
+  'endblock',
+  'extends',
+  'include',
+  'macro',
+  'endmacro',
+  'call',
+  'endcall',
+  'filter',
+  'raw',
+  'endraw',
+  'comment',
+  'endcomment',
+  'break',
+  'continue',
+]
+
+const JINJA_FILTERS = [
+  'default',
+  'length',
+  'upper',
+  'lower',
+  'trim',
+  'replace',
+  'join',
+  'first',
+  'last',
+  'items',
+  'dictsort',
+  'int',
+  'float',
+  'string',
+  'list',
+  'sum',
+  'sort',
+  'unique',
+  'map',
+  'selectattr',
+  'rejectattr',
+]
+
+/** 从项目 Excel 表提取字段名，用于 info['字段'] 补全 */
+async function loadProjectVariables(tab: { projectId: number; projectName?: string }): Promise<string[]> {
+  try {
+    const params = (await window.electron?.project?.parameters(String(tab.projectId))) as unknown as
+      { file: string; path: string }[] | undefined
+    if (!Array.isArray(params)) return []
+    const vars = new Set<string>()
+    for (const p of params) {
+      try {
+        const sheets = (await window.electron?.project?.readExcel(
+          tab.projectId,
+          p.file,
+          tab.projectName,
+        )) as unknown as { name: string; headers: string[] }[] | undefined
+        if (Array.isArray(sheets)) {
+          for (const sheet of sheets) {
+            for (const h of sheet.headers) if (h) vars.add(h)
+          }
+        }
+      } catch {
+        continue
+      }
+    }
+    return Array.from(vars)
+  } catch {
+    return []
+  }
+}
+
 function findSection(el: HTMLElement | null): HTMLElement | null {
   let current: HTMLElement | null = el
   while (current) {
@@ -49,13 +131,12 @@ export function MonacoEditor({ tab }: MonacoEditorProps) {
   const registerSaveFn = useEditorStore((s) => s.registerSaveFn)
   const setCursorPosition = useUIStore((s) => s.setCursorPosition)
   const isDark = useUIStore((s) => s.isDark)
-  const syncScroll = useUIStore((s) => s.syncScroll)
   const { t } = useTranslation('project')
-  const monacoRef = useRef<any>(null)
+  const monacoRef = useRef<MonacoInstance | null>(null)
   const [content, setContent] = useState<string>('')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const editorRef = useRef<any>(null)
+  const editorRef = useRef<EditorInstance | null>(null)
   const wrapperRef = useRef<HTMLDivElement>(null)
   const isMountedRef = useRef(true)
   const loadingFilePathRef = useRef<string | null>(null)
@@ -130,12 +211,12 @@ export function MonacoEditor({ tab }: MonacoEditorProps) {
     return () => {
       cancelled = true
     }
-  }, [tab.filePath, tab.id, tab.projectId, tab.content, updateContent])
+  }, [tab.filePath, tab.id, tab.projectId, tab.projectName, tab.content, updateContent])
 
   const handleChange = useCallback(
     (value: string | undefined) => {
       if (value !== undefined) {
-        setContent(value)
+        // 非受控模式：编辑器内部自行维护状态，仅同步 store（供保存/跨标签恢复）
         updateContent(tab.id, value)
         markDirty(tab.id, true)
       }
@@ -145,13 +226,15 @@ export function MonacoEditor({ tab }: MonacoEditorProps) {
 
   const handleSave = useCallback(async () => {
     try {
-      await window.electron.project.writeFile(Number(tab.projectId), tab.filePath, content, tab.projectName)
+      // 从编辑器实例读取最新内容（非受控模式本地 content 不再逐键更新）
+      const latestContent = editorRef.current?.getValue() ?? content
+      await window.electron.project.writeFile(Number(tab.projectId), tab.filePath, latestContent, tab.projectName)
       markDirty(tab.id, false)
       showSuccess(t('editor.saveSuccess', { name: tab.title }))
     } catch (err) {
       showError(t('editor.saveFailed', { message: (err as Error).message }))
     }
-  }, [tab.filePath, tab.id, tab.projectId, tab.title, content, markDirty])
+  }, [tab.filePath, tab.id, tab.projectId, tab.projectName, tab.title, content, markDirty, t])
 
   useEffect(() => {
     registerSaveFn(tab.id, handleSave)
@@ -189,13 +272,16 @@ export function MonacoEditor({ tab }: MonacoEditorProps) {
       try {
         monaco.languages.register({ id: 'jinja' })
 
-        import('@/editor/jinja-textmate').then((module) => {
-          return module.createJinjaTokensProvider()
-        }).then((provider) => {
-          monaco.languages.setTokensProvider('jinja', provider)
-        }).catch(() => {
-          // silently fallback
-        })
+        import('@/editor/jinja-textmate')
+          .then((module) => {
+            return module.createJinjaTokensProvider()
+          })
+          .then((provider) => {
+            monaco.languages.setTokensProvider('jinja', provider)
+          })
+          .catch(() => {
+            // silently fallback
+          })
 
         monaco.languages.setLanguageConfiguration('jinja', {
           comments: { blockComment: ['{#', '#}'] },
@@ -220,6 +306,48 @@ export function MonacoEditor({ tab }: MonacoEditorProps) {
             { open: '"', close: '"' },
             { open: "'", close: "'" },
           ],
+        })
+
+        // Jinja2 智能补全：控制块 + 过滤器 + 项目 Excel 字段（info['字段']）
+        let projectVars: string[] = []
+        loadProjectVariables(tab).then((vars) => {
+          projectVars = vars
+        })
+        monaco.languages.registerCompletionItemProvider('jinja', {
+          triggerCharacters: ['{', 'i', '.'],
+          provideCompletionItems: (model: monacoEditor.editor.ITextModel, position: monacoEditor.Position) => {
+            const word = model.getWordUntilPosition(position)
+            const range = new monaco.Range(position.lineNumber, word.startColumn, position.lineNumber, word.endColumn)
+            const suggestions: { label: string; kind: number; insertText: string; detail?: string; range: unknown }[] =
+              []
+
+            for (const kw of JINJA_KEYWORDS) {
+              suggestions.push({
+                label: kw,
+                kind: monaco.languages.CompletionItemKind.Keyword,
+                insertText: kw,
+                range,
+              })
+            }
+            for (const f of JINJA_FILTERS) {
+              suggestions.push({
+                label: f,
+                kind: monaco.languages.CompletionItemKind.Function,
+                insertText: f,
+                range,
+              })
+            }
+            for (const v of projectVars) {
+              suggestions.push({
+                label: `info['${v}']`,
+                kind: monaco.languages.CompletionItemKind.Variable,
+                insertText: `info['${v}']`,
+                detail: '项目 Excel 字段',
+                range,
+              })
+            }
+            return { suggestions }
+          },
         })
       } catch {
         // 如果注册失败，保持默认行为
@@ -314,7 +442,7 @@ export function MonacoEditor({ tab }: MonacoEditorProps) {
       {!loading && !error && (
         <Editor
           language={language}
-          value={content || ''}
+          defaultValue={content || ''}
           onChange={handleChange}
           theme={monacoTheme}
           height="100%"

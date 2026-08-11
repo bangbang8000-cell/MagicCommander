@@ -2,7 +2,20 @@ import { useEffect, useState, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { usePlatformStore } from '@/stores/platform.store'
 import { useUIStore } from '@/stores/ui.store'
-import { LogOut, User, ExternalLink, Edit3, Mail, MapPin, Globe, Check, X, KeyRound, Copy, Loader2, Eye, EyeOff } from 'lucide-react'
+import {
+  LogOut,
+  ExternalLink,
+  Edit3,
+  Mail,
+  MapPin,
+  Globe,
+  Check,
+  KeyRound,
+  Copy,
+  Loader2,
+  Eye,
+  EyeOff,
+} from 'lucide-react'
 import clsx from 'clsx'
 
 interface UserProfileViewProps {
@@ -24,7 +37,7 @@ export function UserProfileView({ onClose }: UserProfileViewProps) {
   const [editBio, setEditBio] = useState('')
   const [saving, setSaving] = useState(false)
   const [showCredentials, setShowCredentials] = useState(false)
-  const [giteaCreds, setGiteaCreds] = useState<{username: string; password: string} | null>(null)
+  const [giteaCreds, setGiteaCreds] = useState<{ username: string; password: string } | null>(null)
   const [credsLoading, setCredsLoading] = useState(false)
   const [credsError, setCredsError] = useState('')
   const [copied, setCopied] = useState(false)
@@ -80,15 +93,6 @@ export function UserProfileView({ onClose }: UserProfileViewProps) {
     }
   }
 
-  const handleClearClipboard = () => {
-    navigator.clipboard.writeText('').catch(() => {})
-    setCopied(false)
-    if (clipboardTimerRef.current) {
-      clearTimeout(clipboardTimerRef.current)
-      clipboardTimerRef.current = null
-    }
-  }
-
   const handleOpenPlatform = () => {
     window.open(`${baseUrl.replace(/\/+$/, '')}/repo`, '_blank')
   }
@@ -117,15 +121,19 @@ export function UserProfileView({ onClose }: UserProfileViewProps) {
 
   if (editing) {
     return (
-      <div className={clsx(
-        'absolute right-0 top-full mt-1 w-64 rounded-lg shadow-lg z-50 overflow-hidden',
-        isDark ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-gray-200',
-      )}>
+      <div
+        className={clsx(
+          'absolute right-0 top-full mt-1 w-64 rounded-lg shadow-lg z-50 overflow-hidden',
+          isDark ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-gray-200',
+        )}
+      >
         <div className="px-4 py-3 border-b border-gray-700">
           <div className="text-sm font-medium mb-3">{t('cloud:profile.edit')}</div>
           <div className="space-y-2">
             <div>
-              <label className={clsx('text-xs', isDark ? 'text-gray-400' : 'text-gray-500')}>{t('cloud:profile.fullName')}</label>
+              <label className={clsx('text-xs', isDark ? 'text-gray-400' : 'text-gray-500')}>
+                {t('cloud:profile.fullName')}
+              </label>
               <input
                 type="text"
                 value={editName}
@@ -137,7 +145,9 @@ export function UserProfileView({ onClose }: UserProfileViewProps) {
               />
             </div>
             <div>
-              <label className={clsx('text-xs', isDark ? 'text-gray-400' : 'text-gray-500')}>{t('cloud:profile.bio')}</label>
+              <label className={clsx('text-xs', isDark ? 'text-gray-400' : 'text-gray-500')}>
+                {t('cloud:profile.bio')}
+              </label>
               <textarea
                 value={editBio}
                 onChange={(e) => setEditBio(e.target.value)}
@@ -177,10 +187,12 @@ export function UserProfileView({ onClose }: UserProfileViewProps) {
   }
 
   return (
-    <div className={clsx(
-      'absolute right-0 top-full mt-1 w-64 rounded-lg shadow-lg z-50 overflow-hidden',
-      isDark ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-gray-200',
-    )}>
+    <div
+      className={clsx(
+        'absolute right-0 top-full mt-1 w-64 rounded-lg shadow-lg z-50 overflow-hidden',
+        isDark ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-gray-200',
+      )}
+    >
       {/* 用户信息头部 */}
       <div className="px-4 py-3 border-b border-gray-700">
         {profileLoading ? (
@@ -190,10 +202,12 @@ export function UserProfileView({ onClose }: UserProfileViewProps) {
         ) : (
           <>
             <div className="flex items-center gap-3">
-              <div className={clsx(
-                'w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium shrink-0',
-                'bg-indigo-600 text-white',
-              )}>
+              <div
+                className={clsx(
+                  'w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium shrink-0',
+                  'bg-indigo-600 text-white',
+                )}
+              >
                 {displayName?.[0]?.toUpperCase() || '?'}
               </div>
               <div className="min-w-0 flex-1">
@@ -205,11 +219,7 @@ export function UserProfileView({ onClose }: UserProfileViewProps) {
                 </div>
               </div>
             </div>
-            {bio && (
-              <div className={clsx('text-xs mt-2', isDark ? 'text-gray-400' : 'text-gray-500')}>
-                {bio}
-              </div>
-            )}
+            {bio && <div className={clsx('text-xs mt-2', isDark ? 'text-gray-400' : 'text-gray-500')}>{bio}</div>}
           </>
         )}
       </div>
@@ -247,14 +257,16 @@ export function UserProfileView({ onClose }: UserProfileViewProps) {
           {bindings.map((b) => (
             <div key={b.platform} className="flex items-center gap-2 text-xs mb-1">
               <span className={clsx(isDark ? 'text-gray-300' : 'text-gray-700')}>
-                {b.platform === 'feishu' ? 'Feishu' : b.platform === 'qq' ? 'QQ' : b.platform === 'wechat' ? 'WeChat' : b.platform}
+                {b.platform === 'feishu'
+                  ? 'Feishu'
+                  : b.platform === 'qq'
+                    ? 'QQ'
+                    : b.platform === 'wechat'
+                      ? 'WeChat'
+                      : b.platform}
               </span>
               <Check size={12} className="text-green-500" />
-              {b.nickname && (
-                <span className={clsx(isDark ? 'text-gray-500' : 'text-gray-400')}>
-                  {b.nickname}
-                </span>
-              )}
+              {b.nickname && <span className={clsx(isDark ? 'text-gray-500' : 'text-gray-400')}>{b.nickname}</span>}
             </div>
           ))}
         </div>
@@ -297,17 +309,13 @@ export function UserProfileView({ onClose }: UserProfileViewProps) {
           {credsLoading ? t('app.loading') : t('cloud:profile.showGiteaCreds') || 'Gitea Login Info'}
         </button>
 
-        {credsError && (
-          <div className="px-4 py-1 text-xs text-red-400">{credsError}</div>
-        )}
+        {credsError && <div className="px-4 py-1 text-xs text-red-400">{credsError}</div>}
 
         {showCredentials && giteaCreds && (
-          <div className={clsx(
-            'mx-4 mb-2 p-2 rounded text-xs space-y-1.5',
-            isDark ? 'bg-gray-700' : 'bg-gray-100',
-          )}>
+          <div className={clsx('mx-4 mb-2 p-2 rounded text-xs space-y-1.5', isDark ? 'bg-gray-700' : 'bg-gray-100')}>
             <div className={clsx(isDark ? 'text-gray-300' : 'text-gray-700')}>
-              {t('cloud:profile.username') || 'Username'}: <span className="font-mono font-medium">{giteaCreds.username}</span>
+              {t('cloud:profile.username') || 'Username'}:{' '}
+              <span className="font-mono font-medium">{giteaCreds.username}</span>
             </div>
             <div className="flex items-center gap-1">
               <span className={clsx(isDark ? 'text-gray-300' : 'text-gray-700')}>
@@ -322,7 +330,9 @@ export function UserProfileView({ onClose }: UserProfileViewProps) {
                   'p-0.5 rounded transition-colors',
                   isDark ? 'hover:bg-gray-600 text-gray-400' : 'hover:bg-gray-200 text-gray-500',
                 )}
-                title={showPassword ? (t('cloud:profile.hidePassword') || 'Hide') : (t('cloud:profile.showPassword') || 'Show')}
+                title={
+                  showPassword ? t('cloud:profile.hidePassword') || 'Hide' : t('cloud:profile.showPassword') || 'Show'
+                }
               >
                 {showPassword ? <EyeOff size={12} /> : <Eye size={12} />}
               </button>
@@ -338,7 +348,8 @@ export function UserProfileView({ onClose }: UserProfileViewProps) {
               </button>
             </div>
             <div className={clsx('text-[10px]', isDark ? 'text-gray-500' : 'text-gray-400')}>
-              {t('cloud:profile.clipboardHint') || 'Click "Open Platform" to log in. Password auto-clears from clipboard after 30s.'}
+              {t('cloud:profile.clipboardHint') ||
+                'Click "Open Platform" to log in. Password auto-clears from clipboard after 30s.'}
             </div>
           </div>
         )}

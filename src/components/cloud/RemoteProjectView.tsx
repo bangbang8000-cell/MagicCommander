@@ -49,9 +49,7 @@ export function RemoteProjectView({ onPullSuccess, searchQuery }: RemoteProjectV
     if (!searchQuery) return remoteProjects
     const q = searchQuery.toLowerCase()
     return remoteProjects.filter(
-      (p) =>
-        p.name.toLowerCase().includes(q) ||
-        (p.description || '').toLowerCase().includes(q),
+      (p) => p.name.toLowerCase().includes(q) || (p.description || '').toLowerCase().includes(q),
     )
   }, [remoteProjects, searchQuery])
 
@@ -65,7 +63,7 @@ export function RemoteProjectView({ onPullSuccess, searchQuery }: RemoteProjectV
   const handlePull = useCallback(async (project: RemoteProject) => {
     try {
       const projects = await window.electron.project.list()
-      const exists = projects.some((p: any) => p.name === project.name)
+      const exists = projects.some((p: { name: string }) => p.name === project.name)
       setProjectExists(exists)
     } catch {
       setProjectExists(false)
@@ -166,9 +164,7 @@ export function RemoteProjectView({ onPullSuccess, searchQuery }: RemoteProjectV
               >
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-gray-900 dark:text-white truncate">
-                      {project.name}
-                    </span>
+                    <span className="text-sm font-medium text-gray-900 dark:text-white truncate">{project.name}</span>
                     {project.private ? (
                       <span className="text-[10px] px-1 py-0.5 rounded bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400">
                         {t('cloud:projects.private') || '私有'}
@@ -181,9 +177,7 @@ export function RemoteProjectView({ onPullSuccess, searchQuery }: RemoteProjectV
                     <SyncStatusBadge syncStatus={syncStatus} />
                   </div>
                   {project.description && (
-                    <p className="text-xs text-gray-500 dark:text-gray-400 truncate mt-0.5">
-                      {project.description}
-                    </p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 truncate mt-0.5">{project.description}</p>
                   )}
                   <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-0.5">
                     {project.owner} · {new Date(project.updated_at).toLocaleDateString()}

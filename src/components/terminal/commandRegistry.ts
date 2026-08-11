@@ -76,17 +76,15 @@ function resolveIds(args: string[]): string[] {
 
 async function resolveProjectId(nameOrId: string): Promise<number | null> {
   const stored = useProjectStore.getState().projects
-  const found = stored.find(
-    (p) => p.name === nameOrId || String(p.id) === nameOrId,
-  )
+  const found = stored.find((p) => p.name === nameOrId || String(p.id) === nameOrId)
   if (found) return found.id
   if (window.electron?.project) {
     const raw = await window.electron.project.list()
     const projects = Array.isArray(raw) ? raw : []
     const match = projects.find(
-      (p: any) => String(p.name ?? '') === nameOrId || String(p.id ?? '') === nameOrId,
+      (p: { name: string; id: number }) => String(p.name ?? '') === nameOrId || String(p.id ?? '') === nameOrId,
     )
-    if (match) return (match as any).id ?? 0
+    if (match) return match.id ?? 0
   }
   return null
 }
@@ -139,17 +137,25 @@ export const commands: { [name: string]: CommandEntry } = {
           return
         }
         ctx.addLog('info', `项目列表 (${projects.length}):`)
-        projects.forEach((p: any) => ctx.addLog('info', `  #${p.id ?? '?'}  ${String(p.name ?? '')}`))
+        projects.forEach((p: { id: number; name: string }) =>
+          ctx.addLog('info', `  #${p.id ?? '?'}  ${String(p.name ?? '')}`),
+        )
       } else if (args[0] === 'examples') {
-        if (!window.electron?.project) { ctx.addLog('error', '需要 Electron 环境'); return }
+        if (!window.electron?.project) {
+          ctx.addLog('error', '需要 Electron 环境')
+          return
+        }
         const examples = await window.electron.project.listExamples()
         ctx.addLog('info', `示例模板 (${examples.length}):`)
         examples.forEach((e: string) => ctx.addLog('info', `  - ${e}`))
       } else if (args[0] === 'templates') {
-        if (!window.electron?.project) { ctx.addLog('error', '需要 Electron 环境'); return }
+        if (!window.electron?.project) {
+          ctx.addLog('error', '需要 Electron 环境')
+          return
+        }
         const templates = await window.electron.project.listTemplates()
         ctx.addLog('info', `模板 (${templates.length}):`)
-        templates.forEach((t: any) => ctx.addLog('info', `  - ${t.name ?? t.id}`))
+        templates.forEach((t: { name: string; id: string }) => ctx.addLog('info', `  - ${t.name ?? t.id}`))
       } else {
         ctx.addLog('error', `未知参数: ${args.join(' ')}。可用: projects, examples, templates`)
       }
@@ -163,8 +169,14 @@ export const commands: { [name: string]: CommandEntry } = {
   create: {
     desc: () => '创建新项目: create <name> [--empty] [--template <name>]',
     fn: async (args, ctx) => {
-      if (!window.electron?.project) { ctx.addLog('error', '需要 Electron 环境'); return }
-      if (args.length === 0) { ctx.addLog('error', '用法: create <项目名> [--empty] [--template <模板名>]'); return }
+      if (!window.electron?.project) {
+        ctx.addLog('error', '需要 Electron 环境')
+        return
+      }
+      if (args.length === 0) {
+        ctx.addLog('error', '用法: create <项目名> [--empty] [--template <模板名>]')
+        return
+      }
       const name = args[0]
       const options: { template?: string; empty?: boolean } = {}
       for (let i = 1; i < args.length; i++) {
@@ -183,16 +195,24 @@ export const commands: { [name: string]: CommandEntry } = {
   select: {
     desc: () => '选择项目: select <名称或ID>',
     fn: async (args, ctx) => {
-      if (args.length === 0) { ctx.addLog('error', '用法: select <项目名或ID>'); return }
+      if (args.length === 0) {
+        ctx.addLog('error', '用法: select <项目名或ID>')
+        return
+      }
       const target = args.join(' ')
       let project = useProjectStore.getState().projects.find((p) => p.name === target)
       if (!project && window.electron?.project) {
         const raw = await window.electron.project.list()
         const projects = Array.isArray(raw) ? raw : []
-        const found: any = projects.find((p: any) => String(p.name ?? '') === target || String(p.id ?? '') === target)
+        const found = projects.find(
+          (p: { name: string; id: number }) => String(p.name ?? '') === target || String(p.id ?? '') === target,
+        )
         if (found) project = { id: found.id ?? 0, name: String(found.name ?? ''), index: found.index ?? 0 }
       }
-      if (!project) { ctx.addLog('error', `项目 "${target}" 不存在`); return }
+      if (!project) {
+        ctx.addLog('error', `项目 "${target}" 不存在`)
+        return
+      }
       ctx.selectProject(project.name)
       ctx.addLog('success', `已选择: ${project.name}`)
     },
@@ -201,43 +221,70 @@ export const commands: { [name: string]: CommandEntry } = {
   delete: {
     desc: () => '删除项目或文件: delete project <id> | delete output|yaml|output-sn|yaml-sn [ids]',
     fn: async (args, ctx) => {
-      if (!window.electron) { ctx.addLog('error', '需要 Electron 环境'); return }
-      if (args.length === 0) { ctx.addLog('error', '用法: delete project <id> | delete <output|yaml|output-sn|yaml-sn> [ids]'); return }
+      if (!window.electron) {
+        ctx.addLog('error', '需要 Electron 环境')
+        return
+      }
+      if (args.length === 0) {
+        ctx.addLog('error', '用法: delete project <id> | delete <output|yaml|output-sn|yaml-sn> [ids]')
+        return
+      }
       const sub = args[0]
       try {
         if (sub === 'project') {
           const id = args[1]
-          if (!id) { ctx.addLog('error', '用法: delete project <id>'); return }
+          if (!id) {
+            ctx.addLog('error', '用法: delete project <id>')
+            return
+          }
           await window.electron.project.delete([id])
           ctx.addLog('success', `项目 #${id} 已删除`)
         } else if (sub === 'output') {
           const ids = resolveIds(args.slice(1))
-          if (ids.length === 0) { ctx.addLog('error', '请指定项目ID'); return }
+          if (ids.length === 0) {
+            ctx.addLog('error', '请指定项目ID')
+            return
+          }
           await window.electron.delete.output(ids)
           ctx.addLog('success', `已删除输出文件 (${ids.join(',')})`)
         } else if (sub === 'output-sn') {
           const ids = resolveIds(args.slice(1))
-          if (ids.length === 0) { ctx.addLog('error', '请指定项目ID'); return }
+          if (ids.length === 0) {
+            ctx.addLog('error', '请指定项目ID')
+            return
+          }
           await window.electron.delete.outputSn(ids)
           ctx.addLog('success', `已删除SN输出 (${ids.join(',')})`)
         } else if (sub === 'yaml') {
           const ids = resolveIds(args.slice(1))
-          if (ids.length === 0) { ctx.addLog('error', '请指定项目ID'); return }
+          if (ids.length === 0) {
+            ctx.addLog('error', '请指定项目ID')
+            return
+          }
           await window.electron.delete.yaml(ids)
           ctx.addLog('success', `已删除YAML (${ids.join(',')})`)
         } else if (sub === 'yaml-sn') {
           const ids = resolveIds(args.slice(1))
-          if (ids.length === 0) { ctx.addLog('error', '请指定项目ID'); return }
+          if (ids.length === 0) {
+            ctx.addLog('error', '请指定项目ID')
+            return
+          }
           await window.electron.delete.yamlSn(ids)
           ctx.addLog('success', `已删除YAML-SN (${ids.join(',')})`)
         } else if (sub === 'labels') {
           const ids = resolveIds(args.slice(1))
-          if (ids.length === 0) { ctx.addLog('error', '请指定项目ID'); return }
+          if (ids.length === 0) {
+            ctx.addLog('error', '请指定项目ID')
+            return
+          }
           await window.electron.feature.labelDelete(ids)
           ctx.addLog('success', `已删除标签 (${ids.join(',')})`)
         } else if (sub === 'template') {
           const name = args[1]
-          if (!name) { ctx.addLog('error', '用法: delete template <名称>'); return }
+          if (!name) {
+            ctx.addLog('error', '用法: delete template <名称>')
+            return
+          }
           await window.electron.project.deleteTemplate(name)
           ctx.addLog('success', `模板 "${name}" 已删除`)
         } else {
@@ -256,12 +303,21 @@ export const commands: { [name: string]: CommandEntry } = {
   info: {
     desc: () => '项目信息: info <名称或ID>',
     fn: async (args, ctx) => {
-      if (!window.electron?.project) { ctx.addLog('error', '需要 Electron 环境'); return }
+      if (!window.electron?.project) {
+        ctx.addLog('error', '需要 Electron 环境')
+        return
+      }
       const target = args[0]
-      if (!target) { ctx.addLog('error', '用法: info <项目名或ID>'); return }
+      if (!target) {
+        ctx.addLog('error', '用法: info <项目名或ID>')
+        return
+      }
       try {
         const id = await resolveProjectId(target)
-        if (id === null) { ctx.addLog('error', `项目 "${target}" 不存在`); return }
+        if (id === null) {
+          ctx.addLog('error', `项目 "${target}" 不存在`)
+          return
+        }
         const structure = await window.electron.project.getStructure(String(id))
         ctx.addLog('info', `项目: ${target}`)
         ctx.addLog('info', `  ID: ${id}`)
@@ -278,23 +334,35 @@ export const commands: { [name: string]: CommandEntry } = {
   template: {
     desc: () => '模板管理: template list|save|delete',
     fn: async (args, ctx) => {
-      if (!window.electron?.project) { ctx.addLog('error', '需要 Electron 环境'); return }
-      if (args.length === 0) { ctx.addLog('error', '用法: template list|save <项目名> <模板名>|delete <模板名>'); return }
+      if (!window.electron?.project) {
+        ctx.addLog('error', '需要 Electron 环境')
+        return
+      }
+      if (args.length === 0) {
+        ctx.addLog('error', '用法: template list|save <项目名> <模板名>|delete <模板名>')
+        return
+      }
       const sub = args[0]
       try {
         if (sub === 'list') {
           const templates = await window.electron.project.listTemplates()
           ctx.addLog('info', `模板 (${templates.length}):`)
-          templates.forEach((t: any) => ctx.addLog('info', `  - ${t.name ?? t.id}`))
+          templates.forEach((t: { name: string; id: string }) => ctx.addLog('info', `  - ${t.name ?? t.id}`))
         } else if (sub === 'save') {
           const projectName = args[1]
           const templateName = args[2]
-          if (!projectName || !templateName) { ctx.addLog('error', '用法: template save <项目名> <模板名>'); return }
+          if (!projectName || !templateName) {
+            ctx.addLog('error', '用法: template save <项目名> <模板名>')
+            return
+          }
           await window.electron.project.saveAsTemplate(projectName, templateName, { name: templateName })
           ctx.addLog('success', `项目 "${projectName}" 已保存为模板 "${templateName}"`)
         } else if (sub === 'delete') {
           const name = args[1]
-          if (!name) { ctx.addLog('error', '用法: template delete <模板名>'); return }
+          if (!name) {
+            ctx.addLog('error', '用法: template delete <模板名>')
+            return
+          }
           await window.electron.project.deleteTemplate(name)
           ctx.addLog('success', `模板 "${name}" 已删除`)
         } else {
@@ -310,11 +378,17 @@ export const commands: { [name: string]: CommandEntry } = {
   render: {
     desc: () => '渲染配置: render project|yaml|dry-run|undo [ids] [--format device_sn]',
     fn: async (args, ctx) => {
-      if (!window.electron?.render) { ctx.addLog('error', '需要 Electron 环境'); return }
+      if (!window.electron?.render) {
+        ctx.addLog('error', '需要 Electron 环境')
+        return
+      }
       const parsed = parseFormatOption(args)
       const sub = parsed.args[0] ?? 'project'
       const ids = resolveIds(parsed.args.slice(1))
-      if (ids.length === 0) { ctx.addLog('error', '请指定项目ID，或先用 select 选择项目'); return }
+      if (ids.length === 0) {
+        ctx.addLog('error', '请指定项目ID，或先用 select 选择项目')
+        return
+      }
       try {
         if (sub === 'project' || sub === 'projects') {
           if (parsed.format === 'device_sn') {
@@ -349,11 +423,20 @@ export const commands: { [name: string]: CommandEntry } = {
   label: {
     desc: () => '标签操作: label print|md|pdf|delete [ids]',
     fn: async (args, ctx) => {
-      if (!window.electron?.feature) { ctx.addLog('error', '需要 Electron 环境'); return }
-      if (args.length === 0) { ctx.addLog('error', '用法: label print|md|pdf|delete [ids]'); return }
+      if (!window.electron?.feature) {
+        ctx.addLog('error', '需要 Electron 环境')
+        return
+      }
+      if (args.length === 0) {
+        ctx.addLog('error', '用法: label print|md|pdf|delete [ids]')
+        return
+      }
       const sub = args[0].toLowerCase()
       const ids = resolveIds(args.slice(1))
-      if (ids.length === 0 && sub !== 'delete') { ctx.addLog('error', '请指定项目ID，或先用 select 选择项目'); return }
+      if (ids.length === 0 && sub !== 'delete') {
+        ctx.addLog('error', '请指定项目ID，或先用 select 选择项目')
+        return
+      }
       try {
         if (sub === 'print' || sub === 'word') {
           await window.electron.feature.labelPrint(ids)
@@ -381,11 +464,20 @@ export const commands: { [name: string]: CommandEntry } = {
   validate: {
     desc: () => '校验: validate template|excel [ids]',
     fn: async (args, ctx) => {
-      if (!window.electron?.render) { ctx.addLog('error', '需要 Electron 环境'); return }
-      if (args.length === 0) { ctx.addLog('error', '用法: validate template|excel <ids>'); return }
+      if (!window.electron?.render) {
+        ctx.addLog('error', '需要 Electron 环境')
+        return
+      }
+      if (args.length === 0) {
+        ctx.addLog('error', '用法: validate template|excel <ids>')
+        return
+      }
       const sub = args[0]
       const ids = resolveIds(args.slice(1))
-      if (ids.length === 0) { ctx.addLog('error', '请指定项目ID'); return }
+      if (ids.length === 0) {
+        ctx.addLog('error', '请指定项目ID')
+        return
+      }
       try {
         if (sub === 'template') {
           const result = await window.electron.render.validateTemplate(ids)
@@ -406,11 +498,20 @@ export const commands: { [name: string]: CommandEntry } = {
   read: {
     desc: () => '读取文件: read <项目名> <文件路径>',
     fn: async (args, ctx) => {
-      if (!window.electron?.project) { ctx.addLog('error', '需要 Electron 环境'); return }
-      if (args.length < 2) { ctx.addLog('error', '用法: read <项目名或ID> <文件相对路径>'); return }
+      if (!window.electron?.project) {
+        ctx.addLog('error', '需要 Electron 环境')
+        return
+      }
+      if (args.length < 2) {
+        ctx.addLog('error', '用法: read <项目名或ID> <文件相对路径>')
+        return
+      }
       try {
         const id = await resolveProjectId(args[0])
-        if (id === null) { ctx.addLog('error', `项目 "${args[0]}" 不存在`); return }
+        if (id === null) {
+          ctx.addLog('error', `项目 "${args[0]}" 不存在`)
+          return
+        }
         const content = await window.electron.project.readFile(id, args[1])
         ctx.addLog('info', content.slice(0, 1000))
       } catch (err) {

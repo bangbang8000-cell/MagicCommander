@@ -40,7 +40,9 @@ export function WorkbenchDryRunResults({ results, isDark, onClear }: WorkbenchDr
     }
     setDiffLoading((prev) => new Set(prev).add(key))
     try {
-      const data = await window.electron.render.diffCompare(project, device, content, format) as any
+      const data = (await window.electron.render.diffCompare(project, device, content, format)) as {
+        diff?: string[]
+      } | null
       const lines = (data?.diff ?? ['(无法获取差异)']) as string[]
       setDiffResults((prev) => ({ ...prev, [key]: lines }))
     } catch {
@@ -59,12 +61,17 @@ export function WorkbenchDryRunResults({ results, isDark, onClear }: WorkbenchDr
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
-        <h4 className={clsx('text-xs font-semibold flex items-center gap-1', isDark ? 'text-gray-200' : 'text-gray-700')}>
+        <h4
+          className={clsx('text-xs font-semibold flex items-center gap-1', isDark ? 'text-gray-200' : 'text-gray-700')}
+        >
           <Eye size={12} /> 渲染预览 ({results.length})
         </h4>
         <button
           onClick={onClear}
-          className={clsx('p-0.5 rounded', isDark ? 'hover:bg-gray-700 text-gray-400' : 'hover:bg-gray-100 text-gray-500')}
+          className={clsx(
+            'p-0.5 rounded',
+            isDark ? 'hover:bg-gray-700 text-gray-400' : 'hover:bg-gray-100 text-gray-500',
+          )}
         >
           <X size={14} />
         </button>
@@ -110,8 +117,12 @@ export function WorkbenchDryRunResults({ results, isDark, onClear }: WorkbenchDr
                     className={clsx(
                       'p-1 rounded text-[11px] transition-colors',
                       diff
-                        ? isDark ? 'text-yellow-400 hover:bg-gray-700' : 'text-yellow-600 hover:bg-gray-100'
-                        : isDark ? 'text-gray-500 hover:text-gray-300 hover:bg-gray-700' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100',
+                        ? isDark
+                          ? 'text-yellow-400 hover:bg-gray-700'
+                          : 'text-yellow-600 hover:bg-gray-100'
+                        : isDark
+                          ? 'text-gray-500 hover:text-gray-300 hover:bg-gray-700'
+                          : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100',
                     )}
                     title="对比已有输出"
                   >
@@ -123,7 +134,9 @@ export function WorkbenchDryRunResults({ results, isDark, onClear }: WorkbenchDr
                     <pre
                       className={clsx(
                         'text-[11px] p-2 rounded overflow-auto max-h-64 whitespace-pre-wrap font-mono',
-                        isDark ? 'bg-gray-800 text-gray-200 border border-gray-700' : 'bg-gray-50 text-gray-700 border border-gray-200',
+                        isDark
+                          ? 'bg-gray-800 text-gray-200 border border-gray-700'
+                          : 'bg-gray-50 text-gray-700 border border-gray-200',
                       )}
                     >
                       {d.content}
@@ -135,7 +148,9 @@ export function WorkbenchDryRunResults({ results, isDark, onClear }: WorkbenchDr
                     <pre
                       className={clsx(
                         'text-[11px] p-2 rounded overflow-auto max-h-48 whitespace-pre-wrap font-mono',
-                        isDark ? 'bg-gray-800 text-gray-200 border border-gray-700' : 'bg-gray-50 text-gray-700 border border-gray-200',
+                        isDark
+                          ? 'bg-gray-800 text-gray-200 border border-gray-700'
+                          : 'bg-gray-50 text-gray-700 border border-gray-200',
                       )}
                     >
                       {diff.map((line, i) => {
@@ -144,7 +159,10 @@ export function WorkbenchDryRunResults({ results, isDark, onClear }: WorkbenchDr
                         else if (line.startsWith('-')) lineClass = isDark ? 'text-red-400' : 'text-red-600'
                         else if (line.startsWith('@@')) lineClass = isDark ? 'text-blue-400' : 'text-blue-600'
                         return (
-                          <span key={i} className={lineClass}>{line}{'\n'}</span>
+                          <span key={i} className={lineClass}>
+                            {line}
+                            {'\n'}
+                          </span>
                         )
                       })}
                     </pre>

@@ -60,16 +60,11 @@ export function NotificationCenter({ isDark }: NotificationCenterProps) {
           setOpen(!open)
           if (!open) setHasUnread(false)
         }}
-        className={clsx(
-          'p-1.5 rounded transition-colors relative',
-          isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-200',
-        )}
+        className={clsx('p-1.5 rounded transition-colors relative', isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-200')}
         title={t('cloud:dashboard.notifications')}
       >
         <Bell size={14} className="text-gray-400" />
-        {hasUnread && (
-          <span className="absolute top-0.5 right-0.5 w-2 h-2 bg-red-500 rounded-full" />
-        )}
+        {hasUnread && <span className="absolute top-0.5 right-0.5 w-2 h-2 bg-red-500 rounded-full" />}
       </button>
 
       {open && (
@@ -100,19 +95,12 @@ export function NotificationCenter({ isDark }: NotificationCenterProps) {
 
             {!loading &&
               announcements.map((a) => (
-                <div
-                  key={a.id}
-                  className={clsx('px-3 py-2 border-b border-gray-700/50', levelColor(a.level))}
-                >
+                <div key={a.id} className={clsx('px-3 py-2 border-b border-gray-700/50', levelColor(a.level))}>
                   <div className="flex items-start gap-2">
                     <span className="mt-0.5">{levelIcon(a.level)}</span>
                     <div className="flex-1 min-w-0">
                       <div className="text-xs font-medium text-gray-200">{a.title}</div>
-                      {a.content && (
-                        <div className="text-[11px] text-gray-400 mt-0.5 line-clamp-2">
-                          {a.content}
-                        </div>
-                      )}
+                      {a.content && <div className="text-[11px] text-gray-400 mt-0.5 line-clamp-2">{a.content}</div>}
                       <div className="text-[10px] text-gray-500 mt-1">
                         {new Date(a.created_at).toLocaleDateString()}
                       </div>

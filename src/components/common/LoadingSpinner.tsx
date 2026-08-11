@@ -106,11 +106,7 @@ interface SkeletonProps {
 }
 
 export function Skeleton({ className = '' }: SkeletonProps) {
-  return (
-    <div
-      className={`animate-pulse bg-gray-200 dark:bg-gray-700 rounded ${className}`}
-    />
-  )
+  return <div className={`animate-pulse bg-gray-200 dark:bg-gray-700 rounded ${className}`} />
 }
 
 /** 文本骨架屏：多行占位 */
@@ -118,10 +114,7 @@ export function SkeletonText({ lines = 3, className = '' }: { lines?: number; cl
   return (
     <div className={`space-y-2 ${className}`}>
       {Array.from({ length: lines }).map((_, i) => (
-        <Skeleton
-          key={i}
-          className={`h-3 ${i === lines - 1 ? 'w-3/4' : 'w-full'}`}
-        />
+        <Skeleton key={i} className={`h-3 ${i === lines - 1 ? 'w-3/4' : 'w-full'}`} />
       ))}
     </div>
   )

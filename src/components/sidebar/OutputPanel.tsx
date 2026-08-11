@@ -24,7 +24,6 @@ import {
 } from 'lucide-react'
 import clsx from 'clsx'
 import { getFileTypeFromPath } from '@/types/editor'
-import { getOutputDirIcon } from '@/config/icons'
 import type { LucideIcon } from 'lucide-react'
 
 interface FileNode {
@@ -240,27 +239,54 @@ export function OutputPanel() {
       {activeTab === 'browse' && (
         <>
           {!selectedProject ? (
-            <div className={clsx('flex-1 flex items-center justify-center text-xs p-4 text-center', isDark ? 'text-gray-500' : 'text-gray-400')}>
+            <div
+              className={clsx(
+                'flex-1 flex items-center justify-center text-xs p-4 text-center',
+                isDark ? 'text-gray-500' : 'text-gray-400',
+              )}
+            >
               {t('common:outputPanel.selectProjectHint')}
             </div>
           ) : isLoading ? (
-            <div className={clsx('flex-1 flex items-center justify-center gap-2 text-xs', isDark ? 'text-gray-400' : 'text-gray-500')}>
+            <div
+              className={clsx(
+                'flex-1 flex items-center justify-center gap-2 text-xs',
+                isDark ? 'text-gray-400' : 'text-gray-500',
+              )}
+            >
               <Loader2 size={14} className="animate-spin" />
               {t('app.loading')}
             </div>
           ) : error ? (
-            <div className={clsx('flex-1 flex flex-col items-center justify-center gap-1 text-xs p-4 text-center', isDark ? 'text-red-400' : 'text-red-500')}>
+            <div
+              className={clsx(
+                'flex-1 flex flex-col items-center justify-center gap-1 text-xs p-4 text-center',
+                isDark ? 'text-red-400' : 'text-red-500',
+              )}
+            >
               <AlertCircle size={16} />
-              <span>{t('common:outputPanel.loadFailed')}: {error}</span>
+              <span>
+                {t('common:outputPanel.loadFailed')}: {error}
+              </span>
               <button
                 onClick={() => loadOutputStructure(selectedProject.name)}
-                className={clsx('mt-2 px-2 py-0.5 rounded text-xs', isDark ? 'bg-gray-700 hover:bg-gray-600 text-gray-200' : 'bg-gray-100 hover:bg-gray-200 text-gray-700')}
+                className={clsx(
+                  'mt-2 px-2 py-0.5 rounded text-xs',
+                  isDark
+                    ? 'bg-gray-700 hover:bg-gray-600 text-gray-200'
+                    : 'bg-gray-100 hover:bg-gray-200 text-gray-700',
+                )}
               >
                 {t('app.retry')}
               </button>
             </div>
           ) : outputStructure.length === 0 ? (
-            <div className={clsx('flex-1 flex flex-col items-center justify-center text-xs p-4 text-center', isDark ? 'text-gray-500' : 'text-gray-400')}>
+            <div
+              className={clsx(
+                'flex-1 flex flex-col items-center justify-center text-xs p-4 text-center',
+                isDark ? 'text-gray-500' : 'text-gray-400',
+              )}
+            >
               <FolderX size={24} className={clsx('mb-2', isDark ? 'text-gray-600' : 'text-gray-300')} />
               <div>{t('common:outputPanel.noOutputFiles')}</div>
               <div className="text-xs mt-1 opacity-60">{t('common:outputPanel.renderHint')}</div>
@@ -289,7 +315,12 @@ export function OutputPanel() {
       {activeTab === 'export' && (
         <div className="flex-1 overflow-auto p-3 space-y-3">
           {!selectedProject ? (
-            <div className={clsx('flex items-center justify-center text-xs p-4 text-center', isDark ? 'text-gray-500' : 'text-gray-400')}>
+            <div
+              className={clsx(
+                'flex items-center justify-center text-xs p-4 text-center',
+                isDark ? 'text-gray-500' : 'text-gray-400',
+              )}
+            >
               {t('common:outputPanel.selectProjectHint')}
             </div>
           ) : (
@@ -311,9 +342,16 @@ export function OutputPanel() {
                     </div>
                   ))}
                   {totalFiles > 0 && (
-                    <div className={clsx('flex justify-between font-medium pt-1 border-t', isDark ? 'border-gray-700 text-gray-200' : 'border-gray-200 text-gray-700')}>
+                    <div
+                      className={clsx(
+                        'flex justify-between font-medium pt-1 border-t',
+                        isDark ? 'border-gray-700 text-gray-200' : 'border-gray-200 text-gray-700',
+                      )}
+                    >
                       <span>{t('common:outputPanel.exportAll')}</span>
-                      <span>{totalFiles} {t('project:common.files')}</span>
+                      <span>
+                        {totalFiles} {t('project:common.files')}
+                      </span>
                     </div>
                   )}
                 </div>
@@ -464,7 +502,12 @@ function OutputTreeItem({
         <span className="truncate font-medium flex-1">{isOutputDir && labelKey ? t(labelKey) : node.name}</span>
 
         {fileCount > 0 && (
-          <span className={clsx('text-xs px-1 py-0.5 rounded shrink-0', isDark ? 'bg-gray-700 text-gray-400' : 'bg-gray-100 text-gray-500')}>
+          <span
+            className={clsx(
+              'text-xs px-1 py-0.5 rounded shrink-0',
+              isDark ? 'bg-gray-700 text-gray-400' : 'bg-gray-100 text-gray-500',
+            )}
+          >
             {fileCount}
           </span>
         )}

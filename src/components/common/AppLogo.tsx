@@ -20,7 +20,9 @@ export function AppLogo({ size = 24, className, isDark }: AppLogoProps) {
       style={{
         width: size,
         height: size,
-        filter: isDark ? 'drop-shadow(0 2px 8px rgba(59, 130, 246, 0.3))' : 'drop-shadow(0 2px 8px rgba(59, 130, 246, 0.2))',
+        filter: isDark
+          ? 'drop-shadow(0 2px 8px rgba(59, 130, 246, 0.3))'
+          : 'drop-shadow(0 2px 8px rgba(59, 130, 246, 0.2))',
       }}
     />
   )

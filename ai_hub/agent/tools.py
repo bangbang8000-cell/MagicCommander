@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Any
 
 from ai_hub.agent.schemas import ToolPermission, get_tool_permission
+from ai_hub.agent.preset_templates import TEMPLATE_MAP, _TPL_GENERIC
 
 logger = logging.getLogger(__name__)
 
@@ -59,25 +60,33 @@ async def execute_tool(name: str, arguments: dict) -> dict:
         return {"success": False, "error": str(e)}
 
 
-def _run_python_cli(args: list[str]) -> str:
-    """运行 Python CLI 命令并返回输出"""
+async def _run_python_cli(args: list[str]) -> str:
+    """异步运行 Python CLI 命令并返回输出（不阻塞 uvicorn 事件循环，显式 UTF-8 解码防中文乱码）"""
+    import asyncio
     workspace = _workspace_dir or ""
     backend_dir = _backend_dir or str(Path(__file__).parent.parent.parent / "backend")
 
-    env = {}
+    env = {**__import__("os").environ}
     if workspace:
         env["MC_WORKSPACE"] = workspace
 
     try:
-        result = subprocess.run(
-            [sys.executable, str(Path(backend_dir) / "main.py")] + args,
-            capture_output=True,
-            text=True,
-            timeout=120,
+        proc = await asyncio.create_subprocess_exec(
+            sys.executable, str(Path(backend_dir) / "main.py"), *args,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
             cwd=backend_dir,
-            env={**__import__("os").environ, **env},
+            env=env,
         )
-        output = result.stdout.strip() or result.stderr.strip()
+        try:
+            stdout, stderr = await asyncio.wait_for(proc.communicate(), timeout=120)
+        except asyncio.TimeoutError:
+            proc.kill()
+            await proc.wait()
+            return "命令执行超时"
+        output = stdout.decode("utf-8", errors="replace").strip()
+        if not output:
+            output = stderr.decode("utf-8", errors="replace").strip()
         # 过滤进度消息，只提取最终状态行（避免进度JSON污染LLM上下文）
         lines = output.split('\n')
         for line in reversed(lines):
@@ -93,8 +102,6 @@ def _run_python_cli(args: list[str]) -> str:
             except Exception:
                 pass
         return output  # 兜底：无状态行时返回原始输出
-    except subprocess.TimeoutExpired:
-        return "命令执行超时"
     except Exception as e:
         return f"命令执行失败: {e}"
 
@@ -117,7 +124,7 @@ def set_backend_dir(path: str):
 
 
 async def _list_projects(args: dict) -> str:
-    return _run_python_cli(["project", "list"])
+    return await _run_python_cli(["project", "list"])
 
 
 async def _create_project(args: dict) -> str:
@@ -125,38 +132,38 @@ async def _create_project(args: dict) -> str:
     cmd = ["project", "create", project_name]
     if args.get("templateName"):
         cmd.extend(["--template", args["templateName"]])
-    return _run_python_cli(cmd)
+    return await _run_python_cli(cmd)
 
 
 async def _render_config(args: dict) -> str:
     project_name = args["projectName"]
-    return _run_python_cli(["render", "project", project_name])
+    return await _run_python_cli(["render", "project", project_name])
 
 
 async def _dry_run(args: dict) -> str:
     project_name = args["projectName"]
-    return _run_python_cli(["render", "dry-run", project_name])
+    return await _run_python_cli(["render", "dry-run", project_name])
 
 
 async def _validate_template(args: dict) -> str:
     template_name = args["templateName"]
-    return _run_python_cli(["validate", "template", template_name])
+    return await _run_python_cli(["validate", "template", template_name])
 
 
 async def _validate_excel(args: dict) -> str:
     project_name = args["projectName"]
-    return _run_python_cli(["validate", "excel", project_name])
+    return await _run_python_cli(["validate", "excel", project_name])
 
 
 async def _diff_compare(args: dict) -> str:
     project_name = args["projectName"]
-    return _run_python_cli(["diff", "compare", project_name])
+    return await _run_python_cli(["diff", "compare", project_name])
 
 
 async def _read_file(args: dict) -> str:
     project_name = args["projectName"]
     file_path = args["filePath"]
-    return _run_python_cli(["project", "read-file", project_name, file_path])
+    return await _run_python_cli(["project", "read-file", project_name, file_path])
 
 
 async def _search_files(args: dict) -> str:
@@ -198,14 +205,14 @@ async def _search_files(args: dict) -> str:
 async def _create_template(args: dict) -> str:
     source = args["sourceProject"]
     name = args["templateName"]
-    return _run_python_cli(["template", "save", source, name])
+    return await _run_python_cli(["template", "save", source, name])
 
 
 async def _update_template(args: dict) -> str:
     name = args["templateName"]
     file_path = args["filePath"]
     content = args["content"]
-    return _run_python_cli(["template", "update", name, file_path, content])
+    return await _run_python_cli(["template", "update", name, file_path, content])
 
 
 async def _create_project_intelligent(args: dict) -> str:
@@ -257,16 +264,7 @@ def _generate_template(device_type: str, vendor: str, description: str) -> str:
     """根据设备类型和厂商生成 Jinja2 模板"""
     vendor_upper = vendor.upper()
 
-    templates = {
-        ("switch", "huawei"): _TPL_HUAWEI_SWITCH,
-        ("switch", "cisco"): _TPL_CISCO_SWITCH,
-        ("router", "huawei"): _TPL_HUAWEI_ROUTER,
-        ("router", "cisco"): _TPL_CISCO_ROUTER,
-        ("firewall", "huawei"): _TPL_HUAWEI_FIREWALL,
-        ("switch", "h3c"): _TPL_H3C_SWITCH,
-    }
-
-    tpl = templates.get((device_type, vendor.lower()))
+    tpl = TEMPLATE_MAP.get((device_type, vendor.lower()))
     if not tpl:
         tpl = _TPL_GENERIC.format(
             device_type=device_type,
@@ -316,255 +314,6 @@ def _create_excel_from_template(project_dir: Path, device_type: str, vendor: str
 
     wb.save(str(excel_path))
     logger.info(f"Created Excel parameter file: {excel_path}")
-
-
-# ====== 预置模板 ======
-
-_TPL_HUAWEI_SWITCH = """{# Huawei Switch Template - 自动生成 #}
-sysname {{ info['设备名'] }}
-
-{# 管理接口 #}
-interface {{ info.get('管理接口', 'M-GigabitEthernet0/0/0') }}
- ip address {{ info['管理IP'] }} {{ info['掩码'] }}
-
-{# VLAN 配置 #}
-vlan {{ info.get('VLAN', '100') }}
- description Management_VLAN
-
-interface {{ info.get('网关接口', 'Vlanif100') }}
- description gateway_ip_of_vlan_{{ info.get('VLAN', '100') }}
- ip address {{ info['网关IP'] }} {{ info['网关掩码'] }}
-
-{# SNMP #}
-snmp-agent
-snmp-agent community read {{ info['SNMP团体名'] }}
-snmp-agent sys-info version v2c
-snmp-agent trap enable
-snmp-agent target-host trap address udp-domain {{ info['SNMP地址'] }} params securityname {{ info['SNMP团体名'] }}
-
-{# NTP #}
-ntp-service enable
-ntp-service unicast-server {{ info.get('NTP地址', 'ntp.example.com') }}
-
-{# 日志 #}
-info-center enable
-info-center loghost {{ info['LOGHOST地址'] }}
-
-{# AAA #}
-hwtacacs scheme {{ info['AAA名称'] }}
- primary authentication {{ info['AAA地址'] }}
- primary authorization {{ info['AAA地址'] }}
- primary accounting {{ info['AAA地址'] }}
- key authentication simple {{ info['AAA认证密钥'] }}
- key authorization simple {{ info['AAA认证密钥'] }}
- key accounting simple {{ info['AAA认证密钥'] }}
- user-name-format without-domain
- nas-ip {{ info['NAS_IP'] }}
-
-domain {{ info['domain名称'] }}
- authentication login hwtacacs-scheme {{ info['AAA名称'] }} local
- authorization login hwtacacs-scheme {{ info['AAA名称'] }} local
- accounting login hwtacacs-scheme {{ info['AAA名称'] }} local
-
-domain default enable {{ info['domain名称'] }}
-
-{# 本地用户 #}
-local-user {{ info['本地用户名'] }} class manage
- password simple {{ info['本地用户密钥'] }}
- service-type ssh terminal
- authorization-attribute user-role network-admin
-
-ssh server enable
-line vty 0 63
- authentication-mode scheme
- user-role network-admin
-"""
-
-_TPL_CISCO_SWITCH = """{# Cisco Switch Template - 自动生成 #}
-hostname {{ info['设备名'] }}
-
-{# 管理接口 #}
-interface {{ info.get('管理接口', 'GigabitEthernet0/0') }}
- ip address {{ info['管理IP'] }} {{ info['掩码'] }}
- no shutdown
-
-{# VLAN 配置 #}
-vlan {{ info.get('VLAN', '100') }}
- name Management_VLAN
-
-interface Vlan{{ info.get('VLAN', '100') }}
- description gateway_ip_of_vlan_{{ info.get('VLAN', '100') }}
- ip address {{ info['网关IP'] }} {{ info['网关掩码'] }}
-
-{# SNMP #}
-snmp-server community {{ info['SNMP团体名'] }} RO
-snmp-server host {{ info['SNMP地址'] }} version 2c {{ info['SNMP团体名'] }}
-
-{# NTP #}
-ntp server {{ info.get('NTP地址', 'ntp.example.com') }}
-
-{# 日志 #}
-logging host {{ info['LOGHOST地址'] }}
-
-{# AAA #}
-aaa new-model
-tacacs-server host {{ info['AAA地址'] }} key {{ info['AAA认证密钥'] }}
-aaa authentication login default group tacacs+ local
-aaa authorization exec default group tacacs+ local
-aaa accounting exec default start-stop group tacacs+
-
-{# 本地用户 #}
-username {{ info['本地用户名'] }} privilege 15 secret {{ info['本地用户密钥'] }}
-
-line vty 0 15
- login authentication default
- transport input ssh
-"""
-
-_TPL_HUAWEI_ROUTER = """{# Huawei Router Template - 自动生成 #}
-sysname {{ info['设备名'] }}
-
-{# 管理接口 #}
-interface {{ info.get('管理接口', 'GigabitEthernet0/0/0') }}
- ip address {{ info['管理IP'] }} {{ info['掩码'] }}
-
-{# 路由协议 #}
-{% if info.get('路由协议', 'OSPF') == 'OSPF' %}
-ospf 1 router-id {{ info['管理IP'] }}
- area 0.0.0.0
-{% elif info.get('路由协议') == 'BGP' %}
-bgp {{ info.get('AS号', '65001') }}
- router-id {{ info['管理IP'] }}
-{% endif %}
-
-{# SNMP #}
-snmp-agent
-snmp-agent community read {{ info['SNMP团体名'] }}
-snmp-agent sys-info version v2c
-
-{# NTP #}
-ntp-service enable
-ntp-service unicast-server {{ info.get('NTP地址', 'ntp.example.com') }}
-
-{# AAA #}
-hwtacacs scheme {{ info['AAA名称'] }}
- primary authentication {{ info['AAA地址'] }}
- key authentication simple {{ info['AAA认证密钥'] }}
- nas-ip {{ info['NAS_IP'] }}
-
-local-user {{ info['本地用户名'] }} class manage
- password simple {{ info['本地用户密钥'] }}
- service-type ssh terminal
- authorization-attribute user-role network-admin
-
-ssh server enable
-"""
-
-_TPL_CISCO_ROUTER = """{# Cisco Router Template - 自动生成 #}
-hostname {{ info['设备名'] }}
-
-interface {{ info.get('管理接口', 'GigabitEthernet0/0') }}
- ip address {{ info['管理IP'] }} {{ info['掩码'] }}
- no shutdown
-
-{% if info.get('路由协议', 'OSPF') == 'OSPF' %}
-router ospf 1
- router-id {{ info['管理IP'] }}
-{% elif info.get('路由协议') == 'BGP' %}
-router bgp {{ info.get('AS号', '65001') }}
- bgp router-id {{ info['管理IP'] }}
-{% endif %}
-
-snmp-server community {{ info['SNMP团体字'] }} RO
-ntp server {{ info.get('NTP地址', 'ntp.example.com') }}
-
-aaa new-model
-tacacs-server host {{ info['AAA地址'] }} key {{ info['AAA认证密钥'] }}
-username {{ info['本地用户名'] }} privilege 15 secret {{ info['本地用户密钥'] }}
-
-line vty 0 15
- transport input ssh
-"""
-
-_TPL_HUAWEI_FIREWALL = """{# Huawei Firewall Template - 自动生成 #}
-sysname {{ info['设备名'] }}
-
-interface {{ info.get('管理接口', 'GigabitEthernet0/0/0') }}
- ip address {{ info['管理IP'] }} {{ info['掩码'] }}
-
-firewall zone {{ info.get('安全域', 'Trust') }}
- set priority 85
- add interface {{ info.get('管理接口', 'GigabitEthernet0/0/0') }}
-
-security-policy
- rule name {{ info.get('策略名称', 'default-policy') }}
-
-snmp-agent
-snmp-agent community read {{ info['SNMP团体名'] }}
-
-hwtacacs scheme {{ info['AAA名称'] }}
- primary authentication {{ info['AAA地址'] }}
- key authentication simple {{ info['AAA认证密钥'] }}
-
-local-user {{ info['本地用户名'] }} class manage
- password simple {{ info['本地用户密钥'] }}
- service-type ssh terminal
-"""
-
-_TPL_H3C_SWITCH = """{# H3C Switch Template - 自动生成 #}
-sysname {{ info['设备名'] }}
-
-interface {{ info.get('管理接口', 'M-GigabitEthernet0/0/0') }}
- ip address {{ info['管理IP'] }} {{ info['掩码'] }}
-
-vlan {{ info.get('VLAN', '100') }}
- description Management
-
-interface Vlan-interface{{ info.get('VLAN', '100') }}
- ip address {{ info['网关IP'] }} {{ info['网关掩码'] }}
-
-snmp-agent
-snmp-agent community read {{ info['SNMP团体名'] }}
-snmp-agent sys-info version v2c
-
-ntp-service enable
-ntp-service unicast-server {{ info.get('NTP地址', 'ntp.example.com') }}
-
-info-center enable
-info-center loghost {{ info['LOGHOST地址'] }}
-
-hwtacacs scheme {{ info['AAA名称'] }}
- primary authentication {{ info['AAA地址'] }}
- key authentication simple {{ info['AAA认证密钥'] }}
- nas-ip {{ info['NAS_IP'] }}
-
-local-user {{ info['本地用户名'] }} class manage
- password simple {{ info['本地用户密钥'] }}
- service-type ssh terminal
- authorization-attribute user-role network-admin
-
-ssh server enable
-line vty 0 63
- authentication-mode scheme
-"""
-
-_TPL_GENERIC = """{# {vendor} {device_type} Template - 自动生成 #}
-{description}
-
-sysname {{ info['设备名'] }}
-
-interface {{ info.get('管理接口', 'GigabitEthernet0/0/0') }}
- ip address {{ info['管理IP'] }} {{ info['掩码'] }}
-
-snmp-agent
-snmp-agent community read {{ info['SNMP团体名'] }}
-
-local-user {{ info['本地用户名'] }} class manage
- password simple {{ info['本地用户密钥'] }}
- service-type ssh terminal
-
-ssh server enable
-"""
 
 
 async def _reverse_engineer_config(args: dict) -> str:
@@ -896,49 +645,49 @@ async def _recommend_template(args: dict) -> str:
 
 async def _delete_project(args: dict) -> str:
     project_name = args["projectName"]
-    return _run_python_cli(["project", "delete", "--force", project_name])
+    return await _run_python_cli(["project", "delete", "--force", project_name])
 
 
 async def _get_project_info(args: dict) -> str:
     project_name = args["projectName"]
-    return _run_python_cli(["project", "info", "--format", "json", project_name])
+    return await _run_python_cli(["project", "info", "--format", "json", project_name])
 
 
 async def _render_yaml(args: dict) -> str:
     project_name = args["projectName"]
-    return _run_python_cli(["render", "yaml", project_name])
+    return await _run_python_cli(["render", "yaml", project_name])
 
 
 async def _undo_render(args: dict) -> str:
     project_name = args["projectName"]
-    return _run_python_cli(["render", "undo", project_name])
+    return await _run_python_cli(["render", "undo", project_name])
 
 
 async def _generate_labels(args: dict) -> str:
     project_name = args["projectName"]
-    return _run_python_cli(["label", "print", project_name])
+    return await _run_python_cli(["label", "print", project_name])
 
 
 async def _generate_label_md(args: dict) -> str:
     project_name = args["projectName"]
-    return _run_python_cli(["label", "md", project_name])
+    return await _run_python_cli(["label", "md", project_name])
 
 
 async def _delete_labels(args: dict) -> str:
     project_name = args["projectName"]
-    return _run_python_cli(["label", "delete", project_name])
+    return await _run_python_cli(["label", "delete", project_name])
 
 
 async def _delete_files(args: dict) -> str:
     """删除项目输出文件（清空渲染结果）"""
     project_name = args["projectName"]
     file_type = args.get("fileType", "output")
-    return _run_python_cli(["file", "delete", "--force", file_type, project_name])
+    return await _run_python_cli(["file", "delete", "--force", file_type, project_name])
 
 
 async def _list_project_files(args: dict) -> str:
     project_name = args["projectName"]
-    return _run_python_cli(["project", "list-files", project_name])
+    return await _run_python_cli(["project", "list-files", project_name])
 
 
 async def _read_excel(args: dict) -> str:
@@ -947,26 +696,26 @@ async def _read_excel(args: dict) -> str:
     cmd = ["project", "read-excel", project_name, file_name]
     if args.get("sheetName"):
         cmd.extend(["--sheet", args["sheetName"]])
-    return _run_python_cli(cmd)
+    return await _run_python_cli(cmd)
 
 
 async def _write_excel(args: dict) -> str:
     project_name = args["projectName"]
     file_name = args["fileName"]
     data = json.dumps(args["data"], ensure_ascii=False)
-    return _run_python_cli(["project", "write-excel", project_name, file_name, data])
+    return await _run_python_cli(["project", "write-excel", project_name, file_name, data])
 
 
 async def _write_text_file(args: dict) -> str:
     project_name = args["projectName"]
     file_path = args["filePath"]
     content = args["content"]
-    return _run_python_cli(["project", "write-file", project_name, file_path, content])
+    return await _run_python_cli(["project", "write-file", project_name, file_path, content])
 
 
 async def _analyze_project(args: dict) -> str:
     project_name = args["projectName"]
-    return _run_python_cli(["analyze", "project", project_name])
+    return await _run_python_cli(["analyze", "project", project_name])
 
 
 def init_tools():

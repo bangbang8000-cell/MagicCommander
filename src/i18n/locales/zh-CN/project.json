@@ -83,7 +83,8 @@
       "noScenario": "未设置场景",
       "noDescription": "暂无简介",
       "sourceProject": "来源项目：{{name}}",
-      "unknown": "未知"
+      "unknown": "未知",
+      "quality": "质量: {{score}}"
     },
     "detail": {
       "selectHint": "请选择一个模板查看详情",
@@ -196,7 +197,8 @@
     "projectNameEmpty": "项目名不能为空",
     "projectNameExists": "项目已存在",
     "projectCreated": "项目 \"{{name}}\" 创建成功",
-    "projectNamePlaceholder": "输入项目名称（不能包含 \\ / : * ? \" < > |）"
+    "projectNamePlaceholder": "输入项目名称（不能包含 \\ / : * ? \" < > |）",
+    "allProjects": "全部项目"
   },
   "workbench": {
     "title": "工作台",

@@ -195,7 +195,10 @@ export function MarkdownViewer({ content, title, onClose, tab, inline = false }:
 
   return (
     <div className="fixed inset-0 z-50 flex bg-gray-900/40" onClick={onClose}>
-      <div className="flex flex-col m-auto w-full max-w-5xl h-[85vh] rounded-lg shadow-2xl overflow-hidden" onClick={(e) => e.stopPropagation()}>
+      <div
+        className="flex flex-col m-auto w-full max-w-5xl h-[85vh] rounded-lg shadow-2xl overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
+      >
         {body}
       </div>
     </div>

@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { usePlatformStore } from '@/stores/platform.store'
 import { Modal } from '@/components/ui/Modal'
-import { showError, showSuccess } from '@/components/ui/Toast'
+import { showSuccess } from '@/components/ui/Toast'
 import { auth, type LoginPlatform, type AuthHealth } from '@/api/platform'
 import QRCode from 'qrcode'
 import { Loader2 } from 'lucide-react'
@@ -30,7 +30,6 @@ export function LoginDialog({ open, onClose }: LoginDialogProps) {
   const startLogin = usePlatformStore((s) => s.startLogin)
   const pollLogin = usePlatformStore((s) => s.pollLogin)
   const cancelLogin = usePlatformStore((s) => s.cancelLogin)
-  const loggedIn = usePlatformStore((s) => s.loggedIn)
 
   const [stage, setStage] = useState<'choose' | 'loading' | 'scanning' | 'done' | 'error'>('choose')
   const [platform, setPlatform] = useState<LoginPlatform>('feishu')
@@ -45,7 +44,10 @@ export function LoginDialog({ open, onClose }: LoginDialogProps) {
       setStage('choose')
       setErrorMsg('')
       setQrDataUrl(null)
-      auth.health().then(setAuthHealth).catch(() => setAuthHealth(null))
+      auth
+        .health()
+        .then(setAuthHealth)
+        .catch(() => setAuthHealth(null))
     }
     return () => {
       if (pollingRef.current) clearInterval(pollingRef.current)
@@ -122,40 +124,38 @@ export function LoginDialog({ open, onClose }: LoginDialogProps) {
       <div className="flex flex-col items-center gap-4 p-4 min-w-[300px]">
         {stage === 'choose' && (
           <div className="flex flex-col gap-3 w-full">
-            <p className="text-sm text-gray-300 text-center">
-              {t('auth.selectPlatform') || '选择登录方式'}
-            </p>
+            <p className="text-sm text-gray-300 text-center">{t('auth.selectPlatform') || '选择登录方式'}</p>
             {(Object.keys(PLATFORM_LABELS) as LoginPlatform[]).map((p) => {
-                const available = isPlatformAvailable(p)
-                return (
-                  <button
-                    key={p}
-                    onClick={() => available && beginLogin(p)}
-                    disabled={!available}
-                    className={`flex items-center gap-3 px-4 py-3 rounded-lg border transition-colors text-left ${
-                      available
-                        ? 'border-gray-600 hover:border-indigo-400 hover:bg-indigo-500/10'
-                        : 'border-gray-700 opacity-40 cursor-not-allowed'
-                    }`}
-                    title={!available ? tc('cloud:loginDialog.unavailable') : undefined}
-                  >
-                    <span className="text-xl">{PLATFORM_ICONS[p]}</span>
-                    <div>
-                      <div className="text-sm font-medium text-gray-200">
-                        {tc(PLATFORM_LABELS[p])}
-                        {!available && (
-                          <span className="text-[10px] text-gray-500 ml-1">({tc('cloud:loginDialog.unavailable')})</span>
-                        )}
-                      </div>
-                      <div className="text-xs text-gray-500">
-                        {available
-                          ? tc('cloud:loginDialog.scanHint', { platform: tc(PLATFORM_LABELS[p]) })
-                          : tc('cloud:loginDialog.unavailable')}
-                      </div>
+              const available = isPlatformAvailable(p)
+              return (
+                <button
+                  key={p}
+                  onClick={() => available && beginLogin(p)}
+                  disabled={!available}
+                  className={`flex items-center gap-3 px-4 py-3 rounded-lg border transition-colors text-left ${
+                    available
+                      ? 'border-gray-600 hover:border-indigo-400 hover:bg-indigo-500/10'
+                      : 'border-gray-700 opacity-40 cursor-not-allowed'
+                  }`}
+                  title={!available ? tc('cloud:loginDialog.unavailable') : undefined}
+                >
+                  <span className="text-xl">{PLATFORM_ICONS[p]}</span>
+                  <div>
+                    <div className="text-sm font-medium text-gray-200">
+                      {tc(PLATFORM_LABELS[p])}
+                      {!available && (
+                        <span className="text-[10px] text-gray-500 ml-1">({tc('cloud:loginDialog.unavailable')})</span>
+                      )}
                     </div>
-                  </button>
-                )
-              })}
+                    <div className="text-xs text-gray-500">
+                      {available
+                        ? tc('cloud:loginDialog.scanHint', { platform: tc(PLATFORM_LABELS[p]) })
+                        : tc('cloud:loginDialog.unavailable')}
+                    </div>
+                  </div>
+                </button>
+              )
+            })}
           </div>
         )}
 
@@ -170,13 +170,11 @@ export function LoginDialog({ open, onClose }: LoginDialogProps) {
           <>
             <img src={qrDataUrl} alt="QR Code" className="rounded-lg border border-gray-700" />
             <p className="text-sm text-gray-300 text-center">
-              {t('auth.scanHint')?.replace('{platform}', tc(PLATFORM_LABELS[platform])) || tc('cloud:loginDialog.scanHint', { platform: tc(PLATFORM_LABELS[platform]) })}
+              {t('auth.scanHint')?.replace('{platform}', tc(PLATFORM_LABELS[platform])) ||
+                tc('cloud:loginDialog.scanHint', { platform: tc(PLATFORM_LABELS[platform]) })}
             </p>
             <p className="text-xs text-gray-500">{t('auth.qrExpiresIn') || '二维码 10 分钟内有效'}</p>
-            <button
-              onClick={handleBack}
-              className="text-xs text-gray-500 hover:text-gray-300 transition-colors"
-            >
+            <button onClick={handleBack} className="text-xs text-gray-500 hover:text-gray-300 transition-colors">
               {t('app.back')}
             </button>
           </>

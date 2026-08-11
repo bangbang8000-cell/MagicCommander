@@ -138,56 +138,88 @@ class TestPreProcessingBackup:
 
 class TestCacheMechanism:
     """测试渲染缓存"""
-    
+
     def test_cache_key_deterministic(self):
-        """测试缓存键的确定性"""
+        """相同输入应产生相同、定长的项目级缓存键"""
         from pre_processing import PreProcessing
         import tempfile, os
-        
+
         with tempfile.TemporaryDirectory() as tmpdir:
             project_dir = os.path.join(tmpdir, 'test_project')
             os.makedirs(os.path.join(project_dir, 'excel'))
             os.makedirs(os.path.join(project_dir, 'templates'))
-            
-            # 创建测试文件
+
             with open(os.path.join(project_dir, 'para.xlsx'), 'wb') as f:
                 f.write(b'test data')
             with open(os.path.join(project_dir, 'excel', 'sheet1.xlsx'), 'wb') as f:
                 f.write(b'sheet data')
             with open(os.path.join(project_dir, 'templates', 'test.j2'), 'w') as f:
                 f.write('hostname {{ info["hostname"] }}')
-            
+
             pp = PreProcessing()
             pp.workspace = tmpdir
-            
-            key1 = pp._compute_cache_key(project_dir, 'sheet1')
-            key2 = pp._compute_cache_key(project_dir, 'sheet1')
-            
+
+            key1 = pp._compute_project_cache_key(project_dir)
+            key2 = pp._compute_project_cache_key(project_dir)
+
             assert key1 == key2  # 相同输入应该产生相同 key
             assert isinstance(key1, str)
             assert len(key1) == 16  # hash hexdigest[:16]
 
-    def test_cache_key_different_sheets(self):
-        """测试不同 sheet 产生不同缓存键"""
+    def test_cache_key_changes_when_inputs_change(self):
+        """修改 Excel 或模板输入后，项目级缓存键应变化"""
         from pre_processing import PreProcessing
         import tempfile, os
-        
+
         with tempfile.TemporaryDirectory() as tmpdir:
             project_dir = os.path.join(tmpdir, 'test_project')
             os.makedirs(os.path.join(project_dir, 'excel'))
             os.makedirs(os.path.join(project_dir, 'templates'))
-            
+
             with open(os.path.join(project_dir, 'para.xlsx'), 'wb') as f:
                 f.write(b'test data')
-            with open(os.path.join(project_dir, 'excel', 'sheet1.xlsx'), 'wb') as f:
+            excel_path = os.path.join(project_dir, 'excel', 'sheet1.xlsx')
+            with open(excel_path, 'wb') as f:
                 f.write(b'data1')
-            with open(os.path.join(project_dir, 'excel', 'sheet2.xlsx'), 'wb') as f:
-                f.write(b'data2')
-            
+
             pp = PreProcessing()
             pp.workspace = tmpdir
-            
-            key1 = pp._compute_cache_key(project_dir, 'sheet1')
-            key2 = pp._compute_cache_key(project_dir, 'sheet2')
-            
-            assert key1 != key2  # 不同输入应该产生不同 key
+
+            key_before = pp._compute_project_cache_key(project_dir)
+            # 修改 Excel 内容（大小不同）后 key 应变化
+            with open(excel_path, 'wb') as f:
+                f.write(b'a much longer content for change')
+            key_after = pp._compute_project_cache_key(project_dir)
+
+            assert key_before != key_after
+
+    def test_cache_hit_and_miss(self):
+        """保存后命中，改动后失效"""
+        from pre_processing import PreProcessing
+        import tempfile, os
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_dir = os.path.join(tmpdir, 'test_project')
+            os.makedirs(os.path.join(project_dir, 'excel'))
+            os.makedirs(os.path.join(project_dir, 'templates'))
+
+            with open(os.path.join(project_dir, 'para.xlsx'), 'wb') as f:
+                f.write(b'test data')
+
+            pp = PreProcessing()
+            pp.workspace = tmpdir
+
+            key = pp._compute_project_cache_key(project_dir)
+            assert not pp._get_project_cache(project_dir, key)  # 尚未保存 → 未命中
+
+            pp._save_project_cache(project_dir, key)
+            assert pp._get_project_cache(project_dir, key)  # 保存后 → 命中
+
+            # 改动输入后 key 变化 → 旧缓存不再命中
+            with open(os.path.join(project_dir, 'para.xlsx'), 'wb') as f:
+                f.write(b'changed para content')
+            new_key = pp._compute_project_cache_key(project_dir)
+            assert new_key != key
+            assert not pp._get_project_cache(project_dir, new_key)
+
+

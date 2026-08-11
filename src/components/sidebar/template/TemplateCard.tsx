@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import clsx from 'clsx'
 import { useTranslation } from 'react-i18next'
 import { Edit3, Plus, Trash2, ChevronRight, FileText, FileCode, Folder, Table2, Upload } from 'lucide-react'
@@ -115,13 +115,44 @@ type TemplateCardProps = {
   onPublish?: () => void
 }
 
-export function TemplateCard({ template, selected, onSelect, onCreateProject, onEdit, onDelete, onPublish }: TemplateCardProps) {
+export function TemplateCard({
+  template,
+  selected,
+  onSelect,
+  onCreateProject,
+  onEdit,
+  onDelete,
+  onPublish,
+}: TemplateCardProps) {
   const { t } = useTranslation('project')
   const isDark = useUIStore((s) => s.isDark)
   const projects = useProjectStore((s) => s.projects)
   const selectProject = useProjectStore((s) => s.selectProject)
   const openFile = useEditorStore((s) => s.openFile)
   const [expanded, setExpanded] = useState(false)
+  const [quality, setQuality] = useState<{ score: number; grade: string } | null>(null)
+
+  // 模板质量评级：调用 Python analyzer 计算分数与等级
+  useEffect(() => {
+    let cancelled = false
+    window.electron.project
+      .analyzeTemplate(template.id)
+      .then((report) => {
+        if (cancelled) return
+        const summary = (report as { summary?: { warnings?: number; infos?: number } })?.summary
+        if (!summary) return
+        // 分数 = 100 - 25*警告 - 10*提示，下限 0
+        const warnings = summary.warnings ?? 0
+        const infos = summary.infos ?? 0
+        const score = Math.max(0, 100 - warnings * 25 - infos * 10)
+        const grade = score >= 90 ? 'A' : score >= 75 ? 'B' : score >= 60 ? 'C' : 'D'
+        setQuality({ score, grade })
+      })
+      .catch(() => {})
+    return () => {
+      cancelled = true
+    }
+  }, [template.id])
 
   const handleHeaderClick = () => {
     onSelect()
@@ -164,7 +195,7 @@ export function TemplateCard({ template, selected, onSelect, onCreateProject, on
             projectName: template.name,
             isDirty: false,
             content: sheets,
-          } as any)
+          })
         } else {
           const content = await window.electron.project.readTemplateFile(template.id, node.path)
           openFile({
@@ -176,7 +207,7 @@ export function TemplateCard({ template, selected, onSelect, onCreateProject, on
             projectName: template.name,
             isDirty: false,
             content,
-          } as any)
+          })
         }
       } catch (err) {
         showError(`无法读取模板文件: ${(err as Error).message}`)
@@ -206,7 +237,33 @@ export function TemplateCard({ template, selected, onSelect, onCreateProject, on
           className={clsx('shrink-0 text-gray-400 transition-transform', expanded && 'rotate-90')}
         />
         <div className="min-w-0 flex-1">
-          <div className="font-medium truncate">{template.name}</div>
+          <div className="flex items-center gap-1.5">
+            <span className="font-medium truncate">{template.name}</span>
+            {quality && (
+              <span
+                title={t('template.card.quality', { score: quality.score })}
+                className={clsx(
+                  'shrink-0 text-[10px] px-1 py-px rounded font-semibold border',
+                  quality.grade === 'A' &&
+                    (isDark
+                      ? 'bg-green-900/40 text-green-300 border-green-700'
+                      : 'bg-green-50 text-green-700 border-green-300'),
+                  quality.grade === 'B' &&
+                    (isDark
+                      ? 'bg-blue-900/40 text-blue-300 border-blue-700'
+                      : 'bg-blue-50 text-blue-700 border-blue-300'),
+                  quality.grade === 'C' &&
+                    (isDark
+                      ? 'bg-yellow-900/40 text-yellow-300 border-yellow-700'
+                      : 'bg-yellow-50 text-yellow-700 border-yellow-300'),
+                  quality.grade === 'D' &&
+                    (isDark ? 'bg-red-900/40 text-red-300 border-red-700' : 'bg-red-50 text-red-600 border-red-300'),
+                )}
+              >
+                {quality.grade}
+              </span>
+            )}
+          </div>
           <div className="text-[11px] text-gray-500 dark:text-gray-400 truncate">
             {template.scenario || t('template.card.noScenario')}
           </div>
@@ -215,21 +272,30 @@ export function TemplateCard({ template, selected, onSelect, onCreateProject, on
         {/* 操作按钮 — hover 显示 */}
         <div className="flex items-center gap-0.5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
           <button
-            onClick={(e) => { e.stopPropagation(); onCreateProject() }}
+            onClick={(e) => {
+              e.stopPropagation()
+              onCreateProject()
+            }}
             className="p-1 rounded hover:bg-primary-100 dark:hover:bg-primary-900/30 text-primary-600 dark:text-primary-400"
             title={t('template.card.createProject')}
           >
             <Plus size={13} />
           </button>
           <button
-            onClick={(e) => { e.stopPropagation(); onEdit() }}
+            onClick={(e) => {
+              e.stopPropagation()
+              onEdit()
+            }}
             className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400"
             title={t('template.card.editInfo')}
           >
             <Edit3 size={12} />
           </button>
           <button
-            onClick={(e) => { e.stopPropagation(); onDelete() }}
+            onClick={(e) => {
+              e.stopPropagation()
+              onDelete()
+            }}
             className="p-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20 text-red-500"
             title={t('template.card.deleteTemplate')}
           >
@@ -237,7 +303,10 @@ export function TemplateCard({ template, selected, onSelect, onCreateProject, on
           </button>
           {onPublish && (
             <button
-              onClick={(e) => { e.stopPropagation(); onPublish() }}
+              onClick={(e) => {
+                e.stopPropagation()
+                onPublish()
+              }}
               className="p-1 rounded hover:bg-indigo-50 dark:hover:bg-indigo-900/20 text-indigo-500"
               title={t('template.publish') || '发布到市场'}
             >
@@ -266,7 +335,9 @@ export function TemplateCard({ template, selected, onSelect, onCreateProject, on
             <div>
               <div className="text-[11px] text-gray-400 mb-0.5">{t('template.detail.inputRequirements')}</div>
               <ul className="list-disc pl-4 space-y-0.5 text-xs text-gray-600 dark:text-gray-300">
-                {template.inputRequirements.map((item) => <li key={item}>{item}</li>)}
+                {template.inputRequirements.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
               </ul>
             </div>
           )}
@@ -294,7 +365,10 @@ export function TemplateCard({ template, selected, onSelect, onCreateProject, on
             variant="primary"
             size="sm"
             icon={<Plus size={12} />}
-            onClick={(e) => { e.stopPropagation(); onCreateProject() }}
+            onClick={(e) => {
+              e.stopPropagation()
+              onCreateProject()
+            }}
             className="w-full justify-start mt-1"
           >
             {t('template.card.createProject')}

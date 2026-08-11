@@ -72,7 +72,7 @@ export function ExcelViewer({ tab }: { tab: EditorTab }) {
         loadingFilePathRef.current = null
       }
     }
-  }, [tab.filePath, tab.id, tab.projectId, updateContent])
+  }, [tab.filePath, tab.id, tab.projectId, tab.projectName, updateContent, t])
 
   const handleSave = useCallback(async () => {
     try {
@@ -87,7 +87,7 @@ export function ExcelViewer({ tab }: { tab: EditorTab }) {
     } catch (err) {
       showError(t('excel.saveFailed', { message: (err as Error).message }))
     }
-  }, [tab.id, tab.filePath, tab.projectId, tab.title, sheets, markDirty])
+  }, [tab.id, tab.filePath, tab.projectId, tab.projectName, tab.title, sheets, markDirty, t])
 
   useEffect(() => {
     isMountedRef.current = true
@@ -109,6 +109,7 @@ export function ExcelViewer({ tab }: { tab: EditorTab }) {
       return
     }
     loadData()
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- 有意不依赖 tab.content，避免加载竞态（见上方注释）
   }, [loadData])
 
   const currentSheet = sheets.find((s) => s.name === activeSheet)
@@ -206,7 +207,9 @@ export function ExcelViewer({ tab }: { tab: EditorTab }) {
             }`}
           >
             {s.name}
-            <span className={`ms-1 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>({t('excel.rows', { count: s.rows.length })})</span>
+            <span className={`ms-1 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+              ({t('excel.rows', { count: s.rows.length })})
+            </span>
           </button>
         ))}
         <div className="flex-1" />

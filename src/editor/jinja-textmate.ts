@@ -170,7 +170,10 @@ class JinjaState implements monaco.languages.IState {
 
   equals(other: monaco.languages.IState): boolean {
     if (!(other instanceof JinjaState)) return false
-    return this.ruleStack === other.ruleStack || (this.ruleStack !== null && other.ruleStack !== null && this.ruleStack.equals(other.ruleStack))
+    return (
+      this.ruleStack === other.ruleStack ||
+      (this.ruleStack !== null && other.ruleStack !== null && this.ruleStack.equals(other.ruleStack))
+    )
   }
 }
 
@@ -189,7 +192,6 @@ export async function createJinjaTokensProvider(): Promise<monaco.languages.Toke
       for (let i = 0; i < result.tokens.length; i++) {
         const token = result.tokens[i]
         const startIndex = token.startIndex
-        const endIndex = i + 1 < result.tokens.length ? result.tokens[i + 1].startIndex : line.length
         const scope = token.scopes.length > 0 ? token.scopes[token.scopes.length - 1] : ''
 
         tokens.push({

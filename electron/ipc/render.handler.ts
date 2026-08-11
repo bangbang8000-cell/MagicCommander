@@ -11,8 +11,21 @@ export function formatCommandForLog(args: string[]): string {
   return args.map((arg) => (/\s|"/.test(arg) ? `"${arg.replace(/"/g, '\\"')}"` : arg)).join(' ')
 }
 
+export interface PythonOutput {
+  status?: string
+  message?: string
+  data?: unknown
+}
+
+export interface ProgressEvent {
+  status: string
+  message?: string
+  data?: unknown
+  [key: string]: unknown
+}
+
 export class RenderHandler {
-  private progressBuffer: any[] = []
+  private progressBuffer: ProgressEvent[] = []
   private progressTimer: NodeJS.Timeout | null = null
   private logBuffer: { level: string; message: string }[] = []
   private logTimer: NodeJS.Timeout | null = null
@@ -20,7 +33,7 @@ export class RenderHandler {
     // Python output is now handled via per-command spawn in runPythonCommand()
   }
 
-  private queueProgress(item: any): void {
+  private queueProgress(item: ProgressEvent): void {
     this.progressBuffer.push(item)
     if (this.progressTimer) return
     this.progressTimer = setTimeout(() => this.flushProgress(), THROTTLE_MS)
@@ -125,12 +138,12 @@ export class RenderHandler {
     await this.runPythonCommand(['file', 'delete', 'yaml-sn', safeIds.join(','), '--force'])
   }
 
-  async listProjects(): Promise<any[]> {
-    return await this.runPythonCommand(['project', 'list'], true)
+  async listProjects(): Promise<{ id: number; name: string; index: number }[]> {
+    return await this.runPythonCommand<{ id: number; name: string; index: number }[]>(['project', 'list'], true)
   }
 
-  async listProjectParameters(id: string): Promise<any[]> {
-    return await this.runPythonCommand(['project', 'info', id], true)
+  async listProjectParameters(id: string): Promise<Array<{ file: string; path: string }>> {
+    return await this.runPythonCommand<Array<{ file: string; path: string }>>(['project', 'info', id], true)
   }
 
   async labelPrint(ids: string[], config?: unknown): Promise<void> {
@@ -156,13 +169,20 @@ export class RenderHandler {
     await this.runPythonCommand(['label', 'delete', target])
   }
 
-  async readProjectExcel(id: string, file: string, sheet?: string): Promise<any> {
+  async readProjectExcel(
+    id: string,
+    file: string,
+    sheet?: string,
+  ): Promise<Array<{ name: string; headers: string[]; rows: Record<string, unknown>[] }>> {
     const args = ['project', 'read-excel', id, file]
     if (sheet) args.push('--sheet', sheet)
-    return await this.runPythonCommand(args, true)
+    return await this.runPythonCommand<Array<{ name: string; headers: string[]; rows: Record<string, unknown>[] }>>(
+      args,
+      true,
+    )
   }
 
-  async writeProjectExcel(id: string, file: string, data: any): Promise<void> {
+  async writeProjectExcel(id: string, file: string, data: unknown): Promise<void> {
     await this.runPythonCommand(['project', 'write-excel', id, file, JSON.stringify(data)])
   }
 
@@ -174,13 +194,16 @@ export class RenderHandler {
     await this.runPythonCommand(['project', 'write-file', id, filePath, content])
   }
 
-  async listProjectFiles(id: string, fileType?: string): Promise<any> {
+  async listProjectFiles(
+    id: string,
+    fileType?: string,
+  ): Promise<Array<{ name: string; path: string; isDirectory: boolean }>> {
     const args = ['project', 'list-files', id]
     if (fileType) args.push('--type', fileType)
-    return await this.runPythonCommand(args, true)
+    return await this.runPythonCommand<Array<{ name: string; path: string; isDirectory: boolean }>>(args, true)
   }
 
-  async runPythonCommand(args: string[], returnData: boolean = false): Promise<any> {
+  async runPythonCommand<T = unknown>(args: string[], returnData: boolean = false): Promise<T> {
     return new Promise((resolve, reject) => {
       const devPath = path.join(process.cwd(), 'backend')
       const backendPath = fs.existsSync(devPath) ? devPath : path.join(process.resourcesPath, 'backend')
@@ -250,7 +273,7 @@ export class RenderHandler {
               const result = extractLastJson(output)
               if (result && (result.status === 'success' || result.status === 'complete')) {
                 this.queueProgress({ status: 'complete', message: result.message || '命令执行完成' })
-                resolve(result.data)
+                resolve(result.data as T)
                 return
               }
               if (result && result.status === 'error') {
@@ -261,7 +284,7 @@ export class RenderHandler {
               reject(new Error(`Python 脚本输出格式不正确（非 JSON）: ${output.slice(0, 500)}`))
             } else {
               this.queueProgress({ status: 'complete', message: '命令执行完成' })
-              resolve(null)
+              resolve(null as T)
             }
           } else {
             const msg = `Python 执行失败，退出码: ${code}。请检查 backend/main.py 及依赖。${errorOutput ? ' stderr: ' + errorOutput.slice(0, 500) : ''}`
@@ -273,7 +296,7 @@ export class RenderHandler {
         pythonProcess.on('error', (err: Error) => {
           reject(new Error(`无法启动 Python: ${err.message}。请确认已安装 Python 并添加到 PATH。`))
         })
-      } catch (err: any) {
+      } catch (err) {
         reject(err)
       }
     })
@@ -284,7 +307,7 @@ export class RenderHandler {
  * 从混合输出（进度 JSON + 跨行最终 JSON）中提取最后一个合法 JSON 对象。
  * 使用平衡括号追踪，正确处理 indent=2 的多行 JSON 和前缀的进度消息。
  */
-function extractLastJson(text: string): any | null {
+function extractLastJson(text: string): PythonOutput | null {
   let depth = 0
   let start = -1
   let lastJson: string | null = null
@@ -312,7 +335,7 @@ function extractLastJson(text: string): any | null {
 
   if (lastJson) {
     try {
-      return JSON.parse(lastJson)
+      return JSON.parse(lastJson) as PythonOutput
     } catch {
       return null
     }

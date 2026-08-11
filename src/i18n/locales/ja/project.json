@@ -113,7 +113,8 @@
     "projectNameEmpty": "プロジェクト名は必須です",
     "projectNameExists": "プロジェクトは既に存在します",
     "projectCreated": "プロジェクト \"{{name}}\" が作成されました",
-    "projectNamePlaceholder": "プロジェクト名を入力してください（\\ / : * ? \" < > | は使用不可）"
+    "projectNamePlaceholder": "プロジェクト名を入力してください（\\ / : * ? \" < > | は使用不可）",
+    "allProjects": "すべてのプロジェクト"
   },
   "workbench": {
     "title": "ワークベンチ",

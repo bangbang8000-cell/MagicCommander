@@ -9,7 +9,13 @@ type WorkbenchResultCardProps = {
   isDark: boolean
 }
 
-export function WorkbenchResultCard({ isRendering, progress, currentMessage, errors, isDark }: WorkbenchResultCardProps) {
+export function WorkbenchResultCard({
+  isRendering,
+  progress,
+  currentMessage,
+  errors,
+  isDark,
+}: WorkbenchResultCardProps) {
   const { t } = useTranslation('project')
   if (!isRendering && errors.length === 0) return null
 

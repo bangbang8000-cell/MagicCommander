@@ -29,15 +29,3 @@ PLANNER_PROMPT = """
 
 def get_planner_prompt() -> str:
     return PLANNER_PROMPT
-
-def parse_plan_from_response(content: str) -> list[dict]:
-    import re
-    plan = []
-    pattern = r'📋\s*执行计划[:\s]*\n((?:\s*\d+\.\s*.+\n?)+)'
-    match = re.search(pattern, content)
-    if not match:
-        return plan
-    for m in re.finditer(r'(\d+)\.\s*(.+?)(?:\s*—\s*使用工具[:\s]*(\w+))?\s*\n?', match.group(1)):
-        plan.append({"step": int(m.group(1)), "description": m.group(2).strip(),
-                      "tool": m.group(3).strip() if m.group(3) else ""})
-    return plan

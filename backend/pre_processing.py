@@ -17,32 +17,6 @@ logger = logging.getLogger(__name__)
 
 class PreProcessing:
 
-    explain_str = '''
-基础操作命令说明————
-[create | delete] project 项目名称
-[print jinja_examples | render project | render yaml | delete output | delete yaml] 项目代号/项目代号/项目代号··· | all
-
-编号     操作内容           操作部分项目示例            操作全部项目示例
- 1       新建项目           create project 项目名称  
- 2       渲染项目配置       render project 1/2          render project all
- 3       渲染项目配置-sn    render-sn project 1/2       render-sn project all
- 4       输出Yaml           render yaml 1/2             render yaml all
- 5       删除旧数据         delete output 1/2           delete output all
- 6       删除sn旧数据       delete output-sn 1/2        delete output-sn all
- 7       删除旧Yaml         delete yaml 1/2             delete yaml all
- 8       删除旧Yaml-sn      delete yaml-sn 1/2          delete yaml-sn all
- 9       删除项目           delete project 1/2          delete project all
- 99      退出运行           quit
-
-插件操作命令说明————
-feature [label-print | label-delete] 项目代号/项目代号/项目代号··· | all
-
-编号     操作内容           操作部分项目示例            操作全部项目示例
- 1       输出标签卡      feature label-print 1/2     feature label-print all
- 1       删除标签卡      feature label-delete 1/2    feature label-delete all
- 99      退出运行           quit
-'''
-
     def __init__(self):
         self.workspace = WORKSPACE_DIR
         self.project_para = []
@@ -188,19 +162,19 @@ feature [label-print | label-delete] 项目代号/项目代号/项目代号··�
                 self.target_project_name.append(self.project_name[idx])
                 self.target_project_num.append(idx)
 
-    def read_project_para(self, name: str, excel_para: str):
+    def read_project_para(self, name: str, excel_para: str, index: int | None = None):
         """实现各个项目具体的参数提取功能（性能优化版）"""
         import time
         start_time = time.time()
-        
+        project_list = []
+
         mid_path = self._get_base_path()
         filepath = os.path.join(mid_path, name, excel_para)
-        
+
         try:
-            data = read_excel(filepath, sheet_name=None, keep_default_na=False)
+            data = read_excel(filepath, sheet_name=['project_para'], keep_default_na=False)
             for sheet, value in data.items():
                 if sheet == 'project_para':
-                    project_list = []
                     for i in value.index.values:
                         tmp_list = [
                             {'工作簿名称': str(value['工作簿名称'][i]).strip()},
@@ -210,187 +184,83 @@ feature [label-print | label-delete] 项目代号/项目代号/项目代号··�
                             {'key列数': value['key列数'][i]},
                         ]
                         project_list.append(tmp_list)
-                    self.project_para.append({name: project_list})
-            
+
+            if index is None:
+                self.project_para.append({name: project_list})
+            else:
+                # 保证列表长度后按索引写入，支持只读取目标项目
+                while len(self.project_para) <= index:
+                    self.project_para.append(None)
+                self.project_para[index] = {name: project_list}
+
             # 计算读取操作的执行时间
             execution_time = time.time() - start_time
             logger.info(f"读取项目 '{name}' 参数完成 (耗时: {execution_time:.2f}秒, 参数数量: {len(project_list)})")
-            
+
         except Exception as e:
             logger.error(f"读取项目 '{name}' 参数失败: {e}", exc_info=True)
 
-    def choose_operation(self):
-        """DEPRECATED: 实现命令操作识别功能。此方法为旧版交互式CLI，已废弃，请使用 main.py 的 argparse 命令行接口。"""
-        warnings.warn("choose_operation is deprecated. Use main.py argparse CLI instead.", DeprecationWarning, stacklevel=2)
-        while True:
-            logger.info('')
-            self.print_name()
-            cmd = input('请输入命令:')
-            cmd_list = (cmd.lower()).split(' ')
+    def _load_target_para(self):
+        """仅为目标项目读取 para.xlsx（性能优化：不再全量读取所有项目）"""
+        self.project_para = [None] * len(self.project_name)
+        for idx in self.target_project_num:
+            self.read_project_para(self.project_name[idx], 'para.xlsx', index=idx)
 
-            if cmd_list[0] == 'quit':
-                break
-            elif len(cmd_list) != 3:
-                logger.info('命令行参数个数有误，请重新输入！')
+    def _process_project_sheets(self, ba, name: str, project_idx: int, current_step: int, total_steps: int) -> int:
+        """读取并分发项目的一张张参数表（赋值表/对称表/参数表），返回更新后的 current_step。"""
+        para = self.project_para[project_idx][name]
+        for p in para:
+            project_excel_name = p[0]['工作簿名称']
+            project_sheet_name = p[1]['工作表名称']
+            project_sheet_type = p[2]['工作表类型']
+            project_sheet_assign_num = int(str(p[3]['对称列数']).strip())
+            project_sheet_key_num = int(str(p[4]['key列数']).strip())
+
+            if project_sheet_type == '赋值表':
+                ba.read_assign_table(project_excel_name, project_sheet_name, 'excel', name, project_sheet_key_num)
+            elif project_sheet_type == '对称表':
+                ba.read_symmetrice_table(project_excel_name, project_sheet_name, 'excel', name, project_sheet_assign_num, project_sheet_key_num)
+            elif project_sheet_type == '参数表':
+                ba.read_para(project_excel_name, project_sheet_name, 'excel', name)
+            else:
                 continue
-            elif cmd_list[0] == 'create':
-                if cmd_list[1] != 'project':
-                    logger.info('create命令参数输入有误，请重新输入')
-                    continue
-                y_or_n = self.second_judge(cmd_list)
-                if y_or_n == 'n':
-                    continue
-                elif y_or_n == 'error':
-                    logger.info('输入有误，命名无效，请重新输入create命令')
-                    continue
-                self.execute_create(cmd_list[1], cmd_list[2])
-                self.read_MC_para('MC_Para.xlsx')
-            elif cmd_list[0] == 'render':
-                ans = self.first_judge(cmd_list[1], cmd_list[2])
-                if not ans:
-                    logger.info('render命令参数输入有误，请重新输入')
-                    continue
-                y_or_n = self.second_judge(cmd_list)
-                if y_or_n == 'n':
-                    continue
-                elif y_or_n == 'error':
-                    logger.info('输入有误，命名无效，请重新输入render命令')
-                    continue
-                if cmd_list[1] == 'yaml':
-                    self.execute_yaml(cmd_list[2])
-                elif cmd_list[1] == 'project':
-                    self.execute_render(cmd_list[2], 'device_name')
-                else:
-                    logger.info('输入有误，命名无效，请重新输入render命令')
-            elif cmd_list[0] == 'delete':
-                ans = self.first_judge(cmd_list[1], cmd_list[2])
-                if not ans:
-                    logger.info('delete命令参数输入有误，请重新输入')
-                    continue
-                y_or_n = self.second_judge(cmd_list)
-                if y_or_n == 'n':
-                    continue
-                elif y_or_n == 'error':
-                    logger.info('输入有误，命名无效，请重新输入delete命令')
-                    continue
-                if cmd_list[1] in ('output', 'output-sn', 'yaml-sn', 'project', 'yaml'):
-                    self.execute_delete(cmd_list[1], cmd_list[2])
-                else:
-                    logger.info('delete命令参数输入有误，请重新输入')
-                self.read_MC_para('MC_Para.xlsx')
-            elif cmd_list[0] == 'render-sn':
-                ans = self.first_judge(cmd_list[1], cmd_list[2])
-                if not ans:
-                    logger.info('render-sn命令参数输入有误，请重新输入')
-                    continue
-                y_or_n = self.second_judge(cmd_list)
-                if y_or_n == 'n':
-                    continue
-                elif y_or_n == 'error':
-                    logger.info('输入有误，命名无效，请重新输入render-sn命令')
-                    continue
-                if cmd_list[1] == 'project':
-                    self.execute_render(cmd_list[2], 'device_sn')
-                else:
-                    logger.info('输入有误，命名无效，请重新输入render-sn命令')
-            elif cmd_list[0] == 'feature':
-                ans = self.first_judge(cmd_list[1], cmd_list[2])
-                if not ans:
-                    logger.info('feature命令参数输入有误，请重新输入')
-                    continue
-                y_or_n = self.second_judge(cmd_list)
-                if y_or_n == 'n':
-                    continue
-                elif y_or_n == 'error':
-                    logger.info('输入有误，命名无效，请重新输入feature命令')
-                    continue
-                if cmd_list[1] in ('label-print', 'label-delete'):
-                    self.execute_feature(cmd_list[1], cmd_list[2])
-                else:
-                    logger.info('feature命令参数输入有误，请重新输入')
-            else:
-                logger.info('输入命令有误，请重新输入')
 
-    def print_name(self):
-        """DEPRECATED: 输出项目的名称和代号。此方法为旧版交互式CLI的辅助方法，已废弃。"""
-        warnings.warn("print_name is deprecated.", DeprecationWarning, stacklevel=2)
-        logger.info(self.explain_str)
-        logger.info('项目代号  项目名称')
-        for i, p in enumerate(self.project_name, 1):
-            logger.info(f'   {i}      {p}')
-
-    def first_judge(self, cmd_type: str, para: str):
-        """DEPRECATED: 命令参数标准化判断。此方法为旧版交互式CLI的辅助方法，已废弃。"""
-        warnings.warn("first_judge is deprecated.", DeprecationWarning, stacklevel=2)
-        valid_types = {'project', 'output', 'yaml', 'output-sn', 'yaml-sn', 'label-print', 'label-md', 'label-delete'}
-        if cmd_type.strip() not in valid_types:
-            return False
-        if para == 'all':
-            return True
-        p_list = para.split('/')
-        for p in p_list:
-            if not p.isdigit() or p == '0' or int(p) > len(self.project_name):
-                return False
-        return True
-
-    def second_judge(self, cmd_list: list):
-        """DEPRECATED: 输入命令后的二次判断。此方法为旧版交互式CLI的辅助方法，已废弃。"""
-        warnings.warn("second_judge is deprecated.", DeprecationWarning, stacklevel=2)
-        cmd = cmd_list[0]
-        target = cmd_list[2]
-
-        def ask_confirm(message: str):
-            tmp = input(message)
-            if tmp.lower() == 'n':
-                return 'n'
-            elif tmp.lower() == 'y':
-                return 'y'
-            else:
-                return 'error'
-
-        if cmd == 'create':
-            return ask_confirm(f'即将新建项目 {target} 目录，请确认信息无误[y/n]')
-
-        elif cmd in ('render', 'render-sn'):
-            if cmd_list[1] not in ('project', 'yaml'):
-                return 'error'
-            names = '所有项目' if target == 'all' else ' '.join(self.project_name[int(n) - 1] for n in target.split('/'))
-            suffix = '的yaml' if cmd_list[1] == 'yaml' else '项目'
-            return ask_confirm(f'即将处理 {names} {suffix}，请确认信息无误[y/n]')
-
-        elif cmd == 'delete':
-            names = '所有项目' if target == 'all' else ' '.join(self.project_name[int(n) - 1] for n in target.split('/'))
-            type_map = {
-                'project': '项目',
-                'output': '输出文件夹',
-                'output-sn': 'sn输出文件夹',
-                'yaml': 'yaml文件夹',
-                'yaml-sn': 'yaml-sn文件夹',
-            }
-            suffix = type_map.get(cmd_list[1], '')
-            return ask_confirm(f'即将删除 {names} 的{suffix}，请确认信息无误[y/n]')
-
-        elif cmd == 'feature':
-            if cmd_list[1] not in ('label-print', 'label-delete'):
-                return 'error'
-            names = '所有项目' if target == 'all' else ' '.join(self.project_name[int(n) - 1] for n in target.split('/'))
-            suffix = '的标签卡转换' if cmd_list[1] == 'label-print' else '的标签卡转换结果'
-            return ask_confirm(f'即将处理 {names} {suffix}，请确认信息无误[y/n]')
-
-        return 'error'
+            current_step += 1
+            self._emit_progress(
+                current_step,
+                total_steps,
+                f'完成{project_excel_name} {project_sheet_name} 的数据提取',
+                project=name,
+                excel=project_excel_name,
+                sheet=project_sheet_name,
+                type=project_sheet_type,
+                action='extract_sheet',
+            )
+        return current_step
 
     def _backup_output(self, project_dir: str) -> str | None:
-        """渲染前备份 output 目录，支持撤销恢复"""
+        """渲染前备份 output 目录，支持撤销恢复。保留最近 MAX_OUTPUT_BACKUPS 份，超出自动轮转。"""
         output_dir = os.path.join(project_dir, 'output')
         if not os.path.exists(output_dir) or not os.listdir(output_dir):
             return None
-        
+
         backup_dir = os.path.join(project_dir, '.output_backups')
         os.makedirs(backup_dir, exist_ok=True)
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
         backup_path = os.path.join(backup_dir, timestamp)
         shutil.copytree(output_dir, backup_path)
         logger.info(f'已备份 output 到 {backup_path}')
+
+        # 轮转：仅保留最近 MAX_OUTPUT_BACKUPS 份备份，防止磁盘无限膨胀
+        MAX_OUTPUT_BACKUPS = 5
+        backups = sorted(os.listdir(backup_dir), reverse=True)
+        for old in backups[MAX_OUTPUT_BACKUPS:]:
+            try:
+                shutil.rmtree(os.path.join(backup_dir, old))
+                logger.info(f'已轮转删除旧备份: {old}')
+            except Exception as e:
+                logger.warning(f'轮转删除备份失败 {old}: {e}')
+
         return backup_path
 
     def _restore_backup(self, project_dir: str) -> bool:
@@ -409,48 +279,73 @@ feature [label-print | label-delete] 项目代号/项目代号/项目代号··�
         logger.info(f'已恢复备份: {backups[0]}')
         return True
 
-    def _compute_cache_key(self, project_dir: str, sheet_name: str) -> str:
-        """计算渲染参数的 hash 缓存键"""
+    def _compute_project_cache_key(self, project_dir: str) -> str:
+        """计算项目输入指纹（para.xlsx + excel + 模板 的 mtime/size，避免全量读文件）。"""
         hasher = hashlib.sha256()
-        para_path = os.path.join(project_dir, 'para.xlsx')
-        excel_path = os.path.join(project_dir, 'excel', f'{sheet_name}.xlsx')
+        inputs = [os.path.join(project_dir, 'para.xlsx')]
+        excel_dir = os.path.join(project_dir, 'excel')
         template_dir = os.path.join(project_dir, 'templates')
-        
-        for path in [para_path, excel_path]:
-            if os.path.exists(path):
-                with open(path, 'rb') as f:
-                    hasher.update(f.read())
-        
+        if os.path.isdir(excel_dir):
+            inputs.extend(sorted(os.path.join(excel_dir, f) for f in os.listdir(excel_dir) if f.endswith(('.xlsx', '.xls'))))
         if os.path.isdir(template_dir):
-            for fname in sorted(os.listdir(template_dir)):
-                if fname.endswith('.j2'):
-                    fpath = os.path.join(template_dir, fname)
-                    with open(fpath, 'rb') as f:
-                        hasher.update(fname.encode())
-                        hasher.update(f.read())
-        
+            inputs.extend(sorted(os.path.join(template_dir, f) for f in os.listdir(template_dir) if f.endswith(('.j2', '.jinja'))))
+
+        for path in inputs:
+            if os.path.exists(path):
+                st = os.stat(path)
+                hasher.update(path.encode('utf-8'))
+                hasher.update(str(st.st_size).encode())
+                hasher.update(str(int(st.st_mtime)).encode())
         return hasher.hexdigest()[:16]
 
-    def _get_cached(self, project_dir: str, sheet_name: str, cache_key: str) -> str | None:
-        """获取缓存的渲染结果"""
-        cache_dir = os.path.join(project_dir, '.render_cache')
-        cache_file = os.path.join(cache_dir, f'{sheet_name}.output')
-        cache_meta = os.path.join(cache_dir, f'{sheet_name}.key')
-        
-        if os.path.exists(cache_file) and os.path.exists(cache_meta):
-            with open(cache_meta) as f:
-                if f.read().strip() == cache_key:
-                    with open(cache_file, 'r', encoding='utf-8') as f:
-                        return f.read()
-        return None
+    def _get_project_cache(self, project_dir: str, cache_key: str) -> bool:
+        """判断项目输入指纹是否命中缓存（命中则输出可复用）。"""
+        cache_meta = os.path.join(project_dir, '.render_cache', 'project.key')
+        try:
+            if os.path.exists(cache_meta):
+                with open(cache_meta, encoding='utf-8') as f:
+                    return f.read().strip() == cache_key
+        except Exception:
+            pass
+        return False
 
-    def _save_cache(self, project_dir: str, sheet_name: str, cache_key: str):
-        """保存渲染结果到缓存"""
+    def _save_project_cache(self, project_dir: str, cache_key: str):
+        """保存项目输入指纹到缓存。"""
         cache_dir = os.path.join(project_dir, '.render_cache')
-        os.makedirs(cache_dir, exist_ok=True)
-        # 缓存 key 和 output 目录状态
-        with open(os.path.join(cache_dir, f'{sheet_name}.key'), 'w') as f:
-            f.write(cache_key)
+        try:
+            os.makedirs(cache_dir, exist_ok=True)
+            with open(os.path.join(cache_dir, 'project.key'), 'w', encoding='utf-8') as f:
+                f.write(cache_key)
+        except Exception as e:
+            logger.warning(f'保存渲染缓存失败: {e}')
+
+    @staticmethod
+    def _latest_timestamp_dir(base_dir: str) -> str | None:
+        """返回目录下最新的时间戳子目录名。"""
+        if not os.path.isdir(base_dir):
+            return None
+        dirs = [d for d in os.listdir(base_dir) if os.path.isdir(os.path.join(base_dir, d))]
+        return max(dirs) if dirs else None
+
+    def _reuse_latest_output(self, project_dir: str, time_str: str, out_name_type: str) -> bool:
+        """缓存命中：将最近一次渲染输出复制到新时间戳目录，避免重复提取/渲染。"""
+        output_name = 'output' if out_name_type == 'device_name' else 'output-sn'
+        yaml_name = 'yaml' if out_name_type == 'device_name' else 'yaml-sn'
+        output_base = os.path.join(project_dir, output_name)
+        latest = self._latest_timestamp_dir(output_base)
+        if not latest:
+            return False
+        try:
+            shutil.copytree(os.path.join(output_base, latest), os.path.join(output_base, time_str))
+            yaml_base = os.path.join(project_dir, yaml_name)
+            latest_yaml = self._latest_timestamp_dir(yaml_base)
+            if latest_yaml:
+                shutil.copytree(os.path.join(yaml_base, latest_yaml), os.path.join(yaml_base, time_str))
+            logger.info(f'项目输入未变化，已复用渲染结果: {os.path.basename(project_dir)}')
+            return True
+        except Exception as e:
+            logger.warning(f'复用渲染结果失败，将重新渲染: {e}')
+            return False
 
     def execute_render(self, word: str, out_name_type: str):
         """执行选中项目的渲染"""
@@ -460,49 +355,33 @@ feature [label-print | label-delete] 项目代号/项目代号/项目代号··�
         self.project_para = []
         self.process_project_num(word)
 
-        for name in self.project_name:
-            self.read_project_para(name, 'para.xlsx')
-
-        # 渲染前自动备份 output 目录
-        for i in range(0, len(self.target_project_name)):
-            project_dir = os.path.join(self.workspace, self.target_project_name[i])
-            self._backup_output(project_dir)
+        self._load_target_para()
 
         total_steps = self._calc_render_steps(include_template_render=True)
         current_step = 0
 
         for i in range(0, len(self.target_project_name)):
             name = self.target_project_name[i]
-            ba = Base(self.workspace)
-            para = self.project_para[self.target_project_num[i]][name]
+            project_dir = os.path.join(self.workspace, name)
 
-            for p in para:
-                project_excel_name = p[0]['工作簿名称']
-                project_sheet_name = p[1]['工作表名称']
-                project_sheet_type = p[2]['工作表类型']
-                project_sheet_assign_num = int(str(p[3]['对称列数']).strip())
-                project_sheet_key_num = int(str(p[4]['key列数']).strip())
-
-                if project_sheet_type == '赋值表':
-                    ba.read_assign_table(project_excel_name, project_sheet_name, 'excel', name, project_sheet_key_num)
-                elif project_sheet_type == '对称表':
-                    ba.read_symmetrice_table(project_excel_name, project_sheet_name, 'excel', name, project_sheet_assign_num, project_sheet_key_num)
-                elif project_sheet_type == '参数表':
-                    ba.read_para(project_excel_name, project_sheet_name, 'excel', name)
-                else:
-                    continue
-
+            # 缓存快速路径：输入指纹未变化且已有输出 → 复用，跳过提取与渲染
+            cache_key = self._compute_project_cache_key(project_dir)
+            if self._get_project_cache(project_dir, cache_key) and self._reuse_latest_output(project_dir, time_str, out_name_type):
                 current_step += 1
                 self._emit_progress(
                     current_step,
                     total_steps,
-                    f'完成{project_excel_name} {project_sheet_name} 的数据提取',
+                    f'项目 {name} 输入未变化，已复用上次渲染结果',
                     project=name,
-                    excel=project_excel_name,
-                    sheet=project_sheet_name,
-                    type=project_sheet_type,
-                    action='extract_sheet',
+                    action='cache_hit',
                 )
+                continue
+
+            # 渲染前自动备份 output 目录（仅在真正重新渲染时）
+            self._backup_output(project_dir)
+
+            ba = Base(self.workspace)
+            current_step = self._process_project_sheets(ba, name, self.target_project_num[i], current_step, total_steps)
 
             if out_name_type == 'device_name':
                 ba.out_base_info('yaml', name, time_str, 'device_name')
@@ -545,6 +424,8 @@ feature [label-print | label-delete] 项目代号/项目代号/项目代号··�
                     action='jinja_render',
                 )
 
+            self._save_project_cache(project_dir, cache_key)
+
         print(json.dumps({
             'status': 'complete',
             'message': '程序运行结束，请在目标项目的output文件夹内查看输出结果！',
@@ -562,8 +443,7 @@ feature [label-print | label-delete] 项目代号/项目代号/项目代号··�
         self.project_para = []
         self.process_project_num(word)
 
-        for name in self.project_name:
-            self.read_project_para(name, 'para.xlsx')
+        self._load_target_para()
 
         total_steps = self._calc_render_steps(include_template_render=True)
         current_step = 0
@@ -572,33 +452,7 @@ feature [label-print | label-delete] 项目代号/项目代号/项目代号··�
         for i in range(0, len(self.target_project_name)):
             name = self.target_project_name[i]
             ba = Base(self.workspace)
-            para = self.project_para[self.target_project_num[i]][name]
-
-            for p in para:
-                project_excel_name = p[0]['工作簿名称']
-                project_sheet_name = p[1]['工作表名称']
-                project_sheet_type = p[2]['工作表类型']
-                project_sheet_assign_num = int(str(p[3]['对称列数']).strip())
-                project_sheet_key_num = int(str(p[4]['key列数']).strip())
-
-                if project_sheet_type == '赋值表':
-                    ba.read_assign_table(project_excel_name, project_sheet_name, 'excel', name, project_sheet_key_num)
-                elif project_sheet_type == '对称表':
-                    ba.read_symmetrice_table(project_excel_name, project_sheet_name, 'excel', name, project_sheet_assign_num, project_sheet_key_num)
-                elif project_sheet_type == '参数表':
-                    ba.read_para(project_excel_name, project_sheet_name, 'excel', name)
-
-                current_step += 1
-                self._emit_progress(
-                    current_step,
-                    total_steps,
-                    f'完成{project_excel_name} {project_sheet_name} 的数据提取',
-                    project=name,
-                    excel=project_excel_name,
-                    sheet=project_sheet_name,
-                    type=project_sheet_type,
-                    action='extract_sheet',
-                )
+            current_step = self._process_project_sheets(ba, name, self.target_project_num[i], current_step, total_steps)
 
             # 只渲染不写文件
             device_results = ba.render_dry_run('templates', name, out_name_type)
@@ -785,8 +639,7 @@ feature [label-print | label-delete] 项目代号/项目代号/项目代号··�
         self.project_para = []
         self.process_project_num(word)
 
-        for name in self.project_name:
-            self.read_project_para(name, 'para.xlsx')
+        self._load_target_para()
 
         total_steps = self._calc_render_steps(include_template_render=False)
         current_step = 0
@@ -794,35 +647,7 @@ feature [label-print | label-delete] 项目代号/项目代号/项目代号··�
         for i in range(0, len(self.target_project_name)):
             name = self.target_project_name[i]
             ba = Base(self.workspace)
-            para = self.project_para[self.target_project_num[i]][name]
-
-            for p in para:
-                project_excel_name = p[0]['工作簿名称']
-                project_sheet_name = p[1]['工作表名称']
-                project_sheet_type = p[2]['工作表类型']
-                project_sheet_assign_num = int(str(p[3]['对称列数']).strip())
-                project_sheet_key_num = int(str(p[4]['key列数']).strip())
-
-                if project_sheet_type == '赋值表':
-                    ba.read_assign_table(project_excel_name, project_sheet_name, 'excel', name, project_sheet_key_num)
-                elif project_sheet_type == '对称表':
-                    ba.read_symmetrice_table(project_excel_name, project_sheet_name, 'excel', name, project_sheet_assign_num, project_sheet_key_num)
-                elif project_sheet_type == '参数表':
-                    ba.read_para(project_excel_name, project_sheet_name, 'excel', name)
-                else:
-                    continue
-
-                current_step += 1
-                self._emit_progress(
-                    current_step,
-                    total_steps,
-                    f'完成{project_excel_name} {project_sheet_name} 的数据提取',
-                    project=name,
-                    excel=project_excel_name,
-                    sheet=project_sheet_name,
-                    type=project_sheet_type,
-                    action='extract_sheet',
-                )
+            current_step = self._process_project_sheets(ba, name, self.target_project_num[i], current_step, total_steps)
 
             ba.out_base_info('yaml', name, time_str, 'device_name')
             current_step += 1

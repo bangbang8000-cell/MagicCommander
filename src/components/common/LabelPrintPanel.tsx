@@ -50,8 +50,6 @@ export function LabelPrintPanel() {
   const progress = useRenderStore((s) => s.progress)
   const currentMessage = useRenderStore((s) => s.currentMessage)
   const errors = useRenderStore((s) => s.errors)
-  const config = useRenderStore((s) => s.config)
-  const setConfig = useRenderStore((s) => s.setConfig)
   const [showPrintConfig, setShowPrintConfig] = useState(false)
   const [printConfig, setPrintConfig] = useState<LabelPrintConfig>(DEFAULT_CONFIG)
   const [showLabelPreview, setShowLabelPreview] = useState(false)
@@ -132,7 +130,7 @@ export function LabelPrintPanel() {
     }
   }, [selectedProject, t])
 
-  const handleConfigChange = useCallback((field: string, value: any) => {
+  const handleConfigChange = useCallback((field: string, value: string | number | boolean) => {
     setPrintConfig((prev) => ({
       ...prev,
       [field]: value,

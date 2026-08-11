@@ -113,7 +113,8 @@
     "projectNameEmpty": "Le nom du projet ne peut pas être vide",
     "projectNameExists": "Le projet existe déjà",
     "projectCreated": "Projet \"{{name}}\" créé avec succès",
-    "projectNamePlaceholder": "Saisir le nom du projet (ne peut pas contenir \\ / : * ? \" < > |)"
+    "projectNamePlaceholder": "Saisir le nom du projet (ne peut pas contenir \\ / : * ? \" < > |)",
+    "allProjects": "Tous les projets"
   },
   "workbench": {
     "title": "Workbench",

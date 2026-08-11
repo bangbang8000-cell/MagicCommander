@@ -269,6 +269,10 @@ class TestRenderIntegration:
             output_dir = os.path.join(tmpdir, project_name, 'output')
             time_dirs_before = os.listdir(output_dir)
 
+            # 修改输入（模板）以触发真实重渲染（缓存应失效），并产生可撤销的备份
+            tpl_path = os.path.join(tmpdir, project_name, 'templates', 'ASW.j2')
+            with open(tpl_path, 'a', encoding='utf-8') as f:
+                f.write('\n# 变更')
             pp.execute_render('1', 'device_name')
 
             time_dirs_after = os.listdir(output_dir)

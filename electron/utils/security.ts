@@ -65,7 +65,7 @@ export function escapePythonArg(arg: string): string {
   }
 
   // 允许字母、数字、下划线、连字符、点、空格、中文
-  escaped = escaped.replace(/[^\w\-\u4e00-\u9fff\u3400-\u4dbf\s\.]/g, '_')
+  escaped = escaped.replace(/[^\w\-\u4e00-\u9fff\u3400-\u4dbf\s.]/g, '_')
 
   // 限制长度
   if (escaped.length > SECURITY_CONFIG.PROJECT_NAME_MAX_LENGTH) {

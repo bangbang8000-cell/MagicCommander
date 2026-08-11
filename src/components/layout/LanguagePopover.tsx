@@ -13,17 +13,9 @@ interface LanguagePopoverProps {
   onSelect: (lang: string) => void
 }
 
-const LANGUAGES: SupportedLocale[] = [
-  'zh-CN', 'zh-TW', 'en', 'ja', 'ko', 'fr',
-]
+const LANGUAGES: SupportedLocale[] = ['zh-CN', 'zh-TW', 'en', 'ja', 'ko', 'fr']
 
-export function LanguagePopover({
-  open,
-  onClose,
-  isDark,
-  currentLanguage,
-  onSelect,
-}: LanguagePopoverProps) {
+export function LanguagePopover({ open, onClose, isDark, currentLanguage, onSelect }: LanguagePopoverProps) {
   const { t } = useTranslation()
 
   const handleSelect = (lang: string) => {

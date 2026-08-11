@@ -47,7 +47,9 @@ export function PushDialog({ projectName, onClose, onSuccess }: PushDialogProps)
 
         <div className="p-5 space-y-4">
           <div>
-            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">{t('project:explorer.projectName')}</label>
+            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+              {t('project:explorer.projectName')}
+            </label>
             <input
               type="text"
               value={projectName}
@@ -57,7 +59,9 @@ export function PushDialog({ projectName, onClose, onSuccess }: PushDialogProps)
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">{t('project:template.edit.description')}</label>
+            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+              {t('project:template.edit.description')}
+            </label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
@@ -68,7 +72,9 @@ export function PushDialog({ projectName, onClose, onSuccess }: PushDialogProps)
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-2">{t('project:template.edit.public')}</label>
+            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-2">
+              {t('project:template.edit.public')}
+            </label>
             <div className="flex gap-2">
               <button
                 onClick={() => setIsPrivate(true)}

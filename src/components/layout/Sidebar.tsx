@@ -43,9 +43,7 @@ export function Sidebar({ panels }: SidebarProps) {
           isDark ? 'border-gray-700/50 bg-gray-900/40' : 'border-gray-200 bg-gray-50',
         )}
       >
-        <h3
-          className={clsx('type-caption font-medium', isDark ? 'text-gray-400' : 'text-gray-500')}
-        >
+        <h3 className={clsx('type-caption font-medium', isDark ? 'text-gray-400' : 'text-gray-500')}>
           {t(PANEL_TITLE_KEYS[activeActivity] || 'common:noContent')}
         </h3>
         <button

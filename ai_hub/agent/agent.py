@@ -5,6 +5,7 @@ Agent 编排层
 import json
 import logging
 import re
+import time
 import uuid
 from typing import AsyncIterator, Optional
 
@@ -32,6 +33,9 @@ class AgentSession:
         self.autonomy_mode: str = "semi_auto"
         self.current_project: str = ""
         self.session_id: str = ""
+        self.last_used: float = time.time()
+        # 待用户确认的工具调用（CONFIRM 权限分级）
+        self.pending_confirmation: dict | None = None
 
     def set_provider(self, name: Optional[str] = None):
         self.provider = registry.get(name)
@@ -65,7 +69,46 @@ class AgentSession:
             return
 
         tools = get_tool_definitions()
+        self.last_used = time.time()
         current_messages = list(self.messages)
+        # 上下文裁剪：仅保留最近 N 条消息，避免长会话 token 溢出
+        MAX_CONTEXT_MESSAGES = 30
+        if len(current_messages) > MAX_CONTEXT_MESSAGES:
+            current_messages = current_messages[-MAX_CONTEXT_MESSAGES:]
+
+        # === 处理待确认工具的用户回复（CONFIRM 流程闭环） ===
+        if self.pending_confirmation:
+            last_user = ""
+            if self.messages and self.messages[-1]["role"] == "user":
+                last_user = str(self.messages[-1]["content"]).strip().lower()
+            if last_user in ("确认", "是", "继续", "好的", "确定", "ok", "yes", "confirm", "y"):
+                pending = self.pending_confirmation
+                self.pending_confirmation = None
+                tool_name, tool_args = pending["name"], pending["args"]
+                yield f"\n\n> ✅ 已确认，正在执行工具: `{tool_name}`...\n\n"
+                tool_call_id = f"call_{uuid.uuid4().hex[:12]}"
+                result = await execute_tool(tool_name, tool_args)
+                tool_result_json = json.dumps(result, ensure_ascii=False)
+                # 工具轮上下文写入持久消息，供后续 LLM 轮次与用户下一条消息使用
+                assistant_msg = {
+                    "role": "assistant",
+                    "content": None,
+                    "tool_calls": [{
+                        "id": tool_call_id,
+                        "type": "function",
+                        "function": {"name": tool_name, "arguments": json.dumps(tool_args, ensure_ascii=False)},
+                    }],
+                }
+                self.add_message("assistant", "", {"tool_calls": assistant_msg["tool_calls"]})
+                self.add_message("tool", tool_result_json, {"tool_call_id": tool_call_id})
+                current_messages = list(self.messages)
+                if len(current_messages) > MAX_CONTEXT_MESSAGES:
+                    current_messages = current_messages[-MAX_CONTEXT_MESSAGES:]
+                yield f"> 工具执行结果:\n```json\n{tool_result_json}\n```\n\n"
+            elif last_user in ("取消", "cancel", "no", "n", "不"):
+                self.pending_confirmation = None
+                yield "\n\n> 已取消该操作。\n\n"
+                return
 
         for _round in range(max_tool_rounds):
             # 调用 LLM，实时流式输出
@@ -109,6 +152,8 @@ class AgentSession:
 
             # === Agent v2: 权限分级检查 ===
             if validation.permission == ToolPermission.CONFIRM and self.autonomy_mode != "full_auto":
+                # 记录待确认工具，等待用户下一条回复确认/取消
+                self.pending_confirmation = {"name": tool_name, "args": tool_args}
                 yield f"\n\n> ⚠️ 操作 `{tool_name}` 需要确认。请回复 '确认' 继续，或 '取消' 中止。\n\n"
                 return
 
@@ -158,9 +203,9 @@ class AgentSession:
             if self.current_project:
                 ctx = get_project_context(self.session_id)
                 ctx.record_operation(f"调用工具: {tool_name}")
-
-            memory = get_memory_engine()
-            memory.record_operation(self.current_project, f"调用 {tool_name}")
+                # 仅在确定了项目时才记录记忆，避免空项目名写入进程 CWD
+                memory = get_memory_engine()
+                memory.record_operation(self.current_project, f"调用 {tool_name}")
 
             # 将 tool 结果加入上下文（OpenAI 标准格式）
             tool_result_json = json.dumps(result, ensure_ascii=False)
@@ -338,14 +383,35 @@ def _get_reasoning(provider) -> str:
 # 全局会话缓存
 _sessions: dict[str, AgentSession] = {}
 
+# 会话空闲 TTL（超过则清理，防止内存无限增长）
+SESSION_IDLE_TTL_SECONDS = 24 * 60 * 60
+
+
+def _prune_sessions():
+    """清理超过空闲 TTL 的会话。"""
+    now = time.time()
+    stale = [
+        sid for sid, s in _sessions.items()
+        if now - getattr(s, 'last_used', 0) > SESSION_IDLE_TTL_SECONDS
+    ]
+    for sid in stale:
+        _sessions.pop(sid, None)
+        clear_project_context(sid)
+    if stale:
+        logger.info(f"已清理 {len(stale)} 个空闲会话")
+
 
 def get_or_create_session(session_id: str) -> AgentSession:
     """获取或创建 Agent 会话"""
+    # 每次访问前做一次轻量清理，限制会话字典大小
+    if len(_sessions) > 100:
+        _prune_sessions()
     if session_id not in _sessions:
         session = AgentSession()
         session.set_provider()
         session.session_id = session_id
         _sessions[session_id] = session
+    _sessions[session_id].last_used = time.time()
     return _sessions[session_id]
 
 

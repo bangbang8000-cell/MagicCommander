@@ -1,9 +1,9 @@
 import { useTranslation } from 'react-i18next'
 import { useState, useRef, useEffect, useCallback } from 'react'
 import clsx from 'clsx'
-import { Menu, RefreshCw, Minus, Square, X, Sun, Moon, Monitor } from 'lucide-react'
+import { RefreshCw, Minus, Square, X, Sun, Moon, Monitor } from 'lucide-react'
 import { useProjectStore } from '@/stores/project.store'
-import { useUIStore } from '@/stores/ui.store'
+import { useUIStore, type ActivityType } from '@/stores/ui.store'
 import { useEditorStore } from '@/stores/editor.store'
 import { usePlatformStore } from '@/stores/platform.store'
 import { LoginDialog } from '@/components/auth/LoginDialog'
@@ -11,7 +11,6 @@ import { CloudStatusIndicator } from '@/components/cloud/CloudStatusIndicator'
 import { NotificationCenter } from '@/components/cloud/NotificationCenter'
 import { UserProfileView } from '@/components/cloud/UserProfileView'
 import { LANGUAGE_ICON_CHARS } from '@/i18n/resources'
-import type { SupportedLocale } from '@/i18n/resources'
 import { useBuildInfo } from '@/hooks/useAppVersion'
 import { AboutDialog } from '@/components/dialogs/AboutDialog'
 import { AppLogo } from '@/components/common'
@@ -41,7 +40,6 @@ export function Header({ onCheatsheet }: HeaderProps) {
   const createProject = useProjectStore((s) => s.createProject)
   const platformLoggedIn = usePlatformStore((s) => s.loggedIn)
   const platformUsername = usePlatformStore((s) => s.username)
-  const platformLogout = usePlatformStore((s) => s.logout)
   const buildInfo = useBuildInfo()
 
   const [openMenu, setOpenMenu] = useState<string | null>(null)
@@ -136,7 +134,9 @@ export function Header({ onCheatsheet }: HeaderProps) {
       if (workspacePath) {
         window.electron?.shell?.showItemInFolder(workspacePath)
       }
-    } catch {}
+    } catch {
+      /* 忽略预期错误 */
+    }
     closeMenu()
   }, [])
 
@@ -184,7 +184,7 @@ export function Header({ onCheatsheet }: HeaderProps) {
   // === 视图菜单 handlers ===
   const handleGoToActivity = useCallback(
     (activity: string) => {
-      setActiveActivity(activity as any)
+      setActiveActivity(activity as ActivityType)
       closeMenu()
     },
     [setActiveActivity],
@@ -205,7 +205,9 @@ export function Header({ onCheatsheet }: HeaderProps) {
     setUpdateBusy(true)
     try {
       await window.electron?.app?.checkUpdate()
-    } catch {}
+    } catch {
+      /* 忽略预期错误 */
+    }
     closeMenu()
   }, [])
 
@@ -213,14 +215,18 @@ export function Header({ onCheatsheet }: HeaderProps) {
     setUpdateBusy(true)
     try {
       await window.electron?.app?.downloadUpdate()
-    } catch {}
+    } catch {
+      /* 忽略预期错误 */
+    }
     closeMenu()
   }, [])
 
   const handleInstallUpdate = useCallback(async () => {
     try {
       await window.electron?.app?.quitAndInstall()
-    } catch {}
+    } catch {
+      /* 忽略预期错误 */
+    }
   }, [])
 
   const handleTerminal = useCallback(() => {
@@ -236,7 +242,7 @@ export function Header({ onCheatsheet }: HeaderProps) {
   // === 帮助菜单 handlers ===
   const handleUserGuide = useCallback(async () => {
     try {
-      const lang = await window.electron?.app?.getLanguage() || 'zh-CN'
+      const lang = (await window.electron?.app?.getLanguage()) || 'zh-CN'
       const content = await window.electron?.guide?.getContent(lang)
       if (content) {
         useEditorStore.getState().openFile({
@@ -244,14 +250,15 @@ export function Header({ onCheatsheet }: HeaderProps) {
           title: 'MagicCommander User Guide',
           filePath: 'docs/user-guide.md',
           fileType: 'markdown',
-          projectId: '',
+          projectId: 0,
           projectName: '',
           isDirty: false,
           content,
-          isReadOnly: true,
-        } as any)
+        })
       }
-    } catch {}
+    } catch {
+      /* 忽略预期错误 */
+    }
     closeMenu()
   }, [])
 
@@ -263,7 +270,9 @@ export function Header({ onCheatsheet }: HeaderProps) {
   const handleRestart = useCallback(async () => {
     try {
       await window.electron?.app?.quitAndInstall()
-    } catch {}
+    } catch {
+      /* 忽略预期错误 */
+    }
     setRestartPromptOpen(false)
   }, [])
 
@@ -281,42 +290,39 @@ export function Header({ onCheatsheet }: HeaderProps) {
   }, [])
 
   // 切换主题
-  const handleSelectTheme = useCallback((t: 'light' | 'dark' | 'system') => {
-    setTheme(t)
-  }, [setTheme])
+  const handleSelectTheme = useCallback(
+    (t: 'light' | 'dark' | 'system') => {
+      setTheme(t)
+    },
+    [setTheme],
+  )
 
   // 切换语言
-  const handleSelectLanguage = useCallback((lang: string) => {
-    setLanguage(lang)
-  }, [setLanguage])
+  const handleSelectLanguage = useCallback(
+    (lang: string) => {
+      setLanguage(lang)
+    },
+    [setLanguage],
+  )
 
-  const themeIcon = theme === 'light' ? <Sun size={14} /> : theme === 'dark' ? <Moon size={14} /> : <Monitor size={14} />
+  const themeIcon =
+    theme === 'light' ? <Sun size={14} /> : theme === 'dark' ? <Moon size={14} /> : <Monitor size={14} />
 
   // 菜单项渲染辅助函数
-  const renderMenuItem = (
-    key: string,
-    label: string,
-    shortcut?: string,
-    onClick?: () => void,
-    disabled?: boolean,
-  ) => (
+  const renderMenuItem = (key: string, label: string, shortcut?: string, onClick?: () => void, disabled?: boolean) => (
     <button
       key={key}
       onClick={onClick}
       disabled={disabled}
       className={clsx(
         'w-full flex items-center justify-between px-3 py-1.5 text-xs text-left',
-        disabled
-          ? 'opacity-40 cursor-not-allowed'
-          : 'hover:bg-blue-50 dark:hover:bg-blue-900/30',
+        disabled ? 'opacity-40 cursor-not-allowed' : 'hover:bg-blue-50 dark:hover:bg-blue-900/30',
         isDark ? 'text-gray-200' : 'text-gray-700',
       )}
     >
       <span>{label}</span>
       {shortcut && (
-        <span className={clsx('ml-4 text-[11px]', isDark ? 'text-gray-500' : 'text-gray-400')}>
-          {shortcut}
-        </span>
+        <span className={clsx('ml-4 text-[11px]', isDark ? 'text-gray-500' : 'text-gray-400')}>{shortcut}</span>
       )}
     </button>
   )
@@ -362,12 +368,7 @@ export function Header({ onCheatsheet }: HeaderProps) {
         'Ctrl+B',
         handleToggleSidebar,
       ),
-      renderMenuItem(
-        'panel',
-        panelVisible ? t('menu.hidePanel') : t('menu.showPanel'),
-        'Ctrl+J',
-        handleTogglePanel,
-      ),
+      renderMenuItem('panel', panelVisible ? t('menu.hidePanel') : t('menu.showPanel'), 'Ctrl+J', handleTogglePanel),
     ],
     tools: [
       renderMenuItem('checkUpdate', t('menu.checkUpdate'), '', handleCheckUpdate),
@@ -427,9 +428,7 @@ export function Header({ onCheatsheet }: HeaderProps) {
                 <div
                   className={clsx(
                     'absolute top-full left-0 z-50 min-w-[200px] py-1 rounded-b shadow-lg border',
-                    isDark
-                      ? 'bg-gray-800 border-gray-700'
-                      : 'bg-white border-gray-200',
+                    isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200',
                   )}
                 >
                   {menus[menu.id]}
@@ -451,14 +450,20 @@ export function Header({ onCheatsheet }: HeaderProps) {
           {/* 切换语言 */}
           <div className="relative">
             <button
-              onClick={() => { setLangPopoverOpen(!langPopoverOpen); setThemePopoverOpen(false); setUpdatePopoverOpen(false) }}
+              onClick={() => {
+                setLangPopoverOpen(!langPopoverOpen)
+                setThemePopoverOpen(false)
+                setUpdatePopoverOpen(false)
+              }}
               className={clsx(
                 'p-1.5 rounded transition-colors',
                 isDark ? 'hover:bg-gray-700 text-gray-400' : 'hover:bg-gray-200 text-gray-500',
               )}
               title={t('menu.language')}
             >
-              <span className="text-xs font-bold w-4 h-4 flex items-center justify-center select-none">{LANGUAGE_ICON_CHARS[language as keyof typeof LANGUAGE_ICON_CHARS] || 'A'}</span>
+              <span className="text-xs font-bold w-4 h-4 flex items-center justify-center select-none">
+                {LANGUAGE_ICON_CHARS[language as keyof typeof LANGUAGE_ICON_CHARS] || 'A'}
+              </span>
             </button>
             <LanguagePopover
               open={langPopoverOpen}
@@ -472,7 +477,11 @@ export function Header({ onCheatsheet }: HeaderProps) {
           {/* 切换主题 */}
           <div className="relative">
             <button
-              onClick={() => { setThemePopoverOpen(!themePopoverOpen); setLangPopoverOpen(false); setUpdatePopoverOpen(false) }}
+              onClick={() => {
+                setThemePopoverOpen(!themePopoverOpen)
+                setLangPopoverOpen(false)
+                setUpdatePopoverOpen(false)
+              }}
               className={clsx(
                 'p-1.5 rounded transition-colors',
                 isDark ? 'hover:bg-gray-700 text-gray-400' : 'hover:bg-gray-200 text-gray-500',
@@ -531,7 +540,11 @@ export function Header({ onCheatsheet }: HeaderProps) {
           {/* 检查更新 */}
           <div className="relative">
             <button
-              onClick={() => { setUpdatePopoverOpen(!updatePopoverOpen); setLangPopoverOpen(false); setThemePopoverOpen(false) }}
+              onClick={() => {
+                setUpdatePopoverOpen(!updatePopoverOpen)
+                setLangPopoverOpen(false)
+                setThemePopoverOpen(false)
+              }}
               className={clsx(
                 'relative p-1.5 rounded transition-colors',
                 isDark ? 'hover:bg-gray-700 text-gray-400' : 'hover:bg-gray-200 text-gray-500',
@@ -539,9 +552,7 @@ export function Header({ onCheatsheet }: HeaderProps) {
               title={t('menu.checkUpdate')}
             >
               <RefreshCw size={14} />
-              {updateDownloaded && (
-                <span className="absolute top-0.5 right-0.5 w-2 h-2 rounded-full bg-blue-500" />
-              )}
+              {updateDownloaded && <span className="absolute top-0.5 right-0.5 w-2 h-2 rounded-full bg-blue-500" />}
             </button>
             <UpdatePopover
               open={updatePopoverOpen}
@@ -599,7 +610,7 @@ export function Header({ onCheatsheet }: HeaderProps) {
       <AboutDialog
         open={aboutOpen}
         onClose={() => setAboutOpen(false)}
-version={buildInfo.version}
+        version={buildInfo.version}
         displayVersion={buildInfo.displayVersion}
         updateStatus={updateStatus}
         updateBusy={updateBusy}

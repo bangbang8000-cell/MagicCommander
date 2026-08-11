@@ -50,7 +50,9 @@ export function PullDialog({ owner, repo, projectName, existsLocally, onClose, o
 
         <div className="p-5 space-y-4">
           <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-            <span className="font-medium text-gray-900 dark:text-white">{owner}/{repo}</span>
+            <span className="font-medium text-gray-900 dark:text-white">
+              {owner}/{repo}
+            </span>
           </div>
 
           {existsLocally && (
@@ -67,21 +69,37 @@ export function PullDialog({ owner, repo, projectName, existsLocally, onClose, o
 
           {existsLocally && (
             <div className="space-y-2">
-              <label className="flex items-start gap-3 p-3 border rounded-md cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-                onClick={() => setStrategy('overwrite')}>
-                <input type="radio" name="strategy" checked={strategy === 'overwrite'} onChange={() => setStrategy('overwrite')}
-                  className="mt-0.5" />
+              <label
+                className="flex items-start gap-3 p-3 border rounded-md cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                onClick={() => setStrategy('overwrite')}
+              >
+                <input
+                  type="radio"
+                  name="strategy"
+                  checked={strategy === 'overwrite'}
+                  onChange={() => setStrategy('overwrite')}
+                  className="mt-0.5"
+                />
                 <div>
                   <p className="text-sm font-medium text-gray-900 dark:text-white">{t('cloud:sync.resolveConflict')}</p>
                   <p className="text-xs text-gray-500 dark:text-gray-400">{t('cloud:sync.pullTitle')}</p>
                 </div>
               </label>
-              <label className="flex items-start gap-3 p-3 border rounded-md cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-                onClick={() => setStrategy('rename')}>
-                <input type="radio" name="strategy" checked={strategy === 'rename'} onChange={() => setStrategy('rename')}
-                  className="mt-0.5" />
+              <label
+                className="flex items-start gap-3 p-3 border rounded-md cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                onClick={() => setStrategy('rename')}
+              >
+                <input
+                  type="radio"
+                  name="strategy"
+                  checked={strategy === 'rename'}
+                  onChange={() => setStrategy('rename')}
+                  className="mt-0.5"
+                />
                 <div>
-                  <p className="text-sm font-medium text-gray-900 dark:text-white">{t('project:explorer.saveAsTemplate')}</p>
+                  <p className="text-sm font-medium text-gray-900 dark:text-white">
+                    {t('project:explorer.saveAsTemplate')}
+                  </p>
                   <p className="text-xs text-gray-500 dark:text-gray-400">{projectName}-remote</p>
                 </div>
               </label>

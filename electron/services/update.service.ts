@@ -77,9 +77,10 @@ export class UpdateService {
 
     try {
       await autoUpdater.checkForUpdates()
-    } catch (error: any) {
-      logger.error('[UpdateService] 检查更新失败:', error.message)
-      this.sendUpdateStatus({ status: 'error', error: error.message })
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error)
+      logger.error('[UpdateService] 检查更新失败:', message)
+      this.sendUpdateStatus({ status: 'error', error: message })
     } finally {
       this.isChecking = false
     }
@@ -88,9 +89,10 @@ export class UpdateService {
   async downloadUpdate(): Promise<void> {
     try {
       await autoUpdater.downloadUpdate()
-    } catch (error: any) {
-      logger.error('[UpdateService] 下载更新失败:', error.message)
-      this.sendUpdateStatus({ status: 'error', error: error.message })
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error)
+      logger.error('[UpdateService] 下载更新失败:', message)
+      this.sendUpdateStatus({ status: 'error', error: message })
     }
   }
 

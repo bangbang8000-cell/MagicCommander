@@ -36,10 +36,7 @@ export function AttachmentPreview({ attachment, isDark, compact, onRemove }: Att
   if (compact) {
     return (
       <div
-        className={clsx(
-          'inline-flex items-center gap-1 px-2 py-1 rounded text-xs',
-          ATTACHMENT_COLORS[attachment.type],
-        )}
+        className={clsx('inline-flex items-center gap-1 px-2 py-1 rounded text-xs', ATTACHMENT_COLORS[attachment.type])}
       >
         {icon}
         <span className="truncate max-w-[120px]">{attachment.name}</span>
@@ -55,13 +52,9 @@ export function AttachmentPreview({ attachment, isDark, compact, onRemove }: Att
         isDark ? 'border-gray-700 bg-gray-800' : 'border-gray-200 bg-white',
       )}
     >
-      <div className={clsx('p-1.5 rounded', ATTACHMENT_COLORS[attachment.type])}>
-        {icon}
-      </div>
+      <div className={clsx('p-1.5 rounded', ATTACHMENT_COLORS[attachment.type])}>{icon}</div>
       <div className="flex-1 min-w-0">
-        <div className={clsx('text-sm truncate', isDark ? 'text-gray-200' : 'text-gray-700')}>
-          {attachment.name}
-        </div>
+        <div className={clsx('text-sm truncate', isDark ? 'text-gray-200' : 'text-gray-700')}>{attachment.name}</div>
         <div className={clsx('text-[11px]', isDark ? 'text-gray-500' : 'text-gray-400')}>
           {formatFileSize(attachment.size)}
         </div>

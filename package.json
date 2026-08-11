@@ -1,6 +1,6 @@
 {
   "name": "magiccommander",
-  "version": "3.5.4",
+  "version": "3.6.0",
   "description": "MagicCommander - 网络设备配置管理工具",
   "main": "dist-electron/main.js",
   "author": "Magic Commander Team",
@@ -27,7 +27,9 @@
     "lint": "eslint src/ electron/ --ext .ts,.tsx",
     "lint:fix": "eslint src/ electron/ --ext .ts,.tsx --fix",
     "format": "prettier --write \"src/**/*.{ts,tsx,css}\" \"electron/**/*.ts\"",
-    "format:check": "prettier --check \"src/**/*.{ts,tsx,css}\" \"electron/**/*.ts\""
+    "format:check": "prettier --check \"src/**/*.{ts,tsx,css}\" \"electron/**/*.ts\"",
+    "sync-version": "node scripts/sync-version.js",
+    "check-version": "node scripts/sync-version.js --check"
   },
   "dependencies": {
     "@monaco-editor/react": "^4.7.0",
@@ -96,7 +98,8 @@
     ],
     "files": [
       "dist/**/*",
-      "dist-electron/**/*"
+      "dist-electron/**/*",
+      "version.json"
     ],
     "extraResources": [
       {
@@ -134,7 +137,7 @@
         }
       ],
       "icon": "public/icons/icon.ico",
-      "artifactName": "${productName}-Setup-${version}-build.26072403.${ext}"
+      "artifactName": "${productName}-Setup-${version}-build.${env.MC_BUILD}.${ext}"
     },
     "nsis": {
       "oneClick": false,
@@ -155,7 +158,7 @@
         }
       ],
       "icon": "public/icons/icon.icns",
-      "artifactName": "${productName}-${version}-build.26072403-mac-${arch}.${ext}",
+      "artifactName": "${productName}-${version}-build.${env.MC_BUILD}-mac-${arch}.${ext}",
       "category": "public.app-category.utilities"
     },
     "linux": {
@@ -174,7 +177,7 @@
         }
       ],
       "icon": "public/icons/icon.png",
-      "artifactName": "${productName}-${version}-build.26072403-linux-${arch}.${ext}",
+      "artifactName": "${productName}-${version}-build.${env.MC_BUILD}-linux-${arch}.${ext}",
       "category": "Network",
       "maintainer": "Magic Commander Team"
     }

@@ -1,13 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import i18n from '@/i18n'
-import type {
-  ChatMessage,
-  ChatSession,
-  ChatAttachment,
-  ChatMode,
-  AttachmentType,
-} from '@/types/chat'
+import type { ChatMessage, ChatSession, ChatAttachment, ChatMode, AttachmentType } from '@/types/chat'
 import { generateId } from '@/types/chat'
 import type { AIHubStatus, AIHubProvider } from '@/types/ipc'
 
@@ -23,7 +17,7 @@ interface ChatState {
   clearCurrentSession: () => void
 
   // 消息管理
-  addMessage: (message: Omit<ChatMessage, 'id' | 'timestamp'>) => void
+  addMessage: (message: Omit<ChatMessage, 'id' | 'timestamp'> & { id?: string }) => void
   deleteMessage: (messageId: string) => void
 
   // 模式管理
@@ -57,35 +51,6 @@ interface ChatState {
 
   // AI 提炼标题
   generateTitle: (sessionId: string) => Promise<void>
-}
-
-// Phase 1-C 占位响应（模拟 Agent 回复，仅在 AI Hub 不可用时使用）
-const MOCK_RESPONSES: Record<ChatMode, string> = {
-  template: `您好！我是模板助手，可以帮助您：
-
-1. **创建新模板** - 从现有项目中提取配置模板
-2. **修改模板** - 调整 Jinja2 模板变量和结构
-3. **校验模板** - 检查模板语法和变量完整性
-4. **模板推荐** - 根据需求推荐合适的模板
-
-请上传您的项目文件或描述您的需求，我会帮您分析处理。`,
-  config: `您好！我是配置问答助手，可以帮助您：
-
-1. **项目创建** - 根据模板创建新项目
-2. **配置渲染** - 生成设备配置文件
-3. **参数校验** - 检查 Excel 参数表完整性
-4. **配置对比** - 对比新旧配置差异
-
-请描述您的需求，或上传相关文件（Excel 参数表、YAML 配置等）。`,
-  general: `您好！我是 MagicCommander AI 助手，可以帮您解决以下问题：
-
-- 网络设备配置管理
-- 项目模板创建与优化
-- 批量渲染与输出
-- 标签打印与管理
-- 配置校验与对比
-
-请随时向我提问，我会尽力协助您。`,
 }
 
 export const useChatStore = create<ChatState>()(
@@ -128,16 +93,14 @@ export const useChatStore = create<ChatState>()(
         if (!activeId) return
         set((s) => ({
           currentMode: mode,
-          sessions: s.sessions.map((ses) =>
-            ses.id === activeId ? { ...ses, mode, updatedAt: Date.now() } : ses,
-          ),
+          sessions: s.sessions.map((ses) => (ses.id === activeId ? { ...ses, mode, updatedAt: Date.now() } : ses)),
         }))
       },
 
       deleteSession: (id) => {
         set((s) => {
           const filtered = s.sessions.filter((ses) => ses.id !== id)
-          const newActiveId = s.activeSessionId === id ? (filtered[0]?.id || null) : s.activeSessionId
+          const newActiveId = s.activeSessionId === id ? filtered[0]?.id || null : s.activeSessionId
           return { sessions: filtered, activeSessionId: newActiveId }
         })
       },
@@ -162,7 +125,7 @@ export const useChatStore = create<ChatState>()(
 
         const newMsg: ChatMessage = {
           ...message,
-          id: (message as any).id || generateId(),
+          id: message.id || generateId(),
           timestamp: Date.now(),
         }
 
@@ -173,9 +136,10 @@ export const useChatStore = create<ChatState>()(
                   ...ses,
                   messages: [...ses.messages, newMsg],
                   // 首条用户消息自动设置会话标题
-                  title: ses.messages.length === 0 && message.role === 'user'
-                    ? (message.content || '').slice(0, 20) || ses.title
-                    : ses.title,
+                  title:
+                    ses.messages.length === 0 && message.role === 'user'
+                      ? (message.content || '').slice(0, 20) || ses.title
+                      : ses.title,
                   updatedAt: Date.now(),
                 }
               : ses,
@@ -188,9 +152,7 @@ export const useChatStore = create<ChatState>()(
         if (!activeId) return
         set((s) => ({
           sessions: s.sessions.map((ses) =>
-            ses.id === activeId
-              ? { ...ses, messages: ses.messages.filter((m) => m.id !== messageId) }
-              : ses,
+            ses.id === activeId ? { ...ses, messages: ses.messages.filter((m) => m.id !== messageId) } : ses,
           ),
         }))
       },
@@ -198,7 +160,7 @@ export const useChatStore = create<ChatState>()(
       setMode: (mode) => set({ currentMode: mode }),
 
       addAttachment: async (file: File) => {
-        const path = (file as any).path || file.name
+        const path = (file as File & { path?: string }).path || file.name
         const attachment: ChatAttachment = {
           id: generateId(),
           name: file.name,
@@ -231,12 +193,13 @@ export const useChatStore = create<ChatState>()(
       },
 
       generateTitle: async (sessionId) => {
-        const session = get().sessions.find(s => s.id === sessionId)
+        const session = get().sessions.find((s) => s.id === sessionId)
         if (!session) return
-        const userMsg = session.messages.find(m => m.role === 'user')
+        const userMsg = session.messages.find((m) => m.role === 'user')
         if (!userMsg?.content) return
         // 已有 AI 标题则跳过
-        if (session.title && session.title !== i18n.t('chat:session.newChat') && !session.title.startsWith('新对话')) return
+        if (session.title && session.title !== i18n.t('chat:session.newChat') && !session.title.startsWith('新对话'))
+          return
         try {
           const aiHub = window.electron?.aihub
           if (!aiHub) return
@@ -260,17 +223,23 @@ export const useChatStore = create<ChatState>()(
             if (sid === `title_${sessionId}`) title += chunk
           })
           await new Promise<void>((resolve) => {
-            setTimeout(() => { unsub(); resolve() }, 8000) // 最多等 8 秒
+            setTimeout(() => {
+              unsub()
+              resolve()
+            }, 8000) // 最多等 8 秒
           })
-          const cleanTitle = title.replace(/[""'']/g, '').trim().slice(0, 15)
+          const cleanTitle = title
+            .replace(/[""'']/g, '')
+            .trim()
+            .slice(0, 15)
           if (cleanTitle && cleanTitle.length >= 2) {
             set((s) => ({
-              sessions: s.sessions.map(ses =>
-                ses.id === sessionId ? { ...ses, title: cleanTitle } : ses
-              ),
+              sessions: s.sessions.map((ses) => (ses.id === sessionId ? { ...ses, title: cleanTitle } : ses)),
             }))
           }
-        } catch { /* 静默失败，保持默认标题 */ }
+        } catch {
+          /* 静默失败，保持默认标题 */
+        }
       },
     }),
     {
@@ -319,11 +288,6 @@ function getAttachmentTypeByExt(fileName: string): AttachmentType {
   }
 }
 
-// 导出占位响应函数（仅在 AI Hub 不可用时使用）
-export function getMockResponse(mode: ChatMode): string {
-  return MOCK_RESPONSES[mode] || MOCK_RESPONSES.general
-}
-
 /**
  * 发送消息（真实 AI Hub 流式响应）
  * 如果 AI Hub 不可用，回退到模拟响应
@@ -356,7 +320,7 @@ export async function sendMessage(
     role: 'assistant',
     content: '',
     mode,
-  } as any)
+  })
 
   // 尝试使用 AI Hub
   try {
@@ -401,11 +365,7 @@ export async function sendMessage(
 
     // 策略路由：根据消息内容自动选择最优 Provider
     if (aiConfig.routingEnabled && aiConfig.routingRules.length > 0) {
-      const resolved = await aiHub.resolveProvider(
-        content,
-        aiConfig.routingRules,
-        aiConfig.defaultProvider,
-      )
+      const resolved = await aiHub.resolveProvider(content, aiConfig.routingRules, aiConfig.defaultProvider)
       if (resolved && resolved !== provider) {
         console.log(`[chat.store] 策略路由: ${provider} → ${resolved}`)
         provider = resolved
@@ -423,9 +383,7 @@ export async function sendMessage(
           ses.id === sessionId
             ? {
                 ...ses,
-                messages: ses.messages.map((m) =>
-                  m.id === aiMsgId ? { ...m, content: fullContent } : m,
-                ),
+                messages: ses.messages.map((m) => (m.id === aiMsgId ? { ...m, content: fullContent } : m)),
               }
             : ses,
         ),
@@ -449,19 +407,18 @@ export async function sendMessage(
       useUIStore.getState().autonomyMode,
     )
 
-    const timeoutPromise = new Promise<string>((_, reject) =>
-      setTimeout(() => reject(new Error('timeout')), timeoutMs),
-    )
+    const timeoutPromise = new Promise<string>((_, reject) => setTimeout(() => reject(new Error('timeout')), timeoutMs))
 
     await Promise.race([chatPromise, timeoutPromise])
     unsub()
     store.setIsSending(false)
-  } catch (err: any) {
-    const errorMsg = err?.message || i18n.t('chat:aihub.error.unknown')
+  } catch (err) {
+    const errorMsg = (err instanceof Error ? err.message : String(err)) || i18n.t('chat:aihub.error.unknown')
 
     // 如果已有流式内容，追加错误提示
-    const currentMsg = useChatStore.getState().sessions
-      .find((s) => s.id === sessionId)
+    const currentMsg = useChatStore
+      .getState()
+      .sessions.find((s) => s.id === sessionId)
       ?.messages.find((m) => m.id === aiMsgId)
 
     const existingContent = currentMsg?.content || ''
@@ -487,11 +444,7 @@ export async function sendMessage(
           ses.id === sessionId
             ? {
                 ...ses,
-                messages: ses.messages.map((m) =>
-                  m.id === aiMsgId
-                    ? { ...m, content: `> 错误: ${errorMsg}` }
-                    : m,
-                ),
+                messages: ses.messages.map((m) => (m.id === aiMsgId ? { ...m, content: `> 错误: ${errorMsg}` } : m)),
               }
             : ses,
         ),
@@ -499,44 +452,6 @@ export async function sendMessage(
     }
 
     store.setIsSending(false)
-    throw err  // 抛出给 ChatPanel 显示错误提示
+    throw err // 抛出给 ChatPanel 显示错误提示
   }
-}
-
-// 模拟发送消息（Phase 1-C 占位，Phase 2 替换为真实流式响应）
-export async function simulateSendMessage(
-  store: ReturnType<typeof useChatStore.getState>,
-  content: string,
-  mode: ChatMode,
-  attachments: ChatAttachment[],
-) {
-  // 添加用户消息
-  store.addMessage({
-    role: 'user',
-    content,
-    mode,
-    attachments: attachments.length > 0 ? [...attachments] : undefined,
-  })
-
-  store.setIsSending(true)
-
-  // 模拟延迟
-  await new Promise((resolve) => setTimeout(resolve, 800 + Math.random() * 1200))
-
-  // 添加 AI 占位回复
-  let response = getMockResponse(mode)
-  if (attachments.length > 0) {
-    const fileList = attachments.map((a) => `- ${a.name} (${a.type})`).join('\n')
-    response = `已收到您的消息和以下附件：\n\n${fileList}\n\n---\n\n${response}`
-  }
-
-  store.addMessage({
-    role: 'assistant',
-    content: response,
-    mode,
-  })
-
-  store.setIsSending(false)
-  store.setInputValue('')
-  store.clearAttachments()
 }

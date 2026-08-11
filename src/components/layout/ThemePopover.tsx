@@ -17,13 +17,7 @@ const THEME_OPTIONS: { value: 'light' | 'dark' | 'system'; icon: typeof Sun; lab
   { value: 'system', icon: Monitor, labelKey: 'menu.systemMode' },
 ]
 
-export function ThemePopover({
-  open,
-  onClose,
-  isDark,
-  currentTheme,
-  onSelect,
-}: ThemePopoverProps) {
+export function ThemePopover({ open, onClose, isDark, currentTheme, onSelect }: ThemePopoverProps) {
   const { t } = useTranslation()
 
   const handleSelect = (theme: 'light' | 'dark' | 'system') => {
