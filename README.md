@@ -2,14 +2,15 @@
 
 **批量生成网络设备配置 | Network Device Configuration Automation**
 
-[![Version](https://img.shields.io/badge/version-3.5.4-blue)](https://github.com/bangbang8000-cell/MagicCommander)
+[![Version](https://img.shields.io/badge/version-3.6.0-blue)](https://github.com/bangbang8000-cell/MagicCommander/releases)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![Windows](https://img.shields.io/badge/Windows-NSIS-blue)](https://github.com/bangbang8000-cell/MagicCommander/releases)
 [![macOS](https://img.shields.io/badge/macOS-DMG-silver)](https://github.com/bangbang8000-cell/MagicCommander/releases)
 [![Linux](https://img.shields.io/badge/Linux-AppImage%20%7C%20deb-orange)](https://github.com/bangbang8000-cell/MagicCommander/releases)
-[![Languages](https://img.shields.io/badge/languages-12-orange)](https://github.com/bangbang8000-cell/MagicCommander)
+[![Languages](https://img.shields.io/badge/languages-6-orange)](https://github.com/bangbang8000-cell/MagicCommander)
 [![AI](https://img.shields.io/badge/AI--Powered-DeepSeek%20%7C%20OpenAI%20%7C%209%20Providers-purple)](https://github.com/bangbang8000-cell/MagicCommander)
-[![Cloud](https://img.shields.io/badge/Cloud%20Connect-Gitea%20%7C%20JWT%20%7C%20QR%20Login-cyan)](https://github.com/bangbang8000-cell/MagicCommander/tree/main/docs)
+[![Tests](https://img.shields.io/badge/tests-225%20passing-brightgreen)](https://github.com/bangbang8000-cell/MagicCommander/actions)
+[![CI](https://img.shields.io/badge/CI-passing-brightgreen)](https://github.com/bangbang8000-cell/MagicCommander/actions)
 
 
 ## 你还在手动配置每一台交换机吗？
@@ -41,10 +42,10 @@ MagicCommander 将你的网络设备参数（Excel 表格）和设备配置模�
 用 Jinja2 语法编写一次配置模板，后续所有项目、所有设备都基于同一套模板生成配置。模板改了，重新渲染即可，不必逐台修改。
 
 ```jinja2
-interface {{ interface_name }}
- description {{ description }}
+interface {{ info['接口名'] }}
+ description {{ info['终端名称'] }}
  switchport mode access
- switchport access vlan {{ vlan_id }}
+ switchport access vlan {{ info['接入VLAN'] }}
  no shutdown
 ```
 
@@ -54,27 +55,34 @@ interface {{ interface_name }}
 
 ### 一键批量渲染，可追踪进度
 
-选好模板和参数，点击渲染，MagicCommander 逐项目生成配置文件和 YAML 中间文件。渲染进度实时可见，日志清晰记录每一步处理结果。
+选好模板和参数，点击渲染，MagicCommander 逐项目生成配置文件和 YAML 中间文件。渲染进度实时可见，日志清晰记录每一步处理结果。**渲染带输入指纹缓存**——参数与模板未变化时，再次渲染直接复用上次结果，秒级完成。
+
+### 渲染预演与校验，配置零差错
+
+- **dry-run 预演**：预览生成结果但不写入文件，确认无误再正式渲染
+- **Jinja2 语法校验**：渲染前解析模板，提前发现语法错误
+- **Excel 数据校验**：检查必要 sheet、列、空值、类型异常
+- **diff 对比**：预演结果与已有输出一键对比，变更一目了然
 
 ### 设备标签自动生成，直接打印
 
-从 hostname 表格自动提取设备名、SN、型号、机柜位置、管理 IP 等信息，生成 Word 格式的标签文档，支持 A4/A5 纸张、横纵向打印、自定义每页标签数量。同时支持 Markdown 预览和 PDF 导出，满足不同场景需求。
+从 hostname 表格自动提取设备名、SN、型号、机柜位置、管理 IP 等信息，生成 Word/Markdown 格式的标签文档，支持 A4/A5 纸张、横纵向打印、自定义每页标签数量，可导出 PDF。
 
-### 12 种语言，全球团队可用
+### Jinja2 专业编辑器 + 智能补全
 
-MagicCommander 支持简体中文、English、日本語、한국어、Français、Deutsch、Español、Português、Русский、العربية（含从右到左布局）、Tiếng Việt、ไทย 共 12 种语言，多语言运维团队无缝协作。
+内建 Monaco Editor（VS Code 同款编辑器），支持 Jinja2 语法高亮、代码补全、多标签页管理。**智能补全会从项目 Excel 参数表自动提取字段名**，输入 `info['` 即可获得字段提示；切换标签页不再丢失编辑器的撤销历史。
 
-### 离线桌面应用，数据安全可控
+### 跨项目全文搜索
 
-MagicCommander 是本地桌面软件（Electron + React + TypeScript），所有数据存放在你的电脑上，无需联网，不上传云端，企业数据安全有保障。
+搜索面板支持单项目与**全部项目**两种范围，可按文件名或文件内容搜索，文件类型可过滤（模板/Excel/输出/文本等），结果可一键跳转编辑。
 
-### 专业 Jinja2 编辑器
+### 模板资产中心
 
-内建 Monaco Editor（VS Code 同款编辑器），支持 Jinja2 语法高亮、代码补全、多标签页管理，模板编写体验不输专业 IDE。
+内置示例模板（交换机 ASW/PSW/DOA 配置）一键创建新项目；支持将现有项目保存为模板供团队复用；**每个模板自动进行质量评级（A/B/C/D）**，基于变量复杂度、Excel 数据质量与交叉引用打分，帮助快速判断模板质量。
 
 ### AI 智能助手，对话式配置管理
 
-MagicCommander 内建 AI Hub，支持 DeepSeek、OpenAI、Claude、Gemini、Qwen、GLM、Grok、Ollama 等 9 种大模型。通过自然语言对话即可完成项目管理、配置渲染、模板分析、优化建议等操作，无需记忆 CLI 命令。
+MagicCommander 内建 AI Hub，支持 DeepSeek、OpenAI、Claude、Gemini、Qwen、GLM、Grok、Ollama 等 9 种大模型。通过自然语言对话即可完成项目管理、配置渲染、模板分析、优化建议等操作。
 
 **AI 对话式工作流示例**：
 
@@ -85,7 +93,7 @@ AI: [调用 list_projects → 找到 test1]
     "test1 项目包含 3 个模板(ASW/DOA/PSW)和 5 个 Excel 文件。
      DOA.j2 复杂度较高(15 个变量)，建议拆分为子模板；
      devices.xlsx 第 3 行有空值，建议补全。"
-    
+
 你: "渲染 test1 项目"
 AI: [调用 render_config → 生成 22 台设备配置]
     "已生成 22 台设备配置，输出目录: output/。
@@ -94,32 +102,30 @@ AI: [调用 render_config → 生成 22 台设备配置]
 
 支持 **智能路由**——根据任务类型（编码/分析/问答/推理）自动选择最优模型。AI 可调用 27 个内置工具，包括项目创建、配置渲染、Excel 分析、模板复杂度评估、dry-run 预演、diff 对比、标签生成、配置反向生成等。
 
-### 模板中心，快速启动项目
+### Cloud Connect — 云平台集成
 
-从内置示例模板（交换机 ASW/PSW/DOA 配置）一键创建新项目，自动生成标准目录结构（templates / excel / output / yaml）。也可以将现有项目保存为模板，团队复用。
-
-### Cloud Connect — 云平台集成 (v3.5.0)
-
-MagicCommander v3.5.0 引入 **Cloud Connect** 云平台集成，通过自建 MagicCommander Platform（基于 Gitea + FastAPI）实现团队协作：
+MagicCommander 支持连接自建 MagicCommander Platform（基于 Gitea + FastAPI）实现团队协作：
 
 - **模板市场**：浏览、搜索、安装云端模板，支持按分类筛选
 - **项目同步**：本地项目一键推送至云端，云端项目拉取到本地，自动检测同步状态
 - **QR 扫码登录**：支持飞书 / QQ / 微信扫码登录，JWT Token 自动刷新
 - **通知中心**：实时接收平台公告和版本更新提醒
 - **用户资料**：云端用户档案管理，支持平台账号绑定
-- **多语言界面**：13 种语言完整翻译，包括云端功能所有界面
 
-### 渲染预演与校验，配置零差错
+### 6 种语言，全球团队可用
 
-渲染前支持 **dry-run 预演**——预览生成结果但不写入文件，确认无误再正式渲染。内置 **Jinja2 语法校验**和 **Excel 数据校验**，提前发现模板错误和参数缺失，避免渲染到一半才报错。渲染结果支持 **diff 对比**，变更一目了然。
+支持简体中文、繁體中文、English、日本語、한국어、Français 共 6 种语言（含 RTL 适配），多语言运维团队无缝协作。
 
-### AI 驱动，让配置管理更智能
+### 离线桌面应用，数据安全可控
 
-不只是批量生成工具。MagicCommander 的 AI 引擎能 **分析你的模板质量**、**检测 Excel 数据问题**、**推荐合适的模板**，甚至 **从现有配置反向生成 Jinja2 模板**。用自然语言告诉 AI 你的需求，剩下的交给它。
+MagicCommander 是本地桌面软件（Electron + React + TypeScript），所有数据存放在你的电脑上，无需联网，不上传云端，企业数据安全有保障。
 
-### 12 种语言，面向全球运维团队
+### 可靠与安全
 
-MagicCommander 支持中文（简体/繁体）、English、日本語、한국어、Français、Deutsch、Español、Português、Русский、العربية、Tiếng Việt、ไทย 共 12 种语言，适配全球运维团队需求。
+- 内建渲染缓存、单实例锁、渲染进程崩溃自动恢复
+- Jinja2 模板沙箱执行，杜绝模板恶意代码执行
+- 路径白名单 + 输入校验，杜绝越权读写
+- API Key 本地加密存储，云平台管理接口鉴权
 
 ---
 
@@ -127,7 +133,7 @@ MagicCommander 支持中文（简体/繁体）、English、日本語、한국어
 
 ### 1. 安装
 
-从 [GitHub Releases](https://github.com/bangbang8000-cell/MagicCommander/releases) 下载对应平台的安装包，双击运行安装向导即可。请确保你的电脑已安装 Python 3.8+。
+从 [GitHub Releases](https://github.com/bangbang8000-cell/MagicCommander/releases) 下载对应平台的安装包，双击运行安装向导即可。Windows 版本已内嵌 Python 运行时，无需单独安装。
 
 如果想从源码运行：
 
@@ -135,16 +141,17 @@ MagicCommander 支持中文（简体/繁体）、English、日本語、한국어
 git clone https://github.com/bangbang8000-cell/MagicCommander.git
 cd MagicCommander
 npm install
+pip install -r backend/requirements.txt
 npm run dev:all
 ```
 
 ### 2. 创建项目
 
-打开 MagicCommander，点击左侧活动栏的项目浏览器图标，新建一个项目。项目会自动生成 `templates / excel / output / yaml` 四个目录。
+打开 MagicCommander，点击左侧活动栏的项目浏览器图标，新建一个项目。项目会自动生成 `templates / excel / output / yaml` 四个目录。也可以从 **模板中心** 的内置示例模板一键创建。
 
 ### 3. 编写模板 + 填写参数 + 一键渲染
 
-在 `templates` 目录下创建 `.j2` 模板文件，在 `excel` 目录下填写设备参数，切换到工作台面板，点击"开始渲染"——配置文件即刻生成到 `output` 目录。
+在 `templates` 目录下创建 `.j2` 模板文件（带智能补全），在 `excel` 目录下填写设备参数，切换到工作台面板，点击"开始渲染"——配置文件即刻生成到 `output` 目录。
 
 ---
 
@@ -154,20 +161,18 @@ npm run dev:all
 项目名称/
 ├── templates/       # Jinja2 模板 (.j2)
 ├── excel/           # 设备参数表 (.xlsx)
-├── output/          # 生成的配置文件 (.txt)
+├── output/          # 生成的配置文件 (.txt)  [按时间戳分目录]
 ├── yaml/            # 生成的 YAML 中间文件
 └── output-label/    # 生成的设备标签 (.docx / .md / .pdf)
-    └── 2026_07_16_01_02_03/   # 按时间戳组织
+    └── 2026_08_11_01_02_03/   # 按时间戳组织
         ├── xxx_label.docx
         ├── xxx_label.md
         └── xxx_label.pdf
 ```
 
----
-
 ## 技术栈
 
-Electron 28 · React 18 · TypeScript 5 · Vite 5 · TailwindCSS 3 · Zustand 4 · Monaco Editor 4 · Python 3 · Jinja2 · FastAPI · LangChain · Gitea · JWT · i18next (6 语言)
+Electron 28 · React 18 · TypeScript 5 · Vite 5 · TailwindCSS 3 · Zustand 4 · Monaco Editor · Python 3.11 · Jinja2 · FastAPI · Gitea · JWT · i18next (6 语言) · Vitest
 
 ## 项目架构
 
@@ -179,21 +184,20 @@ MagicCommander/
 │   ├── i18n/             # 6 语言国际化
 │   ├── api/              # 云端 API 客户端 (platform.ts)
 │   └── types/            # TypeScript 类型定义
-├── backend/              # Python CLI 后端
+├── backend/              # Python 渲染引擎 (Excel→参数→Jinja2→配置)
 │   ├── main.py           # 统一命令行入口
-│   ├── analyzer.py       # 项目分析引擎 (模板复杂度/Excel质量/交叉引用)
+│   ├── pre_processing.py # 渲染管线（含输入指纹缓存）
+│   ├── analyzer.py       # 项目/模板质量分析引擎
 │   └── requirements.txt  # Python 依赖
-├── ai_hub/               # AI Hub 服务 (FastAPI)
-│   ├── api/              # REST API 端点
-│   ├── agent/            # Agent 框架 (27 Tools + Tool Calling)
+├── ai_hub/               # AI Hub 服务 (FastAPI Agent)
+│   ├── agent/            # Agent 框架 (27 Tools + 工具权限分级)
+│   ├── llm/              # 9 Provider 适配 (OpenAI 兼容接口)
 │   └── prompts/          # LLM 系统提示词与工具规范
-├── electron/             # Electron 主进程
-├── public/               # 静态资源 (图标/文档)
+├── electron/             # Electron 主进程 (IPC / 安全 / 更新)
+├── public/               # 静态资源 (图标/文档/使用指南)
 ├── resources/            # 嵌入式 Python 运行时
-└── docs/                 # 开发文档与计划 (PRD / Cloud / 部署指南)
+└── docs/                 # 开发文档与计划
 ```
-
----
 
 ## 快捷键
 
@@ -208,7 +212,6 @@ MagicCommander/
 | `Ctrl+Shift+F` | 切换到搜索面板 |
 | `Ctrl+Shift+R` | 切换到工作台 |
 | `Ctrl+Shift+O` | 切换到输出结果 |
-| `Ctrl+Shift+W` | 切换到工作台 |
 | `Ctrl+Shift+H` | 切换到 AI 对话 |
 | `Ctrl+Shift+C` | 切换到云平台 |
 | `Ctrl+,` | 打开设置 |
@@ -222,7 +225,7 @@ MagicCommander/
 
 **Q: 渲染失败怎么办？**
 
-检查 Python 是否已安装（`python --version`），确认已执行 `pip install -r backend/requirements.txt` 安装依赖，再检查 Excel 参数表格式和模板语法是否正确。
+检查 Python 是否已安装（`python --version`），确认已执行 `pip install -r backend/requirements.txt` 安装依赖，再检查 Excel 参数表格式和模板语法是否正确。Windows 发布版已内嵌 Python，通常无需手动安装。
 
 **Q: Excel 文件打不开？**
 
@@ -230,7 +233,11 @@ MagicCommander/
 
 **Q: 如何恢复项目数据？**
 
-所有项目数据存储在本地 `backend/` 目录下，备份该目录即可。删除项目前会有二次确认弹窗，避免误操作。
+所有项目数据存储在本地 `workspace/` 目录下，备份该目录即可。删除项目前会有二次确认弹窗，避免误操作。渲染输出支持撤销（渲染前自动备份最近 5 份）。
+
+**Q: 如何配置 AI 助手？**
+
+打开设置面板 → AI 标签 → 选择 Provider → 填写 API Key（Ollama 本地部署无需 Key）→ 测试连接。详见使用指南「AI 智能助手」章节。
 
 ---
 
@@ -238,70 +245,33 @@ MagicCommander/
 
 | 版本 | 日期 | 更新内容 |
 |------|------|---------|
-| **3.5.3 Build 26072403** | 2026-07-24 | **搜索体验重构**：AI 搜索面板升级为默认主视图，移除子搜索面板，统一搜索入口；修复模板 API 路由和连接问题 |
-| **3.5.2 Build 26072402** | 2026-07-24 | **Phase 2 UX 全面升级**：Toast 错误提示、分页排序、下载计数、密码掩码、加载状态优化、国际化完善 |
-| **3.5.0 Build 26072301** | 2026-07-23 | **Cloud Connect 云平台集成**：MagicCommander Platform 连接 (Gitea + FastAPI + JWT)、QR 扫码登录 (飞书/QQ/微信)、Token 自动刷新、模板市场 (搜索/分类/安装)、项目云端同步 (推送/拉取/冲突检测)、通知中心 (公告/版本更新)、用户资料管理、云端仪表盘、13 语言完整 i18n、UI 全面重构 (设置面板分5标签、ActivityBar 排序优化) |
-| **3.5.0 Build 26072101** | 2026-07-21 | **菜单系统重构**：Ctrl+S 去重、视图菜单歧义修复、快捷键注册表补齐(8→23)、标签页右键菜单、Alt+字母菜单导航、Cheatsheet i18n、命令面板(Ctrl+Shift+P)；**面板合并**：渲染操作+工作台合并(⚡闪电图标)、标签打印卡片、输出结果快捷跳转；**模板中心优化**：工具栏压缩、卡片内联展开+文件树、模板文件点击加载到编辑器、创建项目 Modal 对话框；**视觉统一**：暗色模式底色统一(Monaco自定义主题)、全局字体11→7种、JSON语法高亮；新增 IPC: readTemplateFile/readTemplateExcel |
-| **3.4.1 Build 26072006** | 2026-07-20 | 修复关于对话框版本号显示问题，触发正式编译发布 |
-| **3.4.0 Build 26072004** | 2026-07-20 | **Agent v2 智能编排引擎**：Planner/Validator/Context/Recovery/Reporter 五层架构、Skills Engine (7 预置 Skill + 半自动生成)、Memory System (用户画像+项目历史+操作习惯)、工具权限分级 (auto/notify/confirm) + 自主模式、27 工具 Agent 框架；**Chat UI 全面重构**：会话横向标签栏 + 溢出历史下拉、AI 自动提炼会话标题、模式/自主模式精简到设置、字体大小可调节、清除/新建图标语义修正；**可靠性修复**：render/dry-run JSON 解析 (平衡括号提取)、工具结果进度过滤、XML/JSON 截断容错解析、确认级工具权限修正 (semi_auto 也需确认) |
-| **3.3.2 Build 26072003** | 2026-07-20 | AI 工具集扩展 (14→27 工具)、项目分析引擎 (analyze_project)、自动优化建议、Logo 加载修复 (file:// 协议兼容)、i18n 多语言完善 (修复 12 处硬编码文本) |
-| **3.3.1 Build 26072002** | 2026-07-20 | 多 Provider 策略路由 (智能路由引擎)、tool_calls XML 格式解析 + 参数名自动修正、CLI 项目名支持 (非数字 ID)、Windows GBK 编码修复、system.md 提示词增强 |
-| **3.3.0 Build 26071901** | 2026-07-19 | AI Hub 核心功能：FastAPI 子进程生命周期管理、9 LLM Provider (DeepSeek/OpenAI/Claude/Gemini/Qwen/GLM/Grok/Ollama/自定义)、Agent 框架 (14 Tools)、SSE 流式响应、AI 对话 Chat UI、设置面板 AI 配置 (测试连接/获取模型)、语言/主题/更新 Popover 下拉菜单 |
-| **3.1.0 Build 26071702** | 2026-07-17 | Phase 1 体验升级：模板中心（示例模板 + 从模板创建项目）、dry-run 渲染预演、Jinja2 语法校验、Excel 数据校验、diff 对比、搜索增强（输出文件类型过滤）、ResizeHandle 拖拽修复 |
-| **3.0.4 Build 26071602** | 2026-07-16 | Phase 0 质量基线：Jinja2 语法高亮（Monaco Editor + vscode-textmate）、Markdown 标签生成与 PDF 导出、输出目录统一重构（output-label/时间戳/）、搜索面板 Markdown 类型过滤、中栏项目浏览器布局优化（多选批量操作、拖拽分栏、排序切换） |
-| **3.0.3 Build 26071601** | 2026-07-16 | 完成 Phase 0 质量基线：渲染缓存/撤销、Python CLI 统一入口、结构化日志、ESLint/Prettier 配置、26 个自动化测试 |
-| **3.0.1 Build 26071402** | 2026-07-14 | 修复文件菜单新建项目弹窗触发、示例模板列表、项目渲染 Python 失败、另存为示例 API 缺失等问题，并同步 Electron 构建产物 |
-| **3.0.0 Build 26071401** | 2026-07-14 | V3.0 正式版：采用 `V{MAJOR}.{MINOR}.{PATCH} Build {YYMMDDNN}` 版本规则；新增发布版检查更新/下载/重启安装入口，优化终端 help 布局与右键复制，完善日志分类展示，并将 Actions 发布流程调整为仅在版本 tag 推送后触发编译发布 |
-| 2.9.9 | 2026-07-13 | 完善日志与终端体验：日志接入后台命令输出，支持信息/成功/警告/错误分类、搜索和来源标签；终端首次打开自动显示 help，并增强多语言支持 |
-| 2.9.8 | 2026-07-13 | 以本地程序和数据为准同步工作区、示例项目与界面优化 |
-| 2.9.2 | 2026-07-01 | 跨平台编译支持：Windows (NSIS) / macOS (DMG x64+arm64) / Linux (AppImage+deb) |
-| 2.9.1 | 2026-07-01 | 多语言国际化支持（12 种语言）、RTL 布局支持、UI 优化 |
-| 2.1.0 | 2026-06-22 | 修复文件显示问题，优化布局 |
-| 2.0.0 | - | 重构为 Electron + React 架构 |
+| **3.6.0 Build 26081101** | 2026-08-11 | **安全加固 + 工程质量 + 性能优化 + Beta 功能**：修复 RCE/路径穿越/删库级漏洞、Jinja2 沙箱、AI Hub 本地鉴权、云平台默认口令；lint 188→0 + CI 门禁 + 测试 225 个；渲染输入指纹缓存、sheet 按需读取、Monaco 非受控 + 标签保留 undo 栈、AI 工具异步化；删除 AI Hub/前端死代码、修复 CONFIRM 确认流程、Ollama 注册；新增单实例锁 + 崩溃恢复、跨项目全文搜索、Jinja2 变量智能补全、模板质量评级 |
+| **3.5.4 Build 26072403** | 2026-08-06 | 品牌统一（Logo 蓝色主题）、语言简化至 6 种 |
+| **3.5.3 Build 26072403** | 2026-07-24 | **搜索体验重构**：AI 搜索面板升级为默认主视图，统一搜索入口 |
+| **3.5.2 Build 26072402** | 2026-07-24 | **Phase 2 UX 全面升级**：Toast 错误提示、分页排序、下载计数、密码掩码、加载状态优化 |
+| **3.5.0 Build 26072301** | 2026-07-23 | **Cloud Connect 云平台集成**：Gitea + FastAPI + JWT、QR 扫码登录、模板市场、项目同步、通知中心、13 语言 → 多语言完善 |
+| **3.4.0 Build 26072004** | 2026-07-20 | **Agent v2 智能编排引擎**：工具权限分级、Skills 引擎、Memory 系统、27 工具 Agent 框架、Chat UI 重构 |
+| **3.3.0 Build 26071901** | 2026-07-19 | **AI Hub 核心功能**：FastAPI 子进程、9 LLM Provider、Agent 框架、SSE 流式、AI 对话 UI |
+| **3.1.0 Build 26071702** | 2026-07-17 | **Phase 1 体验升级**：模板中心、dry-run 预演、Jinja2/Excel 校验、diff 对比 |
+| **3.0.0 Build 26071401** | 2026-07-14 | V3.0 正式版：Electron + React + TypeScript 架构重构、自动更新 |
+| 2.x | - | 早期版本（V2 架构） |
 
 ---
 
-## V3.0 路线图
-
-MagicCommander V3.0 升级为 **AI 驱动的网络配置工程平台**，分四个阶段推进：
+## V3 路线图
 
 | 阶段 | 时间 | 状态 | 核心交付 |
 |------|------|------|---------|
-| [Alpha](https://github.com/bangbang8000-cell/MagicCommander/milestone/1) | 2026.07 - 2026.07 | 已完成 | AI Hub + Agent v2 + Cloud Connect 云平台集成 |
-| [Beta](https://github.com/bangbang8000-cell/MagicCommander/milestone/2) | 2026.08 - 2026.09 | 进行中 | 智能校对 + 增强搜索 + 模板资产中心 + Excel/Jinja2 深度集成 |
-| [GA](https://github.com/bangbang8000-cell/MagicCommander/milestone/3) | 2026.10 - 2026.12 | 待开始 | 社区分享中心 + 协作审阅 + 项目生命周期 + 权限体系 |
-| [Scale](https://github.com/bangbang8000-cell/MagicCommander/milestone/4) | 2027.01 - 2027.03 | 待开始 | Ansible/Nornir 推送 + CI/CD 流水线 + 多租户 + 监控告警 |
-
-**Alpha 阶段 (v3.0.0 → v3.5.0) 已完成交付**：
-
-| Build | 版本 | 核心交付 |
-|-------|------|---------|
-| 26071401 | v3.0.0 | V3 基础架构：Electron 28 + React 18 + TypeScript 5，发布版检查更新 |
-| 26071602 | v3.0.4 | 质量基线：Monaco Jinja2 语法高亮、Markdown 标签打印、PDF 导出 |
-| 26071702 | v3.1.0 | Phase 1：模板中心、dry-run 预演、Jinja2/Excel 校验、diff 对比 |
-| 26071901 | v3.3.0 | AI Hub 核心：FastAPI + 9 LLM Provider + Agent 14 Tools + SSE 流式 |
-| 26072002 | v3.3.1 | 多 Provider 策略路由 + System Prompt 增强 |
-| 26072003 | v3.3.2 | 工具集扩展 14→27 + 项目分析引擎 + 自动优化建议 |
-| 26072004 | v3.4.0 | Agent v2 智能编排 (Planner/Validator/Recovery/Skills/Memory) + Chat UI 重构 |
-| 26072101 | v3.5.0 | 菜单系统重构 + 面板合并 + 命令面板 + 6 语言 |
-| **26072402** | **v3.5.2** | **Phase 2 UX 全面升级：Toast 错误 + 分页排序 + 密码掩码 + 加载状态** |
-| **26072403** | **v3.5.3** | **搜索体验重构：AI 搜索升级为默认主视图 + 模板 API 修复** |
-
-**Beta 阶段进行中**：
-- 智能校对与配置自动修正
-- 增强搜索（全文搜索 + 正则 + 跨项目搜索）
-- 模板资产中心（版本管理 + 质量评级 + 调试沙盒）
-- Excel/Jinja2 深度集成（变量智能补全、依赖分析、模板片段复用）
-
-**技术栈**：Electron 28 · React 18 · TypeScript 5 · Vite 5 · TailwindCSS 3 · Zustand 4 · Monaco Editor 4 · Python 3.11 · Jinja2 · FastAPI · LangChain · Gitea · JWT · i18next (6 语言) · simple-git
-
-**产品需求文档**：[PRD v2.0](docs/prd/magiccommander-prd_v2.0_2026-07-07/magiccommander-prd_v2.0_2026-07-07.html) | **云平台集成 PRD**：[CLIENT_CLOUD_INTEGRATION_PRD.md](CLIENT_CLOUD_INTEGRATION_PRD.md) | **开发计划**：[CLOUD_DEVELOPMENT_PLAN.md](CLOUD_DEVELOPMENT_PLAN.md) | **文档索引**：[docs/](docs/)
+| [Alpha](https://github.com/bangbang8000-cell/MagicCommander/milestone/1) | 2026.07 | ✅ 已完成 | AI Hub + Agent v2 + Cloud Connect 云平台集成 |
+| [Beta](https://github.com/bangbang8000-cell/MagicCommander/milestone/2) | 2026.08-09 | 🔄 进行中 | 智能校对、模板资产中心（版本管理/调试沙盒）、Excel/Jinja2 深度集成（依赖分析/片段复用） |
+| [GA](https://github.com/bangbang8000-cell/MagicCommander/milestone/3) | 2026.10-12 | 待开始 | 社区分享中心 + 协作审阅 + 项目生命周期 + 权限体系 |
+| [Scale](https://github.com/bangbang8000-cell/MagicCommander/milestone/4) | 2027.01-03 | 待开始 | Ansible/Nornir 推送 + CI/CD 流水线 + 多租户 + 监控告警 |
 
 ---
 
 ## 参与贡献
 
-欢迎提交 Issue 和 Pull Request。如有功能建议或问题反馈，请在 GitHub Issues 中提出。
+欢迎提交 Issue 和 Pull Request。**请遵守工程门禁**：`npm run lint`（0 warning）、`npm run typecheck`、`npm test`、`npm run format:check` 全部通过后再提交，CI 会自动校验。
 
 **搜索引擎关键词**：网络设备配置批量生成、交换机配置自动生成、Jinja2 网络配置工具、网络运维自动化、设备标签打印、批量生成设备配置
 

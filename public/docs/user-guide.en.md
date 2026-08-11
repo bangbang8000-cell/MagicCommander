@@ -1,60 +1,68 @@
 # MagicCommander User Guide
 
+> Applies to MagicCommander v3.6.0
+
 ## Introduction
 
-MagicCommander is a professional network device configuration management tool that helps you efficiently manage network device configuration files. It supports Excel parameter import, Jinja2 template rendering, batch configuration output, and more.
+MagicCommander is a professional network device configuration management tool. It combines device parameters (Excel spreadsheets) with configuration templates (Jinja2 syntax) to batch-generate standardized device configuration files in one click, and automatically produces printable device labels. It supports AI-powered conversational operations and cloud collaboration, while running fully offline with data security under your control.
 
 ---
 
 ## Quick Start
 
-### 1. Create a New Project
+### 1. Create a Project
 
-1. Click **File → New Project** in the menu
-2. Enter a project name
-3. Click Confirm to create
+1. Click the **Explorer** icon in the left activity bar (`Ctrl+Shift+E`)
+2. Click **New Project** and enter a project name
+3. The project is auto-created with `templates / excel / output / yaml` directories
+4. Beginners: use the **Template Center** to create from a built-in sample template
 
-### 2. Configure Parameters
+### 2. Fill in Device Parameters
 
-1. Open the `para.xlsx` file in the project explorer
-2. Fill in device parameter information (name, IP, port, etc.)
-3. Save the file
+1. In the explorer, expand the `excel` directory and open `hostname.xlsx` (built-in Excel editor)
+2. Fill in device name, role, management IP, interfaces, VLANs, etc.
+3. Use `para.xlsx` to declare which Excel sheets the pipeline should read and how
+4. Save (`Ctrl+S`)
 
-### 3. Create Templates
+### 3. Write a Configuration Template
 
-1. Create Jinja2 template files in the `templates` folder
-2. Use `{{variable_name}}` syntax to reference parameters
+1. Create a `.j2` file under `templates`
+2. Reference parameters with Jinja2: `{{ info['field_name'] }}`
+3. **Smart completion**: type `info['` to get field suggestions extracted from your project's Excel sheets; control blocks (if/for) and filters are also completed
+4. The editor (Monaco) supports syntax highlighting and multi-tab switching without losing undo history
 
-### 4. Execute Rendering
+### 4. Render Configuration
 
-1. Switch to the **Rendering Operations** panel
-2. Select the project to render
-3. Configure output format (Config/YAML, include SN or not)
-4. Click **Execute Rendering**
+1. Switch to the **Workbench** panel (`Ctrl+Shift+W`)
+2. Select projects and choose output format (config / YAML, with or without SN)
+3. Click **Start Render** — progress is shown live
+4. Output files land in `output/` (or `yaml/`); browse them in the **Output** panel (`Ctrl+Shift+O`)
+
+> 💡 **Render cache**: when parameters and templates are unchanged, re-rendering reuses the previous result in seconds. It invalidates automatically when any input changes.
 
 ---
 
 ## Interface Overview
 
-### Activity Bar (Left Icons)
+### Activity Bar (left icons, top to bottom)
 
-| Icon | Function | Shortcut |
-|------|----------|----------|
-| Search | Global Search | Ctrl+Shift+F |
-| Explorer | Project File Browser | Ctrl+Shift+E |
-| Template Center | Browse and Install Templates | - |
-| AI Chat | AI Assistant | Ctrl+Shift+H |
-| Cloud | Cloud Connect | Ctrl+Shift+C |
-| Workbench | Rendering & Output | Ctrl+Shift+R |
-| Label Print | Batch Print Labels | Ctrl+Shift+L |
-| Output Results | View Rendering Output | Ctrl+Shift+O |
-| Settings | App Settings | Ctrl+, |
+| # | Function | Description | Shortcut |
+|---|----------|-------------|----------|
+| 1 | Search | Search by filename/content, single or all projects | `Ctrl+Shift+F` |
+| 2 | Cloud | Cloud Connect collaboration (template market / sync) | `Ctrl+Shift+C` |
+| 3 | AI Chat | AI assistant | `Ctrl+Shift+H` |
+| 4 | Explorer | Projects, file tree, template center | `Ctrl+Shift+E` |
+| 5 | Workbench | Render, labels, dry-run, validation | `Ctrl+Shift+W` |
+| 6 | Output | Browse rendered outputs, batch export | `Ctrl+Shift+O` |
+| 7 | Settings | App / AI / Platform / Advanced | `Ctrl+,` |
 
 ### Menu Bar
 
-- **File** - Project management, refresh
-- **View** - Toggle panels, theme switch
-- **Help** - User Guide, About
+- **File**: new project, open project dir, save as template, exit
+- **Edit**: undo, redo, copy, paste
+- **View**: toggle sidebar/bottom panel, theme (light/dark/system)
+- **Tools**: check updates, terminal, log viewer
+- **Help**: user guide, shortcut list, about
 
 ---
 
@@ -62,215 +70,152 @@ MagicCommander is a professional network device configuration management tool th
 
 ### Project Management
 
-- Create new projects
+- Create / open / delete projects (delete requires confirmation)
 - Create from template (Template Center)
-- Open/delete projects
+- Save a project as a reusable template
 - Open project directory in file manager
-- Save project as template
+- Render output is undoable (last 5 backups auto-kept)
 
 ### Template Center
 
-The Template Center provides built-in example templates to help you quickly start projects:
+1. Open the template center tab inside **Explorer**
+2. Each template shows a **quality badge (A/B/C/D)**
+   - Scored automatically from variable complexity, Excel data quality, and cross-references
+   - Hover for the score
+3. Click **Create Project from Template** to generate a standard project
+4. Save any project as a template for your team
 
-1. Click the activity bar to switch to **Template Center**
-2. Browse available templates (e.g. ASW/PSW/DOA switch configuration templates)
-3. Click "Create Project from Template" and enter a project name
-4. The system automatically generates the standard directory structure (templates / excel / output / yaml)
+### Parameters (Excel Editor)
 
-You can also save existing projects as templates for team reuse:
-- Right-click a project → **Save as Template**
+Supported formats:
+- `.xlsx` (Excel 2007+) / `.xls` (Excel 97-2003)
 
-### Parameter Configuration
-
-Supported Excel file formats:
-- `.xlsx` - Excel 2007+ format
-- `.xls` - Excel 97-2003 format
+The built-in Excel editor supports multi-sheet switching, inline cell editing, row add/remove, and saving back to the project. The `project_para` sheet in `para.xlsx` declares the workbook/sheet mapping used by the render pipeline.
 
 ### Template Rendering
 
-Template syntax example:
+Example template:
 
 ```jinja2
-# Device Configuration Template
-system-view
-device-name {{device_name}}
-ip address {{ip_address}} {{subnet_mask}}
-port {{port}}
+sysname {{ info['device_name'] }}
+#
+interface {{ info['gateway_interface'] }}
+ description {{ info['remark'] }}
+ ip address {{ info['gateway_ip'] }} {{ info['gateway_mask'] }}
+#
+{% if info['ssh_enabled'] == 'yes' %}
+ssh server enable
+{% endif %}
 ```
 
-Supported variables:
-- `{{variable_name}}` - Simple variable
-- `{% for item in list %}...{% endfor %}` - Loop
-- `{% if condition %}...{% endif %}` - Conditional
+Supported syntax:
+- `{{ info['field'] }}` - variable reference
+- `{% for ... %}...{% endfor %}` - loops
+- `{% if ... %}...{% endif %}` - conditionals
+- Filters: `| default`, `| length`, `| join`, etc.
 
-### Dry-Run Preview
+### Dry-Run & Validation
 
-Preview generated results before actual rendering:
-
-1. In the **Workbench** panel, click the **eye icon** next to a project
-2. The system renders templates without writing files, showing the configuration content for each device in real-time
-3. After confirming, click **Start Rendering** for actual output
-
-### Template & Data Validation
-
-Check template and data quality before rendering:
-
-- **Jinja2 Template Validation**: Click the **Validate Template** button in the Workbench. The system parses all `.j2` template files to detect syntax errors early
-- **Excel Data Validation**: Click **Validate Parameters** to check Excel file existence, empty sheets, and column naming
-- Results are color-coded: green (pass) / yellow (warning) / red (error)
-
-### Diff Comparison
-
-Compare dry-run results with existing output files:
-
-1. After running dry-run, expand device entries in the results
-2. Click the **Diff** button
-3. The system displays differences in unified diff format (green=added, red=deleted)
+- **Dry-run**: preview rendered config without writing files
+- **Template validation**: parse all `.j2` files to catch syntax errors early
+- **Excel validation**: check missing files, empty sheets, and column issues
+- **Diff compare**: one-click diff between dry-run results and existing outputs (green=new, red=removed)
 
 ### Output Types
 
-| Type | Description |
-|------|-------------|
-| Config Output | Standard configuration file |
-| SN Config | Configuration with serial number |
-| YAML Output | YAML format configuration |
-| YAML+SN | YAML format with serial number |
+| Type | Directory | Description |
+|------|-----------|-------------|
+| Config | `output/<timestamp>/` | Standard config files (.txt) |
+| SN config | `output-sn/<timestamp>/` | SN-named files (.cfg) |
+| YAML | `yaml/<timestamp>/` | YAML intermediate data |
+| YAML+SN | `yaml-sn/<timestamp>/` | SN-named YAML |
 
-### Search & Filtering
+### Search & Filter
 
-- **Global Search** (Ctrl+Shift+F): Search project files by name and content
-- **File Type Filtering**: Filter by output files (.txt/.cfg), text files (.csv/.json/.html/.py/.log), etc.
-- Search results support click-to-navigate to file editing
+- Search **by filename** or **by content**
+- **All projects** toggle: cross-project full-text search (results prefixed with project name)
+- File type filters: template / excel / output / text / YAML / markdown
+- Results open directly in the editor
 
 ### Label Printing
 
-Automatically generate device labels from parameter tables:
+Auto-generate device labels from the hostname table:
 
-1. Switch to the **Label Print** panel
-2. Select the project for label generation
-3. Click **Generate Labels**, the system outputs:
-   - Markdown format labels (`output-label-md/`)
-   - Word format labels (`output-label/`)
-4. Supports exporting to Word (.docx) and PDF formats
+1. In the **Workbench** label tab, select projects
+2. Click **Generate Labels** to produce Markdown (`output-label-md/`) and Word (`output-label/`) formats
+3. Export to Word (.docx) or PDF, preview in-app
+4. Customize A4/A5 paper, orientation, and labels per page
 
 ---
 
 ## AI Assistant
 
-MagicCommander features a built-in AI chat assistant for project management, configuration rendering, and template analysis through natural language.
+MagicCommander ships with an AI Hub for conversational project management, rendering, and analysis.
 
-### Configuring AI Services
+### Configure AI
 
-1. Open the **Settings Panel** (gear icon in the left sidebar)
-2. Select a Provider in the **AI Settings** section (DeepSeek / OpenAI / Claude / Gemini / Qwen / GLM / Grok / Ollama / Custom)
-3. Enter your API Key and Base URL (no API Key needed for Ollama local deployment)
-4. Click **Test Connection** to verify
-5. Click **Fetch Models** to get the available model list and select one
-6. Configure AI Hub auto-start, port, and other advanced options in **General Settings**
+1. Open **Settings** (`Ctrl+,`) → **AI** tab
+2. Choose a provider: DeepSeek / OpenAI / Claude / Gemini / Qwen / GLM / Grok / Ollama / custom
+3. Enter API key and base URL (**Ollama needs no key**)
+4. Click **Test Connection**; use **Fetch Models** to pick a model
+5. Advanced settings control AI Hub port and auto-start
 
 ### Smart Routing
 
-When **Smart Routing** is enabled in AI Settings, MagicCommander automatically selects the best model for each task type:
+When enabled, the optimal model is chosen by task type:
+- **Coding tasks** (create project, render) → coding-oriented model
+- **Analysis tasks** (template quality) → analysis-oriented model
+- **Q&A tasks** (help, guide) → Q&A-oriented model
+- **Reasoning tasks** (optimization advice) → reasoning-oriented model
 
-- **Code tasks** (create projects, render configs, etc.) → assign a coding-specialized model
-- **Analysis tasks** (project analysis, template quality, etc.) → assign an analysis-specialized model
-- **Q&A tasks** (user guide, help, etc.) → assign a Q&A-specialized model
-- **Reasoning tasks** (complex problems, optimization suggestions, etc.) → assign a reasoning-specialized model
+### Use the AI Chat
 
-### Using AI Chat
-
-1. Click the **AI Chat** icon (chat bubble) in the left sidebar
-2. AI Hub starts automatically (first launch installs dependencies, ~30 seconds)
-3. Enter natural language commands in the input box, for example:
+1. Click **AI Chat** in the activity bar (`Ctrl+Shift+H`)
+2. AI Hub starts automatically (first start installs dependencies, ~30s)
+3. Type natural language, e.g.:
    - "List all projects"
-   - "Render project test1"
-   - "Analyze template quality of project test1"
-   - "Clear all render output of test1"
-   - "Reverse engineer config to template"
-4. AI automatically invokes built-in tools and shows real-time progress
-
-### Project Analysis
-
-AI can analyze project template and Excel file quality:
-
-1. Type "analyze project_name" in the AI chat
-2. AI checks:
-   - Template complexity (variable count, nesting depth)
-   - Excel data quality (empty rows, duplicate columns, type inconsistencies)
-   - Cross-references between templates and Excel (missing columns, unused columns)
-3. AI provides optimization suggestions based on results
-
----
-
-## Agent v2 Intelligent Orchestration
-
-MagicCommander v3.4.0 introduced the Agent v2 intelligent orchestration engine, making the AI assistant smarter and more reliable.
-
-### Five-Layer Architecture
-
-| Layer | Function |
-|-------|----------|
-| Planner | Understand user intent, create execution plans |
-| Validator | Tool permission grading (auto/notify/confirm) |
-| Context Manager | Project structure scanning + variable reference tracking |
-| Executor | 27 built-in tools (rendering/analysis/validation/reverse engineering, etc.) |
-| Recovery | Error detection → auto-fix → retry |
+   - "Render the test1 project"
+   - "Analyze template quality of test1"
+   - "Clear the render output of test1"
+   - "Reverse-engineer a template from this config"
+4. AI invokes built-in tools and shows progress live
 
 ### Tool Permission Levels
 
-| Level | Icon | Behavior | Example Tools |
-|-------|------|----------|---------------|
-| Auto | Green | Execute automatically, no confirmation | list_projects, analyze_project |
-| Notify | Yellow | Notify user after execution | render_config, dry_run |
-| Confirm | Red | Require user confirmation | delete_project, delete_file |
+AI tools are gated by risk:
 
-### Skills Engine
+| Level | Behavior | Examples |
+|-------|----------|----------|
+| Auto | Executes directly | list projects, analyze, validate, dry-run |
+| Notify | Executes then notifies | create project, write files, generate labels |
+| Confirm | Requires your reply "confirm" | delete project, render config |
 
-- 7 preset Skills covering project creation, template enhancement, reverse configuration, etc.
-- Semi-automatic Skill generation through conversation
-- Skills stored in `ai_hub/skills/skills/` directory
+### Project Analysis
 
-### Memory System
-
-- **User Profile**: Records preferences (frequently used Provider, language, workspace path)
-- **Project History**: Records operation history for each project
-- **Usage Patterns**: Records high-frequency operations to optimize future interactions
+AI assesses project quality: template complexity (variable count, nesting depth), Excel data quality (empty rows, duplicate columns, type issues), and template↔Excel cross-references (missing/unused columns), then suggests improvements.
 
 ---
 
-## Cloud Connect Platform Integration
+## Cloud Connect
 
-MagicCommander v3.5.0 supports connecting to a self-hosted cloud platform for team collaboration.
+Connect a self-hosted MagicCommander Platform for team collaboration.
 
-### Connection Setup
+### Connect
 
-1. Open **Settings Panel** → **Platform Connection** tab
-2. Enter the server address (e.g., `http://evergreenzhou.com`)
-3. Click **Test Connection** to verify connectivity
-4. Click the Cloud Platform icon in the sidebar to log in
+1. **Settings** → **Platform** tab
+2. Enter the server URL (e.g. `http://evergreenzhou.com`)
+3. Click **Test Connection**
+4. Click the cloud icon in the activity bar to log in
 
-### Key Features
+### Features
 
 | Feature | Description |
 |---------|-------------|
-| QR Code Login | Feishu / QQ / WeChat scan, JWT Token auto-refresh (72h) |
-| Template Market | Browse/search/install cloud templates with category filtering |
-| Project Sync | Push local to cloud / Pull from cloud to local / Conflict detection |
-| Notification Center | Platform announcements and version update alerts |
-| User Profile | Profile management, platform account binding |
-
-### Using Template Market
-
-1. Click the **Cloud** icon in the activity bar
-2. Search or browse templates in the Template Market
-3. Click **Install** to download a template to the local Template Center
-4. Create new projects from cloud templates in the Template Center
-
-### Project Synchronization
-
-1. Right-click a project in the Project Explorer → **Push to Cloud**
-2. Browse cloud projects in the Cloud panel → click **Pull to Local**
-3. The system automatically detects sync status and shows conflict info
+| QR login | Feishu / QQ / WeChat scan, JWT auto-refresh |
+| Template market | Browse/search/install cloud templates, category filter |
+| Project sync | Push / Pull / conflict detection |
+| Notifications | Platform announcements and version updates |
+| Profile | User info and account binding |
 
 ---
 
@@ -278,45 +223,48 @@ MagicCommander v3.5.0 supports connecting to a self-hosted cloud platform for te
 
 | Shortcut | Function |
 |----------|----------|
-| Ctrl+Shift+F | Global Search |
-| Ctrl+Shift+E | Project Explorer |
-| Ctrl+Shift+R | Workbench (Rendering) |
-| Ctrl+Shift+L | Label Print |
-| Ctrl+Shift+O | Output Results |
-| Ctrl+Shift+H | AI Chat |
-| Ctrl+Shift+C | Cloud Platform |
-| Ctrl+Shift+P | Command Palette |
-| Ctrl+B | Toggle Sidebar |
-| Ctrl+J | Toggle Bottom Panel |
-| Ctrl+S | Save Current File |
-| Ctrl+W | Close Current Tab |
-| Ctrl+, | Open Settings |
-| Ctrl+K Ctrl+S | Keyboard Shortcuts |
+| `Ctrl+Shift+F` | Search |
+| `Ctrl+Shift+E` | Explorer |
+| `Ctrl+Shift+W` | Workbench |
+| `Ctrl+Shift+O` | Output |
+| `Ctrl+Shift+H` | AI Chat |
+| `Ctrl+Shift+C` | Cloud |
+| `Ctrl+Shift+P` | Command palette |
+| `Ctrl+B` | Toggle sidebar |
+| `Ctrl+J` | Toggle bottom panel |
+| `Ctrl+S` | Save file |
+| `Ctrl+W` | Close tab |
+| `Ctrl+Shift+T` | Reopen closed tab |
+| `Ctrl+,` | Settings |
+| `Ctrl+K Ctrl+S` | Shortcut list |
 
 ---
 
 ## FAQ
 
-### Q: How to import device parameters?
-A: Edit the `para.xlsx` file in the project root directory. Each row represents a device, and columns represent different parameters.
+**Q: How do I import device parameters?**
+Edit the `.xlsx` files in `excel/` (built-in editor) and declare the mapping in `para.xlsx`.
 
-### Q: Where should template files be placed?
-A: Template files should be placed in the `templates` folder of the project.
+**Q: Where do templates go?**
+In the project's `templates` folder, with a `.j2` extension.
 
-### Q: Where to view output files?
-A: Rendered files are saved in `output`, `output-sn`, `yaml`, `yaml-sn` folders. You can view them in the Output Results panel.
+**Q: Where are outputs?**
+In the **Output** panel, under `output`, `output-sn`, `yaml`, `yaml-sn` directories (timestamped).
 
-### Q: How to configure the AI assistant?
-A: Open the Settings panel, select a Provider in the AI Settings section and enter your API Key, then click Test Connection to verify. See the "AI Assistant" section above for details.
+**Q: How do I configure the AI assistant?**
+Settings → AI tab → choose provider → enter API key → test connection. Ollama needs no key.
 
-### Q: AI Hub fails to start?
-A: Make sure Python 3.11+ is installed and check the Python path in Settings. On Windows, Python is embedded and no additional installation is needed.
+**Q: AI Hub fails to start?**
+The Windows build embeds Python. From source, ensure Python 3.8+ and `pip install -r backend/requirements.txt`.
 
-### Q: Which AI models are supported?
-A: DeepSeek, OpenAI (GPT-4o), Claude, Gemini, Qwen, GLM, Grok, Ollama local models, and custom OpenAI-compatible Providers.
+**Q: Which AI models are supported?**
+DeepSeek, OpenAI, Claude, Gemini, Qwen, GLM, Grok, local Ollama, and any OpenAI-compatible custom provider.
+
+**Q: Where is my data?**
+All project data lives in the local `workspace/` directory. AI runs locally; API keys are stored encrypted.
 
 ---
 
-## Technical Support
+## Support
 
-If you have any questions or suggestions, please contact the development team.
+For issues, please check [GitHub Issues](https://github.com/bangbang8000-cell/MagicCommander/issues).
