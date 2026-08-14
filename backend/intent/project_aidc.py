@@ -23,15 +23,16 @@ from .roce_templates import ROCE_DEFAULTS
 
 # 角色 -> (场景前缀, 默认型号)
 # 参数网 S9827（128×400G）；存储网 S9825-128B（128×200G，2026-08-13 确认）
+# H1（D-1~D-3）：BIZ_AGG=S9850-32H、BIZ_ACCESS=S6850-56HF、OOB_AGG=S6805-56HF-G、OOB_ACC=S5560X-54C-EI
 ROLE_SCENARIO = {
     'SPINE': ('SPINE', 'H3C S9827'),
     'LEAF': ('LEAF', 'H3C S9827'),
     'STO_SPINE': ('STO_SPINE', 'H3C S9825-128B'),
     'STO_LEAF': ('STO_LEAF', 'H3C S9825-128B'),
-    'BIZ_AGG': ('BIZAGG', 'H3C S9850'),
-    'BIZ_ACCESS': ('BIZACC', 'H3C S6805'),
-    'OOB_AGG': ('OOBAGG', 'H3C S5820V2'),
-    'OOB_ACCESS': ('OOBACC', 'H3C S5820V2'),
+    'BIZ_AGG': ('BIZAGG', 'H3C S9850-32H'),
+    'BIZ_ACCESS': ('BIZACC', 'H3C S6850-56HF'),
+    'OOB_AGG': ('OOBAGG', 'H3C S6805-56HF-G'),
+    'OOB_ACCESS': ('OOBACC', 'H3C S5560X-54C-EI'),
 }
 
 
@@ -358,17 +359,28 @@ _BIZ_OOB_TEMPLATES = {
     'OOB_ACCESS': _OOB_ACCESS_INFO,
 }
 
+# H2（D-5）：平面 → sheet 后缀（用户约定短名：业务网 不带 &管理网）
+_PLANE_SHEET = {'参数网': '参数网', '存储网': '存储网', '业务&管理网': '业务网', '带外网': '带外网'}
+
 
 def _info_template(role: str, plane: str) -> str:
     if role in _BIZ_OOB_TEMPLATES:
-        return _BIZ_OOB_TEMPLATES[role]
-    # 存储网 S9825-128B（200G）上联用 200G WRED；参数网 S9827（400G）用 400G
-    wred = '200G-WRED-Template' if role.startswith('STO_') else '400G-WRED-Template'
-    head = _ROCE_INFO_HEAD.replace('__ROLE__', role).replace('__PLANE__', plane)
-    ip_link = _IP_LINK_TEMPLATE.replace('__WRED__', wred)
-    if role.endswith('LEAF'):
-        return head + ip_link + _GPU_TERM_TEMPLATE + _VLAN_GW_TEMPLATE + _BGP_INFO_BLOCK
-    return head + ip_link + _BGP_INFO_BLOCK
+        tpl = _BIZ_OOB_TEMPLATES[role]
+    else:
+        # 存储网 S9825-128B（200G）上联用 200G WRED；参数网 S9827（400G）用 400G
+        wred = '200G-WRED-Template' if role.startswith('STO_') else '400G-WRED-Template'
+        head = _ROCE_INFO_HEAD.replace('__ROLE__', role).replace('__PLANE__', plane)
+        ip_link = _IP_LINK_TEMPLATE.replace('__WRED__', wred)
+        if role.endswith('LEAF'):
+            tpl = head + ip_link + _GPU_TERM_TEMPLATE + _VLAN_GW_TEMPLATE + _BGP_INFO_BLOCK
+        else:
+            tpl = head + ip_link + _BGP_INFO_BLOCK
+    # H2（D-5/D-6）：对称表 sheet 名按平面（IP规划地址表-{plane_sheet}）；
+    # 对端AS 从对称表行内取（val['对端AS']，hostname 设备表已去该列）
+    plane_sheet = _PLANE_SHEET.get(plane, plane)
+    tpl = tpl.replace('IP规划地址表 己端接口', f'IP规划地址表-{plane_sheet} 己端接口')
+    tpl = tpl.replace("info['对端AS']", "val['对端AS']")
+    return tpl
 
 
 # ---------------------------------------------------------------------------
@@ -391,7 +403,12 @@ class AidcProjectGenerator:
         return ROLE_SCENARIO[role][0]
 
     def _model_of(self, role):
-        return ROLE_SCENARIO[role][1]
+        # H1（D-4）：型号从 MC 设备库解析，fallback 到 ROLE_SCENARIO 字符串
+        try:
+            from .device_library import role_model_str
+            return role_model_str(role) or ROLE_SCENARIO[role][1]
+        except Exception:  # noqa: BLE001
+            return ROLE_SCENARIO[role][1]
 
     def _dev(self, scn, local_id, var_tail):
         params = self.ctx.device_params.get(scn, {}).get(local_id, {})
@@ -434,7 +451,6 @@ class AidcProjectGenerator:
                     '管理掩码': _prefix_to_mask(int(mprefix)),
                     'BGP AS': asn if asn is not None else 65000,
                     'BGP多路径': self.ctx.globals.get('bgp_max_paths', 16),
-                    '对端AS': _PEER_AS.get(role, 65000),
                     'MLAG对': params.get('mlag_pair', ''),
                     'MLAG序号': params.get('mlag_system_number', ''),
                     'MLAG本端': params.get('mlag_keepalive', ''),
@@ -511,7 +527,8 @@ class AidcProjectGenerator:
                 if not role.endswith('LEAF') and role != 'BIZ_ACCESS':
                     continue  # 只从下联方向生成，避免双向重复/镜像污染
                 peers = self._peer_hosts(scn, role)
-                peer_as = self._list(scn, local, 'bgp_peer_as')
+                peer_ases = self._list(scn, local, 'bgp_peer_as')
+                my_as = self._dev(scn, local, 'hostname_hostname_E_')
                 if not peers:
                     continue
                 for idx, (port, ip) in enumerate(
@@ -523,16 +540,18 @@ class AidcProjectGenerator:
                         '己端接口': port,
                         '己端IP地址': ip,
                         '己端IP长度': 31,
+                        '己端AS': my_as if my_as is not None else 65000,
                         '对端设备': peer,
                         '对端接口': f'FourHundredGigE1/0/{(local - 1) * 16 + idx}',
                         '对端IP地址': self._adjacent_ip(ip),
                         '对端IP长度': 31,
+                        '对端AS': peer_ases[idx] if idx < len(peer_ases) else '',
                         '备注信息': f'{self.plane}上联',
                     })
         return pd.DataFrame(rows)
 
     def build_vlan_gw_table(self):
-        """VLAN网关表（赋值表，1 行/设备 + 列表值）：Leaf 的 VLAN 网关接口。"""
+        """VLAN网关表（H2：每 VLAN 一行，去逗号拼接）：Leaf 的 VLAN 网关接口。"""
         rows = []
         for scn, by_local in self._grouped().items():
             for local, role in by_local.items():
@@ -542,20 +561,18 @@ class AidcProjectGenerator:
                 gwips = self._list(scn, local, 'vlan_gw')
                 if not vids:
                     continue
-                rows.append({
-                    '己端设备': self._dev(scn, local, 'hostname_hostname_B_'),
-                    '网关VLAN': ','.join(str(v) for v in vids),
-                    '网关IP': ','.join(gwips),
-                    '备注信息': f'{self.plane}网关',
-                })
+                host = self._dev(scn, local, 'hostname_hostname_B_')
+                for i, v in enumerate(vids):
+                    rows.append({
+                        '己端设备': host,
+                        '网关VLAN': v,
+                        '网关IP': gwips[i] if i < len(gwips) else '',
+                        '备注信息': f'{self.plane}网关',
+                    })
         return pd.DataFrame(rows)
 
     def build_terminal_table(self):
-        """终端连接表（赋值表，1 行/设备 + 列表值单元格）：GPU/存储/业务/带外下联口。
-
-        多端口用逗号连接写入单格，MC string_split 转 ['list', p1, p2, ...]，
-        模板按列表遍历（避免赋值表多行覆盖问题）。
-        """
+        """终端连接表（H2：每接口一行，去逗号拼接）：GPU/存储/业务/带外下联口。"""
         # 角色 -> 终端数据键
         term_key = {'LEAF': 'gpu', 'STO_LEAF': 'gpu',
                     'BIZ_ACCESS': 'biz', 'OOB_ACCESS': 'downlink'}
@@ -570,16 +587,18 @@ class AidcProjectGenerator:
                 descs = self._list(scn, local, f'{tkey}_desc')
                 if not ports:
                     continue
-                rows.append({
-                    '己端设备': self._dev(scn, local, 'hostname_hostname_B_'),
-                    '己端接口': ','.join(ports),
-                    '己端VLAN': ','.join(str(v) for v in vlans),
-                    '己端描述': ','.join(descs) if descs else '',
-                    '接口类型': '200G' if role.endswith('LEAF') else '25G',
-                    '业务类别': 'GPU' if role.endswith('LEAF') else 'BIZ',
-                    '终端编号': '',
-                    '备注信息': f'{self.plane}下联',
-                })
+                host = self._dev(scn, local, 'hostname_hostname_B_')
+                for i, p in enumerate(ports):
+                    rows.append({
+                        '己端设备': host,
+                        '己端接口': p,
+                        '己端VLAN': vlans[i] if i < len(vlans) else '',
+                        '己端描述': descs[i] if i < len(descs) else '',
+                        '接口类型': '200G' if role.endswith('LEAF') else '25G',
+                        '业务类别': 'GPU' if role.endswith('LEAF') else 'BIZ',
+                        '终端编号': '',
+                        '备注信息': f'{self.plane}下联',
+                    })
         return pd.DataFrame(rows)
 
     # ---- 写项目 ----
@@ -587,21 +606,24 @@ class AidcProjectGenerator:
         os.makedirs(os.path.join(project_dir, 'excel'), exist_ok=True)
         os.makedirs(os.path.join(project_dir, 'templates'), exist_ok=True)
 
+        # H2（D-5）：sheet 名带平面后缀（单平面项目）
+        plane_sheet = _PLANE_SHEET.get(self.plane, self.plane)
         self.build_device_table().to_excel(
-            os.path.join(project_dir, 'excel', 'hostname.xlsx'), index=False, sheet_name='设备表')
+            os.path.join(project_dir, 'excel', 'hostname.xlsx'), index=False, sheet_name=f'设备表-{plane_sheet}')
         self.build_param_table().to_excel(
             os.path.join(project_dir, 'excel', 'parameter.xlsx'), index=False, sheet_name='参数表')
         self.build_ip_table().to_excel(
-            os.path.join(project_dir, 'excel', 'ipaddress.xlsx'), index=False, sheet_name='IP规划地址表')
+            os.path.join(project_dir, 'excel', 'ipaddress.xlsx'), index=False, sheet_name=f'IP规划地址表-{plane_sheet}')
         with pd.ExcelWriter(os.path.join(project_dir, 'excel', 'connection.xlsx')) as writer:
-            self.build_terminal_table().to_excel(writer, index=False, sheet_name='终端连接表')
-            self.build_vlan_gw_table().to_excel(writer, index=False, sheet_name='VLAN网关表')
+            self.build_terminal_table().to_excel(writer, index=False, sheet_name=f'终端连接表-{plane_sheet}')
+            self.build_vlan_gw_table().to_excel(writer, index=False, sheet_name=f'VLAN网关表-{plane_sheet}')
 
         proj_para = pd.DataFrame({
             '工作簿名称': ['hostname.xlsx', 'parameter.xlsx', 'ipaddress.xlsx', 'connection.xlsx', 'connection.xlsx'],
-            '工作表名称': ['设备表', '参数表', 'IP规划地址表', '终端连接表', 'VLAN网关表'],
+            '工作表名称': [f'设备表-{plane_sheet}', '参数表', f'IP规划地址表-{plane_sheet}',
+                          f'终端连接表-{plane_sheet}', f'VLAN网关表-{plane_sheet}'],
             '工作表类型': ['赋值表', '参数表', '对称表', '赋值表', '赋值表'],
-            '对称列数': [0, 0, 4, 0, 0],
+            '对称列数': [0, 0, 5, 0, 0],
             'key列数': [1, 1, 2, 2, 2],
         })
         proj_para.to_excel(os.path.join(project_dir, 'para.xlsx'), index=False, sheet_name='project_para')

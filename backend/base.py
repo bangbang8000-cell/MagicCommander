@@ -129,7 +129,7 @@ class Base:
             self._write_yaml_file(filepath, self.devices[hostname])
 
     def read_assign_table(self, document: str, sheet: str, filename: str, project_name: str, key_num: int):
-        """读取赋值表的内容"""
+        """读取赋值表的内容（H2：支持同设备多行聚合为列表——每接口/VLAN 一行）。"""
         mid_path = self.workspace
         filepath = os.path.join(mid_path, project_name, filename, document)
         # 只读取目标 sheet，避免解析工作簿全部 sheet（大数据量性能优化）
@@ -139,13 +139,29 @@ class Base:
             if sheet1 != sheet:
                 continue
             header = list(value.columns)
+            # H2：按 己端设备 分组；多行 → 各列聚合为 ['list', ...]（模板 [1:] 语义不变）
+            groups: dict[str, list] = {}
             for i in value.index.values:
                 hostname = str(value[header[0]][i]).strip()
-                if '角色' in header and value['角色'][i] not in self.role:
-                    self.role.append(value['角色'][i])
-                tmp_value = list(value.loc[i])
-                tmp_list = [string_split(v, sheet) for v in tmp_value]
-                deep_dict(self.devices, [hostname, header], tmp_list)
+                groups.setdefault(hostname, []).append(list(value.loc[i]))
+
+            for hostname, rows in groups.items():
+                if '角色' in header:
+                    role = rows[0][header.index('角色')]
+                    if role not in self.role:
+                        self.role.append(role)
+                if len(rows) == 1:
+                    # 单行：保持原有标量语义（设备表/环回表等）
+                    tmp_list = [string_split(v, sheet) for v in rows[0]]
+                    deep_dict(self.devices, [hostname, header], tmp_list)
+                else:
+                    # 多行：按列聚合为 ['list', v1, v2, ...]（与逗号拼接历史语义一致）
+                    agg = []
+                    for col in range(len(header)):
+                        vals = [str(r[col]) for r in rows
+                                if r[col] is not None and str(r[col]).strip() != '']
+                        agg.append(['list'] + vals)
+                    deep_dict(self.devices, [hostname, header], agg)
 
     def read_para(self, document: str, sheet: str, filename: str, project_name: str):
         """读取参数表的内容"""

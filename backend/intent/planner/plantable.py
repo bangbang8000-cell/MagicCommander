@@ -13,16 +13,15 @@ AL 程序据此输出；MC 程序（plantable_importer）消费生成项目。
 
 import datetime
 
+from ..project_aidc import ROLE_SCENARIO
 from ..resolver import IntentContext
 
 _SCN_TO_ROLE = {
     'SPINE': 'SPINE', 'LEAF': 'LEAF', 'STO_SPINE': 'STO_SPINE', 'STO_LEAF': 'STO_LEAF',
     'BIZAGG': 'BIZ_AGG', 'BIZACC': 'BIZ_ACCESS', 'OOBAGG': 'OOB_AGG', 'OOBACC': 'OOB_ACCESS',
 }
-_SCN_MODEL = {
-    'SPINE': 'H3C S9827', 'LEAF': 'H3C S9827', 'STO_SPINE': 'H3C S9825-128B', 'STO_LEAF': 'H3C S9825-128B',
-    'BIZAGG': 'H3C S9850', 'BIZACC': 'H3C S6805', 'OOBAGG': 'H3C S5820V2', 'OOBACC': 'H3C S5820V2',
-}
+# H1：型号单一来源 = ROLE_SCENARIO（消除 _SCN_MODEL 重复硬编码）
+_SCN_MODEL = {scn: ROLE_SCENARIO[role][1] for scn, role in _SCN_TO_ROLE.items()}
 _TERMINAL_KEY = {'LEAF': 'gpu', 'STO_LEAF': 'gpu', 'BIZACC': 'biz', 'OOBACC': 'downlink'}
 
 # 桥接标识（契约 v1.1；本生成器为 AL 产出的测试/联调模拟，故 source=autolink）

@@ -50,14 +50,16 @@ class TestProfessionalExcel:
             project = os.path.join(tmp, 'aidc_pro')
             generate_single_pilot64_project(project, ctx)
             wb = load_workbook(os.path.join(project, 'excel', 'hostname.xlsx'))
-            ws = wb['设备表']
+            ws = wb['设备表-参数网']  # H2：设备表按四网拆 sheet
             assert ws.freeze_panes == 'A2'
             assert ws['A1'].font.bold is True
-            # 多 sheet 工作簿
+            # 多 sheet 工作簿（H2：四网拆 sheet）
             wb2 = load_workbook(os.path.join(project, 'excel', 'connection.xlsx'))
-            assert {'终端连接表', 'VLAN网关表'} <= set(wb2.sheetnames)
+            assert {'终端连接表-参数网', '终端连接表-存储网', '终端连接表-业务网', '终端连接表-带外网',
+                    'VLAN网关表-参数网', 'VLAN网关表-存储网', 'VLAN网关表-业务网'} <= set(wb2.sheetnames)
             wb3 = load_workbook(os.path.join(project, 'excel', 'ipaddress.xlsx'))
-            assert {'IP规划地址表', '环回地址表', '网段规划表'} <= set(wb3.sheetnames)
+            assert {'IP规划地址表-参数网', 'IP规划地址表-存储网', 'IP规划地址表-业务网', 'IP规划地址表-带外网',
+                    '环回地址表', '网段规划表'} <= set(wb3.sheetnames)
 
     def test_meta_validation(self):
         ctx = build_pilot64_context()

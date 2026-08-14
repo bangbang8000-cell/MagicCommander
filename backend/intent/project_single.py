@@ -25,7 +25,7 @@ from datetime import datetime
 import pandas as pd
 
 from .resolver import IntentContext
-from .project_aidc import _info_template, _PEER_AS, ROLE_SCENARIO
+from .project_aidc import _info_template, _PEER_AS, _PLANE_SHEET, ROLE_SCENARIO
 from .planner.validate import validate_context
 
 # 固定 xlsx 元数据时间戳（openpyxl/zipfile 默认写当前时间 → 破坏字节级幂等）
@@ -147,10 +147,12 @@ class SingleProjectGenerator:
     def _list(self, scn, local, name):
         return self.ctx.lists.get(f'{scn}_{name}{local}', [])
 
-    # ---- ① 设备表 ----
-    def build_device_table(self):
+    # ---- ① 设备表（H2：按四网拆 sheet；去 对端AS 列，MC-1） ----
+    def build_device_table(self, plane=None):
         rows = []
         for scn in self._scenarios():
+            if plane and _PLANE_SHEET.get(_SCN_PLANE[scn], _SCN_PLANE[scn]) != plane:
+                continue
             for local, params in sorted(self.ctx.device_params[scn].items()):
                 loopback = self._dev(scn, local, 'ipv4_LoopBack_P_')
                 milo = self._dev(scn, local, 'ipv4_M-ILO_P_')
@@ -169,7 +171,6 @@ class SingleProjectGenerator:
                     '管理IP': _strip(milo),
                     '管理掩码': _mask(int(mpre)),
                     'BGP AS': asn if asn is not None else 65000,
-                    '对端AS': _PEER_AS.get(role, 65000),
                     'BGP多路径': self.ctx.globals.get('bgp_max_paths', 16),
                     'MLAG对': params.get('mlag_pair', ''),
                     'MLAG序号': params.get('mlag_system_number', ''),
@@ -193,14 +194,17 @@ class SingleProjectGenerator:
                 hosts.append(h)
         return hosts
 
-    def build_conn_table(self):
-        """IP规划地址表（对称表，sheet 名=IP规划地址表，供模板 info['IP规划地址表 己端接口']）。
+    def build_conn_table(self, plane=None):
+        """IP规划地址表（对称表，H2：按四网拆 sheet；每链路行含 己端AS/对端AS，D-6）。
 
         LEAF/STO_LEAF/BIZ_ACCESS/OOBACC 方向生成（对端=真实 SPINE/AGG 主机名，避免伪设备）。
+        列序 = 对称表 col_num=5：己端(设备/接口/IP/长度/AS) + 对端(设备/接口/IP/长度/AS)。
         """
         rows = []
         for scn in self._scenarios():
             if not _is_leaf_direction(scn):
+                continue
+            if plane and _PLANE_SHEET.get(_SCN_PLANE[scn], _SCN_PLANE[scn]) != plane:
                 continue
             peer_hosts = self._peer_hosts(scn)
             if not peer_hosts:
@@ -208,25 +212,32 @@ class SingleProjectGenerator:
             for local, params in sorted(self.ctx.device_params[scn].items()):
                 ips = self._list(scn, local, 'uplink_ip')
                 peers = self._list(scn, local, 'bgp_peer_ip')
+                pases = self._list(scn, local, 'bgp_peer_as')
+                ports = self._list(scn, local, 'uplink_port')
+                my_as = self._dev(scn, local, 'hostname_hostname_E_')
                 for idx, ip in enumerate(ips):
                     rows.append({
                         '己端设备': self._dev(scn, local, 'hostname_hostname_B_'),
-                        '己端接口': self._list(scn, local, 'uplink_port')[idx],
+                        '己端接口': ports[idx] if idx < len(ports) else '',
                         '己端IP地址': ip,
                         '己端IP长度': 31,
+                        '己端AS': my_as if my_as is not None else 65000,
                         '对端设备': peer_hosts[idx % len(peer_hosts)],
-                        '对端接口': self._list(scn, local, 'uplink_port')[idx],
+                        '对端接口': ports[idx] if idx < len(ports) else '',
                         '对端IP地址': peers[idx] if idx < len(peers) else '',
                         '对端IP长度': 31,
+                        '对端AS': pases[idx] if idx < len(pases) else '',
                         '备注信息': f'{_SCN_PLANE[scn]}上联',
                     })
         return pd.DataFrame(rows)
 
-    def build_terminal_table(self):
-        """终端连接表（赋值表，1 行/设备 + 列表值）：GPU/存储/业务/带外 下联口。"""
+    def build_terminal_table(self, plane=None):
+        """终端连接表（H2：每接口一行，去逗号拼接；按四网拆 sheet）。"""
         rows = []
         for scn in self._scenarios():
             if scn in ('SPINE', 'STO_SPINE', 'BIZAGG', 'OOBAGG'):
+                continue
+            if plane and _PLANE_SHEET.get(_SCN_PLANE[scn], _SCN_PLANE[scn]) != plane:
                 continue
             for local in sorted(self.ctx.device_params[scn]):
                 ports = self._list(scn, local, _terminal_port_key(scn))
@@ -234,13 +245,15 @@ class SingleProjectGenerator:
                 descs = self._list(scn, local, _terminal_desc_key(scn))
                 if not ports:
                     continue
-                rows.append({
-                    '己端设备': self._dev(scn, local, 'hostname_hostname_B_'),
-                    '己端接口': ','.join(ports),
-                    '己端VLAN': ','.join(str(v) for v in vlans),
-                    '己端描述': ','.join(descs) if descs else '',
-                    '备注信息': f'{_SCN_PLANE[scn]}下联',
-                })
+                host = self._dev(scn, local, 'hostname_hostname_B_')
+                for i, p in enumerate(ports):
+                    rows.append({
+                        '己端设备': host,
+                        '己端接口': p,
+                        '己端VLAN': vlans[i] if i < len(vlans) else '',
+                        '己端描述': descs[i] if i < len(descs) else '',
+                        '备注信息': f'{_SCN_PLANE[scn]}下联',
+                    })
         return pd.DataFrame(rows)
 
     def build_mlag_table(self):
@@ -259,21 +272,25 @@ class SingleProjectGenerator:
             })
         return pd.DataFrame(rows)
 
-    def build_vlan_gw_table(self):
-        """VLAN 网关表（赋值表）：LEAF/STO_LEAF/BIZ_ACCESS 网关。"""
+    def build_vlan_gw_table(self, plane=None):
+        """VLAN 网关表（H2：每 VLAN 一行，去逗号拼接；按四网拆 sheet，带外无网关）。"""
         rows = []
         for scn in ('LEAF', 'STO_LEAF', 'BIZACC'):
+            if plane and _PLANE_SHEET.get(_SCN_PLANE[scn], _SCN_PLANE[scn]) != plane:
+                continue
             for local in sorted(self.ctx.device_params.get(scn, {})):
                 vids = self._list(scn, local, 'vlan_id')
                 gws = self._list(scn, local, 'vlan_gw')
                 if not vids:
                     continue
-                rows.append({
-                    '己端设备': self._dev(scn, local, 'hostname_hostname_B_'),
-                    '网关VLAN': ','.join(str(v) for v in vids),
-                    '网关IP': ','.join(gws),
-                    '备注信息': f'{_SCN_PLANE[scn]}网关',
-                })
+                host = self._dev(scn, local, 'hostname_hostname_B_')
+                for i, v in enumerate(vids):
+                    rows.append({
+                        '己端设备': host,
+                        '网关VLAN': v,
+                        '网关IP': gws[i] if i < len(gws) else '',
+                        '备注信息': f'{_SCN_PLANE[scn]}网关',
+                    })
         return pd.DataFrame(rows)
 
     # ---- ③ ipaddress.xlsx ----
@@ -312,23 +329,65 @@ class SingleProjectGenerator:
         os.makedirs(os.path.join(project_dir, 'templates'), exist_ok=True)
 
         excel = os.path.join(project_dir, 'excel')
-        _write_sheet(self.build_device_table(), os.path.join(excel, 'hostname.xlsx'), '设备表')
-        _write_sheet(self.build_terminal_table(), os.path.join(excel, 'connection.xlsx'), '终端连接表')
-        _write_sheet(self.build_vlan_gw_table(), os.path.join(excel, 'connection.xlsx'), 'VLAN网关表', append=True)
-        _write_sheet(self.build_conn_table(), os.path.join(excel, 'ipaddress.xlsx'), 'IP规划地址表')
-        _write_sheet(self.build_loopback_table(), os.path.join(excel, 'ipaddress.xlsx'), '环回地址表', append=True)
-        _write_sheet(self.build_subnet_table(), os.path.join(excel, 'ipaddress.xlsx'), '网段规划表', append=True)
+        PLANES = ('参数网', '存储网', '业务网', '带外网')
+        # H2（MC-2~5）：先构建全部平面 sheet（复用，避免重复计算）
+        dev_dfs = {p: self.build_device_table(p) for p in PLANES}
+        term_dfs = {p: self.build_terminal_table(p) for p in PLANES}
+        gw_dfs = {p: self.build_vlan_gw_table(p) for p in ('参数网', '存储网', '业务网')}
+        conn_dfs = {p: self.build_conn_table(p) for p in PLANES}
+
+        # ① 设备表（四网拆 sheet，去对端AS）
+        host_path = os.path.join(excel, 'hostname.xlsx')
+        first = True
+        for p in PLANES:
+            if dev_dfs[p].empty:
+                continue
+            _write_sheet(dev_dfs[p], host_path, f'设备表-{p}', append=not first)
+            first = False
+        # ② connection.xlsx：终端连接表（每接口一行）+ VLAN网关表（每 VLAN 一行）
+        conn_path = os.path.join(excel, 'connection.xlsx')
+        first = True
+        for p in PLANES:
+            if term_dfs[p].empty:
+                continue
+            _write_sheet(term_dfs[p], conn_path, f'终端连接表-{p}', append=not first)
+            first = False
+        for p in ('参数网', '存储网', '业务网'):
+            if gw_dfs[p].empty:
+                continue
+            _write_sheet(gw_dfs[p], conn_path, f'VLAN网关表-{p}', append=True)
+        # ③ ipaddress.xlsx：IP规划地址表（对称表，四网拆）+ 环回/网段
+        ip_path = os.path.join(excel, 'ipaddress.xlsx')
+        first = True
+        for p in PLANES:
+            if conn_dfs[p].empty:
+                continue
+            _write_sheet(conn_dfs[p], ip_path, f'IP规划地址表-{p}', append=not first)
+            first = False
+        _write_sheet(self.build_loopback_table(), ip_path, '环回地址表', append=True)
+        _write_sheet(self.build_subnet_table(), ip_path, '网段规划表', append=True)
+        # ④ parameter.xlsx
         _write_sheet(self.build_param_table(), os.path.join(excel, 'parameter.xlsx'), '参数表')
 
-        # para.xlsx 声明
-        proj_para = pd.DataFrame({
-            '工作簿名称': ['hostname.xlsx', 'connection.xlsx', 'connection.xlsx',
-                        'ipaddress.xlsx', 'ipaddress.xlsx', 'ipaddress.xlsx', 'parameter.xlsx'],
-            '工作表名称': ['设备表', '终端连接表', 'VLAN网关表', 'IP规划地址表', '环回地址表', '网段规划表', '参数表'],
-            '工作表类型': ['赋值表', '赋值表', '赋值表', '对称表', '赋值表', '参数表', '参数表'],
-            '对称列数': [0, 0, 0, 4, 0, 0, 0],
-            'key列数': [1, 2, 2, 2, 2, 1, 1],
-        })
+        # para.xlsx 声明（H2：全部 sheet）
+        para_rows = []
+        for p in PLANES:
+            if not dev_dfs[p].empty:
+                para_rows.append(['hostname.xlsx', f'设备表-{p}', '赋值表', 0, 1])
+        for p in PLANES:
+            if not term_dfs[p].empty:
+                para_rows.append(['connection.xlsx', f'终端连接表-{p}', '赋值表', 0, 2])
+        for p in ('参数网', '存储网', '业务网'):
+            if not gw_dfs[p].empty:
+                para_rows.append(['connection.xlsx', f'VLAN网关表-{p}', '赋值表', 0, 2])
+        for p in PLANES:
+            if not conn_dfs[p].empty:
+                para_rows.append(['ipaddress.xlsx', f'IP规划地址表-{p}', '对称表', 5, 2])
+        para_rows += [['ipaddress.xlsx', '环回地址表', '赋值表', 0, 2],
+                      ['ipaddress.xlsx', '网段规划表', '参数表', 0, 1],
+                      ['parameter.xlsx', '参数表', '参数表', 0, 1]]
+        proj_para = pd.DataFrame(para_rows,
+                                 columns=['工作簿名称', '工作表名称', '工作表类型', '对称列数', 'key列数'])
         proj_para.to_excel(os.path.join(project_dir, 'para.xlsx'), index=False, sheet_name='project_para')
 
         # 固定全部 xlsx 时间戳（字节级幂等：同 plan → 同文件）

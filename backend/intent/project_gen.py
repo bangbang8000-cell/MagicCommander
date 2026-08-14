@@ -59,7 +59,7 @@ class McProjectGenerator:
         self.ctx = ctx
         self.scenario = scenario
         self.role_by_id = role_by_id            # {device_id: role} 如 {1:'OOB_ACCESS',2:'OOB_ACCESS'}
-        self.model_by_id = model_by_id or {}    # {device_id: model} 缺省用 'H3C S5820V2'
+        self.model_by_id = model_by_id or {}    # {device_id: model} 缺省用 'H3C S5560X-54C-EI'
         self.param_map = dict(PARAM_MAP)
 
     # ------------------------------------------------------------------ #
@@ -88,7 +88,7 @@ class McProjectGenerator:
             vip = self.ctx.globals.get('ipv4_M-ILO_P_MA1-MA2-VIP')
             rows.append({
                 '设备名': hostname,
-                '型号': self.model_by_id.get(did, 'H3C S5820V2'),
+                '型号': self.model_by_id.get(did, 'H3C S5560X-54C-EI'),
                 '角色': self.role_by_id[did],
                 '环回接口': 'LoopBack0',
                 '环回IP': _strip_prefix(loopback),
@@ -266,7 +266,7 @@ ssh server enable
 
 
 def generate_oob_project(project_dir: str, ctx: IntentContext,
-                         device_count: int = 2, model: str = 'H3C S5820V2'):
+                         device_count: int = 2, model: str = 'H3C S5560X-54C-EI'):
     """便捷入口：生成 MA/OOB_ACCESS 场景 MC 项目。"""
     role_by_id = {i: 'OOB_ACCESS' for i in range(1, device_count + 1)}
     model_by_id = {i: model for i in range(1, device_count + 1)}

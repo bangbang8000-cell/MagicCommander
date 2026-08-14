@@ -105,12 +105,10 @@ class PilotBuilder:
             self._set('LEAF', n, 'uplink_port', self.ports.leaf_uplink_ports(32))
             self._set('LEAF', n, 'uplink_ip', up_ips)
             self._peers('LEAF', n, up_ips, [65110 + (i // 16) + 1 for i in range(32)])
-            # 每 Leaf 网关（计算 VLAN，从计算网关池）
-            gws = []
-            for v in gpu_vlans:
-                gw_ip = self.addr.compute_gw.take_ip()
-                gws.append(gw_ip)
-            self._set('LEAF', n, 'vlan_id', gpu_vlans)
+            # 每 Leaf 网关（H2：VLAN 去重 → 每 VLAN 一行）
+            distinct_vlans = list(dict.fromkeys(gpu_vlans))
+            gws = [self.addr.compute_gw.take_ip() for _ in distinct_vlans]
+            self._set('LEAF', n, 'vlan_id', distinct_vlans)
             self._set('LEAF', n, 'vlan_gw', gws)
             self._peers_gw('LEAF', n, gws)
 
@@ -143,8 +141,10 @@ class PilotBuilder:
             self._set('STO_LEAF', n, 'uplink_port', self.ports.sto_uplink_ports(1, 33))
             self._set('STO_LEAF', n, 'uplink_ip', lf_ips)
             self._peers('STO_LEAF', n, lf_ips, [65121])
-            gws = [self.addr.storage_gw.take_ip() for _ in sto_vlans]
-            self._set('STO_LEAF', n, 'vlan_id', sto_vlans)
+            # H2：VLAN 去重 → 每 VLAN 一行
+            distinct_vlans = list(dict.fromkeys(sto_vlans))
+            gws = [self.addr.storage_gw.take_ip() for _ in distinct_vlans]
+            self._set('STO_LEAF', n, 'vlan_id', distinct_vlans)
             self._set('STO_LEAF', n, 'vlan_gw', gws)
             self._peers_gw('STO_LEAF', n, gws)
 
