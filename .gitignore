@@ -72,3 +72,7 @@ docs/_archive/
 
 # AIDC 试点项目 — 派生内容包资产（D10/K2，禁传 GitHub，独立私有仓）
 workspace/aidc_pilot64/
+workspace/pilot64_h4/
+
+# 项目注册表（运行时生成，随渲染/导入更新，不入仓库）
+workspace/MC_Para.xlsx
