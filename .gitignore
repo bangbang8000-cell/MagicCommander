@@ -66,3 +66,9 @@ run_scraper.bat
 # Trae HTML share packages
 .trae-html-share-packages/
 workspace/*/.render_cache/
+
+# Archived docs (本地保留，不推送)
+docs/_archive/
+
+# AIDC 试点项目 — 派生内容包资产（D10/K2，禁传 GitHub，独立私有仓）
+workspace/aidc_pilot64/

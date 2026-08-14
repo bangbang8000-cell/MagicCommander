@@ -9,6 +9,7 @@ from pandas import read_excel
 from numpy import int64 as numpy_int64
 from time import strftime, localtime
 from config import WORKSPACE_DIR
+from intent.filters import register as register_intent_filters
 
 
 def remove_empty_pair(a_dict: dict):
@@ -224,6 +225,7 @@ class Base:
         if os.path.isdir(snippets_dir):
             loaders.append(FileSystemLoader(snippets_dir))
         env = SandboxedEnvironment(loader=ChoiceLoader(loaders), extensions=jinja2_extensions)
+        register_intent_filters(env)  # 意图参数适配器过滤器（AIDC 内容包，D12）
 
         for info in self.devices.values():
             hostname_now = info['设备名']
@@ -246,7 +248,9 @@ class Base:
         snippets_dir = os.path.join(self.workspace, 'snippets')
         if os.path.isdir(snippets_dir):
             loaders.append(FileSystemLoader(snippets_dir))
-        return SandboxedEnvironment(loader=ChoiceLoader(loaders))
+        env = SandboxedEnvironment(loader=ChoiceLoader(loaders))
+        register_intent_filters(env)  # 意图参数适配器过滤器（AIDC 内容包，D12）
+        return env
 
     def render_preview(self, template_file: str, project_name: str) -> list[dict]:
         """调试沙盒：渲染指定模板文件，对项目内每台设备的数据输出预览（不写文件）"""

@@ -38,8 +38,14 @@ export type IpcResult<T = unknown> = IpcSuccess<T> | IpcError
 // Electron 全局 API 类型声明
 // ============================================================
 
+export interface PlanIpcApi {
+  import: (planJson: string, projectDir: string) => Promise<void>
+  analyze: (projectDir: string) => Promise<unknown>
+}
+
 export interface ElectronAPI {
   project: ProjectIpcApi
+  plan: PlanIpcApi
   render: RenderIpcApi
   delete: DeleteIpcApi
   feature: FeatureIpcApi

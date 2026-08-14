@@ -840,6 +840,13 @@ export function setupIpcHandlers(window: BrowserWindow): void {
   })
 
   // 渲染 API（通过 Python 后端执行）
+  ipcMain.handle('plan:import', async (_e, planJson: string, projectDir: string): Promise<void> => {
+    return await renderHandler.planImport(planJson, projectDir)
+  })
+  ipcMain.handle('plan:analyze', async (_e, projectDir: string): Promise<unknown> => {
+    return await renderHandler.planAnalyze(projectDir)
+  })
+
   ipcMain.handle('render:project', async (_e, ids: string[]): Promise<void> => {
     return await renderHandler.renderProject(ids)
   })

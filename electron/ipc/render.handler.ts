@@ -102,6 +102,16 @@ export class RenderHandler {
     await this.runPythonCommand(['render', 'yaml', safeIds.join(','), '--format', 'device_sn'])
   }
 
+  // P1.4: AIDC plan:table 导入（幂等 → 单项目四表格）
+  async planImport(planJson: string, projectDir: string): Promise<void> {
+    await this.runPythonCommand(['plan', 'import', escapePythonArg(planJson), escapePythonArg(projectDir)])
+  }
+
+  // P1.4: j2 模板 ↔ 规划字段 对齐检查
+  async planAnalyze(projectDir: string): Promise<unknown> {
+    return await this.runPythonCommand(['plan', 'analyze', escapePythonArg(projectDir)], true)
+  }
+
   async createProject(name: string): Promise<void> {
     const validation = validateProjectName(name)
     if (!validation.valid) throw new Error(validation.error || '项目名无效')

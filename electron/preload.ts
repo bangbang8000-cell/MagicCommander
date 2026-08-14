@@ -65,6 +65,10 @@ const api = {
       ipcRenderer.invoke('project:installRemoteProject', data),
     batchGetLocalSha: (projectNames: string[]) => ipcRenderer.invoke('project:batchGetLocalSha', projectNames),
   },
+  plan: {
+    import: (planJson: string, projectDir: string) => ipcRenderer.invoke('plan:import', planJson, projectDir),
+    analyze: (projectDir: string) => ipcRenderer.invoke('plan:analyze', projectDir),
+  },
   render: {
     project: (ids: string[]) => ipcRenderer.invoke('render:project', ids),
     yaml: (ids: string[]) => ipcRenderer.invoke('render:yaml', ids),

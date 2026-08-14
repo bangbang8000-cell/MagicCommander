@@ -16,6 +16,7 @@ import { WorkbenchLabelCard } from './workbench/WorkbenchLabelCard'
 import { WorkbenchActionCard } from './workbench/WorkbenchActionCard'
 import { WorkbenchDryRunResults } from './workbench/WorkbenchDryRunResults'
 import { WorkbenchResultCard } from './workbench/WorkbenchResultCard'
+import { AidcPlanPanel } from './workbench/AidcPlanPanel'
 import { Button } from '@/components/ui/Button'
 import { ExternalLink } from 'lucide-react'
 
@@ -189,6 +190,10 @@ export const WorkbenchPanel = React.memo(function WorkbenchPanel() {
         <div className={clsx('border-t', isDark ? 'border-gray-700' : 'border-gray-200')} />
 
         <WorkbenchProofreadCard selectedProject={selectedProject} isDark={isDark} />
+
+        <div className={clsx('border-t', isDark ? 'border-gray-700' : 'border-gray-200')} />
+
+        <AidcPlanPanel isDark={isDark} />
 
         <div className={clsx('border-t', isDark ? 'border-gray-700' : 'border-gray-200')} />
 

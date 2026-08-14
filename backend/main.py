@@ -70,6 +70,17 @@ def main():
     # 创建子解析器
     subparsers = parser.add_subparsers(title='命令类型', dest='command', help='可用命令')
 
+    # AIDC 规划导入/分析（P1.4）
+    plan_parser = subparsers.add_parser('plan', help='AIDC plan:table 导入与分析')
+    plan_subparsers = plan_parser.add_subparsers(title='规划操作', dest='subcommand', help='规划子命令')
+    plan_import_parser = plan_subparsers.add_parser('import', help='plan:table → MC 单项目四表格（幂等）')
+    plan_import_parser.add_argument('plan_json', help='plan:table JSON 文件路径')
+    plan_import_parser.add_argument('project_dir', help='目标项目目录（如 workspace/xxx）')
+    plan_analyze_parser = plan_subparsers.add_parser('analyze', help='j2 模板 ↔ 规划字段 对齐检查')
+    plan_analyze_parser.add_argument('project_dir', help='项目目录')
+    plan_validate_parser = plan_subparsers.add_parser('validate', help='专业校验（设备名/IP/AS/VLAN/网关）')
+    plan_validate_parser.add_argument('plan_json', help='plan:table JSON 文件路径')
+
     # 项目管理命令
     project_parser = subparsers.add_parser('project', help='项目管理操作')
     project_subparsers = project_parser.add_subparsers(title='项目操作', dest='subcommand', help='项目管理子命令')
@@ -238,6 +249,8 @@ def main():
         # 根据命令类型处理
         if args.command == 'project':
             handle_project_command(processor, args)
+        elif args.command == 'plan':
+            handle_plan_command(args)
         elif args.command == 'render':
             handle_render_command(processor, args)
         elif args.command == 'label':
@@ -263,6 +276,59 @@ def main():
         if args.verbose:
             logger.error("命令执行异常", exc_info=True)
         sys.exit(1)
+
+
+def handle_plan_command(args):
+    """AIDC plan:table 导入/分析（P1.4）。"""
+    import json
+    import os
+
+    if args.subcommand == 'import':
+        with open(args.plan_json, 'r', encoding='utf-8') as f:
+            plan = json.load(f)
+        if 'error' in plan:
+            print(f'plan 无效: {plan["error"]}')
+            return
+        from intent.planner.plantable_importer import plantable_to_project
+        project_dir = args.project_dir
+        if not os.path.isabs(project_dir):
+            project_dir = os.path.join(os.getcwd(), project_dir)
+        os.makedirs(project_dir, exist_ok=True)
+        plantable_to_project(plan, project_dir)
+        # 注册到 MC_Para（可选：若在 workspace 下）
+        mc_para = os.path.join(os.path.dirname(project_dir), 'MC_Para.xlsx')
+        if os.path.exists(mc_para):
+            import pandas as pd
+            df = pd.read_excel(mc_para)
+            name = os.path.basename(project_dir)
+            if name not in df['项目名称'].astype(str).tolist():
+                rows = df['项目名称'].astype(str).tolist() + [name]
+                pd.DataFrame({'项目名称': rows}).to_excel(mc_para, sheet_name='项目名称', index=False)
+        print(f'[OK] plan:table 已幂等导入 → {project_dir}')
+        dev = plan.get('deviceList', [])
+        dev_n = sum(d.get('count', 1) for d in dev) if dev and 'count' in dev[0] else len(dev)
+        print(f'  设备 {dev_n} 台 / '
+              f'接线 {len(plan.get("connections", []))} / 终端 {len(plan.get("terminals", []))}')
+    elif args.subcommand == 'validate':
+        from intent.planner.validate import validate_plan
+        with open(args.plan_json, 'r', encoding='utf-8') as f:
+            plan = json.load(f)
+        issues = validate_plan(plan)
+        print(f'[validate] plan:table 专业校验: {os.path.basename(args.plan_json)}')
+        print(f'  问题数: {len(issues)}')
+        for i in issues[:20]:
+            print(f'    - {i}')
+        print('  ' + ('PASS' if not issues else 'FAIL'))
+    elif args.subcommand == 'analyze':
+        from analyzer import analyze_project
+        result = analyze_project(args.project_dir)
+        missing = result.get('missing_columns', [])
+        print(f'[analyze] 模板<->规划字段 对齐检查: {os.path.basename(args.project_dir)}')
+        print(f'  缺失字段: {len(missing)}')
+        for m in missing[:10]:
+            print(f'    - {m}')
+        print(f'  未被引用字段: {len(result.get("unused_columns", []))}')
+        print(f'  复杂度: {result.get("complexity", 0)}')
 
 
 def handle_project_command(processor, args):
