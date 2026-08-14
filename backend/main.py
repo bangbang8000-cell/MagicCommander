@@ -309,6 +309,19 @@ def handle_plan_command(args):
         dev_n = sum(d.get('count', 1) for d in dev) if dev and 'count' in dev[0] else len(dev)
         print(f'  设备 {dev_n} 台 / '
               f'接线 {len(plan.get("connections", []))} / 终端 {len(plan.get("terminals", []))}')
+        # G4：机器可读摘要（GUI 一条龙：导入→预览→渲染）
+        import pandas as pd
+        summary = {'ok': True, 'name': os.path.basename(project_dir.rstrip('/')),
+                   'device_count': dev_n, 'connections': len(plan.get('connections', [])),
+                   'terminals': len(plan.get('terminals', [])),
+                   'bridge': {k: plan.get('meta', {}).get(k)
+                              for k in ('source', 'projectType', 'bridgeVersion')}}
+        if os.path.exists(mc_para):
+            _df = pd.read_excel(mc_para)
+            _names = _df['项目名称'].astype(str).tolist()
+            if summary['name'] in _names:
+                summary['mcpara_id'] = _names.index(summary['name']) + 1  # 1-based
+        print(json.dumps(summary, ensure_ascii=False))
     elif args.subcommand == 'validate':
         from intent.planner.validate import validate_plan
         with open(args.plan_json, 'r', encoding='utf-8') as f:
@@ -319,6 +332,9 @@ def handle_plan_command(args):
         for i in issues[:20]:
             print(f'    - {i}')
         print('  ' + ('PASS' if not issues else 'FAIL'))
+        # G4：机器可读结果（GUI 校验按钮）
+        print(json.dumps({'ok': not issues, 'issue_count': len(issues), 'issues': issues[:20]},
+                         ensure_ascii=False))
     elif args.subcommand == 'analyze':
         from analyzer import analyze_project
         result = analyze_project(args.project_dir)

@@ -20,12 +20,43 @@ AIDC 单项目四表格生成器（P1.2，AIDC 程序优化 PRD FR-A）。
 
 import os
 import json
+from datetime import datetime
 
 import pandas as pd
 
 from .resolver import IntentContext
 from .project_aidc import _info_template, _PEER_AS, ROLE_SCENARIO
 from .planner.validate import validate_context
+
+# 固定 xlsx 元数据时间戳（openpyxl/zipfile 默认写当前时间 → 破坏字节级幂等）
+# openpyxl 保存时忽略 properties.modified 覆写，故在 ZIP/XML 层直接改写。
+_FIXED_TS = datetime(2026, 1, 1, 0, 0, 0)
+
+
+def _fix_workbook_byte_idempotent(filepath: str):
+    """重打包 xlsx：改写 core.xml created/modified + 固定 ZIP 条目 DOS 时间戳 → 字节级幂等。"""
+    import io
+    import re
+    import zipfile
+    ts = _FIXED_TS.strftime('%Y-%m-%dT%H:%M:%SZ')
+    data = io.BytesIO()
+    with zipfile.ZipFile(filepath, 'r') as zin:
+        with zipfile.ZipFile(data, 'w', zipfile.ZIP_DEFLATED) as zout:
+            for info in zin.infolist():
+                content = zin.read(info.filename)
+                if info.filename == 'docProps/core.xml':
+                    xml = content.decode('utf-8', 'replace')
+                    xml = re.sub(
+                        r'(<dcterms:(?:created|modified)[^>]*>)[^<]*(</dcterms:(?:created|modified)>)',
+                        lambda m: f'{m.group(1)}{ts}{m.group(2)}', xml)
+                    content = xml.encode('utf-8')
+                new = zipfile.ZipInfo(info.filename,
+                                      date_time=(_FIXED_TS.year, _FIXED_TS.month, _FIXED_TS.day, 0, 0, 0))
+                new.compress_type = zipfile.ZIP_DEFLATED
+                new.external_attr = info.external_attr
+                zout.writestr(new, content)
+    with open(filepath, 'wb') as fh:
+        fh.write(data.getvalue())
 
 
 def _write_sheet(df: pd.DataFrame, filepath: str, sheet_name: str, index: bool = False,
@@ -300,6 +331,11 @@ class SingleProjectGenerator:
         })
         proj_para.to_excel(os.path.join(project_dir, 'para.xlsx'), index=False, sheet_name='project_para')
 
+        # 固定全部 xlsx 时间戳（字节级幂等：同 plan → 同文件）
+        for f in [os.path.join(project_dir, 'para.xlsx')] + \
+                 [os.path.join(excel, n) for n in ('hostname.xlsx', 'connection.xlsx', 'ipaddress.xlsx', 'parameter.xlsx')]:
+            _fix_workbook_byte_idempotent(f)
+
         # 每角色模板
         for role in self.roles:
             plane = _SCN_PLANE[_role_to_scn(role)]
@@ -315,9 +351,16 @@ class SingleProjectGenerator:
             'roles': sorted(self.roles),
             'tunables': ['PFC队列', 'CNP队列'],
             'generator': 'intent.project_single.SingleProjectGenerator',
-            'version': '0.2',
+            'version': '0.3',
             'validation': {'ok': len(issues) == 0, 'issue_count': len(issues), 'issues': issues[:20]},
         }
+        # G3.2：桥接标识透传（AL plan → MC 项目，判别规则见契约 §1.4）
+        bridge = getattr(self.ctx, 'bridge', None)
+        if bridge:
+            meta['source'] = bridge.get('source', 'autolink')
+            meta['projectType'] = bridge.get('projectType', 'aidc')
+            meta['bridgeVersion'] = bridge.get('bridgeVersion', '1.0')
+            meta['originPlan'] = bridge.get('originPlan', '')
         with open(os.path.join(project_dir, 'template.meta.json'), 'w', encoding='utf-8') as f:
             json.dump(meta, f, ensure_ascii=False, indent=2)
         with open(os.path.join(project_dir, 'README.md'), 'w', encoding='utf-8') as f:

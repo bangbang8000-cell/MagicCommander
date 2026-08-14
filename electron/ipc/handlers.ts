@@ -840,11 +840,15 @@ export function setupIpcHandlers(window: BrowserWindow): void {
   })
 
   // 渲染 API（通过 Python 后端执行）
-  ipcMain.handle('plan:import', async (_e, planJson: string, projectDir: string): Promise<void> => {
+  ipcMain.handle('plan:import', async (_e, planJson: string, projectDir: string): Promise<unknown> => {
     return await renderHandler.planImport(planJson, projectDir)
   })
   ipcMain.handle('plan:analyze', async (_e, projectDir: string): Promise<unknown> => {
     return await renderHandler.planAnalyze(projectDir)
+  })
+  // G4: plan:table 契约级校验
+  ipcMain.handle('plan:validate', async (_e, planJson: string): Promise<unknown> => {
+    return await renderHandler.planValidate(planJson)
   })
 
   ipcMain.handle('render:project', async (_e, ids: string[]): Promise<void> => {
@@ -1210,13 +1214,17 @@ export function setupIpcHandlers(window: BrowserWindow): void {
     'dialog:openFile',
     async (
       _e,
-      options: { title?: string; filters?: { name: string; extensions: string[] }[] },
+      options: { title?: string; filters?: { name: string; extensions: string[] }[]; properties?: Array<'openFile' | 'openDirectory' | 'multiSelections'> },
     ): Promise<string | null> => {
       if (!isTrustedSender(_e)) throw new Error('无权执行该操作')
+      // G4：支持 openDirectory（目录选择器），默认保持 openFile
+      const properties = Array.isArray(options?.properties) && options.properties.length > 0
+        ? options.properties
+        : ['openFile']
       const result = await dialog.showOpenDialog(window, {
         title: options?.title,
         filters: options?.filters,
-        properties: ['openFile'],
+        properties,
       })
       if (result.canceled || result.filePaths.length === 0) return null
       return result.filePaths[0]

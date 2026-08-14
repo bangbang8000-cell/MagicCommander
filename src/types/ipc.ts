@@ -38,9 +38,26 @@ export type IpcResult<T = unknown> = IpcSuccess<T> | IpcError
 // Electron 全局 API 类型声明
 // ============================================================
 
+export interface PlanImportResult {
+  ok: boolean
+  name: string
+  device_count: number
+  connections: number
+  terminals: number
+  bridge?: { source?: string; projectType?: string; bridgeVersion?: string }
+  mcpara_id?: number
+}
+
+export interface PlanValidateResult {
+  ok: boolean
+  issue_count: number
+  issues: string[]
+}
+
 export interface PlanIpcApi {
-  import: (planJson: string, projectDir: string) => Promise<void>
+  import: (planJson: string, projectDir: string) => Promise<PlanImportResult>
   analyze: (projectDir: string) => Promise<unknown>
+  validate: (planJson: string) => Promise<PlanValidateResult>
 }
 
 export interface ElectronAPI {
@@ -273,7 +290,11 @@ export interface FileIpcApi {
 // ============================================================
 
 export interface DialogIpcApi {
-  openFile: (options?: unknown) => Promise<unknown>
+  openFile: (options?: {
+    title?: string
+    filters?: { name: string; extensions: string[] }[]
+    properties?: Array<'openFile' | 'openDirectory' | 'multiSelections'>
+  }) => Promise<string | null>
   saveFile: (options?: unknown) => Promise<unknown>
   showMessage: (options: { type: 'info' | 'warning' | 'error'; title: string; message: string }) => Promise<void>
   showConfirm: (options: { title: string; message: string }) => Promise<boolean>

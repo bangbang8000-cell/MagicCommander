@@ -103,13 +103,19 @@ export class RenderHandler {
   }
 
   // P1.4: AIDC plan:table 导入（幂等 → 单项目四表格）
-  async planImport(planJson: string, projectDir: string): Promise<void> {
-    await this.runPythonCommand(['plan', 'import', escapePythonArg(planJson), escapePythonArg(projectDir)])
+  async planImport(planJson: string, projectDir: string): Promise<unknown> {
+    // G4：返回机器可读摘要（device_count/terminals/bridge/mcpara_id），供 GUI 预览与渲染一条龙
+    return await this.runPythonCommand(['plan', 'import', escapePythonArg(planJson), escapePythonArg(projectDir)], true)
   }
 
   // P1.4: j2 模板 ↔ 规划字段 对齐检查
   async planAnalyze(projectDir: string): Promise<unknown> {
     return await this.runPythonCommand(['plan', 'analyze', escapePythonArg(projectDir)], true)
+  }
+
+  // G4: plan:table 契约级校验（桥接标识 + macro 完整 + 接线引用）
+  async planValidate(planJson: string): Promise<unknown> {
+    return await this.runPythonCommand(['plan', 'validate', escapePythonArg(planJson)], true)
   }
 
   async createProject(name: string): Promise<void> {

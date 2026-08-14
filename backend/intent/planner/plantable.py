@@ -11,6 +11,8 @@ P1.3 plan:table 生成器（AL 规划输出，接口契约 PRD v2.0 §5）。
 AL 程序据此输出；MC 程序（plantable_importer）消费生成项目。
 """
 
+import datetime
+
 from ..resolver import IntentContext
 
 _SCN_TO_ROLE = {
@@ -22,6 +24,21 @@ _SCN_MODEL = {
     'BIZAGG': 'H3C S9850', 'BIZACC': 'H3C S6805', 'OOBAGG': 'H3C S5820V2', 'OOBACC': 'H3C S5820V2',
 }
 _TERMINAL_KEY = {'LEAF': 'gpu', 'STO_LEAF': 'gpu', 'BIZACC': 'biz', 'OOBACC': 'downlink'}
+
+# 桥接标识（契约 v1.1；本生成器为 AL 产出的测试/联调模拟，故 source=autolink）
+_BRIDGE = {
+    'source': 'autolink', 'projectType': 'aidc', 'bridgeVersion': '1.0', 'schema': 'plan:table/1.1',
+}
+# macro 补齐默认值（契约 v1.1，F9/F10/D17）
+_NOMINAL = {
+    'gpuCount': 64,
+    'naming': {'format': '{site}-R{rack:02d}-AIDC-{vendor}-{abbr}-{seq:02d}',
+               'abbr': {'SPINE': 'P-Spine', 'LEAF': 'P-Leaf', 'STO_SPINE': 'S-Spine', 'STO_LEAF': 'S-Leaf',
+                        'BIZAGG': 'BIZ-AGG', 'BIZACC': 'BIZ-ACC', 'OOBAGG': 'OOB-AGG', 'OOBACC': 'OOB-ACC'}},
+    'ipSegments': {'loopback': '10.1.0.0/20', 'compute': '10.1.16.0/20', 'storage': '10.1.32.0/20',
+                   'biz': '10.1.48.0/20', 'oob': '10.1.64.0/21', 'interconnect': '10.1.72.0/21'},
+    'ospf': {'process': 10, 'area': '0.0.0.0'},
+}
 
 
 def _dev(ctx, scn, local, var_tail):
@@ -78,23 +95,42 @@ def generate_plantable(ctx: IntentContext, project: str = 'aidc_pilot64') -> dic
                         'desc': descs[i] if i < len(descs) else '',
                     })
 
+    n_spine = next((d['count'] for d in device_list if d['role'] == 'SPINE'), 2)
+    n_leaf = next((d['count'] for d in device_list if d['role'] == 'LEAF'), 8)
+    now = datetime.datetime.now(datetime.timezone.utc).isoformat(timespec='seconds')
     return {
-        'meta': {'project': project, 'site': site, 'version': '1.0'},
+        'meta': {
+            'project': project, 'site': site,
+            'version': '1.1', 'schema': _BRIDGE['schema'],
+            'generatedAt': now,
+            'source': _BRIDGE['source'], 'projectType': _BRIDGE['projectType'],
+            'bridgeVersion': _BRIDGE['bridgeVersion'],
+        },
         'macro': {
-            'site': site,
-            'pfc_queue': ctx.globals.get('pfc_queue', 3),
-            'cnp_queue': ctx.globals.get('cnp_queue', 6),
-            'bgp_max_paths': ctx.globals.get('bgp_max_paths', 16),
+            'site': site, 'gpuCount': _NOMINAL['gpuCount'],
+            'pfcQueue': ctx.globals.get('pfc_queue', 3),
+            'cnpQueue': ctx.globals.get('cnp_queue', 6),
+            'bgpMaxPaths': ctx.globals.get('bgp_max_paths', 16),
             'convergence': 1.0,
             'rails': 8,
+            'naming': _NOMINAL['naming'],
+            'ipSegments': _NOMINAL['ipSegments'],
             'deviceModels': dict(_SCN_MODEL),
             'asRange': [65001, 65500],
             'vlanRanges': {'compute': [100, 199], 'storage': [200, 299],
                            'biz': [300, 399], 'oob': [400, 499]},
+            'ospf': _NOMINAL['ospf'],
+        },
+        'topology': {
+            'layers': 2, 'spines': n_spine, 'leaves': n_leaf, 'pods': None,
+            'scale': {'gpuCount': _NOMINAL['gpuCount'], 'spine': n_spine, 'leaf': n_leaf},
         },
         'deviceList': device_list,
         'connections': connections,
         'terminals': terminals,
-        'protocols': {'bgp': {'asRange': [65001, 65500], 'ecmp': ctx.globals.get('bgp_max_paths', 16)}},
+        'protocols': {
+            'ospf': _NOMINAL['ospf'],
+            'bgp': {'asRange': [65001, 65500], 'ecmp': ctx.globals.get('bgp_max_paths', 16)},
+        },
         'convergence': {'compute': 1.0, 'storage': 1.0, 'biz': 1.0},
     }

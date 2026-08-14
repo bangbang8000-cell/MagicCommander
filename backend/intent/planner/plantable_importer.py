@@ -1,35 +1,37 @@
 """
 P1.4 plan:table → MC 项目 转换程序（AL→MC 管道落点）。
 
-流程：AL 输出 plan:table（宏规划）→ MC 转换程序重建规划上下文
-（用宏参数：PFC/CNP 队列、收敛比等）→ 生成单项目四表格。
+流程：AL 输出 plan:table（宏规划，契约 v1.1 含桥接标识）→ MC **校验桥接标识**
+→ 重建规划上下文（用宏参数：PFC/CNP 队列、收敛比等）→ 生成单项目四表格。
 
 plan:table 的 macro 参数是「可调整参数」，转换时生效；拓扑/接线由规划引擎
-按宏参数重建（当前实现以 64 台试点拓扑为基准，未来按 deviceList 扩展）。
+按宏参数重建（G3 起按 deviceList/connections 全量驱动扩展）。
 """
 
 from ..resolver import IntentContext
 from ..project_single import SingleProjectGenerator
-from .pilot_builder import build_pilot64_planned
+from .plan_builder import build_plan_context
+from .validate import validate_bridge_meta
+
+
+def _macro_val(macro: dict, camel: str, snake: str, default):
+    """camelCase 优先、snake_case 兜底（兼容 v1.0 过渡，契约 §3）。"""
+    return macro.get(camel, macro.get(snake, default))
 
 
 def plantable_to_context(plan: dict) -> IntentContext:
-    """从 plan:table 重建规划上下文（应用 macro 可调参数）。"""
-    macro = plan.get('macro', {})
-    pfc = int(macro.get('pfc_queue', 3))
-    cnp = int(macro.get('cnp_queue', 6))
-    site = macro.get('site', 'BJ01')
-    ctx = build_pilot64_planned(pfc_queue=pfc, cnp_queue=cnp, site=site)
-    # 覆盖可调参数（来自 plan）
-    ctx.globals['pfc_queue'] = pfc
-    ctx.globals['cnp_queue'] = cnp
-    if macro.get('bgp_max_paths'):
-        ctx.globals['bgp_max_paths'] = macro['bgp_max_paths']
-    return ctx
+    """G3.1：从 plan:table **全量**重建规划上下文（deviceList/connections/terminals 驱动，规模无关）。
+
+    不再「仅取 4 宏观参数 + 固定 64 台重建」；地址/网关按 macro.ipSegments 确定性分配。
+    """
+    return build_plan_context(plan)
 
 
 def plantable_to_project(plan: dict, project_dir: str) -> str:
-    """plan:table → 单项目四表格 MC 项目。"""
+    """plan:table → 单项目四表格 MC 项目；桥接标识校验失败即抛错（不静默，回报 AL）。"""
+    issues = validate_bridge_meta(plan)
+    if issues:
+        raise ValueError('; '.join(issues))
     ctx = plantable_to_context(plan)
     return SingleProjectGenerator(ctx).write(project_dir)
 

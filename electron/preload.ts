@@ -68,6 +68,7 @@ const api = {
   plan: {
     import: (planJson: string, projectDir: string) => ipcRenderer.invoke('plan:import', planJson, projectDir),
     analyze: (projectDir: string) => ipcRenderer.invoke('plan:analyze', projectDir),
+    validate: (planJson: string) => ipcRenderer.invoke('plan:validate', planJson),
   },
   render: {
     project: (ids: string[]) => ipcRenderer.invoke('render:project', ids),

@@ -20,6 +20,23 @@ from ..resolver import IntentContext
 AS_MIN, AS_MAX = 65001, 65500
 VLAN_PLANE = {'compute': (100, 199), 'storage': (200, 299), 'biz': (300, 399), 'oob': (400, 499)}
 
+# 桥接标识（契约 v1.1，判别规则见 docs/plan_table_契约v1.1 §1.2）
+BRIDGE_FIELDS = ('source', 'projectType', 'bridgeVersion')
+BRIDGE_SOURCE = 'autolink'
+BRIDGE_TYPE = 'aidc'
+
+
+def validate_bridge_meta(plan: dict) -> list[str]:
+    """校验 plan 的桥接标识：缺字段 / 不一致 → 报错回 AL（不静默）。"""
+    meta = plan.get('meta', {}) if isinstance(plan, dict) else {}
+    missing = [f for f in BRIDGE_FIELDS if not meta.get(f)]
+    if missing:
+        return [f'缺桥接标识 {missing}（须由 AL plan:table 契约 v1.1 提供）']
+    source, ptype = meta.get('source'), meta.get('projectType')
+    if ptype == BRIDGE_TYPE and source != BRIDGE_SOURCE:
+        return [f'桥接标识不一致: projectType={ptype} 但 source={source}（须为 {BRIDGE_SOURCE}）']
+    return []
+
 
 def _plane_of_vlan(vlan: int) -> str | None:
     for plane, (lo, hi) in VLAN_PLANE.items():
@@ -101,17 +118,47 @@ def validate_context(ctx: IntentContext) -> list[str]:
     return issues
 
 
+# 契约级必填宏观字段（camelCase 或 snake_case；缺 → 报错回 AL）
+_REQUIRED_MACRO = ('site', 'gpuCount', 'pfcQueue', 'cnpQueue')
+_MACRO_SNAKE = {'gpuCount': 'gpu_count', 'pfcQueue': 'pfc_queue', 'cnpQueue': 'cnp_queue'}
+# 接线 dst 允许的语义角色（契约 §5）
+_ROLE_SET = {'SPINE', 'LEAF', 'STO_SPINE', 'STO_LEAF',
+             'BIZ_AGG', 'BIZ_ACCESS', 'OOB_AGG', 'OOB_ACCESS', 'SPINE/AGG'}
+
+
 def validate_plan(plan: dict) -> list[str]:
-    """校验 plan:table（macro 级）。"""
-    issues = []
+    """校验 plan:table（G3.3 契约级）：桥接标识 + macro 完整 + deviceList 一致 + 接线引用。"""
+    issues = validate_bridge_meta(plan)
     macro = plan.get('macro', {})
-    for q in ('pfc_queue', 'cnp_queue'):
-        v = macro.get(q)
+    # 1) 必填宏观字段（缺 → 回报 AL）
+    missing = [f for f in _REQUIRED_MACRO
+               if not macro.get(f) and not macro.get(_MACRO_SNAKE.get(f, ''))]
+    if missing:
+        issues.append(f'缺宏观字段 {missing}（请回 AL 补齐）')
+    # 2) 队列 0-7
+    for camel, snake in (('pfcQueue', 'pfc_queue'), ('cnpQueue', 'cnp_queue')):
+        v = macro.get(camel, macro.get(snake))
         if v is not None and not (0 <= int(v) <= 7):
-            issues.append(f'{q} 须在 0-7: {v}')
-    # 设备名唯一
-    names = [d.get('name') for d in plan.get('deviceList', []) if d.get('name')]
+            issues.append(f'{camel} 须在 0-7: {v}')
+    # 3) deviceList 非空 + 设备名唯一（兼容逐设备 name 与分组式 devices 两种形式）
+    devs = plan.get('deviceList', [])
+    if not devs:
+        issues.append('deviceList 为空')
+    names = []
+    for d in devs:
+        if d.get('name'):
+            names.append(d['name'])
+        if d.get('devices'):
+            names.extend(d['devices'])
     dup = {n for n in names if names.count(n) > 1}
     if dup:
         issues.append(f'设备名重复: {dup}')
+    # 4) 接线引用完整：src 须在 deviceList；dst 须为角色或 deviceList 设备
+    known = set(names)
+    for c in plan.get('connections', []):
+        s, d = c.get('src', ''), c.get('dst', '')
+        if s and s not in known:
+            issues.append(f'接线 src 未在 deviceList: {s}')
+        if d and d not in known and d not in _ROLE_SET:
+            issues.append(f'接线 dst 未知: {d}')
     return issues
