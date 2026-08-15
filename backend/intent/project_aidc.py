@@ -507,19 +507,16 @@ class AidcProjectGenerator:
                         hosts.append(h)
         return hosts
 
-    def _adjacent_ip(self, ip_str):
-        """对端 IP 推导（/31 约定：取相邻地址），供对称表对端填充。"""
-        try:
-            import ipaddress
-            return str(ipaddress.ip_address(ip_str) + 1)
-        except Exception:  # noqa: BLE001
-            return ''
+    # 注：对端 IP 原由 _adjacent_ip(己端+1) 推导，已被地址分配器产出的 ctx.bgp_peer_ip 取代
+    # （己端+1 在奇数己端时跨 /31 网段，且对端会侵占下一条链路己端）。
 
     def build_ip_table(self):
         """IP规划地址表（对称表）：上联互联，按 己端接口 嵌套。
 
         每个物理链路一行，仅从 LEAF 方向生成（对端=SPINE，对称表自动镜像到对端）。
-        对端接口用唯一索引占位（P2 地址分配引擎做精确端口映射）。
+        对端接口 = 对端设备真实上联口（修复占位 `4/0/{(local-1)*16+idx}` 的跨 Leaf 冲突，
+        曾导致对称表镜像时同接口 key 覆盖、Spine 只渲染到最后关联的 Leaf）。
+        对端 IP 取自地址分配器产出的 ctx.bgp_peer_ip（同 /31 网段、零冲突）。
         """
         rows = []
         for scn, by_local in self._grouped().items():
@@ -529,12 +526,20 @@ class AidcProjectGenerator:
                 peers = self._peer_hosts(scn, role)
                 peer_ases = self._list(scn, local, 'bgp_peer_as')
                 my_as = self._dev(scn, local, 'hostname_hostname_E_')
+                peer_ips = self._list(scn, local, 'bgp_peer_ip')
+                up_ports = self._list(scn, local, 'uplink_port')
+                up_ips = self._list(scn, local, 'uplink_ip')
                 if not peers:
                     continue
-                for idx, (port, ip) in enumerate(
-                        zip(self._list(scn, local, 'uplink_port'),
-                            self._list(scn, local, 'uplink_ip'))):
+                # 每接入设备到同一对端设备的链路数（对端上联序列中该设备占用的槽位数）
+                per_peer = len(up_ports) // len(peers) if len(peers) else 0
+                for idx, (port, ip) in enumerate(zip(up_ports, up_ips)):
                     peer = peers[idx % len(peers)]  # 上联按序轮询到各 Spine
+                    peer_ip = peer_ips[idx] if idx < len(peer_ips) else ''
+                    # 对端真实上联口：该链路在对端上联序列中的位置
+                    #   k = (local-1) * per_peer + idx // len(peers)
+                    #   （与 _build_agg_uplinks 的 reverse 轮询顺序一致，镜像 key 唯一）
+                    k = (local - 1) * per_peer + (idx // len(peers)) if per_peer else 0
                     rows.append({
                         '己端设备': self._dev(scn, local, 'hostname_hostname_B_'),
                         '己端接口': port,
@@ -542,13 +547,22 @@ class AidcProjectGenerator:
                         '己端IP长度': 31,
                         '己端AS': my_as if my_as is not None else 65000,
                         '对端设备': peer,
-                        '对端接口': f'FourHundredGigE1/0/{(local - 1) * 16 + idx}',
-                        '对端IP地址': self._adjacent_ip(ip),
+                        '对端接口': self._peer_uplink_port(peer, k),
+                        '对端IP地址': peer_ip,
                         '对端IP长度': 31,
                         '对端AS': peer_ases[idx] if idx < len(peer_ases) else '',
                         '备注信息': f'{self.plane}上联',
                     })
         return pd.DataFrame(rows)
+
+    def _peer_uplink_port(self, peer, k):
+        """对端设备真实上联口：按对端主机名定位 (scn, local)，取其对端上联序列第 k 个口。"""
+        for pscn, pby in self._grouped().items():
+            for plocal in pby:
+                if self._dev(pscn, plocal, 'hostname_hostname_B_') == peer:
+                    ports = self._list(pscn, plocal, 'uplink_port')
+                    return ports[k] if 0 <= k < len(ports) else ''
+        return ''
 
     def build_vlan_gw_table(self):
         """VLAN网关表（H2：每 VLAN 一行，去逗号拼接）：Leaf 的 VLAN 网关接口。"""

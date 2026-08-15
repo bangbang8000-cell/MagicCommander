@@ -60,9 +60,9 @@ class PilotBuilder:
     def _set(self, scn, idx, name, values):
         self.ctx.lists[f'{scn}_{name}{idx}'] = list(values)
 
-    def _peers(self, scn, idx, local_ips, peer_ases, gw_ips=None):
-        """按上联 IP 生成 bgp_peer（对端=相邻 /31）+ uplink_desc（对端缩写）与（可选）gw 通告。"""
-        self.ctx.lists[f'{scn}_bgp_peer_ip{idx}'] = [_adj(ip) for ip in local_ips]
+    def _peers(self, scn, idx, local_ips, peer_ips, peer_ases, gw_ips=None):
+        """按上联 IP 生成 bgp_peer（对端由分配器给出，同 /31 网段）+ uplink_desc 与（可选）gw 通告。"""
+        self.ctx.lists[f'{scn}_bgp_peer_ip{idx}'] = list(peer_ips)
         self.ctx.lists[f'{scn}_bgp_peer_as{idx}'] = list(peer_ases)
         self.ctx.lists[f'{scn}_uplink_desc{idx}'] = [f'to-{_peer_abbr(a)}' for a in peer_ases]
         if gw_ips:
@@ -83,13 +83,12 @@ class PilotBuilder:
         # Spine 2 台：上联 8 Leaf × 16 = 128
         for n in (1, 2):
             self._add('SPINE', n, 65110 + n)
-            ips = []
-            for lf in range(8):
-                for j in range(16):
-                    ips.append(self.addr.alloc_interconnect_pair()[1])
+            pairs = [self.addr.alloc_interconnect_pair() for _ in range(128)]
+            ips = [p[1] for p in pairs]          # 聚合侧己端 = 网段第二地址
+            peer_ips = [p[0] for p in pairs]     # 对端 = 网段第一地址（接入侧）
             self._set('SPINE', n, 'uplink_port', self.ports.spine_uplink_ports(128))
             self._set('SPINE', n, 'uplink_ip', ips)
-            self._peers('SPINE', n, ips, [65100 + lf + 1 for lf in range(8) for _ in range(16)])
+            self._peers('SPINE', n, ips, peer_ips, [65100 + lf + 1 for lf in range(8) for _ in range(16)])
         # Leaf 8 台：1-32 分光 64 GPU + 33-64 上联 32
         for n in range(1, leaf_count + 1):
             self._add('LEAF', n, 65100 + n)
@@ -99,12 +98,12 @@ class PilotBuilder:
             self._set('LEAF', n, 'gpu_port', gpu_ports)
             self._set('LEAF', n, 'gpu_vlan', gpu_vlans)
             self._set('LEAF', n, 'gpu_desc', gpu_descs)
-            up_ips = []
-            for i in range(32):
-                up_ips.append(self.addr.alloc_interconnect_pair()[0])
+            pairs = [self.addr.alloc_interconnect_pair() for _ in range(32)]
+            up_ips = [p[0] for p in pairs]
+            peer_ips = [p[1] for p in pairs]
             self._set('LEAF', n, 'uplink_port', self.ports.leaf_uplink_ports(32))
             self._set('LEAF', n, 'uplink_ip', up_ips)
-            self._peers('LEAF', n, up_ips, [65110 + (i // 16) + 1 for i in range(32)])
+            self._peers('LEAF', n, up_ips, peer_ips, [65110 + (i // 16) + 1 for i in range(32)])
             # 每 Leaf 网关（H2：VLAN 去重 → 每 VLAN 一行）
             distinct_vlans = list(dict.fromkeys(gpu_vlans))
             gws = [self.addr.compute_gw.take_ip() for _ in distinct_vlans]
@@ -125,10 +124,12 @@ class PilotBuilder:
     def build_storage(self):
         # 1 STO_SPINE + 2 STO_LEAF（S9825-128B 200G）
         self._add('STO_SPINE', 1, 65121)
-        sp_ips = [self.addr.alloc_interconnect_pair()[1] for _ in range(2)]
+        sp_pairs = [self.addr.alloc_interconnect_pair() for _ in range(2)]
+        sp_ips = [p[1] for p in sp_pairs]
+        sp_peer_ips = [p[0] for p in sp_pairs]
         self._set('STO_SPINE', 1, 'uplink_port', self.ports.sto_uplink_ports(2, 1))
         self._set('STO_SPINE', 1, 'uplink_ip', sp_ips)
-        self._peers('STO_SPINE', 1, sp_ips, [65130 + i for i in (1, 2)])
+        self._peers('STO_SPINE', 1, sp_ips, sp_peer_ips, [65130 + i for i in (1, 2)])
         for n in (1, 2):
             self._add('STO_LEAF', n, 65130 + n)
             sto_ports = self.ports.sto_leaf_down_ports(32)
@@ -137,10 +138,12 @@ class PilotBuilder:
             self._set('STO_LEAF', n, 'gpu_port', sto_ports)
             self._set('STO_LEAF', n, 'gpu_vlan', sto_vlans)
             self._set('STO_LEAF', n, 'gpu_desc', sto_descs)
-            lf_ips = [self.addr.alloc_interconnect_pair()[0]]
+            lf_pair = self.addr.alloc_interconnect_pair()
+            lf_ips = [lf_pair[0]]
+            lf_peer_ips = [lf_pair[1]]
             self._set('STO_LEAF', n, 'uplink_port', self.ports.sto_uplink_ports(1, 33))
             self._set('STO_LEAF', n, 'uplink_ip', lf_ips)
-            self._peers('STO_LEAF', n, lf_ips, [65121])
+            self._peers('STO_LEAF', n, lf_ips, lf_peer_ips, [65121])
             # H2：VLAN 去重 → 每 VLAN 一行
             distinct_vlans = list(dict.fromkeys(sto_vlans))
             gws = [self.addr.storage_gw.take_ip() for _ in distinct_vlans]
@@ -153,10 +156,12 @@ class PilotBuilder:
         # 2 BIZ_AGG + 4 BIZ_ACC（ACC 每 32 业务口 25G，上联 100G 到 2 AGG）
         for n in (1, 2):
             self._add('BIZAGG', n, 65150 + n)
-            agg_ips = [self.addr.alloc_interconnect_pair()[1] for _ in range(2)]
+            agg_pairs = [self.addr.alloc_interconnect_pair() for _ in range(2)]
+            agg_ips = [p[1] for p in agg_pairs]
+            agg_peer_ips = [p[0] for p in agg_pairs]
             self._set('BIZAGG', n, 'uplink_port', self.ports.biz_uplink_ports(2))
             self._set('BIZAGG', n, 'uplink_ip', agg_ips)
-            self._peers('BIZAGG', n, agg_ips, [65140 + i for i in range(1, 5)])
+            self._peers('BIZAGG', n, agg_ips, agg_peer_ips, [65140 + i for i in range(1, 5)])
             self._set('BIZAGG', n, 'downlink_port', self.ports.biz_agg_down_ports(4))
             self._set('BIZAGG', n, 'downlink_desc',
                       [f'to-BIZ-ACC-{i}' for i in range(1, 5)])
@@ -168,10 +173,12 @@ class PilotBuilder:
             self._set('BIZACC', n, 'biz_port', biz_ports)
             self._set('BIZACC', n, 'biz_vlan', biz_vlans)
             self._set('BIZACC', n, 'biz_desc', biz_descs)
-            acc_ips = [self.addr.alloc_interconnect_pair()[0] for _ in range(2)]
+            acc_pairs = [self.addr.alloc_interconnect_pair() for _ in range(2)]
+            acc_ips = [p[0] for p in acc_pairs]
+            acc_peer_ips = [p[1] for p in acc_pairs]
             self._set('BIZACC', n, 'uplink_port', self.ports.biz_uplink_ports(2))
             self._set('BIZACC', n, 'uplink_ip', acc_ips)
-            self._peers('BIZACC', n, acc_ips, [65150 + (i % 2) + 1 for i in range(2)])
+            self._peers('BIZACC', n, acc_ips, acc_peer_ips, [65150 + (i % 2) + 1 for i in range(2)])
             gws = [self.addr.biz_gw.take_ip() for _ in range(2)]
             self._set('BIZACC', n, 'vlan_id', [300, 301])
             self._set('BIZACC', n, 'vlan_gw', gws)
@@ -194,7 +201,7 @@ class PilotBuilder:
         self._set('OOBAGG', 1, 'downlink_vlan', [400, 401])
         self._set('OOBAGG', 1, 'downlink_desc', ['OOB-AGG-DL-1', 'OOB-AGG-DL-2'])
         self._set('OOBAGG', 1, 'uplink_port', self.ports.oob_uplink_ports(1))
-        self._peers('OOBAGG', 1, [], [])
+        self._peers('OOBAGG', 1, [], [], [])
         for n in (1, 2):
             self._add('OOBACC', n, 65170 + n)
             oob_ports = self.ports.oob_down_ports(8)
@@ -202,10 +209,12 @@ class PilotBuilder:
             self._set('OOBACC', n, 'downlink_vlan', [400] * len(oob_ports))
             self._set('OOBACC', n, 'downlink_desc',
                       [f'OOB-{self._rack_of("OOBACC", n)}-{i:02d}' for i in range(1, len(oob_ports) + 1)])
-            trunk_ips = [self.addr.alloc_interconnect_pair()[0]]
+            trunk_pair = self.addr.alloc_interconnect_pair()
+            trunk_ips = [trunk_pair[0]]
+            trunk_peer_ips = [trunk_pair[1]]
             self._set('OOBACC', n, 'uplink_port', self.ports.oob_uplink_ports(1))
             self._set('OOBACC', n, 'uplink_ip', trunk_ips)
-            self._peers('OOBACC', n, trunk_ips, [65161])
+            self._peers('OOBACC', n, trunk_ips, trunk_peer_ips, [65161])
 
     def build(self) -> IntentContext:
         self.build_roce()

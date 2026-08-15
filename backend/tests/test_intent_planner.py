@@ -35,6 +35,40 @@ class TestAddress:
         a, b = pl.alloc_interconnect_pair()
         assert int(ipaddress.ip_address(b)) - int(ipaddress.ip_address(a)) == 1
 
+    def test_interconnect_same_subnet(self):
+        """地址分配引擎修复：链路两端必须同一 /31 网段（10.1.72.1/31 与 .2/31 不在同段）。"""
+        pl = AddressPlanner()
+        for _ in range(32):
+            a, b = pl.alloc_interconnect_pair()
+            net_a = int(ipaddress.ip_address(a)) // 2
+            net_b = int(ipaddress.ip_address(b)) // 2
+            assert net_a == net_b, f'{a} 与 {b} 不在同一 /31 网段'
+
+    def test_interconnect_zero_conflict(self):
+        """分配连续多条链路，全项目地址零冲突（对端不侵占下一条己端）。"""
+        pl = AddressPlanner()
+        seen = set()
+        for _ in range(512):
+            a, b = pl.alloc_interconnect_pair()
+            assert a not in seen and b not in seen, f'地址冲突: {a}/{b}'
+            seen.update([a, b])
+        assert len(seen) == 1024
+
+    def test_interconnect_idempotent(self):
+        """同输入 → 同输出（幂等，渲染字节级稳定）。"""
+        def alloc():
+            p = AddressPlanner()
+            return [p.alloc_interconnect_pair() for _ in range(64)]
+        assert alloc() == alloc()
+
+    def test_interconnect_custom_segment(self):
+        """更换互联段（改配置）→ 分配逻辑一致但地址落在新区段。"""
+        from intent.planner.plan_builder import _Pools
+        p = _Pools({'interconnect': '10.2.0.0/21'})
+        a, b = p.interconnect.alloc_link()
+        assert a.startswith('10.2.') and b.startswith('10.2.')
+        assert int(ipaddress.ip_address(a)) // 2 == int(ipaddress.ip_address(b)) // 2
+
 
 class TestPorts:
     def test_leaf_gpu_split(self):

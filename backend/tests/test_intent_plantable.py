@@ -157,7 +157,9 @@ class TestBridgeContract:
             assert snap1 == snap2
 
     def test_plan_driven_import_matches_plan(self):
-        # G3.1：导入按 plan 的 deviceList/connections/terminals 驱动（规模无关）
+        # G3.1：导入按 plan 的 deviceList/connections/terminals 驱动（规模无关）；
+        # 地址修复：互联 IP 由 MC 分配器按 /31 网段粒度分配（忽略 AL 的 src_ip/dst_ip，
+        # 决策：MC 分配器唯一事实源）。Leaf 首链己端从网段边界 .0 起，对端 .1（同 /31）。
         plan = {
             'meta': {'project': 'mini', 'site': 'BJ01', 'version': '1.1',
                      'source': 'autolink', 'projectType': 'aidc', 'bridgeVersion': '1.0'},
@@ -193,11 +195,11 @@ class TestBridgeContract:
         # 终端 vlan 去重 → VLAN 网关（优先用 plan.gateways）
         assert ctx.lists['LEAF_vlan_id1'] == [100, 101]
         assert ctx.lists['LEAF_vlan_gw1'] == ['10.1.16.1', '10.1.16.2']
-        # 本端上联 + 聚合层反向重建
-        assert ctx.lists['LEAF_uplink_ip1'] == ['10.1.72.1']
-        assert ctx.lists['LEAF_bgp_peer_ip1'] == ['10.1.72.2']
-        assert ctx.lists['SPINE_uplink_ip1'] == ['10.1.72.2']
-        assert ctx.lists['SPINE_bgp_peer_ip1'] == ['10.1.72.1']
+        # 本端上联 + 聚合层反向重建（分配器网段对齐：首链 (.0, .1) 同 /31）
+        assert ctx.lists['LEAF_uplink_ip1'] == ['10.1.72.0']
+        assert ctx.lists['LEAF_bgp_peer_ip1'] == ['10.1.72.1']
+        assert ctx.lists['SPINE_uplink_ip1'] == ['10.1.72.1']
+        assert ctx.lists['SPINE_bgp_peer_ip1'] == ['10.1.72.0']
 
     def test_bridge_meta_persisted_in_template_meta(self):
         # G3.2：plan.meta 桥接标识 → template.meta.json 透传（判别规则契约 §1.4）

@@ -51,6 +51,9 @@ class _Pools:
         self.compute_gw = AddressPool(seg.get('compute', _DEFAULT_SEG['compute']))
         self.storage_gw = AddressPool(seg.get('storage', _DEFAULT_SEG['storage']))
         self.biz_gw = AddressPool(seg.get('biz', _DEFAULT_SEG['biz']))
+        # G3.1 地址引擎修复：互联段由 MC 分配器统一分配（决策：MC 唯一事实源），
+        # 不再复用 AL plan 的 src_ip/dst_ip（存在跨 /31 网段 + 地址冲突缺陷）。
+        self.interconnect = AddressPool(seg.get('interconnect', _DEFAULT_SEG['interconnect']))
 
     def gw_pool(self, pool_name):
         return {'compute': self.compute_gw, 'storage': self.storage_gw, 'biz': self.biz_gw}[pool_name]
@@ -155,19 +158,23 @@ class PlanContextBuilder:
     def _apply_connections(self):
         for c in self.plan.get('connections', []):
             src = c.get('src', '')
+            local_ip = peer_ip = ''
             if src in self.scn_id_of:
                 scn, idx = self.scn_id_of[src]
+                # 地址引擎修复：互联 IP 由 MC 分配器按 /31 网段粒度分配（幂等、对齐、零冲突），
+                # 忽略 AL plan 的 src_ip/dst_ip（决策：MC 分配器唯一事实源）。
+                local_ip, peer_ip = self.addr.interconnect.alloc_link()
                 self._append(scn, idx, 'uplink_port', c.get('src_port'))
-                self._append(scn, idx, 'uplink_ip', c.get('src_ip'))
-                self._append(scn, idx, 'bgp_peer_ip', c.get('dst_ip'))
+                self._append(scn, idx, 'uplink_ip', local_ip)
+                self._append(scn, idx, 'bgp_peer_ip', peer_ip)
                 self._append(scn, idx, 'bgp_peer_as', self._peer_asn(c))
                 self._append(scn, idx, 'uplink_desc', c.get('desc', ''))
-            # 对端反向（dst 为聚合角色）→ 供聚合层上联重建
+            # 对端反向（dst 为聚合角色）→ 供聚合层上联重建（用分配器地址，非 AL 的 IP）
             dst_scn = _ROLE_TO_SCN.get(c.get('dst', ''))
             if dst_scn in _AGG_SCN:
                 peer_as = self.by_name.get(src, {}).get('asn', 65000)
                 self._agg_reverse.setdefault(dst_scn, []).append(
-                    (c.get('src_ip'), c.get('dst_ip'), peer_as, c.get('desc', '')))
+                    (local_ip, peer_ip, peer_as, c.get('desc', '')))
 
     # ---- 3) 终端 ----
     def _apply_terminals(self):

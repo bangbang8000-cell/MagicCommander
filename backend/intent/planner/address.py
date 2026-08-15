@@ -40,6 +40,22 @@ class AddressPool:
     def take_ip(self):
         return self.take(1)[0]
 
+    def alloc_link(self, prefix: int = 31):
+        """分配一个点对点链路：同一网段内两个地址（/31 = (2k, 2k+1)）。
+
+        游标通过 `strict=False` 对齐到包含当前地址的网段边界（网络地址），
+        返回 (network_address, broadcast_address)，随后跳过整个网段（步进 prefix 粒度）。
+
+        天然保证两条不变量：
+        - 链路两端同网段（修复跨 /31 对齐 bug：10.1.72.1/31 与 10.1.72.2/31 不在同一网段）；
+        - 地址零冲突（每网段只分配一次，对端不再侵占下一条链路的己端）。
+        """
+        net = ipaddress.ip_network(f'{ipaddress.ip_address(self._cursor)}/{prefix}', strict=False)
+        if int(net.broadcast_address) >= self._end:
+            raise ValueError(f'地址池 {self._name} 地址耗尽（{prefix} 点对点）')
+        self._cursor = int(net.broadcast_address) + 1
+        return str(net.network_address), str(net.broadcast_address)
+
 
 class AddressPlanner:
     """AIDC 地址规划器：按用途分配地址，产出设备级参数。"""
@@ -63,9 +79,8 @@ class AddressPlanner:
         return self.oob_mgmt.take(n)
 
     def alloc_interconnect_pair(self):
-        """分配一个 /31 点对点对，返回 (本地, 对端)。"""
-        addrs = self.interconnect.take(2)
-        return addrs[0], addrs[1]
+        """分配一个 /31 点对点对，返回 (本地, 对端)。同网段（网段感知，地址分配引擎修复）。"""
+        return self.interconnect.alloc_link(31)
 
     def alloc_gateway(self, pool_name: str, prefix: int = 24):
         """从指定网关池分配一个网关地址。"""

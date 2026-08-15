@@ -199,6 +199,8 @@ class SingleProjectGenerator:
 
         LEAF/STO_LEAF/BIZ_ACCESS/OOBACC 方向生成（对端=真实 SPINE/AGG 主机名，避免伪设备）。
         列序 = 对称表 col_num=5：己端(设备/接口/IP/长度/AS) + 对端(设备/接口/IP/长度/AS)。
+        对端接口 = 对端设备真实上联口（修复镜像时占位接口跨设备冲突导致的对端仅渲染到最后关联设备）。
+        对端IP = 地址分配器产出的 ctx.bgp_peer_ip（同 /31、零冲突）。
         """
         rows = []
         for scn in self._scenarios():
@@ -215,21 +217,37 @@ class SingleProjectGenerator:
                 pases = self._list(scn, local, 'bgp_peer_as')
                 ports = self._list(scn, local, 'uplink_port')
                 my_as = self._dev(scn, local, 'hostname_hostname_E_')
+                # 每接入设备到同一对端的链路数（对端上联序列中该设备占用的槽位）
+                per_peer = len(ports) // len(peer_hosts) if len(peer_hosts) else 0
                 for idx, ip in enumerate(ips):
+                    peer = peer_hosts[idx % len(peer_hosts)]
+                    # 对端真实上联口：该链路在对端上联序列中的位置
+                    #   k = (local-1) * per_peer + idx // len(peer_hosts)
+                    #   （与 plan_builder._build_agg_uplinks 的 reverse 轮询顺序一致，镜像 key 唯一）
+                    k = (local - 1) * per_peer + (idx // len(peer_hosts)) if per_peer else 0
                     rows.append({
                         '己端设备': self._dev(scn, local, 'hostname_hostname_B_'),
                         '己端接口': ports[idx] if idx < len(ports) else '',
                         '己端IP地址': ip,
                         '己端IP长度': 31,
                         '己端AS': my_as if my_as is not None else 65000,
-                        '对端设备': peer_hosts[idx % len(peer_hosts)],
-                        '对端接口': ports[idx] if idx < len(ports) else '',
+                        '对端设备': peer,
+                        '对端接口': self._peer_uplink_port(peer, k),
                         '对端IP地址': peers[idx] if idx < len(peers) else '',
                         '对端IP长度': 31,
                         '对端AS': pases[idx] if idx < len(pases) else '',
                         '备注信息': f'{_SCN_PLANE[scn]}上联',
                     })
         return pd.DataFrame(rows)
+
+    def _peer_uplink_port(self, peer, k):
+        """对端设备真实上联口：按对端主机名定位 (scn, local)，取其上联序列第 k 个口。"""
+        for scn in self._scenarios():
+            for local in sorted(self.ctx.device_params.get(scn, {})):
+                if self._dev(scn, local, 'hostname_hostname_B_') == peer:
+                    ports = self._list(scn, local, 'uplink_port')
+                    return ports[k] if 0 <= k < len(ports) else ''
+        return ''
 
     def build_terminal_table(self, plane=None):
         """终端连接表（H2：每接口一行，去逗号拼接；按四网拆 sheet）。"""
