@@ -28,11 +28,17 @@ _SCN_ABBR = {
 class PilotBuilder:
     """用规划引擎构建 64 台试点上下文。"""
 
-    def __init__(self, pfc_queue=3, cnp_queue=6, site='BJ01'):
+    def __init__(self, pfc_queue=3, cnp_queue=6, site='BJ01', segments=None, reserved=None, state=None):
         self.pfc = pfc_queue
         self.cnp = cnp_queue
         self.site = site
-        self.addr = AddressPlanner()
+        self.state = state
+        # D23：可传 allocator 状态（segments 换段 / reserved 预留跳过）
+        if state:
+            self.addr = AddressPlanner(segments=state.effective_segments(segments or {}),
+                                       reserved=reserved or state.reserved)
+        else:
+            self.addr = AddressPlanner(segments=segments, reserved=reserved)
         self.ports = PortPlanner()
         self.vlans = VlanPlanner()
         self.ctx = IntentContext()
@@ -238,6 +244,9 @@ class PilotBuilder:
         for scn, by_id in self.ctx.device_params.items():
             for _id, params in by_id.items():
                 self.ctx.keys |= set(params)
+        if self.state:
+            # D23：状态账本写回（reserved 保留用户编辑）
+            self.state.save(segments=self.addr.segments, allocated=self.addr.allocated())
         return self.ctx
 
 
@@ -266,6 +275,9 @@ def _peer_abbr(asn: int) -> str:
             4: 'BIZ-ACC', 5: 'BIZ-AGG', 6: 'OOB-AGG', 7: 'OOB-ACC'}.get(tens, 'UNKNOWN')
 
 
-def build_pilot64_planned(pfc_queue=3, cnp_queue=6, site='BJ01') -> IntentContext:
-    """用规划引擎生成 64 台试点上下文。"""
-    return PilotBuilder(pfc_queue, cnp_queue, site).build()
+def build_pilot64_planned(pfc_queue=3, cnp_queue=6, site='BJ01', state=None) -> IntentContext:
+    """用规划引擎生成 64 台试点上下文。
+
+    state：可选 AllocatorState（segments 换段 / reserved 预留跳过，build 后写回）。
+    """
+    return PilotBuilder(pfc_queue, cnp_queue, site, state=state).build()

@@ -45,15 +45,29 @@ _TERMINAL_DESC = {'LEAF': 'gpu_desc', 'STO_LEAF': 'gpu_desc', 'BIZACC': 'biz_des
 class _Pools:
     """由 macro.ipSegments 构建的地址池。"""
 
-    def __init__(self, seg):
-        self.loopback = AddressPool(seg.get('loopback', _DEFAULT_SEG['loopback']))
-        self.oob_mgmt = AddressPool(seg.get('oob', _DEFAULT_SEG['oob']))
-        self.compute_gw = AddressPool(seg.get('compute', _DEFAULT_SEG['compute']))
-        self.storage_gw = AddressPool(seg.get('storage', _DEFAULT_SEG['storage']))
-        self.biz_gw = AddressPool(seg.get('biz', _DEFAULT_SEG['biz']))
+    def __init__(self, seg, reserved=None):
+        res = reserved or {}
         # G3.1 地址引擎修复：互联段由 MC 分配器统一分配（决策：MC 唯一事实源），
         # 不再复用 AL plan 的 src_ip/dst_ip（存在跨 /31 网段 + 地址冲突缺陷）。
-        self.interconnect = AddressPool(seg.get('interconnect', _DEFAULT_SEG['interconnect']))
+        # D23：预留地址（allocator_state.reserved）跳过分配。
+        self.loopback = AddressPool(seg.get('loopback', _DEFAULT_SEG['loopback']), reserved=res.get('loopback', ()))
+        self.oob_mgmt = AddressPool(seg.get('oob', _DEFAULT_SEG['oob']), reserved=res.get('oob', ()))
+        self.compute_gw = AddressPool(seg.get('compute', _DEFAULT_SEG['compute']), reserved=res.get('compute', ()))
+        self.storage_gw = AddressPool(seg.get('storage', _DEFAULT_SEG['storage']), reserved=res.get('storage', ()))
+        self.biz_gw = AddressPool(seg.get('biz', _DEFAULT_SEG['biz']), reserved=res.get('biz', ()))
+        self.interconnect = AddressPool(seg.get('interconnect', _DEFAULT_SEG['interconnect']), reserved=res.get('interconnect', ()))
+
+    def segments(self):
+        """当前生效地址段（{seg_key: net}，供状态持久化）。"""
+        return {'loopback': self.loopback._name, 'oob': self.oob_mgmt._name,
+                'compute': self.compute_gw._name, 'storage': self.storage_gw._name,
+                'biz': self.biz_gw._name, 'interconnect': self.interconnect._name}
+
+    def allocated(self):
+        """本次分配日志（{seg_key: [...allocated]}，供状态持久化）。"""
+        return {'loopback': self.loopback.allocated, 'oob': self.oob_mgmt.allocated,
+                'compute': self.compute_gw.allocated, 'storage': self.storage_gw.allocated,
+                'biz': self.biz_gw.allocated, 'interconnect': self.interconnect.allocated}
 
     def gw_pool(self, pool_name):
         return {'compute': self.compute_gw, 'storage': self.storage_gw, 'biz': self.biz_gw}[pool_name]
@@ -69,18 +83,27 @@ def _dedup(vals):
 
 
 class PlanContextBuilder:
-    """按 plan:table（契约 v1.1）全量重建 IntentContext。"""
+    """按 plan:table（契约 v1.1）全量重建 IntentContext。
 
-    def __init__(self, plan: dict):
+    D23（状态持久化）：可传入 `AllocatorState`——其 segments 优先于 plan.ipSegments（换段），
+    reserved 供各池跳过；build 后写回 allocated 审计。
+    """
+
+    def __init__(self, plan: dict, state=None):
         self.plan = plan
         self.macro = plan.get('macro', {})
         seg = self.macro.get('ipSegments') or self.macro.get('ip_segments') or _DEFAULT_SEG
-        self.addr = _Pools(seg)
+        self.state = state
+        if state:
+            seg = state.effective_segments(seg)
+            self.addr = _Pools(seg, reserved=state.reserved)
+        else:
+            self.addr = _Pools(seg)
         self.ctx = IntentContext()
         self.by_name = {}
         self.scn_id_of = {}
         self._counters = {}
-        self._agg_reverse = {}   # agg_scn -> list[(src_ip, dst_ip, peer_as, desc)]
+        self._agg_reverse = {}   # agg_scn -> list[(local_ip, peer_ip, peer_as, desc)]
 
     # ---- 工具 ----
     def _append(self, scn, idx, name, val):
@@ -293,6 +316,9 @@ class PlanContextBuilder:
         self._build_agg_downlinks()
         self._set_globals()
         self._set_bridge()
+        if self.state:
+            # D23：状态账本写回（reserved 保留用户编辑，segments/allocated 更新）
+            self.state.save(segments=self.addr.segments(), allocated=self.addr.allocated())
         return self.ctx
 
 
@@ -307,6 +333,9 @@ def _agg_uplink_ports(scn: str, count: int) -> list:
     return P.oob_uplink_ports(count)
 
 
-def build_plan_context(plan: dict) -> IntentContext:
-    """G3.1：按 plan:table 全量重建 IntentContext（导入入口）。"""
-    return PlanContextBuilder(plan).build()
+def build_plan_context(plan: dict, state=None) -> IntentContext:
+    """G3.1：按 plan:table 全量重建 IntentContext（导入入口）。
+
+    state：可选 AllocatorState，提供 segments（换段优先）/reserved（预留跳过）。
+    """
+    return PlanContextBuilder(plan, state).build()

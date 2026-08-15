@@ -10,6 +10,7 @@ plan:table 的 macro 参数是「可调整参数」，转换时生效；拓扑/�
 
 from ..resolver import IntentContext
 from ..project_single import SingleProjectGenerator
+from .allocator_state import AllocatorState
 from .plan_builder import build_plan_context
 from .validate import validate_bridge_meta
 
@@ -28,11 +29,16 @@ def plantable_to_context(plan: dict) -> IntentContext:
 
 
 def plantable_to_project(plan: dict, project_dir: str) -> str:
-    """plan:table → 单项目四表格 MC 项目；桥接标识校验失败即抛错（不静默，回报 AL）。"""
+    """plan:table → 单项目四表格 MC 项目；桥接标识校验失败即抛错（不静默，回报 AL）。
+
+    D23：创建 AllocatorState（allocator_state.json）——segments 换段优先、reserved 预留跳过，
+    build 后写回 allocated 审计；重复导入幂等（同配置同地址）。
+    """
     issues = validate_bridge_meta(plan)
     if issues:
         raise ValueError('; '.join(issues))
-    ctx = plantable_to_context(plan)
+    state = AllocatorState(project_dir)
+    ctx = build_plan_context(plan, state)
     return SingleProjectGenerator(ctx).write(project_dir)
 
 

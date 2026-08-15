@@ -6,6 +6,8 @@ import pandas as pd
 import pytest
 
 from intent.pilot64 import build_pilot64_context
+from intent.planner.allocator_state import AllocatorState
+from intent.planner.plan_builder import build_plan_context
 from intent.planner.plantable import generate_plantable
 from intent.planner.plantable_importer import plantable_to_context, plantable_to_project
 from intent.planner.validate import validate_bridge_meta, validate_plan
@@ -200,6 +202,35 @@ class TestBridgeContract:
         assert ctx.lists['LEAF_bgp_peer_ip1'] == ['10.1.72.1']
         assert ctx.lists['SPINE_uplink_ip1'] == ['10.1.72.1']
         assert ctx.lists['SPINE_bgp_peer_ip1'] == ['10.1.72.0']
+
+    def test_import_reserved_segment_skipped(self, tmp_path):
+        """D23：allocator_state.reserved 预留 → 分配器跳过该网段，己端从下一网段起。"""
+        plan = {
+            'meta': {'source': 'autolink', 'projectType': 'aidc', 'bridgeVersion': '1.0'},
+            'macro': {'ipSegments': {'loopback': '10.1.0.0/20', 'compute': '10.1.16.0/20',
+                                     'storage': '10.1.32.0/20', 'biz': '10.1.48.0/20',
+                                     'oob': '10.1.64.0/21', 'interconnect': '10.1.72.0/21'}},
+            'deviceList': [
+                {'role': 'SPINE', 'scenario': 'SPINE', 'name': 'BJ01-R01-AIDC-H3C-P-Spine-01', 'asn': 65111},
+                {'role': 'LEAF', 'scenario': 'LEAF', 'name': 'BJ01-R02-AIDC-H3C-P-Leaf-01', 'asn': 65101},
+            ],
+            'connections': [
+                {'src': 'BJ01-R02-AIDC-H3C-P-Leaf-01', 'src_port': 'FourHundredGigE1/0/33',
+                 'dst': 'SPINE', 'rate': '400G'},
+            ],
+            'terminals': [],
+        }
+        state = AllocatorState(str(tmp_path))
+        state.reserved = {'interconnect': ['10.1.72.0', '10.1.72.1']}  # 预留第一个 /31
+        state.save(segments={}, allocated={})
+        ctx = build_plan_context(plan, state)
+        # 无预留时首链 = (.0, .1)；预留后跳至 (.2, .3)（己端/对端同网段）
+        assert ctx.lists['LEAF_uplink_ip1'] == ['10.1.72.2']
+        assert ctx.lists['LEAF_bgp_peer_ip1'] == ['10.1.72.3']
+        # 状态账本已写回 allocated
+        st2 = AllocatorState(str(tmp_path))
+        assert st2.reserved['interconnect'] == ['10.1.72.0', '10.1.72.1']
+        assert st2.allocated.get('interconnect') == [['10.1.72.2', '10.1.72.3']]
 
     def test_bridge_meta_persisted_in_template_meta(self):
         # G3.2：plan.meta 桥接标识 → template.meta.json 透传（判别规则契约 §1.4）

@@ -75,3 +75,6 @@ workspace/aidc_pilot64/
 
 # 项目注册表（运行时生成，随渲染/导入更新，不入仓库）
 workspace/MC_Para.xlsx
+
+# 地址分配器状态账本（D23：segments/reserved/allocated，项目级派生状态）
+workspace/*/allocator_state.json

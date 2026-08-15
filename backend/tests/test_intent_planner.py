@@ -69,6 +69,44 @@ class TestAddress:
         assert a.startswith('10.2.') and b.startswith('10.2.')
         assert int(ipaddress.ip_address(a)) // 2 == int(ipaddress.ip_address(b)) // 2
 
+    def test_pool_reserved_link_skip(self):
+        """预留整个网段（D23）→ alloc_link 跳过该网段。"""
+        pool = AddressPool('10.1.72.0/21', reserved=['10.1.72.4', '10.1.72.5'])
+        pairs = [pool.alloc_link() for _ in range(4)]
+        assert pairs == [('10.1.72.0', '10.1.72.1'), ('10.1.72.2', '10.1.72.3'),
+                         ('10.1.72.6', '10.1.72.7'), ('10.1.72.8', '10.1.72.9')]
+
+    def test_pool_reserved_loose_skip(self):
+        """预留单地址 → take 跳过。"""
+        pool = AddressPool('10.1.0.0/20', reserved=['10.1.0.1', '10.1.0.2'])
+        assert pool.take(3) == ['10.1.0.3', '10.1.0.4', '10.1.0.5']
+
+    def test_allocator_state_segments_switch(self):
+        """allocator_state.json：segments 换段优先于 plan，状态持久化。"""
+        import tempfile
+        from intent.planner.allocator_state import AllocatorState
+        d = tempfile.mkdtemp()
+        plan_seg = {'loopback': '10.1.0.0/20', 'compute': '10.1.16.0/20', 'storage': '10.1.32.0/20',
+                    'biz': '10.1.48.0/20', 'oob': '10.1.64.0/21', 'interconnect': '10.1.72.0/21'}
+        st = AllocatorState(d)
+        st.save(segments=plan_seg, allocated={'interconnect': [['10.1.72.0', '10.1.72.1']]})
+        # 用户编辑换段
+        st.segments['interconnect'] = '10.2.0.0/21'
+        st.save(segments=st.segments, allocated={})
+        st2 = AllocatorState(d)
+        assert st2.effective_segments(plan_seg)['interconnect'] == '10.2.0.0/21'
+
+    def test_allocator_state_reserved_roundtrip(self):
+        """allocator_state.json：reserved 写回保留用户编辑。"""
+        import tempfile
+        from intent.planner.allocator_state import AllocatorState
+        d = tempfile.mkdtemp()
+        st = AllocatorState(d)
+        st.reserved = {'interconnect': ['10.1.72.100', '10.1.72.101']}
+        st.save(segments={}, allocated={})
+        st2 = AllocatorState(d)
+        assert st2.reserved['interconnect'] == ['10.1.72.100', '10.1.72.101']
+
 
 class TestPorts:
     def test_leaf_gpu_split(self):
