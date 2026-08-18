@@ -431,13 +431,16 @@ class SingleProjectGenerator:
             'version': '0.3',
             'validation': {'ok': len(issues) == 0, 'issue_count': len(issues), 'issues': issues[:20]},
         }
-        # G3.2：桥接标识透传（AL plan → MC 项目，判别规则见契约 §1.4）
+        # G3.2 + 契约 v1.2（M-1）：桥接标识与项目身份透传（AL plan → MC 项目，判别规则见契约 §1.4/§6.2）
         bridge = getattr(self.ctx, 'bridge', None)
         if bridge:
             meta['source'] = bridge.get('source', 'autolink')
             meta['projectType'] = bridge.get('projectType', 'aidc')
             meta['bridgeVersion'] = bridge.get('bridgeVersion', '1.0')
             meta['originPlan'] = bridge.get('originPlan', '')
+            for k in ('originProjectId', 'originProjectName', 'originSite', 'originPlanVersion', 'planHash'):
+                if bridge.get(k):
+                    meta[k] = bridge.get(k)
         with open(os.path.join(project_dir, 'template.meta.json'), 'w', encoding='utf-8') as f:
             json.dump(meta, f, ensure_ascii=False, indent=2)
         with open(os.path.join(project_dir, 'README.md'), 'w', encoding='utf-8') as f:

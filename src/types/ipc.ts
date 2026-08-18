@@ -46,6 +46,19 @@ export interface PlanImportResult {
   terminals: number
   bridge?: { source?: string; projectType?: string; bridgeVersion?: string }
   mcpara_id?: number
+  /** 契约 v1.2（M-3）：来源身份 + 匹配检测 */
+  origin?: { projectId?: string; projectName?: string; site?: string; planVersion?: number; matched?: 'new' | 'update' | 'none' | 'skip' }
+  /** 契约 v1.2（P2）：导入版本 + 变更记录 */
+  mcPlanVersion?: number
+  changed?: boolean
+  changelog?: Array<{
+    at?: string; planVersion?: number; mcPlanVersion?: number; planHash?: string
+    changed?: Array<{ field: string; from?: unknown; to?: unknown }>
+    summary?: string
+  }>
+  project_dir?: string
+  /** 契约 v1.2：身份缺失等 warn（不阻断） */
+  warnings?: string[]
 }
 
 export interface PlanValidateResult {
@@ -54,8 +67,25 @@ export interface PlanValidateResult {
   issues: string[]
 }
 
+/** P2（V-MC2）：渲染命令核对矩阵 */
+export interface VerifyResult {
+  ok: boolean
+  error?: string
+  rendered_at?: string
+  checks: string[]
+  devices: Array<{
+    name: string
+    role: string
+    plane: string
+    results: Array<{ check: string; applicable: boolean; hit: boolean | null }>
+  }>
+  summary: Record<string, { total: number; hit: number }>
+}
+
 export interface PlanIpcApi {
-  import: (planJson: string, projectDir: string) => Promise<PlanImportResult>
+  import: (planJson: string, projectDir?: string) => Promise<PlanImportResult>
+  importData: (plan: unknown, projectDir?: string) => Promise<PlanImportResult>
+  verify: (projectDir: string) => Promise<VerifyResult>
   analyze: (projectDir: string) => Promise<unknown>
   validate: (planJson: string) => Promise<PlanValidateResult>
 }

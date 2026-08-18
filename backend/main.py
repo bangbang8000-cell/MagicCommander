@@ -10,10 +10,61 @@ import sys
 import json
 import os
 import logging
+import shutil
+import tempfile
+import zipfile
 from pre_processing import PreProcessing
 from config import WORKSPACE_DIR
 
 logger = logging.getLogger(__name__)
+
+
+def _project_origin(name: str) -> dict | None:
+    """契约 v1.2（M-7）：从项目 template.meta.json 读取来源摘要（AL 项目 → MC 项目溯源）。"""
+    meta_path = os.path.join(WORKSPACE_DIR, name, 'template.meta.json')
+    if not os.path.exists(meta_path):
+        return None
+    try:
+        with open(meta_path, 'r', encoding='utf-8') as f:
+            m = json.load(f)
+    except (OSError, ValueError):
+        return None
+    if not (m.get('originProjectId') or m.get('source')):
+        return None
+    return {
+        'projectId': m.get('originProjectId', ''),
+        'projectName': m.get('originProjectName', ''),
+        'site': m.get('originSite', ''),
+        'originPlan': m.get('originPlan', ''),
+        'originPlanVersion': m.get('originPlanVersion'),
+        'planHash': m.get('planHash', ''),
+        'mcPlanVersion': m.get('mcPlanVersion'),
+    }
+
+
+def _load_plan_input(path: str) -> dict:
+    """读取 plan 输入：.zip 交付包 → 解包取 plan.json；否则直接读 JSON（契约 v1.2 M-5）。"""
+    if str(path).lower().endswith('.zip'):
+        tmp = tempfile.mkdtemp(prefix='aidc_zip_')
+        try:
+            with zipfile.ZipFile(path) as z:
+                z.extractall(tmp)
+            plan_path = None
+            for root, _, files in os.walk(tmp):
+                for f in files:
+                    if f == 'plan.json':
+                        plan_path = os.path.join(root, f)
+                        break
+                if plan_path:
+                    break
+            if not plan_path:
+                return {'error': f'交付包内未找到 plan.json: {path}'}
+            with open(plan_path, 'r', encoding='utf-8') as f:
+                return json.load(f)
+        finally:
+            shutil.rmtree(tmp, ignore_errors=True)
+    with open(path, 'r', encoding='utf-8') as f:
+        return json.load(f)
 
 
 def _resolve_project_file(project_dir: str, rel_path: str) -> str:
@@ -73,13 +124,18 @@ def main():
     # AIDC 规划导入/分析（P1.4）
     plan_parser = subparsers.add_parser('plan', help='AIDC plan:table 导入与分析')
     plan_subparsers = plan_parser.add_subparsers(title='规划操作', dest='subcommand', help='规划子命令')
-    plan_import_parser = plan_subparsers.add_parser('import', help='plan:table → MC 单项目四表格（幂等）')
-    plan_import_parser.add_argument('plan_json', help='plan:table JSON 文件路径')
-    plan_import_parser.add_argument('project_dir', help='目标项目目录（如 workspace/xxx）')
+    plan_import_parser = plan_subparsers.add_parser('import', help='plan:table → MC 项目（契约 v1.2：按 projectId 自动匹配新建/更新/跳过；支持 .zip 交付包）')
+    plan_import_parser.add_argument('plan_json', help='plan:table JSON 或 .zip 交付包路径')
+    plan_import_parser.add_argument('project_dir', nargs='?', default=None,
+                                    help='目标项目目录（缺省自动：命中按 projectId 更新，否则默认 projectName）')
+    plan_import_parser.add_argument('--rehash', action='store_true',
+                                    help='导入前按 macro 重算 planHash（GUI tunable 编辑路径，P2 V-MC4）')
     plan_analyze_parser = plan_subparsers.add_parser('analyze', help='j2 模板 ↔ 规划字段 对齐检查')
     plan_analyze_parser.add_argument('project_dir', help='项目目录')
     plan_validate_parser = plan_subparsers.add_parser('validate', help='专业校验（设备名/IP/AS/VLAN/网关）')
     plan_validate_parser.add_argument('plan_json', help='plan:table JSON 文件路径')
+    plan_verify_parser = plan_subparsers.add_parser('verify', help='渲染命令核对矩阵（P2 V-MC2）')
+    plan_verify_parser.add_argument('project_dir', help='项目目录')
 
     # 项目管理命令
     project_parser = subparsers.add_parser('project', help='项目管理操作')
@@ -284,43 +340,52 @@ def handle_plan_command(args):
     import os
 
     if args.subcommand == 'import':
-        with open(args.plan_json, 'r', encoding='utf-8') as f:
-            plan = json.load(f)
+        plan = _load_plan_input(args.plan_json)
         if 'error' in plan:
             print(f'plan 无效: {plan["error"]}')
             return
-        from intent.planner.plantable_importer import plantable_to_project
+        # P2（V-MC4）：GUI tunable 编辑路径 —— 由 Python 权威按 macro 重算 planHash
+        if args.rehash and plan.get('macro'):
+            from intent.planner.validate import plan_hash
+            plan['meta']['planHash'] = plan_hash(plan.get('macro', {}))
+        from intent.planner.plantable_importer import import_plan_auto
+        # 目标目录：缺省走自动（匹配/默认 projectName）；给定则作为显式目录（仍优先按 projectId 匹配更新）
         project_dir = args.project_dir
-        if not os.path.isabs(project_dir):
+        if project_dir and not os.path.isabs(project_dir):
             project_dir = os.path.join(os.getcwd(), project_dir)
-        os.makedirs(project_dir, exist_ok=True)
-        plantable_to_project(plan, project_dir)
+        summary = import_plan_auto(plan, WORKSPACE_DIR, explicit_dir=project_dir)
+        if summary.get('error'):
+            print(f'导入失败: {summary["error"]}')
+            return
         # 注册到 MC_Para（可选：若在 workspace 下）
-        mc_para = os.path.join(os.path.dirname(project_dir), 'MC_Para.xlsx')
-        if os.path.exists(mc_para):
+        proj_dir = summary.get('project_dir', '')
+        mc_para = os.path.join(os.path.dirname(proj_dir), 'MC_Para.xlsx')
+        if proj_dir and os.path.exists(mc_para):
             import pandas as pd
             df = pd.read_excel(mc_para)
-            name = os.path.basename(project_dir)
+            name = os.path.basename(proj_dir.rstrip('/'))
             if name not in df['项目名称'].astype(str).tolist():
                 rows = df['项目名称'].astype(str).tolist() + [name]
                 pd.DataFrame({'项目名称': rows}).to_excel(mc_para, sheet_name='项目名称', index=False)
-        print(f'[OK] plan:table 已幂等导入 → {project_dir}')
-        dev = plan.get('deviceList', [])
-        dev_n = sum(d.get('count', 1) for d in dev) if dev and 'count' in dev[0] else len(dev)
-        print(f'  设备 {dev_n} 台 / '
-              f'接线 {len(plan.get("connections", []))} / 终端 {len(plan.get("terminals", []))}')
-        # G4：机器可读摘要（GUI 一条龙：导入→预览→渲染）
-        import pandas as pd
-        summary = {'ok': True, 'name': os.path.basename(project_dir.rstrip('/')),
-                   'device_count': dev_n, 'connections': len(plan.get('connections', [])),
-                   'terminals': len(plan.get('terminals', [])),
-                   'bridge': {k: plan.get('meta', {}).get(k)
-                              for k in ('source', 'projectType', 'bridgeVersion')}}
-        if os.path.exists(mc_para):
+        matched = summary.get('matched', 'none')
+        if matched == 'skip':
+            print(f'[skip] 规划无变化（v{summary.get("mcPlanVersion")}），跳过（{summary["name"]}）')
+        else:
+            verb = '更新' if matched == 'update' else ('新建' if matched == 'new' else '按目录导入')
+            print(f'[OK] {verb} → {summary.get("name")}（v{summary.get("mcPlanVersion")}）')
+            print(f'  设备 {summary.get("device_count")} / 接线 {summary.get("connections")} / 终端 {summary.get("terminals")}')
+            for w in summary.get('warnings', []):
+                print(f'  [warn] {w}')
+            for c in summary.get('changelog', [])[-3:]:
+                print(f'  [变更] {c.get("summary", "")}')
+        if proj_dir and os.path.exists(mc_para):
             _df = pd.read_excel(mc_para)
             _names = _df['项目名称'].astype(str).tolist()
             if summary['name'] in _names:
                 summary['mcpara_id'] = _names.index(summary['name']) + 1  # 1-based
+        # 补充桥接标识（GUI 兼容）
+        pmeta = plan.get('meta', {}) or {}
+        summary['bridge'] = {k: pmeta.get(k) for k in ('source', 'projectType', 'bridgeVersion')}
         print(json.dumps(summary, ensure_ascii=False))
     elif args.subcommand == 'validate':
         from intent.planner.validate import validate_plan
@@ -345,6 +410,13 @@ def handle_plan_command(args):
             print(f'    - {m}')
         print(f'  未被引用字段: {len(result.get("unused_columns", []))}')
         print(f'  复杂度: {result.get("complexity", 0)}')
+    elif args.subcommand == 'verify':
+        # P2（V-MC2）：渲染命令核对矩阵 → 结构化 JSON（GUI 命中矩阵可视化）
+        import sys as _sys
+        _sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), 'scripts'))
+        from verify_rendered import verify_project_data
+        result = verify_project_data(args.project_dir)
+        print(json.dumps(result, ensure_ascii=False))
 
 
 def handle_project_command(processor, args):
@@ -352,11 +424,12 @@ def handle_project_command(processor, args):
     if args.subcommand == 'list':
         projects = []
         for i, name in enumerate(processor.project_name, 1):
-            projects.append({
-                'id': i,
-                'name': name,
-                'index': i - 1
-            })
+            entry = {'id': i, 'name': name, 'index': i - 1}
+            # 契约 v1.2（M-7）：来源摘要（AL 项目 → MC 项目溯源）
+            origin = _project_origin(name)
+            if origin:
+                entry['origin'] = origin
+            projects.append(entry)
         
         # 无论格式参数是什么，都返回 JSON 格式的输出
         print(json.dumps({

@@ -65,6 +65,40 @@ ROLE_CHECKS = {
 }
 
 
+def verify_project_data(project_dir: str) -> dict:
+    """契约 v1.2（P2 V-MC2）：命令核对 → 结构化数据（GUI 命中矩阵用）。"""
+    output_dir = os.path.join(project_dir, 'output')
+    if not os.path.isdir(output_dir):
+        return {'ok': False, 'error': f'无 output 目录: {output_dir}', 'checks': [], 'devices': [], 'summary': {}}
+    ts = sorted(os.listdir(output_dir))[-1]
+    base = os.path.join(output_dir, ts)
+    txts = [f for f in glob_txt(base)]
+    if not txts:
+        return {'ok': False, 'error': f'{base} 下无 .txt 配置', 'checks': [], 'devices': [], 'summary': {}}
+    all_checks = [c[0] for c in CHECKS]
+    summary: dict = {}
+    devices = []
+    for p in sorted(txts):
+        role = os.path.basename(os.path.dirname(p))
+        name = os.path.splitext(os.path.basename(p))[0]
+        text = open(p, encoding='utf-8').read()
+        applicable, plane = ROLE_CHECKS.get(role, (all_checks, '?'))
+        results = []
+        for cname, regex in CHECKS:
+            if cname in applicable:
+                hit = bool(re.search(regex, text))
+                s = summary.setdefault(cname, {'total': 0, 'hit': 0})
+                s['total'] += 1
+                if hit:
+                    s['hit'] += 1
+                results.append({'check': cname, 'applicable': True, 'hit': hit})
+            else:
+                results.append({'check': cname, 'applicable': False, 'hit': None})
+        devices.append({'name': name, 'role': role, 'plane': plane, 'results': results})
+    return {'ok': True, 'rendered_at': ts, 'checks': all_checks,
+            'devices': devices, 'summary': summary}
+
+
 def main(project_dir: str = DEFAULT_PROJECT):
     output_dir = os.path.join(project_dir, 'output')
     if not os.path.isdir(output_dir):

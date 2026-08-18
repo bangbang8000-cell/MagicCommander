@@ -295,7 +295,7 @@ class PlanContextBuilder:
                 self.ctx.keys |= set(params)
 
     def _set_bridge(self):
-        """G3.2：桥接标识透传到 context（供 template.meta.json 持久化）。"""
+        """G3.2 + 契约 v1.2（M-1）：桥接标识与项目身份透传到 context（供 template.meta.json 持久化）。"""
         meta = self.plan.get('meta', {})
         if meta.get('source') or meta.get('projectType') or meta.get('bridgeVersion'):
             self.ctx.bridge = {
@@ -303,6 +303,12 @@ class PlanContextBuilder:
                 'projectType': meta.get('projectType', 'aidc'),
                 'bridgeVersion': meta.get('bridgeVersion', '1.0'),
                 'originPlan': meta.get('project', ''),
+                # 契约 v1.2 §1：项目身份 + 版本（originProjectId 为机器匹配键）
+                'originProjectId': meta.get('projectId', ''),
+                'originProjectName': meta.get('projectName', ''),
+                'originSite': meta.get('site', ''),
+                'originPlanVersion': meta.get('planVersion'),
+                'planHash': meta.get('planHash', ''),
             }
         else:
             self.ctx.bridge = None

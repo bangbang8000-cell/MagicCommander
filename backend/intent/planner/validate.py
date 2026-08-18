@@ -13,17 +13,32 @@ AIDC 规划校验引擎（P1.2 FR-E：生成即校验）。
 返回 issues 列表（空 = 通过）。
 """
 
+import hashlib
 import ipaddress
+import json
 
 from ..resolver import IntentContext
 
 AS_MIN, AS_MAX = 65001, 65500
 VLAN_PLANE = {'compute': (100, 199), 'storage': (200, 299), 'biz': (300, 399), 'oob': (400, 499)}
 
-# 桥接标识（契约 v1.1，判别规则见 docs/plan_table_契约v1.1 §1.2）
+# 桥接标识（契约 v1.2，判别规则见 docs/plan_table_契约v1.2 §2）
 BRIDGE_FIELDS = ('source', 'projectType', 'bridgeVersion')
 BRIDGE_SOURCE = 'autolink'
 BRIDGE_TYPE = 'aidc'
+
+
+def canonical_macro(macro: dict) -> str:
+    """契约 v1.2 §1.3：canonical(macro) = json.dumps(macro, sort_keys=True, ensure_ascii=False)。
+
+    与 AL 端 aidc_planner.canonical_macro 算法一致（契约测试桩保证）。
+    """
+    return json.dumps(macro, sort_keys=True, ensure_ascii=False)
+
+
+def plan_hash(macro: dict) -> str:
+    """planHash = sha256(canonical(macro))，双端一致算法。"""
+    return hashlib.sha256(canonical_macro(macro).encode('utf-8')).hexdigest()
 
 
 def validate_bridge_meta(plan: dict) -> list[str]:
@@ -31,11 +46,26 @@ def validate_bridge_meta(plan: dict) -> list[str]:
     meta = plan.get('meta', {}) if isinstance(plan, dict) else {}
     missing = [f for f in BRIDGE_FIELDS if not meta.get(f)]
     if missing:
-        return [f'缺桥接标识 {missing}（须由 AL plan:table 契约 v1.1 提供）']
+        return [f'缺桥接标识 {missing}（须由 AL plan:table 契约 v1.2 提供）']
     source, ptype = meta.get('source'), meta.get('projectType')
     if ptype == BRIDGE_TYPE and source != BRIDGE_SOURCE:
         return [f'桥接标识不一致: projectType={ptype} 但 source={source}（须为 {BRIDGE_SOURCE}）']
+    # 契约 v1.2 §1.1：projectId 若存在必须是非空字符串
+    pid = meta.get('projectId')
+    if pid is not None and (not isinstance(pid, str) or not pid.strip()):
+        return [f'projectId 非法: {pid!r}（须为非空字符串）']
     return []
+
+
+def plan_identity_warnings(plan: dict) -> list[str]:
+    """契约 v1.2：身份缺失警告（warn 不阻断；旧 v1.0/v1.1 文件兼容导入）。"""
+    meta = plan.get('meta', {}) if isinstance(plan, dict) else {}
+    warnings = []
+    if not meta.get('projectId'):
+        warnings.append('plan 缺 projectId（v1.0/v1.1 旧文件）：无法按项目编号自动匹配，按目录导入')
+    if not meta.get('planHash'):
+        warnings.append('plan 缺 planHash：无法校验内容完整性')
+    return warnings
 
 
 def _plane_of_vlan(vlan: int) -> str | None:
@@ -161,4 +191,12 @@ def validate_plan(plan: dict) -> list[str]:
             issues.append(f'接线 src 未在 deviceList: {s}')
         if d and d not in known and d not in _ROLE_SET:
             issues.append(f'接线 dst 未知: {d}')
+    # 5) planHash 完整性（契约 v1.2 §7）：重算比对，防"版本号一致但内容被篡改/算法不同步"
+    ph = (plan.get('meta', {}) or {}).get('planHash')
+    if ph:
+        try:
+            if plan_hash(macro) != str(ph):
+                issues.append('planHash 与 macro 不符（文件被篡改或算法不同步）')
+        except (TypeError, ValueError):
+            issues.append('planHash 校验失败（macro 不可序列化）')
     return issues

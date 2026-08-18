@@ -1,6 +1,7 @@
 import { BrowserWindow } from 'electron'
 import * as path from 'path'
 import * as fs from 'fs'
+import * as os from 'os'
 import { spawn } from 'child_process'
 import { escapePythonArg, validateProjectName } from '../utils/security'
 import { getPythonPath, getWorkspaceDir, getPythonSitePackages } from '../config'
@@ -102,10 +103,24 @@ export class RenderHandler {
     await this.runPythonCommand(['render', 'yaml', safeIds.join(','), '--format', 'device_sn'])
   }
 
-  // P1.4: AIDC plan:table 导入（幂等 → 单项目四表格）
-  async planImport(planJson: string, projectDir: string): Promise<unknown> {
-    // G4：返回机器可读摘要（device_count/terminals/bridge/mcpara_id），供 GUI 预览与渲染一条龙
-    return await this.runPythonCommand(['plan', 'import', escapePythonArg(planJson), escapePythonArg(projectDir)], true)
+  // P1.4 + 契约 v1.2（P2）：plan:table 导入（projectDir 可选 → 自动匹配新建/更新/跳过；支持 .zip 交付包）
+  async planImport(planJson: string, projectDir?: string): Promise<unknown> {
+    const args = ['plan', 'import', escapePythonArg(planJson)]
+    if (projectDir) args.push(escapePythonArg(projectDir))
+    return await this.runPythonCommand(args, true)
+  }
+
+  // P2（V-MC4）：内存 plan 直接导入（tunable 编辑后重导入，免临时文件；--rehash 由 Python 权威重算 planHash）
+  async planImportData(plan: unknown, projectDir?: string): Promise<unknown> {
+    const tmp = path.join(os.tmpdir(), `aidc_plan_${Date.now()}.json`)
+    fs.writeFileSync(tmp, JSON.stringify(plan), 'utf-8')
+    const args = ['plan', 'import', escapePythonArg(tmp), '--rehash']
+    if (projectDir) args.push(escapePythonArg(projectDir))
+    try {
+      return await this.runPythonCommand(args, true)
+    } finally {
+      try { fs.unlinkSync(tmp) } catch { /* ignore */ }
+    }
   }
 
   // P1.4: j2 模板 ↔ 规划字段 对齐检查
@@ -116,6 +131,11 @@ export class RenderHandler {
   // G4: plan:table 契约级校验（桥接标识 + macro 完整 + 接线引用）
   async planValidate(planJson: string): Promise<unknown> {
     return await this.runPythonCommand(['plan', 'validate', escapePythonArg(planJson)], true)
+  }
+
+  // P2（V-MC2）：渲染命令核对矩阵（结构化 JSON）
+  async planVerify(projectDir: string): Promise<unknown> {
+    return await this.runPythonCommand(['plan', 'verify', escapePythonArg(projectDir)], true)
   }
 
   async createProject(name: string): Promise<void> {
