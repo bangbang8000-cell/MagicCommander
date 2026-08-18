@@ -16,7 +16,7 @@ import sys
 
 # 项目目录（默认 aidc_pilot64）
 DEFAULT_PROJECT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..',
-                                                'workspace', 'aidc_pilot64'))
+                                                'workspace', 'H3C-64台-BJ01'))
 
 # 核对项 → 基准正则（依据：命令核对清单 v1.0 / FR-8 华三 RoCE 基准）
 CHECKS = [

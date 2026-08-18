@@ -70,8 +70,8 @@ workspace/*/.render_cache/
 # Archived docs (本地保留，不推送)
 docs/_archive/
 
-# AIDC 试点项目 — 派生内容包资产（D10/K2，禁传 GitHub，独立私有仓）
-workspace/aidc_pilot64/
+# AIDC 项目 — 派生内容包资产（D10/K2，禁传 GitHub，独立私有仓）
+workspace/H3C-64台-BJ01/
 
 # 项目注册表（运行时生成，随渲染/导入更新，不入仓库）
 workspace/MC_Para.xlsx
