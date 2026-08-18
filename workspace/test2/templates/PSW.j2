@@ -1,0 +1,104 @@
+sysname {{ info['设备名']}}
+
+{# 互联关系表 #}
+{%-for key, val in info['互联关系表 己端接口'].items()%}
+interface {{key}}
+ description to_{{val['对端设备']}}_{{val['对端接口']}}_{{val['对端接口类型']}}
+#
+{%-endfor %}
+
+{# 终端连接表 #}
+interface {{ info['己端接口'] }}
+ description TO-{{info['终端名称']}}
+ port link-mode bridge
+ port access vlan {{info['VLAN']}}
+#
+
+{# 主机表 #}
+interface {{info['管理接口']}}
+ ip address {{info['管理IP']}} {{info['掩码']}}
+
+{# 聚合接口表 #}
+{%-for key, val in info['聚合接口表 己端聚合口'].items() %}
+interface {{ key }}
+ description {{ val['对端设备'] }}
+ link-aggregation mode dynamic
+#
+{%-if val['己端接口'][0] == 'list'%}
+  {%-for v in val['己端接口'][1:] %}
+interface {{ v }}
+  port link-aggregation group {{ val['己端聚合口号'] }}
+  {%-endfor %}
+{%-else %}
+interface {{ val['己端接口'] }}
+  port link-aggregation group {{ val['己端聚合口号'] }}
+{%-endif %}
+#
+{%-endfor %}
+
+
+{# 网关地址表 #}
+interface {{ info['网关接口'] }}
+ description gateway_ip_of_vlan_{{ info['VLAN'] }}
+ ip address {{ info['网关IP'] }} {{ info['网关掩码'] }}
+# 
+
+#
+hwtacacs scheme {{ info['AAA名称'] }}
+ primary authentication {{ info['AAA地址'][1] }}
+ primary authorization {{ info['AAA地址'][1] }}
+ primary accounting {{ info['AAA地址'][1] }}
+ secondary authentication {{ info['AAA地址'][2] }}
+ secondary authorization {{ info['AAA地址'][2] }}
+ secondary accounting {{ info['AAA地址'][2] }}
+ key authentication simple {{ info['AAA认证密钥'] }}
+ key authorization simple {{ info['AAA认证密钥'] }}
+ key accounting simple {{ info['AAA认证密钥'] }}
+ user-name-format without-domain
+ nas-ip {{ info['NAS_IP'] }}
+#
+domain {{ info['domain名称'] }}
+ authentication login hwtacacs-scheme {{ info['AAA名称'] }} local
+ authorization login hwtacacs-scheme {{ info['AAA名称'] }} local
+ accounting login hwtacacs-scheme {{ info['AAA名称'] }} local
+ authorization command hwtacacs-scheme {{ info['AAA名称'] }} none
+ accounting command hwtacacs-scheme {{ info['AAA名称'] }}
+#
+ domain default enable {{ info['domain名称'] }}
+#
+line vty 0 63 
+command authorization
+command accounting
+#
+ snmp-agent
+ snmp-agent community read {{ info['SNMP团体名'] }}
+ snmp-agent sys-info version v2c
+ snmp-agent trap enable arp
+ snmp-agent trap enable syslog
+ snmp-agent target-host trap address udp-domain {{ info['SNMP地址'] }} params securityname {{ info['SNMP团体名'] }}
+
+#
+ntp-service enable
+ntp-service unicast-server {{ info['NTP地址'][1] }}
+ntp-service unicast-server {{ info['NTP地址'][2] }}
+
+#
+info-center enable
+info-center loghost {{ info['LOGHOST地址'] }}
+#
+
+line vty 0 63
+ authentication-mode scheme
+ user-role network-admin
+ user-role network-operator
+#
+local-user {{ info['本地用户名'] }} class manage
+ password simple {{ info['本地用户密钥'] }}
+ service-type ssh terminal
+ authorization-attribute user-role network-admin
+#
+ssh server enable
+#
+
+
+
