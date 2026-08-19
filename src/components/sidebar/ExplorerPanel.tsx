@@ -55,7 +55,7 @@ export function ExplorerPanel() {
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [saveTemplateOpen, setSaveTemplateOpen] = useState(false)
   const [newTemplateName, setNewTemplateName] = useState('')
-  // 打磨轮（P-C / MC-1）：导入 AL 项目对话框
+  // 打磨轮（P-C / MC-1）：导入 AutoLink 项目对话框
   const [importAlOpen, setImportAlOpen] = useState(false)
   const [saveTemplateLoading, setSaveTemplateLoading] = useState(false)
   const [pushDialogProject, setPushDialogProject] = useState<string | null>(null)
@@ -633,7 +633,7 @@ export function ExplorerPanel() {
         />
       )}
 
-      {/* 打磨轮（P-C / MC-1）：导入 AL 项目对话框 */}
+      {/* 打磨轮（P-C / MC-1）：导入 AutoLink 项目对话框 */}
       <AidcImportDialog open={importAlOpen} onClose={() => setImportAlOpen(false)} />
     </div>
   )

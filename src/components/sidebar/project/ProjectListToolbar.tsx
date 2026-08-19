@@ -53,7 +53,7 @@ export function ProjectListToolbar({
         </button>
         <button onClick={onImportAl}
           className={`${btnCls} text-emerald-600 dark:text-emerald-400`}
-          title="导入 AL 项目（导入→校验→细化→渲染→校对）">
+          title="导入 AutoLink 项目（导入→校验→细化→渲染→校对）">
           <Download size={13} />
           {t('projectList.importAl')}
         </button>

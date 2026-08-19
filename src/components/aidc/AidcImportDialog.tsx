@@ -1,5 +1,5 @@
 /**
- * 打磨轮（P-C / MC-1）：「导入 AL 项目」独立对话框——导入→校验→细化→渲染→校对 一条龙。
+ * 打磨轮（P-C / MC-1）：「导入 AutoLink 项目」独立对话框——导入→校验→细化→渲染→校对 一条龙。
  *
  * 与常规项目工作台分离；复用现有 IPC 原语（plan.validate/import/importData/verify + render.project + project.readExcel）。
  */
@@ -51,7 +51,7 @@ export function AidcImportDialog({ open, onClose }: { open: boolean; onClose: ()
 
   const pickPlan = async () => {
     const p = await window.electron.dialog.openFile({
-      title: '选择 AL 规划交付包（plan.json / zip）',
+      title: '选择 AutoLink 规划交付包（plan.json / zip）',
       filters: [{ name: 'plan:table JSON / 交付包', extensions: ['json', 'zip'] }],
     })
     if (p) setPlanJson(p)
@@ -71,7 +71,7 @@ export function AidcImportDialog({ open, onClose }: { open: boolean; onClose: ()
   }
 
   const doImport = async () => {
-    if (!planJson) { setMsg('请选择 AL 规划交付包'); return }
+    if (!planJson) { setMsg('请选择 AutoLink 规划交付包'); return }
     setBusy(true); setMsg(''); setSummary(null)
     try {
       const res = (await window.electron.plan.import(planJson)) as PlanImportResult
@@ -89,7 +89,7 @@ export function AidcImportDialog({ open, onClose }: { open: boolean; onClose: ()
   }
 
   const doValidate = async () => {
-    if (!planJson) { setMsg('请选择 AL 规划交付包'); return }
+    if (!planJson) { setMsg('请选择 AutoLink 规划交付包'); return }
     setBusy(true); setMsg('')
     try {
       const res = (await window.electron.plan.validate(planJson)) as PlanValidateResult
@@ -206,7 +206,7 @@ export function AidcImportDialog({ open, onClose }: { open: boolean; onClose: ()
     : summary?.origin?.matched === 'update' ? '更新' : summary?.origin?.matched === 'new' ? '新建' : '导入'
 
   return (
-    <Modal open={open} onClose={close} title="导入 AL 项目" width="820px"
+    <Modal open={open} onClose={close} title="导入 AutoLink 项目" width="820px"
       footer={
         <div className="flex items-center gap-2">
           <span className="text-2xs text-gray-500 flex-1">{msg}</span>
@@ -230,9 +230,9 @@ export function AidcImportDialog({ open, onClose }: { open: boolean; onClose: ()
         {/* Step 1 导入 */}
         {step === 0 && (
           <div className="space-y-2">
-            <label className="block text-2xs text-gray-500">AL 规划交付包路径（plan.json / ZIP）</label>
+            <label className="block text-2xs text-gray-500">AutoLink 规划交付包路径（plan.json / ZIP）</label>
             <div className="flex gap-1.5">
-              <input className={inputCls} value={planJson} onChange={(e) => setPlanJson(e.target.value)} placeholder="支持 AL 导出的 .json / .zip 交付包" />
+              <input className={inputCls} value={planJson} onChange={(e) => setPlanJson(e.target.value)} placeholder="支持 AutoLink 导出的 .json / .zip 交付包" />
               <Button size="sm" variant="secondary" onClick={pickPlan}><FolderOpen size={12} /></Button>
             </div>
             <Button size="sm" variant="primary" icon={<FileJson size={12} />} onClick={doImport} disabled={busy || !planJson}>
@@ -264,7 +264,7 @@ export function AidcImportDialog({ open, onClose }: { open: boolean; onClose: ()
                 {summary.origin?.projectId && (
                   <p className="flex items-center gap-1">
                     <GitCompare size={12} />
-                    来源 AL 项目：{summary.origin.projectName || '-'}
+                    来源 AutoLink 项目：{summary.origin.projectName || '-'}
                     <span className="font-mono text-gray-400">#{String(summary.origin.projectId).replace(/-/g, '').slice(0, 8)}</span>
                   </p>
                 )}
@@ -381,7 +381,7 @@ export function AidcImportDialog({ open, onClose }: { open: boolean; onClose: ()
                     ))}
                   </svg>
                 </div>
-              ) : <p className="text-2xs text-gray-400">导入后回显 AL 规划拓扑</p>)}
+              ) : <p className="text-2xs text-gray-400">导入后回显 AutoLink 规划拓扑</p>)}
 
             {resultTab === 'changelog' && (
               <div className="text-2xs space-y-1 max-h-[320px] overflow-auto">

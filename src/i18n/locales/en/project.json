@@ -362,7 +362,7 @@
     "sortByDate": "Sort by Date",
     "newProject": "New Project",
     "saveAsTemplate": "Save as Template",
-    "importAl": "Import AL Project"
+    "importAl": "Import AutoLink Project"
   },
   "excel": {
     "loading": "Loading Excel file...",
