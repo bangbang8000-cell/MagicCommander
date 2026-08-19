@@ -361,7 +361,8 @@
     "sortByName": "Sort by Name",
     "sortByDate": "Sort by Date",
     "newProject": "New Project",
-    "saveAsTemplate": "Save as Template"
+    "saveAsTemplate": "Save as Template",
+    "importAl": "Import AL Project"
   },
   "excel": {
     "loading": "Loading Excel file...",

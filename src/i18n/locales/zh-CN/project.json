@@ -362,7 +362,8 @@
     "sortByName": "按名称排序",
     "sortByDate": "按最近创建排序",
     "newProject": "新建项目",
-    "saveAsTemplate": "当前项目另存为模板"
+    "saveAsTemplate": "当前项目另存为模板",
+    "importAl": "导入 AL 项目"
   },
   "excel": {
     "loading": "正在加载 Excel 文件...",

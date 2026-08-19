@@ -8,6 +8,7 @@ import { Modal } from '@/components/ui/Modal'
 import { showError, showSuccess } from '@/components/ui/Toast'
 import { ProjectListToolbar } from './project/ProjectListToolbar'
 import { ProjectListItem } from './project/ProjectListItem'
+import { AidcImportDialog } from '@/components/aidc/AidcImportDialog'
 import { ProjectBatchBar } from './project/ProjectBatchBar'
 import { TemplateCenterPanel } from './template/TemplateCenterPanel'
 import { Star, Clock, Folder } from 'lucide-react'
@@ -54,6 +55,8 @@ export function ExplorerPanel() {
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [saveTemplateOpen, setSaveTemplateOpen] = useState(false)
   const [newTemplateName, setNewTemplateName] = useState('')
+  // 打磨轮（P-C / MC-1）：导入 AL 项目对话框
+  const [importAlOpen, setImportAlOpen] = useState(false)
   const [saveTemplateLoading, setSaveTemplateLoading] = useState(false)
   const [pushDialogProject, setPushDialogProject] = useState<string | null>(null)
   const [pullDialogProject, setPullDialogProject] = useState<string | null>(null)
@@ -273,6 +276,7 @@ export function ExplorerPanel() {
                 setSaveTemplateOpen(true)
               }
             }}
+            onImportAl={() => setImportAlOpen(true)}
           />
 
           <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
@@ -628,6 +632,9 @@ export function ExplorerPanel() {
           }}
         />
       )}
+
+      {/* 打磨轮（P-C / MC-1）：导入 AL 项目对话框 */}
+      <AidcImportDialog open={importAlOpen} onClose={() => setImportAlOpen(false)} />
     </div>
   )
 }

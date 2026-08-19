@@ -36,6 +36,8 @@ export function Header({ onCheatsheet }: HeaderProps) {
   const sidebarVisible = useUIStore((s) => s.sidebarVisible)
   const panelVisible = useUIStore((s) => s.panelVisible)
   const setActivePanel = useUIStore((s) => s.setActivePanel)
+  // 打磨轮（v1.2 / M2）：云平台开关
+  const cloudEnabled = useUIStore((s) => s.generalSettings.cloudEnabled)
   const saveActiveTab = useEditorStore((s) => s.saveActiveTab)
   const createProject = useProjectStore((s) => s.createProject)
   const platformLoggedIn = usePlatformStore((s) => s.loggedIn)
@@ -356,7 +358,8 @@ export function Header({ onCheatsheet }: HeaderProps) {
     ],
     view: [
       renderMenuItem('search', t('common:sidebar.search'), 'Ctrl+Shift+F', () => handleGoToActivity('search')),
-      renderMenuItem('cloud', t('cloud:title'), 'Ctrl+Shift+C', () => handleGoToActivity('cloud')),
+      // v1.2：云开关关闭时隐藏云入口
+      ...(cloudEnabled ? [renderMenuItem('cloud', t('cloud:title'), 'Ctrl+Shift+C', () => handleGoToActivity('cloud'))] : []),
       renderMenuItem('chat', t('menu.chat'), 'Ctrl+Shift+H', () => handleGoToActivity('chat')),
       renderMenuItem('explorer', t('common:sidebar.explorer'), 'Ctrl+Shift+E', () => handleGoToActivity('explorer')),
       renderMenuItem('workbench', t('menu.workbench'), 'Ctrl+Shift+W', () => handleGoToActivity('workbench')),
@@ -499,43 +502,49 @@ export function Header({ onCheatsheet }: HeaderProps) {
             />
           </div>
 
-          {/* 平台连接状态 */}
-          <div className="relative">
-            <CloudStatusIndicator />
-          </div>
+          {/* 平台连接状态（v1.2：云开关关闭时隐藏） */}
+          {cloudEnabled && (
+            <div className="relative">
+              <CloudStatusIndicator />
+            </div>
+          )}
 
-          {/* 通知中心 */}
-          <div className="relative">
-            <NotificationCenter isDark={isDark} />
-          </div>
+          {/* 通知中心（v1.2：云开关关闭时隐藏） */}
+          {cloudEnabled && (
+            <div className="relative">
+              <NotificationCenter isDark={isDark} />
+            </div>
+          )}
 
-          {/* 平台登录 / 用户 */}
-          <div className="relative">
-            {platformLoggedIn ? (
-              <button
-                onClick={() => setUserProfileOpen(!userProfileOpen)}
-                className={clsx(
-                  'px-2 py-1 text-xs rounded transition-colors',
-                  isDark ? 'text-indigo-400 hover:bg-gray-700' : 'text-indigo-600 hover:bg-gray-200',
-                )}
-                title={platformUsername || t('cloud:loginDialog.loggedIn')}
-              >
-                {platformUsername || t('cloud:loginDialog.loggedIn')}
-              </button>
-            ) : (
-              <button
-                onClick={() => setLoginOpen(true)}
-                className={clsx(
-                  'px-2 py-1 text-xs rounded transition-colors',
-                  isDark ? 'text-gray-400 hover:bg-gray-700' : 'text-gray-500 hover:bg-gray-200',
-                )}
-                title={t('cloud:loginDialog.title')}
-              >
-                {t('cloud:login')}
-              </button>
-            )}
-            {userProfileOpen && <UserProfileView onClose={() => setUserProfileOpen(false)} />}
-          </div>
+          {/* 平台登录 / 用户（v1.2：云开关关闭时隐藏） */}
+          {cloudEnabled && (
+            <div className="relative">
+              {platformLoggedIn ? (
+                <button
+                  onClick={() => setUserProfileOpen(!userProfileOpen)}
+                  className={clsx(
+                    'px-2 py-1 text-xs rounded transition-colors',
+                    isDark ? 'text-indigo-400 hover:bg-gray-700' : 'text-indigo-600 hover:bg-gray-200',
+                  )}
+                  title={platformUsername || t('cloud:loginDialog.loggedIn')}
+                >
+                  {platformUsername || t('cloud:loginDialog.loggedIn')}
+                </button>
+              ) : (
+                <button
+                  onClick={() => setLoginOpen(true)}
+                  className={clsx(
+                    'px-2 py-1 text-xs rounded transition-colors',
+                    isDark ? 'text-gray-400 hover:bg-gray-700' : 'text-gray-500 hover:bg-gray-200',
+                  )}
+                  title={t('cloud:loginDialog.title')}
+                >
+                  {t('cloud:login')}
+                </button>
+              )}
+              {userProfileOpen && <UserProfileView onClose={() => setUserProfileOpen(false)} />}
+            </div>
+          )}
 
           {/* 检查更新 */}
           <div className="relative">

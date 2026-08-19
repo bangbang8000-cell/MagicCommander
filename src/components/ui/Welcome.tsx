@@ -68,9 +68,9 @@ export function Welcome() {
     { label: t('shortcuts.togglePanel'), combo: 'ctrl+j' },
     { label: t('shortcuts.openExplorer'), combo: 'ctrl+shift+e' },
     { label: t('shortcuts.openSearch'), combo: 'ctrl+shift+f' },
-    { label: t('shortcuts.openWorkbench'), combo: 'ctrl+shift+p' },
+    { label: t('shortcuts.openWorkbench'), combo: 'ctrl+shift+w' },
     { label: t('shortcuts.openLabelGen'), combo: 'ctrl+shift+l' },
-    { label: t('shortcuts.openRenderResult'), combo: 'ctrl+shift+r' },
+    { label: t('shortcuts.openRenderResult'), combo: 'ctrl+shift+o' },
     { label: t('shortcuts.saveFile'), combo: 'ctrl+s' },
     { label: t('shortcuts.refresh'), combo: 'f5' },
   ]

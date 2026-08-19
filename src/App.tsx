@@ -390,8 +390,10 @@ export default function App() {
   )
   useHotkey('ctrl+shift+e', () => setActiveActivity('explorer'), [setActiveActivity])
   useHotkey('ctrl+shift+f', () => setActiveActivity('search'), [setActiveActivity])
-  useHotkey('ctrl+shift+c', () => setActiveActivity('cloud'), [setActiveActivity])
-  useHotkey('ctrl+shift+r', () => setActiveActivity('workbench'), [setActiveActivity])
+  useHotkey('ctrl+shift+c', () => {
+    // 打磨轮（v1.2 / M2）：云开关关闭时不响应
+    if (useUIStore.getState().generalSettings.cloudEnabled) setActiveActivity('cloud')
+  }, [setActiveActivity])
   useHotkey('ctrl+shift+o', () => setActiveActivity('output'), [setActiveActivity])
   useHotkey('ctrl+shift+w', () => setActiveActivity('workbench'), [setActiveActivity])
   useHotkey('ctrl+shift+h', () => setActiveActivity('chat'), [setActiveActivity])
@@ -425,7 +427,8 @@ export default function App() {
       case 'chat':
         return <ChatPanel />
       case 'cloud':
-        return <CloudPanel />
+        // 打磨轮（v1.2 / M2）：云开关关闭时回落项目浏览器
+        return useUIStore.getState().generalSettings.cloudEnabled ? <CloudPanel /> : null
       default:
         return <SearchPanel />
     }

@@ -986,6 +986,18 @@ export function SettingsPanel() {
             <p className={clsx('text-xs mt-0.5', isDark ? 'text-gray-500' : 'text-gray-400')}>
               {t('common:settings.platform.desc') || '连接 MagicCommander Platform'}
             </p>
+            {/* v1.2 / M2：云平台总体开关（默认关；关时隐藏云入口） */}
+            <div className="mt-3 flex items-center justify-between">
+              <label className={clsx('text-xs cursor-pointer', isDark ? 'text-gray-300' : 'text-gray-600')}>
+                启用云平台（关闭时隐藏云入口）
+              </label>
+              <input
+                type="checkbox"
+                checked={generalSettings.cloudEnabled}
+                onChange={(e) => setGeneralSettings({ cloudEnabled: e.target.checked })}
+                className="accent-indigo-500 w-4 h-4"
+              />
+            </div>
             <div className="mt-3 space-y-2">
               <div>
                 <label className={clsx('text-[11px]', isDark ? 'text-gray-500' : 'text-gray-400')}>

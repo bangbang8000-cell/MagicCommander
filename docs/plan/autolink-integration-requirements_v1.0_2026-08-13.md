@@ -4,7 +4,7 @@
 > 文档版本：v1.0
 > 状态：待 AutoLink 团队评估
 > 背景：MagicCommander 智算数据中心内容包需要 AutoLink 组网规划能力。已调研 AutoLink 源码(克隆于 `_research_autolink/AutoLink`，v3.4.2)，以下基于其实际实现提出配合需求。
-> 关联：`docs/prd/ai-datacenter-content-pack-prd_v1.0_2026-08-13.md`、`docs/plan/ai-datacenter-content-pack-plan_v1.0_2026-08-13.md`
+> 关联：`已归档（见 MC-AL/docs/_archive，AIDC 双产品对接取代）`、`已归档（见 MC-AL/docs/_archive）`
 
 ---
 

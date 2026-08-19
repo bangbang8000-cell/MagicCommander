@@ -109,6 +109,8 @@ export interface GeneralSettings {
   autoSaveInterval: number
   checkUpdateOnStart: boolean
   fontSize: 'small' | 'medium' | 'large'
+  /** 打磨轮（v1.2 / M2）：云平台总体开关（默认关；关时隐藏云入口） */
+  cloudEnabled: boolean
 }
 
 export interface AdvancedSettings {
@@ -243,6 +245,7 @@ export const useUIStore = create<UIState>()(
           autoSaveInterval: 30,
           checkUpdateOnStart: true,
           fontSize: 'medium',
+          cloudEnabled: false,
         },
         setGeneralSettings: (settings) => set((s) => ({ generalSettings: { ...s.generalSettings, ...settings } })),
 

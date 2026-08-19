@@ -1,6 +1,6 @@
 # MagicCommander 部署指南
 
-> 适用于 v3.6.0。涵盖：开发环境、构建测试、版本管理与发布（GitHub Actions）、客户端安装、云平台（MagicCommander Platform）部署。
+> 适用于 v3.7.0。涵盖：开发环境、构建测试、版本管理与发布（GitHub Actions）、客户端安装、云平台（MagicCommander Platform）部署。
 
 ## 目录
 
@@ -120,7 +120,7 @@ CI 会自动执行以上门禁（typecheck / lint / format:check / check-version
 
 ```json
 {
-  "version": "3.6.0",
+  "version": "3.7.0",
   "build": "26081101",
   "displayVersion": "V3.6.0 Build 26081101",
   "releaseDate": "2026-08-11"

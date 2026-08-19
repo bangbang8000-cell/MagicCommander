@@ -73,6 +73,26 @@ class TestPortability:
         r = import_plan_auto(al_plan, str(ws))
         assert r['matched'] == 'skip' and r['mcPlanVersion'] == 1
 
+    def test_reimport_byte_idempotent(self, tmp_path, al_plan):
+        """打磨轮（MC-D1）：同 planHash 重导入 → 跳过且派生文件字节级幂等。"""
+        import hashlib
+
+        def snapshot(d):
+            out = {}
+            for root, _, files in os.walk(d):
+                for f in files:
+                    p = os.path.join(root, f)
+                    out[os.path.relpath(p, d)] = hashlib.sha256(open(p, 'rb').read()).hexdigest()
+            return out
+
+        ws = tmp_path / 'ws'
+        ws.mkdir()
+        r1 = import_plan_auto(al_plan, str(ws))
+        snap1 = snapshot(r1['project_dir'])
+        r2 = import_plan_auto(al_plan, str(ws))
+        assert r2['matched'] == 'skip' and r2['changed'] is False
+        assert snapshot(r2['project_dir']) == snap1  # 字节级一致
+
     def test_mcplan_version_and_allocator_state_persist(self, tmp_path, al_plan):
         """更新后 mcPlanVersion 递增 + allocator_state（reserved）保留。"""
         ws = tmp_path / 'ws'

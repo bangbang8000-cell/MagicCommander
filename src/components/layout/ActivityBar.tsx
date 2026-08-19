@@ -36,11 +36,14 @@ export function ActivityBar() {
   const setActiveActivity = useUIStore((s) => s.setActiveActivity)
   const sidebarVisible = useUIStore((s) => s.sidebarVisible)
   const toggleSidebar = useUIStore((s) => s.toggleSidebar)
+  // 打磨轮（v1.2 / M2）：云平台开关关闭时隐藏云一级菜单
+  const cloudEnabled = useUIStore((s) => s.generalSettings.cloudEnabled)
+  const items = activities.filter((a) => a.id !== 'cloud' || cloudEnabled)
 
   return (
     <div className="w-12 flex flex-col items-center py-2 gap-0.5 shrink-0 bg-gray-100 dark:bg-gray-900/80 border-e border-gray-200 dark:border-gray-700/50">
       <div className="flex-1 flex flex-col items-center gap-0.5 w-full">
-        {activities.map((item) => {
+        {items.map((item) => {
           const isActive = activeActivity === item.id
           const label = t(item.labelKey)
           return (

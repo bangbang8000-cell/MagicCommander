@@ -67,11 +67,6 @@ export const HOTKEY_REGISTRY: HotkeyDefinition[] = [
     category: i18n.t('common:hotkeyCategories.panel'),
   },
   {
-    combo: 'ctrl+shift+r',
-    label: i18n.t('common:hotkeys.workbench'),
-    category: i18n.t('common:hotkeyCategories.panel'),
-  },
-  {
     combo: 'ctrl+shift+o',
     label: i18n.t('common:hotkeys.outputResults'),
     category: i18n.t('common:hotkeyCategories.panel'),
