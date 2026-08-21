@@ -2,7 +2,7 @@
 
 **批量生成网络设备配置 | Network Device Configuration Automation**
 
-[![Version](https://img.shields.io/badge/version-3.7.0-blue)](https://github.com/bangbang8000-cell/MagicCommander/releases)
+[![Version](https://img.shields.io/badge/version-3.8.0-blue)](https://github.com/bangbang8000-cell/MagicCommander/releases)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![Windows](https://img.shields.io/badge/Windows-NSIS-blue)](https://github.com/bangbang8000-cell/MagicCommander/releases)
 [![macOS](https://img.shields.io/badge/macOS-DMG-silver)](https://github.com/bangbang8000-cell/MagicCommander/releases)
@@ -245,6 +245,7 @@ MagicCommander/
 
 | 版本 | 日期 | 更新内容 |
 |------|------|---------|
+| **3.8.0 Build 26082101** | 2026-08-21 | **AIDC 规划集成**：规划引擎 + 专业表格 + 评估 UI（P1.1–P1.5）；桥接集成 MC 侧 G0–G5（plan 驱动导入/字节级幂等/契约级校验/GUI 一条龙）；`plan:table` 契约 v1.2 按 projectId 自动匹配导入/版本/changelog/可视化校对；地址分配器架构化（D23 确定性分配 + 预留表持久化 + 换段 + 网段感知 /31 对齐零冲突）；设备库合并/表格规范化（四网拆 sheet/每接口一行）；渲染产物命令核对脚本 `verify_rendered.py`；导入 AutoLink 项目一条龙 + 云开关/工具栏/快捷键/文档 |
 | **3.7.0 Build 26081103** | 2026-08-11 | **Beta 智能分析能力**：Excel/Jinja2 依赖分析（模板↔列反向索引，工作台可视化）；渲染后智能校对（模板语法/缺失列/数据空值）；模板片段库（`{% include %}` 复用 + 编辑器插入/另存片段）；模板资产中心（版本快照/恢复 + 单模板调试预览沙盒）。修复：AI Hub 项目上下文贯通、`render yaml --format device_sn` CLI、平台 versions.json/通知中心、projectInfo 类型消除 any |
 | **3.6.1 Build 26081102** | 2026-08-11 | **修复编辑器加载卡死**：本地打包 Monaco（替代 CDN，规避 CSP 拦截），文本 / .j2 / .yaml 文件恢复秒开 |
 | **3.6.0 Build 26081101** | 2026-08-11 | **安全加固 + 工程质量 + 性能优化 + Beta 功能**：修复 RCE/路径穿越/删库级漏洞、Jinja2 沙箱、AI Hub 本地鉴权、云平台默认口令；lint 188→0 + CI 门禁 + 测试 225 个；渲染输入指纹缓存、sheet 按需读取、Monaco 非受控 + 标签保留 undo 栈、AI 工具异步化；删除 AI Hub/前端死代码、修复 CONFIRM 确认流程、Ollama 注册；新增单实例锁 + 崩溃恢复、跨项目全文搜索、Jinja2 变量智能补全、模板质量评级 |
