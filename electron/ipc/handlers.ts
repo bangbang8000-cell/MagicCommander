@@ -1178,23 +1178,45 @@ export function setupIpcHandlers(window: BrowserWindow): void {
   )
 
   // 应用API
-  ipcMain.handle('guide:getContent', async (_e, lang: string): Promise<string> => {
-    // 同时尝试 public/docs（开发环境，Vite 直接服务）和 dist/docs（生产环境，构建产物）
-    const possibleDirs = [path.join(process.cwd(), 'public', 'docs'), path.join(__dirname, '..', '..', 'dist', 'docs')]
-    const supportedLangs = ['zh-CN', 'en', 'ja', 'ko', 'fr', 'de', 'es', 'pt', 'ru', 'ar', 'vi', 'th']
-    const targetLang = supportedLangs.includes(lang) ? lang : 'zh-CN'
-    for (const guideDir of possibleDirs) {
-      const filePath = path.join(guideDir, `user-guide.${targetLang}.md`)
-      const fallbackPath = path.join(guideDir, 'user-guide.zh-CN.md')
-      if (fs.existsSync(filePath)) {
-        return fs.readFileSync(filePath, 'utf-8')
+  // MC-M2d / MC-I18-5: 返回结构化结果，非 zh-CN/en 语言缺文档时回退英文并标记 usedFallback，供渲染层显示提示条
+  ipcMain.handle(
+    'guide:getContent',
+    async (
+      _e,
+      lang: string,
+    ): Promise<{ content: string; usedFallback: boolean; requestedLang: string }> => {
+      // 同时尝试 public/docs（开发环境，Vite 直接服务）和 dist/docs（生产环境，构建产物）
+      const possibleDirs = [path.join(process.cwd(), 'public', 'docs'), path.join(__dirname, '..', '..', 'dist', 'docs')]
+      const supportedLangs = ['zh-CN', 'en', 'ja', 'ko', 'fr']
+      const requested = supportedLangs.includes(lang) ? lang : 'zh-CN'
+      for (const guideDir of possibleDirs) {
+        const filePath = path.join(guideDir, `user-guide.${requested}.md`)
+        if (fs.existsSync(filePath)) {
+          return { content: fs.readFileSync(filePath, 'utf-8'), usedFallback: false, requestedLang: requested }
+        }
       }
-      if (fs.existsSync(fallbackPath)) {
-        return fs.readFileSync(fallbackPath, 'utf-8')
+      // 回退优先级：英文 → 中文（MC-I18-5：仅 en/zh-CN 有完整文档）
+      for (const guideDir of possibleDirs) {
+        const enPath = path.join(guideDir, 'user-guide.en.md')
+        if (fs.existsSync(enPath)) {
+          return {
+            content: fs.readFileSync(enPath, 'utf-8'),
+            usedFallback: requested !== 'en',
+            requestedLang: requested,
+          }
+        }
+        const zhPath = path.join(guideDir, 'user-guide.zh-CN.md')
+        if (fs.existsSync(zhPath)) {
+          return {
+            content: fs.readFileSync(zhPath, 'utf-8'),
+            usedFallback: requested !== 'zh-CN',
+            requestedLang: requested,
+          }
+        }
       }
-    }
-    throw new Error('Guide file not found')
-  })
+      throw new Error('Guide file not found')
+    },
+  )
 
   ipcMain.handle('app:getVersion', async (): Promise<string> => {
     return packageJson.version

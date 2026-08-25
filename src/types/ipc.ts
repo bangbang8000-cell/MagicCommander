@@ -299,8 +299,15 @@ export interface FeatureIpcApi {
 // Guide API
 // ============================================================
 
+export interface GuideContent {
+  content: string
+  /** 是否回退到了英文/中文（渲染层据此显示"本语言暂无引导"提示条） */
+  usedFallback: boolean
+  requestedLang: string
+}
+
 export interface GuideIpcApi {
-  getContent: (lang: string) => Promise<string>
+  getContent: (lang: string) => Promise<GuideContent>
 }
 
 // ============================================================

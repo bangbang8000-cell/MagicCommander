@@ -245,8 +245,17 @@ export function Header({ onCheatsheet }: HeaderProps) {
   const handleUserGuide = useCallback(async () => {
     try {
       const lang = (await window.electron?.app?.getLanguage()) || 'zh-CN'
-      const content = await window.electron?.guide?.getContent(lang)
-      if (content) {
+      const result = await window.electron?.guide?.getContent(lang)
+      if (result) {
+        let content = result.content
+        // MC-M2d / MC-I18-5: 非 zh-CN/en 语言缺文档时顶部显示提示条（内容为英文回退）
+        if (result.usedFallback && result.requestedLang !== 'en') {
+          const banner = t('header.guideFallbackBanner', {
+            lang: result.requestedLang,
+            defaultValue: '> ⚠️ This language has no guide yet; showing the English version.',
+          })
+          content = `${banner}\n\n${content}`
+        }
         useEditorStore.getState().openFile({
           id: 'user-guide',
           title: 'MagicCommander User Guide',
@@ -262,7 +271,7 @@ export function Header({ onCheatsheet }: HeaderProps) {
       /* 忽略预期错误 */
     }
     closeMenu()
-  }, [])
+  }, [t])
 
   const handleAbout = useCallback(() => {
     setAboutOpen(true)
