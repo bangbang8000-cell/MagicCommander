@@ -6,6 +6,7 @@
  */
 import { useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useProjectStore } from '@/stores/project.store'
 import { Button } from '@/components/ui/Button'
 import { Modal } from '@/components/ui/Modal'
 import {
@@ -188,6 +189,8 @@ export function AidcImportDialog({ open, onClose }: { open: boolean; onClose: ()
     try {
       const res = (await window.electron.plan.import(planJson)) as PlanImportResult
       setSummary(res)
+      // 导入成功后刷新项目列表（新项目立即可见于项目浏览器；此前列表为应用启动时快照）
+      await useProjectStore.getState().fetchProjects()
       const m = res.origin?.matched
       if (m === 'skip') {
         setStatus(t('aidc:import.skipped', { name: res.name, ver: res.mcPlanVersion }))
