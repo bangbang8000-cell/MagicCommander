@@ -10,6 +10,7 @@ import {
   Cloud,
   PanelLeftClose,
   PanelLeft,
+  HardDrive,
 } from 'lucide-react'
 import clsx from 'clsx'
 
@@ -30,6 +31,27 @@ const activities: ActivityItem[] = [
   { id: 'settings', icon: <Settings size={20} />, labelKey: 'common:settings.title', shortcut: 'Ctrl+,' },
 ]
 
+/**
+ * MC-M3l / MC-N1: 设备库一级入口预留（灰态 disabled 占位）。
+ * MC 端本版不做设备库功能入口；与 AL 的 device_library 对齐，占位并提示使用 AL 端。
+ */
+const DEVICE_LIBRARY_PLACEHOLDER = true
+
+/**
+ * MC-M3j / MC-N2: 一级导航语义色映射（与 AL 对齐）。
+ * search-teal / cloud-cyan / chat-fuchsia / explorer·workbench-primary / output-amber / settings-gray。
+ * MC-N4: 激活条发光色不再硬编码绿色，而是按各入口语义色派生。
+ */
+const ACTIVITY_COLORS: Record<string, { text: string; bar: string; glow: string }> = {
+  search: { text: 'text-teal-500 dark:text-teal-400', bar: 'bg-teal-500 dark:bg-teal-400', glow: 'rgba(20,184,166,0.45)' },
+  cloud: { text: 'text-cyan-500 dark:text-cyan-400', bar: 'bg-cyan-500 dark:bg-cyan-400', glow: 'rgba(6,182,212,0.45)' },
+  chat: { text: 'text-fuchsia-500 dark:text-fuchsia-400', bar: 'bg-fuchsia-500 dark:bg-fuchsia-400', glow: 'rgba(217,70,239,0.45)' },
+  explorer: { text: 'text-primary-500 dark:text-primary-400', bar: 'bg-primary-500 dark:bg-primary-400', glow: 'rgba(59,130,246,0.45)' },
+  workbench: { text: 'text-primary-500 dark:text-primary-400', bar: 'bg-primary-500 dark:bg-primary-400', glow: 'rgba(59,130,246,0.45)' },
+  output: { text: 'text-amber-500 dark:text-amber-400', bar: 'bg-amber-500 dark:bg-amber-400', glow: 'rgba(245,158,11,0.45)' },
+  settings: { text: 'text-gray-500 dark:text-gray-400', bar: 'bg-gray-500 dark:bg-gray-400', glow: 'rgba(107,114,128,0.45)' },
+}
+
 export function ActivityBar() {
   const { t } = useTranslation()
   const activeActivity = useUIStore((s) => s.activeActivity)
@@ -46,6 +68,7 @@ export function ActivityBar() {
         {items.map((item) => {
           const isActive = activeActivity === item.id
           const label = t(item.labelKey)
+          const color = ACTIVITY_COLORS[item.id] ?? ACTIVITY_COLORS.workbench
           return (
             <button
               key={item.id}
@@ -54,14 +77,14 @@ export function ActivityBar() {
               className={clsx(
                 'w-12 h-12 flex items-center justify-center relative transition-colors',
                 isActive
-                  ? 'text-primary-500 dark:text-primary-400'
+                  ? color.text
                   : 'text-gray-500 dark:text-gray-400 hover:text-primary-500 dark:hover:text-primary-400 hover:bg-gray-200 dark:hover:bg-gray-700/50',
               )}
             >
               {isActive && (
                 <div
-                  className="absolute start-0 top-1.5 bottom-1.5 w-0.5 rounded-r bg-primary-500 dark:bg-primary-400"
-                  style={{ boxShadow: '0 0 8px rgba(0, 229, 160, 0.4)' }}
+                  className={clsx('absolute start-0 top-1.5 bottom-1.5 w-0.5 rounded-r', color.bar)}
+                  style={{ boxShadow: `0 0 8px ${color.glow}` }}
                 />
               )}
               {item.icon}
@@ -69,6 +92,18 @@ export function ActivityBar() {
           )
         })}
       </div>
+
+      {/* MC-M3l / MC-N1: 设备库预留灰态入口（disabled，提示使用 AL 端） */}
+      {DEVICE_LIBRARY_PLACEHOLDER && (
+        <button
+          type="button"
+          disabled
+          title={t('common:sidebar.deviceLibrary', { defaultValue: '设备库（MC 端暂不可用，请使用 AL 端）' })}
+          className="w-12 h-12 flex items-center justify-center text-gray-300 dark:text-gray-600 cursor-not-allowed"
+        >
+          <HardDrive size={20} />
+        </button>
+      )}
 
       <button
         onClick={toggleSidebar}

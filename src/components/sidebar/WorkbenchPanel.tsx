@@ -17,7 +17,35 @@ import { WorkbenchActionCard } from './workbench/WorkbenchActionCard'
 import { WorkbenchDryRunResults } from './workbench/WorkbenchDryRunResults'
 import { WorkbenchResultCard } from './workbench/WorkbenchResultCard'
 import { Button } from '@/components/ui/Button'
-import { ExternalLink } from 'lucide-react'
+import { ExternalLink, Zap } from 'lucide-react'
+
+/** MC-M3h / J-UIX-2: 三步步骤分组标签（与 AL v1.6 对齐：①配置与就绪 / ②渲染材料与操作 / ③校对与输出） */
+function StepLabel({ text }: { text: string }) {
+  const { t } = useTranslation('project')
+  return (
+    <div className="flex items-center gap-1.5 mb-1.5">
+      <span className="px-1.5 py-0.5 text-2xs rounded bg-primary-100 dark:bg-primary-900/40 text-primary-700 dark:text-primary-300 font-semibold">
+        {text}
+      </span>
+    </div>
+  )
+}
+
+/** MC-M3i / MC-WS2: 无项目空态引导面板（对齐 AL EmptyProjectGuide，不渲染空白卡片骨架） */
+function EmptyProjectGuide() {
+  const { t } = useTranslation('project')
+  return (
+    <div className="h-full flex items-center justify-center p-6">
+      <div className="flex flex-col items-center text-center max-w-xs">
+        <div className="p-3 rounded-full bg-primary-100 dark:bg-primary-900/40 mb-3">
+          <Zap size={28} className="text-primary-500 dark:text-primary-400" />
+        </div>
+        <p className="text-sm font-semibold text-gray-800 dark:text-gray-100">{t('workbench.emptyWelcome')}</p>
+        <p className="text-2xs text-gray-400 mt-1">{t('workbench.emptyHint')}</p>
+      </div>
+    </div>
+  )
+}
 
 export const WorkbenchPanel = React.memo(function WorkbenchPanel() {
   const { t } = useTranslation('project')
@@ -156,98 +184,93 @@ export const WorkbenchPanel = React.memo(function WorkbenchPanel() {
 
   return (
     <div className={clsx('flex flex-col h-full overflow-auto', isDark ? 'bg-gray-900' : 'bg-white')}>
-      <div className="p-3 space-y-4">
-        <WorkbenchScopeCard
-          selectedProject={selectedProject}
-          projectInfo={projectInfo}
-          projects={projects}
-          selectedProjectIds={selectedProjectIds}
-          projectStatuses={projectStatuses}
-          isDark={isDark}
-          onToggleProject={toggleProject}
-          onOpenFolder={openInFolder}
-        />
+      {!selectedProject ? (
+        // MC-M3i / MC-WS2: 无项目 → 统一空态引导（不渲染 7 张空白卡片骨架）
+        <EmptyProjectGuide />
+      ) : (
+        <div className="p-3 space-y-3">
+          {/* ① 配置与就绪 */}
+          <StepLabel text={t('workbench.stepConfig')} />
+          <WorkbenchScopeCard
+            selectedProject={selectedProject}
+            projectInfo={projectInfo}
+            projects={projects}
+            selectedProjectIds={selectedProjectIds}
+            projectStatuses={projectStatuses}
+            isDark={isDark}
+            onToggleProject={toggleProject}
+            onOpenFolder={openInFolder}
+          />
 
-        <div className={clsx('border-t', isDark ? 'border-gray-700' : 'border-gray-200')} />
+          <WorkbenchReadinessCard
+            projectInfo={projectInfo}
+            isDark={isDark}
+            selectedProject={selectedProject !== null}
+            isValidationRunning={isValidationRunning}
+            validationResults={validationResults}
+            onOpenParaConfig={openParaConfig}
+            onValidateTemplate={handleValidateTemplate}
+            onValidateExcel={handleValidateExcel}
+            onClearValidation={clearValidationResults}
+          />
 
-        <WorkbenchReadinessCard
-          projectInfo={projectInfo}
-          isDark={isDark}
-          selectedProject={selectedProject !== null}
-          isValidationRunning={isValidationRunning}
-          validationResults={validationResults}
-          onOpenParaConfig={openParaConfig}
-          onValidateTemplate={handleValidateTemplate}
-          onValidateExcel={handleValidateExcel}
-          onClearValidation={clearValidationResults}
-        />
-
-        <div className={clsx('border-t', isDark ? 'border-gray-700' : 'border-gray-200')} />
-
-        <WorkbenchDependencyCard selectedProject={selectedProject} isDark={isDark} />
-
-        <div className={clsx('border-t', isDark ? 'border-gray-700' : 'border-gray-200')} />
-
-        <WorkbenchProofreadCard selectedProject={selectedProject} isDark={isDark} />
-
-        <div className={clsx('border-t', isDark ? 'border-gray-700' : 'border-gray-200')} />
-
-        <WorkbenchOutputCard
-          outputFormat={config.outputFormat}
-          renderType={config.renderType}
-          isDark={isDark}
-          onOutputFormatChange={(format) => setConfig({ outputFormat: format })}
-          onRenderTypeChange={(type) => setConfig({ renderType: type })}
-        />
-
-        <div className={clsx('border-t', isDark ? 'border-gray-700' : 'border-gray-200')} />
-
-        <WorkbenchActionCard
-          isRendering={isRendering}
-          selectedProjectIds={selectedProjectIds}
-          selectedProject={selectedProject !== null}
-          isDark={isDark}
-          onBatchRender={handleRenderBatch}
-          onSingleRender={handleRenderSingle}
-          onDryRun={handleDryRun}
-          onDeleteOutput={handleDeleteOutput}
-          onDeleteYaml={handleDeleteYaml}
-        />
-
-        <WorkbenchLabelCard selectedProjectIds={selectedProjectIds} isDark={isDark} />
-
-        <div className={clsx('border-t', isDark ? 'border-gray-700' : 'border-gray-200')} />
-
-        <Button
-          variant="secondary"
-          size="sm"
-          icon={<ExternalLink size={12} />}
-          onClick={() => setActiveActivity('output')}
-          className="w-full justify-start"
-        >
-          {t('workbench.viewOutput')}
-        </Button>
-
-        {dryRunResults.length > 0 && (
-          <>
-            <div className={clsx('border-t', isDark ? 'border-gray-700' : 'border-gray-200')} />
-            <WorkbenchDryRunResults results={dryRunResults} isDark={isDark} onClear={clearDryRunResults} />
-          </>
-        )}
-
-        {(isRendering || errors.length > 0) && (
-          <>
-            <div className={clsx('border-t', isDark ? 'border-gray-700' : 'border-gray-200')} />
-            <WorkbenchResultCard
-              isRendering={isRendering}
-              progress={progress}
-              currentMessage={currentMessage}
-              errors={errors}
+          {/* ② 渲染材料与操作 */}
+          <div className={clsx('border-t pt-3', isDark ? 'border-gray-700' : 'border-gray-200')}>
+            <StepLabel text={t('workbench.stepRender')} />
+            <WorkbenchOutputCard
+              outputFormat={config.outputFormat}
+              renderType={config.renderType}
               isDark={isDark}
+              onOutputFormatChange={(format) => setConfig({ outputFormat: format })}
+              onRenderTypeChange={(type) => setConfig({ renderType: type })}
             />
-          </>
-        )}
-      </div>
+
+            <WorkbenchActionCard
+              isRendering={isRendering}
+              selectedProjectIds={selectedProjectIds}
+              selectedProject={selectedProject !== null}
+              isDark={isDark}
+              onBatchRender={handleRenderBatch}
+              onSingleRender={handleRenderSingle}
+              onDryRun={handleDryRun}
+              onDeleteOutput={handleDeleteOutput}
+              onDeleteYaml={handleDeleteYaml}
+            />
+          </div>
+
+          {/* ③ 校对与输出 */}
+          <div className={clsx('border-t pt-3', isDark ? 'border-gray-700' : 'border-gray-200')}>
+            <StepLabel text={t('workbench.stepResult')} />
+            <WorkbenchDependencyCard selectedProject={selectedProject} isDark={isDark} />
+            <WorkbenchProofreadCard selectedProject={selectedProject} isDark={isDark} />
+            <WorkbenchLabelCard selectedProjectIds={selectedProjectIds} isDark={isDark} />
+
+            <Button
+              variant="secondary"
+              size="sm"
+              icon={<ExternalLink size={12} />}
+              onClick={() => setActiveActivity('output')}
+              className="w-full justify-start mt-2"
+            >
+              {t('workbench.viewOutput')}
+            </Button>
+
+            {dryRunResults.length > 0 && (
+              <WorkbenchDryRunResults results={dryRunResults} isDark={isDark} onClear={clearDryRunResults} />
+            )}
+
+            {(isRendering || errors.length > 0) && (
+              <WorkbenchResultCard
+                isRendering={isRendering}
+                progress={progress}
+                currentMessage={currentMessage}
+                errors={errors}
+                isDark={isDark}
+              />
+            )}
+          </div>
+        </div>
+      )}
     </div>
   )
 })
