@@ -2,7 +2,7 @@
 
 **批量生成网络设备配置 | Network Device Configuration Automation**
 
-[![Version](https://img.shields.io/badge/version-3.9.0-blue)](https://github.com/bangbang8000-cell/MagicCommander/releases)
+[![Version](https://img.shields.io/badge/version-3.9.1-blue)](https://github.com/bangbang8000-cell/MagicCommander/releases)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![Windows](https://img.shields.io/badge/Windows-NSIS-blue)](https://github.com/bangbang8000-cell/MagicCommander/releases)
 [![macOS](https://img.shields.io/badge/macOS-DMG-silver)](https://github.com/bangbang8000-cell/MagicCommander/releases)
@@ -245,6 +245,7 @@ MagicCommander/
 
 | 版本 | 日期 | 更新内容 |
 |------|------|---------|
+| **3.9.1 Build 26082502** | 2026-08-25 | **修复：导入后项目列表不刷新**——导入 AutoLink 交付包成功后主动刷新项目浏览器，新项目立即可见（此前为应用启动快照，需重启才显示） |
 | **3.9.0 Build 26082501** | 2026-08-25 | **安全加固 + i18n 全量接入 + 导入一条龙 + 工作台重构**：M1 安全加固（`escapePythonArg` Windows 路径修复 / zip-slip / `file:` 读取限界 / `isTrustedSender` 全覆盖 / `will-navigate` + 语言白名单 / `MC_Para` 增量写）；M2 i18n（AidcImportDialog 125 处全量接入 + 6 语言补齐 + i18n 门禁）；M3 导入 UX + MenuBar + 工作台重构（导入自动流转 导入→校验→细化、结果分页、真 ZIP 导出、tunable 扩展 BGP/地址段/命名、经典菜单栏文件/编辑/视图/工具/帮助 + 最近项目、工作台三步分组对齐 AL、无项目空态、ActivityBar 语义色对齐、nav 命名空间统一、Monaco 布局收敛、项目匹配索引）；M5 Popover 视觉对齐 AL（CSS token 层） |
 | **3.8.0 Build 26082101** | 2026-08-21 | **AIDC 规划集成**：规划引擎 + 专业表格 + 评估 UI（P1.1–P1.5）；桥接集成 MC 侧 G0–G5（plan 驱动导入/字节级幂等/契约级校验/GUI 一条龙）；`plan:table` 契约 v1.2 按 projectId 自动匹配导入/版本/changelog/可视化校对；地址分配器架构化（D23 确定性分配 + 预留表持久化 + 换段 + 网段感知 /31 对齐零冲突）；设备库合并/表格规范化（四网拆 sheet/每接口一行）；渲染产物命令核对脚本 `verify_rendered.py`；导入 AutoLink 项目一条龙 + 云开关/工具栏/快捷键/文档 |
 | **3.7.0 Build 26081103** | 2026-08-11 | **Beta 智能分析能力**：Excel/Jinja2 依赖分析（模板↔列反向索引，工作台可视化）；渲染后智能校对（模板语法/缺失列/数据空值）；模板片段库（`{% include %}` 复用 + 编辑器插入/另存片段）；模板资产中心（版本快照/恢复 + 单模板调试预览沙盒）。修复：AI Hub 项目上下文贯通、`render yaml --format device_sn` CLI、平台 versions.json/通知中心、projectInfo 类型消除 any |
