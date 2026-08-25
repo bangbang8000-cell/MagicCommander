@@ -15,6 +15,7 @@ import {
   isFileTypeAllowed,
   isFileAccessible,
   validateProjectName,
+  SECURITY_CONFIG,
 } from '../utils/security'
 import { logger } from '../utils/logger'
 import {
@@ -327,13 +328,15 @@ export function setupIpcHandlers(window: BrowserWindow): void {
     })
   })
 
-  ipcMain.handle('project:getTemplate', async (_e, id: string) => {
+  ipcMain.handle('project:getTemplate', async (e, id: string) => {
+    if (!isTrustedSender(e)) throw new Error('无权执行该操作')
     const template = listTemplateInfosFromDir(getTemplateDir()).find((item) => item.id === id)
     if (!template) throw new Error(`模板不存在: ${id}`)
     return template
   })
 
-  ipcMain.handle('project:readTemplateFile', async (_e, templateId: string, filePath: string): Promise<string> => {
+  ipcMain.handle('project:readTemplateFile', async (e, templateId: string, filePath: string): Promise<string> => {
+    if (!isTrustedSender(e)) throw new Error('无权执行该操作')
     const templateDir = resolveTemplateDir(templateId)
     if (!templateDir) throw new Error('模板不存在或名称无效')
     const pathValidation = validateFilePath(filePath)
@@ -421,7 +424,8 @@ export function setupIpcHandlers(window: BrowserWindow): void {
     },
   )
 
-  ipcMain.handle('project:updateTemplateMeta', async (_e, id: string, meta: Partial<TemplateMeta>): Promise<void> => {
+  ipcMain.handle('project:updateTemplateMeta', async (e, id: string, meta: Partial<TemplateMeta>): Promise<void> => {
+    if (!isTrustedSender(e)) throw new Error('无权执行该操作')
     const targetPath = resolveTemplateDir(id)
     if (!targetPath || !fs.existsSync(targetPath)) throw new Error(`模板不存在: ${id}`)
     const current = readTemplateMeta(targetPath, id)
@@ -429,7 +433,8 @@ export function setupIpcHandlers(window: BrowserWindow): void {
     refreshWorkspace()
   })
 
-  ipcMain.handle('project:deleteTemplate', async (_e, id: string): Promise<void> => {
+  ipcMain.handle('project:deleteTemplate', async (e, id: string): Promise<void> => {
+    if (!isTrustedSender(e)) throw new Error('无权执行该操作')
     const targetPath = resolveTemplateDir(id)
     if (!targetPath || !fs.existsSync(targetPath)) throw new Error(`模板不存在: ${id}`)
     fs.rmSync(targetPath, { recursive: true, force: true })
@@ -498,7 +503,8 @@ export function setupIpcHandlers(window: BrowserWindow): void {
     },
   )
 
-  ipcMain.handle('project:saveAsExample', async (_e, projectName: string, exampleName: string): Promise<void> => {
+  ipcMain.handle('project:saveAsExample', async (e, projectName: string, exampleName: string): Promise<void> => {
+    if (!isTrustedSender(e)) throw new Error('无权执行该操作')
     const projectPath = path.join(getWorkspaceDir(), projectName)
     if (!fs.existsSync(projectPath) || !isProjectLikeDir(projectPath)) {
       throw new Error(`项目不存在或结构无效: ${projectName}`)
@@ -515,12 +521,14 @@ export function setupIpcHandlers(window: BrowserWindow): void {
     refreshWorkspace()
   })
 
-  ipcMain.handle('project:delete', async (_e, ids: string[]): Promise<void> => {
+  ipcMain.handle('project:delete', async (e, ids: string[]): Promise<void> => {
+    if (!isTrustedSender(e)) throw new Error('无权执行该操作')
     await renderHandler.deleteProject(ids)
     refreshWorkspace()
   })
 
-  ipcMain.handle('project:structure', async (_e, name: string): Promise<FileTreeNode[]> => {
+  ipcMain.handle('project:structure', async (e, name: string): Promise<FileTreeNode[]> => {
+    if (!isTrustedSender(e)) throw new Error('无权执行该操作')
     const projectPath = resolveProjectDir(String(name))
     if (!projectPath || !fs.existsSync(projectPath)) {
       return []
@@ -830,7 +838,8 @@ export function setupIpcHandlers(window: BrowserWindow): void {
     },
   )
 
-  ipcMain.handle('snippet:delete', async (_e, file: string): Promise<void> => {
+  ipcMain.handle('snippet:delete', async (e, file: string): Promise<void> => {
+    if (!isTrustedSender(e)) throw new Error('无权执行该操作')
     const full = buildSafePath(snippetsDir, String(file))
     if (!full) throw new Error('片段名称无效')
     if (fs.existsSync(full)) fs.unlinkSync(full)
@@ -841,22 +850,27 @@ export function setupIpcHandlers(window: BrowserWindow): void {
 
   // 渲染 API（通过 Python 后端执行）
   // 契约 v1.2（P2）：projectDir 可选 → 自动匹配新建/更新/跳过（支持 .zip 交付包）
-  ipcMain.handle('plan:import', async (_e, planJson: string, projectDir?: string): Promise<unknown> => {
+  ipcMain.handle('plan:import', async (e, planJson: string, projectDir?: string): Promise<unknown> => {
+    if (!isTrustedSender(e)) throw new Error('无权执行该操作')
     return await renderHandler.planImport(planJson, projectDir)
   })
   // 契约 v1.2（P2 V-MC4）：内存 plan 直接导入（tunable 编辑后重导入，免临时文件）
-  ipcMain.handle('plan:importData', async (_e, plan: unknown, projectDir?: string): Promise<unknown> => {
+  ipcMain.handle('plan:importData', async (e, plan: unknown, projectDir?: string): Promise<unknown> => {
+    if (!isTrustedSender(e)) throw new Error('无权执行该操作')
     return await renderHandler.planImportData(plan, projectDir)
   })
-  ipcMain.handle('plan:analyze', async (_e, projectDir: string): Promise<unknown> => {
+  ipcMain.handle('plan:analyze', async (e, projectDir: string): Promise<unknown> => {
+    if (!isTrustedSender(e)) throw new Error('无权执行该操作')
     return await renderHandler.planAnalyze(projectDir)
   })
   // G4: plan:table 契约级校验
-  ipcMain.handle('plan:validate', async (_e, planJson: string): Promise<unknown> => {
+  ipcMain.handle('plan:validate', async (e, planJson: string): Promise<unknown> => {
+    if (!isTrustedSender(e)) throw new Error('无权执行该操作')
     return await renderHandler.planValidate(planJson)
   })
   // P2（V-MC2）：渲染命令核对矩阵
-  ipcMain.handle('plan:verify', async (_e, projectDir: string): Promise<unknown> => {
+  ipcMain.handle('plan:verify', async (e, projectDir: string): Promise<unknown> => {
+    if (!isTrustedSender(e)) throw new Error('无权执行该操作')
     return await renderHandler.planVerify(projectDir)
   })
 
@@ -951,7 +965,8 @@ export function setupIpcHandlers(window: BrowserWindow): void {
     return items
   })
 
-  ipcMain.handle('template:restore', async (_e, projectId, templatePath, version): Promise<void> => {
+  ipcMain.handle('template:restore', async (e, projectId, templatePath, version): Promise<void> => {
+    if (!isTrustedSender(e)) throw new Error('无权执行该操作')
     const projectDir = await getProjectPath(projectId)
     const histDir = await templateHistoryDir(projectId, templatePath)
     const snapshotFile = path.join(histDir, `${String(version)}.j2`)
@@ -1032,9 +1047,19 @@ export function setupIpcHandlers(window: BrowserWindow): void {
   ipcMain.handle('file:read', async (e, filePath: string): Promise<string> => {
     if (!isTrustedSender(e)) throw new Error('无权执行该操作')
     logger.info('[file:read] 请求路径:', filePath)
+    // MC-S3: 扩展名白名单 + 大小上限（防任意文件读）
+    if (!isFileTypeAllowed(filePath)) {
+      logger.error('[file:read] 文件类型不在白名单:', filePath)
+      throw new Error('文件类型不允许读取')
+    }
     if (!fs.existsSync(filePath)) {
       logger.error('[file:read] 文件不存在:', filePath)
       throw new Error('文件不存在')
+    }
+    const stat = fs.statSync(filePath)
+    if (stat.size > SECURITY_CONFIG.FILE_CONTENT_MAX_LENGTH) {
+      logger.error(`[file:read] 文件超过大小上限: ${filePath} (${stat.size})`)
+      throw new Error(`文件过大（超过 ${SECURITY_CONFIG.FILE_CONTENT_MAX_LENGTH / 1024 / 1024}MB）`)
     }
     const buffer = fs.readFileSync(filePath)
     let text = buffer.toString('utf-8')
@@ -1325,7 +1350,8 @@ export function setupIpcHandlers(window: BrowserWindow): void {
     },
   )
 
-  ipcMain.handle('aihub:clearSession', async (_e, sessionId: string): Promise<void> => {
+  ipcMain.handle('aihub:clearSession', async (e, sessionId: string): Promise<void> => {
+    if (!isTrustedSender(e)) throw new Error('无权执行该操作')
     await aiHubService.clearSession(sessionId)
   })
 
@@ -1339,7 +1365,8 @@ export function setupIpcHandlers(window: BrowserWindow): void {
 
   ipcMain.handle(
     'aihub:configureProvider',
-    async (_e, provider: string, apiKey: string, model?: string, baseUrl?: string): Promise<void> => {
+    async (e, provider: string, apiKey: string, model?: string, baseUrl?: string): Promise<void> => {
+      if (!isTrustedSender(e)) throw new Error('无权执行该操作')
       await aiHubService.configureProvider(provider, apiKey, model, baseUrl)
     },
   )

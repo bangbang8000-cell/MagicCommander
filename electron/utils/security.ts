@@ -76,6 +76,41 @@ export function escapePythonArg(arg: string): string {
 }
 
 /**
+ * 净化 Python 文件路径类参数（MC-S1 修复）
+ *
+ * 与 `escapePythonArg` 的区别：spawn 以 `shell: false` 传参（render.handler.ts），
+ * 不存在 Shell 元字符注入面，因此**必须保留路径分隔符**（Windows `\`、盘符 `:`），
+ * 仅去除 execv/argparse 层真正有风险的字符：
+ *   - NUL / 控制字符（Python 侧会在 NUL 处截断参数）
+ *   - 以 `-` 开头（会被 argparse 误判为命令行选项，如 `--rehash`、`-force`）
+ *   - `,`（多个 ID 用逗号拼接成一个参数，逗号会造成歧义）
+ * 路径穿越（`..`）不在此处处理，由调用方的 `isPathSafe` / workspace 限界约束。
+ * @param arg 文件路径 / 目录 / 项目 ID
+ * @returns 净化后的安全参数（非法输入返回空字符串）
+ */
+export function sanitizePathArg(arg: string): string {
+  if (!arg || typeof arg !== 'string') return ''
+
+  // 去除 NUL 与控制字符
+  let safe = arg.replace(/[\u0000-\u001f\u007f]/g, '')
+
+  // 逗号替换为下划线（多 ID 逗号拼接场景防歧义）
+  safe = safe.replace(/,/g, '_')
+
+  // trim 后再判空；以 - 开头会被 argparse 当作选项注入，拒绝
+  safe = safe.trim()
+  if (!safe) return ''
+  if (safe.startsWith('-')) return ''
+
+  // 限制长度（文件路径上限）
+  if (safe.length > SECURITY_CONFIG.FILE_PATH_MAX_LENGTH) {
+    safe = safe.slice(0, SECURITY_CONFIG.FILE_PATH_MAX_LENGTH)
+  }
+
+  return safe
+}
+
+/**
  * 校验路径是否在允许范围内（项目目录内）
  * @param fullPath 完整路径
  * @param allowedBaseDir 允许的基础目录

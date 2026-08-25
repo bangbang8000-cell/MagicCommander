@@ -3,7 +3,7 @@ import * as path from 'path'
 import * as fs from 'fs'
 import * as os from 'os'
 import { spawn } from 'child_process'
-import { escapePythonArg, validateProjectName } from '../utils/security'
+import { sanitizePathArg, validateProjectName, isPathSafe } from '../utils/security'
 import { getPythonPath, getWorkspaceDir, getPythonSitePackages } from '../config'
 
 const THROTTLE_MS = 100
@@ -80,33 +80,38 @@ export class RenderHandler {
   }
 
   async renderProject(ids: string[]): Promise<void> {
-    const safeIds = ids.map((id) => escapePythonArg(id)).filter((id) => id)
+    const safeIds = ids.map((id) => sanitizePathArg(id)).filter((id) => id)
     if (safeIds.length === 0) throw new Error('无效的项目 ID')
     await this.runPythonCommand(['render', 'project', safeIds.join(',')])
   }
 
   async renderYaml(ids: string[]): Promise<void> {
-    const safeIds = ids.map((id) => escapePythonArg(id)).filter((id) => id)
+    const safeIds = ids.map((id) => sanitizePathArg(id)).filter((id) => id)
     if (safeIds.length === 0) throw new Error('无效的项目 ID')
     await this.runPythonCommand(['render', 'yaml', safeIds.join(',')])
   }
 
   async renderProjectSn(ids: string[]): Promise<void> {
-    const safeIds = ids.map((id) => escapePythonArg(id)).filter((id) => id)
+    const safeIds = ids.map((id) => sanitizePathArg(id)).filter((id) => id)
     if (safeIds.length === 0) throw new Error('无效的项目 ID')
     await this.runPythonCommand(['render', 'project', safeIds.join(','), '--format', 'device_sn'])
   }
 
   async renderYamlSn(ids: string[]): Promise<void> {
-    const safeIds = ids.map((id) => escapePythonArg(id)).filter((id) => id)
+    const safeIds = ids.map((id) => sanitizePathArg(id)).filter((id) => id)
     if (safeIds.length === 0) throw new Error('无效的项目 ID')
     await this.runPythonCommand(['render', 'yaml', safeIds.join(','), '--format', 'device_sn'])
   }
 
   // P1.4 + 契约 v1.2（P2）：plan:table 导入（projectDir 可选 → 自动匹配新建/更新/跳过；支持 .zip 交付包）
   async planImport(planJson: string, projectDir?: string): Promise<unknown> {
-    const args = ['plan', 'import', escapePythonArg(planJson)]
-    if (projectDir) args.push(escapePythonArg(projectDir))
+    const safePlan = sanitizePathArg(planJson)
+    if (!safePlan) throw new Error('无效的规划文件路径')
+    const args = ['plan', 'import', safePlan]
+    if (projectDir) {
+      const safeDir = this.assertWorkspaceDir(projectDir)
+      if (safeDir) args.push(safeDir)
+    }
     return await this.runPythonCommand(args, true)
   }
 
@@ -114,8 +119,11 @@ export class RenderHandler {
   async planImportData(plan: unknown, projectDir?: string): Promise<unknown> {
     const tmp = path.join(os.tmpdir(), `aidc_plan_${Date.now()}.json`)
     fs.writeFileSync(tmp, JSON.stringify(plan), 'utf-8')
-    const args = ['plan', 'import', escapePythonArg(tmp), '--rehash']
-    if (projectDir) args.push(escapePythonArg(projectDir))
+    const args = ['plan', 'import', sanitizePathArg(tmp), '--rehash']
+    if (projectDir) {
+      const safeDir = this.assertWorkspaceDir(projectDir)
+      if (safeDir) args.push(safeDir)
+    }
     try {
       return await this.runPythonCommand(args, true)
     } finally {
@@ -125,17 +133,32 @@ export class RenderHandler {
 
   // P1.4: j2 模板 ↔ 规划字段 对齐检查
   async planAnalyze(projectDir: string): Promise<unknown> {
-    return await this.runPythonCommand(['plan', 'analyze', escapePythonArg(projectDir)], true)
+    const safeDir = this.assertWorkspaceDir(projectDir)
+    if (!safeDir) throw new Error('无效的项目目录')
+    return await this.runPythonCommand(['plan', 'analyze', safeDir], true)
   }
 
   // G4: plan:table 契约级校验（桥接标识 + macro 完整 + 接线引用）
   async planValidate(planJson: string): Promise<unknown> {
-    return await this.runPythonCommand(['plan', 'validate', escapePythonArg(planJson)], true)
+    const safePlan = sanitizePathArg(planJson)
+    if (!safePlan) throw new Error('无效的规划文件路径')
+    return await this.runPythonCommand(['plan', 'validate', safePlan], true)
   }
 
   // P2（V-MC2）：渲染命令核对矩阵（结构化 JSON）
   async planVerify(projectDir: string): Promise<unknown> {
-    return await this.runPythonCommand(['plan', 'verify', escapePythonArg(projectDir)], true)
+    const safeDir = this.assertWorkspaceDir(projectDir)
+    if (!safeDir) throw new Error('无效的项目目录')
+    return await this.runPythonCommand(['plan', 'verify', safeDir], true)
+  }
+
+  /** 校验 projectDir 属于 workspace 内且为安全路径；不合法返回 null */
+  private assertWorkspaceDir(projectDir: string): string | null {
+    const safe = sanitizePathArg(projectDir)
+    if (!safe) return null
+    // 绝对路径：必须在 workspace 内；相对路径：由 Python 以 MC_WORKSPACE 为基解析
+    if (path.isAbsolute(safe) && !isPathSafe(safe, getWorkspaceDir())) return null
+    return safe
   }
 
   async createProject(name: string): Promise<void> {
@@ -145,31 +168,31 @@ export class RenderHandler {
   }
 
   async deleteProject(ids: string[]): Promise<void> {
-    const safeIds = ids.map((id) => escapePythonArg(id)).filter((id) => id)
+    const safeIds = ids.map((id) => sanitizePathArg(id)).filter((id) => id)
     if (safeIds.length === 0) throw new Error('无效的项目 ID')
     await this.runPythonCommand(['project', 'delete', safeIds.join(','), '--force'])
   }
 
   async deleteOutput(ids: string[]): Promise<void> {
-    const safeIds = ids.map((id) => escapePythonArg(id)).filter((id) => id)
+    const safeIds = ids.map((id) => sanitizePathArg(id)).filter((id) => id)
     if (safeIds.length === 0) throw new Error('无效的项目 ID')
     await this.runPythonCommand(['file', 'delete', 'output', safeIds.join(','), '--force'])
   }
 
   async deleteOutputSn(ids: string[]): Promise<void> {
-    const safeIds = ids.map((id) => escapePythonArg(id)).filter((id) => id)
+    const safeIds = ids.map((id) => sanitizePathArg(id)).filter((id) => id)
     if (safeIds.length === 0) throw new Error('无效的项目 ID')
     await this.runPythonCommand(['file', 'delete', 'output-sn', safeIds.join(','), '--force'])
   }
 
   async deleteYaml(ids: string[]): Promise<void> {
-    const safeIds = ids.map((id) => escapePythonArg(id)).filter((id) => id)
+    const safeIds = ids.map((id) => sanitizePathArg(id)).filter((id) => id)
     if (safeIds.length === 0) throw new Error('无效的项目 ID')
     await this.runPythonCommand(['file', 'delete', 'yaml', safeIds.join(','), '--force'])
   }
 
   async deleteYamlSn(ids: string[]): Promise<void> {
-    const safeIds = ids.map((id) => escapePythonArg(id)).filter((id) => id)
+    const safeIds = ids.map((id) => sanitizePathArg(id)).filter((id) => id)
     if (safeIds.length === 0) throw new Error('无效的项目 ID')
     await this.runPythonCommand(['file', 'delete', 'yaml-sn', safeIds.join(','), '--force'])
   }

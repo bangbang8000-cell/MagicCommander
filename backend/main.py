@@ -48,7 +48,7 @@ def _load_plan_input(path: str) -> dict:
         tmp = tempfile.mkdtemp(prefix='aidc_zip_')
         try:
             with zipfile.ZipFile(path) as z:
-                z.extractall(tmp)
+                _safe_extract_zip(z, tmp)
             plan_path = None
             for root, _, files in os.walk(tmp):
                 for f in files:
@@ -61,10 +61,30 @@ def _load_plan_input(path: str) -> dict:
                 return {'error': f'交付包内未找到 plan.json: {path}'}
             with open(plan_path, 'r', encoding='utf-8') as f:
                 return json.load(f)
+        except (zipfile.BadZipFile, ValueError) as e:
+            # MC-S2: 恶意/损坏交付包整体拒绝并返回错误，不部分解压
+            return {'error': f'交付包解压被拒绝: {e}'}
         finally:
             shutil.rmtree(tmp, ignore_errors=True)
     with open(path, 'r', encoding='utf-8') as f:
         return json.load(f)
+
+
+def _safe_extract_zip(zf: zipfile.ZipFile, dest_dir: str) -> None:
+    """MC-S2（zip-slip 防护）：解压前逐条目校验，拒绝绝对路径 / 路径穿越条目。
+
+    若任意条目不合法则整体拒绝（不部分解压），并抛出 ValueError。
+    """
+    dest_abs = os.path.abspath(dest_dir)
+    for member in zf.infolist():
+        name = member.filename.replace('\\', '/')
+        # 拒绝绝对路径（盘符 / 前导 /）与 .. 穿越
+        if name.startswith('/') or (len(name) > 1 and name[1] == ':'):
+            raise ValueError(f'交付包条目含绝对路径: {member.filename}')
+        parts = name.split('/')
+        if '..' in parts:
+            raise ValueError(f'交付包条目含路径穿越: {member.filename}')
+    zf.extractall(dest_abs)
 
 
 def _resolve_project_file(project_dir: str, rel_path: str) -> str:
@@ -365,8 +385,10 @@ def handle_plan_command(args):
             df = pd.read_excel(mc_para)
             name = os.path.basename(proj_dir.rstrip('/'))
             if name not in df['项目名称'].astype(str).tolist():
-                rows = df['项目名称'].astype(str).tolist() + [name]
-                pd.DataFrame({'项目名称': rows}).to_excel(mc_para, sheet_name='项目名称', index=False)
+                # MC-S6: 增量追加行，保留原表其余列（禁止重写为单列导致丢列）
+                df = df.copy()
+                df.loc[len(df), '项目名称'] = name
+                df.to_excel(mc_para, sheet_name='项目名称', index=False)
         matched = summary.get('matched', 'none')
         if matched == 'skip':
             print(f'[skip] 规划无变化（v{summary.get("mcPlanVersion")}），跳过（{summary["name"]}）')

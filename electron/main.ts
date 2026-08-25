@@ -92,10 +92,13 @@ class MagicCommanderApp {
       return electronI18n.language
     })
 
+    // MC-I18-4 / MC-M1e: 仅允许 6 种官方语言，非法值 fallback 到 zh-CN（防任意字符串写入偏好）
+    const SUPPORTED_LANGUAGES = ['zh-CN', 'zh-TW', 'en', 'ja', 'ko', 'fr']
     ipcMain.handle('app:setLanguage', (_event, lang: string) => {
-      electronI18n.changeLanguage(lang)
+      const safeLang = SUPPORTED_LANGUAGES.includes(lang) ? lang : 'zh-CN'
+      electronI18n.changeLanguage(safeLang)
       if (this.mainWindow) {
-        this.mainWindow.webContents.send('language-changed', lang)
+        this.mainWindow.webContents.send('language-changed', safeLang)
       }
     })
   }
@@ -163,6 +166,16 @@ class MagicCommanderApp {
         shell.openExternal(url)
       }
       return { action: 'deny' }
+    })
+
+    // MC-S5 / MC-M1e: 阻止主窗口导航到应用来源之外的 URL（防 window.location / 恶意链接跳转）
+    this.mainWindow.webContents.on('will-navigate', (event, url) => {
+      const current = this.mainWindow?.webContents.getURL() || ''
+      const isAppOrigin = url.startsWith('file://') || /^http:\/\/localhost:\d+/i.test(url)
+      if (!isAppOrigin && url !== current) {
+        event.preventDefault()
+        if (/^https?:\/\//i.test(url)) shell.openExternal(url)
+      }
     })
 
     // 渲染进程崩溃恢复：崩溃/无响应时自动重载，避免白屏

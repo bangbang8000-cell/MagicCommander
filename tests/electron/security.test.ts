@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { escapePythonArg, validateProjectName, isPathSafe, validateFilePath, isFileTypeAllowed, validateFileContent, buildSafePath, isFileAccessible } from '../../electron/utils/security'
+import { escapePythonArg, sanitizePathArg, validateProjectName, isPathSafe, validateFilePath, isFileTypeAllowed, validateFileContent, buildSafePath, isFileAccessible } from '../../electron/utils/security'
 
 describe('escapePythonArg', () => {
   describe('空格保留', () => {
@@ -143,6 +143,70 @@ describe('escapePythonArg', () => {
     })
   })
 })
+describe('sanitizePathArg', () => {
+  // MC-S1：Windows 绝对路径必须原样保留（\ 与 : 不被改写）
+  describe('Windows 路径保留', () => {
+    it('保留完整 Windows 绝对路径', () => {
+      expect(sanitizePathArg('C:\\Users\\x\\plan.json')).toBe('C:\\Users\\x\\plan.json')
+    })
+
+    it('保留反斜杠与盘符冒号', () => {
+      expect(sanitizePathArg('D:\\projects\\site A\\plan.json')).toBe('D:\\projects\\site A\\plan.json')
+    })
+
+    it('保留 tmpdir 路径', () => {
+      expect(sanitizePathArg('C:\\Users\\x\\AppData\\Local\\Temp\\aidc_plan_123.json')).toBe(
+        'C:\\Users\\x\\AppData\\Local\\Temp\\aidc_plan_123.json',
+      )
+    })
+
+    it('保留相对路径与正斜杠', () => {
+      expect(sanitizePathArg('./templates/ASW.j2')).toBe('./templates/ASW.j2')
+    })
+  })
+
+  describe('危险输入防护', () => {
+    it('拒绝以 - 开头的参数（防 argparse 选项注入）', () => {
+      expect(sanitizePathArg('-rehash')).toBe('')
+      expect(sanitizePathArg('--force')).toBe('')
+      expect(sanitizePathArg(' -trimmed')).toBe('')
+    })
+
+    it('空值/非字符串返回空字符串', () => {
+      expect(sanitizePathArg('')).toBe('')
+      expect(sanitizePathArg(null as unknown as string)).toBe('')
+      expect(sanitizePathArg(undefined as unknown as string)).toBe('')
+      expect(sanitizePathArg(123 as unknown as string)).toBe('')
+    })
+
+    it('移除 NUL 与控制字符', () => {
+      expect(sanitizePathArg('C:\\a\\b\u0000c.json')).toBe('C:\\a\\bc.json')
+      expect(sanitizePathArg('a\nb')).toBe('ab')
+    })
+
+    it('保留 ..（路径穿越由调用方 isPathSafe 约束，此处仅净化字符）', () => {
+      expect(sanitizePathArg('..')).toBe('..')
+      expect(sanitizePathArg('../evil')).toBe('../evil')
+    })
+
+    it('超长路径截断到文件路径上限', () => {
+      const long = 'C:\\' + 'a'.repeat(1500)
+      expect(sanitizePathArg(long).length).toBeLessThanOrEqual(1024)
+    })
+  })
+
+  describe('ID 兼容性（作为项目 ID 过滤）', () => {
+    it('保留字母数字下划线连字符', () => {
+      expect(sanitizePathArg('test1')).toBe('test1')
+      expect(sanitizePathArg('H3C-64台-BJ01')).toBe('H3C-64台-BJ01')
+    })
+
+    it('替换逗号为下划线（防 ID 拼接歧义）', () => {
+      expect(sanitizePathArg('a,b,c')).toBe('a_b_c')
+    })
+  })
+})
+
 describe('validateProjectName', () => {
   it('拒绝路径穿越 ..', () => {
     expect(validateProjectName('..').valid).toBe(false)

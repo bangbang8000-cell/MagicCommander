@@ -925,7 +925,9 @@ MagicCommander 当前按设备的“角色”字段选择模板：
         if os.path.exists(mc_para_path):
             df = pd.read_excel(mc_para_path)
             if para not in df['项目名称'].astype(str).tolist():
-                df.loc[len(df)] = [para]
+                # MC-S6: 仅追加 项目名称 列，保留其余列（勿整行覆盖为单列）
+                df = df.copy()
+                df.loc[len(df), '项目名称'] = para
                 df.to_excel(mc_para_path, sheet_name='项目名称', index=False, header=True)
         else:
             pd.DataFrame({'项目名称': [para]}).to_excel(
