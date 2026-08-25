@@ -88,6 +88,7 @@ export interface PlanIpcApi {
   verify: (projectDir: string) => Promise<VerifyResult>
   analyze: (projectDir: string) => Promise<unknown>
   validate: (planJson: string) => Promise<PlanValidateResult>
+  validateData: (plan: unknown) => Promise<PlanValidateResult>
 }
 
 export interface ElectronAPI {
@@ -102,6 +103,9 @@ export interface ElectronAPI {
   app: AppIpcApi
   log: LogIpcApi
   shell: { showItemInFolder: (path: string) => Promise<void> }
+  output: {
+    export: (projectName: string, format: 'zip' | 'dir') => Promise<string>
+  }
   aihub: AIHubIpcApi
   window: WindowIpcApi
   platform: PlatformIpcApi

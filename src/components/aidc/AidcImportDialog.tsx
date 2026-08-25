@@ -4,7 +4,7 @@
  * 与常规项目工作台分离；复用现有 IPC 原语（plan.validate/import/importData/verify + render.project + project.readExcel）。
  * M2（MC-I1 / MC-UI1）：全量接入 aidc:import.* 命名空间 i18n；样式由 msgError 状态字段驱动（非 includes('失败')）。
  */
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/Button'
 import { Modal } from '@/components/ui/Modal'
@@ -27,6 +27,47 @@ interface TableData { name: string; headers: string[]; rows: Record<string, unkn
 const STEPS_KEYS = ['import', 'validate', 'tune', 'render', 'proofread'] as const
 const EXCEL_FILES = ['hostname', 'connection', 'ipaddress', 'parameter']
 
+// MC-M3b: 结果分页（校验 issue / 四网表格 / 核对矩阵 超阈值翻页）
+const PAGE_SIZE_TABLE = 100
+const PAGE_SIZE_VERIFY = 20
+
+/** 轻量翻页条：superset 时展示，避免一次性渲染海量行 */
+function Pager({
+  page, total, pageSize, t, onPrev, onNext,
+}: {
+  page: number
+  total: number
+  pageSize: number
+  t: (k: string, opts?: Record<string, string | number>) => string
+  onPrev: () => void
+  onNext: () => void
+}) {
+  if (total === 0) return null
+  const start = page * pageSize + 1
+  const end = Math.min((page + 1) * pageSize, total)
+  return (
+    <div className="flex items-center gap-1 text-2xs text-gray-500">
+      <button
+        type="button"
+        disabled={page === 0}
+        onClick={onPrev}
+        className="px-1.5 py-0.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 disabled:opacity-30 disabled:cursor-not-allowed"
+      >
+        ← {t('aidc:import.pagePrev')}
+      </button>
+      <span className="font-mono">{t('aidc:import.pageInfo', { start, end, total })}</span>
+      <button
+        type="button"
+        disabled={end >= total}
+        onClick={onNext}
+        className="px-1.5 py-0.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 disabled:opacity-30 disabled:cursor-not-allowed"
+      >
+        {t('aidc:import.pageNext')} →
+      </button>
+    </div>
+  )
+}
+
 /** 角色 → 平面（i18n key 后缀：param/storage/biz/oob） */
 const ROLE_PLANE: Record<string, 'param' | 'storage' | 'biz' | 'oob'> = {
   SPINE: 'param', LEAF: 'param', STO_SPINE: 'storage', STO_LEAF: 'storage',
@@ -40,12 +81,24 @@ export function AidcImportDialog({ open, onClose }: { open: boolean; onClose: ()
   const { t } = useTranslation()
   const [planJson, setPlanJson] = useState('')
   const [planObj, setPlanObj] = useState<AidcPlan | null>(null)
+  // MC-M3a: plan 对象 ref——自动流转（导入→校验→细化）在同一异步链中需读取最新 plan，避免闭包过期
+  const planObjRef = useRef<AidcPlan | null>(null)
   const [summary, setSummary] = useState<PlanImportResult | null>(null)
   const [validation, setValidation] = useState<PlanValidateResult | null>(null)
   const [verify, setVerify] = useState<VerifyResult | null>(null)
   const [tables, setTables] = useState<TableData[] | null>(null)
+  // MC-M3b: 各表格独立分页 + 核对矩阵分页；MC-M3d: 拓扑缩放
+  const [tablePage, setTablePage] = useState<Record<string, number>>({})
+  const [verifyPage, setVerifyPage] = useState(0)
+  const [issuePage, setIssuePage] = useState(0)
+  const [topoZoom, setTopoZoom] = useState(1)
   const [pfc, setPfc] = useState('3')
   const [cnp, setCnp] = useState('6')
+  // MC-M3f: tunable 扩展——bgpMaxPaths / ipSegments / naming 进 GUI（细化时生效）
+  const [bgpMax, setBgpMax] = useState('16')
+  const [segments, setSegments] = useState<Record<string, string>>({})
+  const [namingFormat, setNamingFormat] = useState('')
+  const SEGMENT_KEYS = ['loopback', 'compute', 'storage', 'biz', 'oob', 'interconnect'] as const
   const [step, setStep] = useState(0)
   const [resultTab, setResultTab] = useState<'tables' | 'verify' | 'topo' | 'changelog'>('tables')
   const [busy, setBusy] = useState(false)
@@ -71,9 +124,23 @@ export function AidcImportDialog({ open, onClose }: { open: boolean; onClose: ()
       const text = await window.electron.project.readFile(id, 'plan.json', name)
       if (text) {
         const p = JSON.parse(text) as AidcPlan
+        planObjRef.current = p
         setPlanObj(p)
         setPfc(String((p.macro.pfcQueue ?? p.macro.pfc_queue ?? 3) as number))
         setCnp(String((p.macro.cnpQueue ?? p.macro.cnp_queue ?? 6) as number))
+        // MC-M3f: bgpMaxPaths / ipSegments / naming 预载
+        setBgpMax(String((p.macro.bgpMaxPaths ?? p.macro.bgp_max_paths ?? 16) as number))
+        const segs = (p.macro.ipSegments ?? p.macro.ip_segments) as Record<string, string> | undefined
+        const naming = (p.macro.naming ?? {}) as Record<string, unknown> | undefined
+        setSegments({
+          loopback: segs?.loopback ?? '10.1.0.0/20',
+          compute: segs?.compute ?? '10.1.16.0/20',
+          storage: segs?.storage ?? '10.1.32.0/20',
+          biz: segs?.biz ?? '10.1.48.0/20',
+          oob: segs?.oob ?? '10.1.64.0/21',
+          interconnect: segs?.interconnect ?? '10.1.72.0/21',
+        })
+        setNamingFormat((naming?.format as string) ?? '{site}-R{rack:02d}-AIDC-{vendor}-{abbr}-{seq:02d}')
       }
     } catch { /* 读 plan 失败不阻塞 */ }
   }
@@ -93,6 +160,8 @@ export function AidcImportDialog({ open, onClose }: { open: boolean; onClose: ()
       }
       await loadPlanObject(res.name, res.mcpara_id)
       setStep(1)
+      // MC-M3a: 自动流转——导入成功自动进入校验
+      await doValidate()
     } catch (e) {
       setStatus(t('aidc:import.importFailed', { err: (e as Error).message }), true)
     } finally {
@@ -101,13 +170,21 @@ export function AidcImportDialog({ open, onClose }: { open: boolean; onClose: ()
   }
 
   const doValidate = async () => {
-    if (!planJson) { setStatus(t('aidc:import.selectPlan'), true); return }
+    // MC-M3e: 校验数据源统一——优先以内存 plan 对象为准；路径仅在初始导入时读取
+    const current = planObjRef.current ?? planObj
+    if (!current && !planJson) { setStatus(t('aidc:import.selectPlan'), true); return }
     setBusy(true); setStatus('')
     try {
-      const res = (await window.electron.plan.validate(planJson)) as PlanValidateResult
+      const res = current
+        ? (await window.electron.plan.validateData(current)) as PlanValidateResult
+        : (await window.electron.plan.validate(planJson)) as PlanValidateResult
       setValidation(res)
       setStatus(res.ok ? t('aidc:import.validatePass') : t('aidc:import.validateFail', { count: res.issue_count }), !res.ok)
-      if (res.ok) setStep(2)
+      if (res.ok) {
+        setStep(2)
+        // MC-M3a: 校验通过自动细化（用已载入的 PFC/CNP 队列值）
+        await doTune()
+      }
     } catch (e) {
       setStatus(t('aidc:import.validateFailed', { err: (e as Error).message }), true)
     } finally {
@@ -116,13 +193,27 @@ export function AidcImportDialog({ open, onClose }: { open: boolean; onClose: ()
   }
 
   const doTune = async () => {
-    if (!planObj) { setStatus(t('aidc:import.selectPlanFirst'), true); return }
+    const current = planObjRef.current ?? planObj
+    if (!current) { setStatus(t('aidc:import.selectPlanFirst'), true); return }
     setBusy(true); setStatus('')
     try {
-      const next = structuredClone(planObj) as AidcPlan
+      const next = structuredClone(current) as AidcPlan
       next.macro.pfcQueue = Number(pfc)
       next.macro.cnpQueue = Number(cnp)
+      // MC-M3f: 应用扩展 tunable（bgpMaxPaths / ipSegments / naming.format）
+      next.macro.bgpMaxPaths = Number(bgpMax) || 16
+      const segs = next.macro.ipSegments as Record<string, string> | undefined
+      const baseSegs = (segs && typeof segs === 'object' ? segs : {}) as Record<string, string>
+      for (const k of SEGMENT_KEYS) {
+        const v = segments[k]?.trim()
+        if (v) baseSegs[k] = v
+      }
+      next.macro.ipSegments = baseSegs
+      const nm = (next.macro.naming ?? {}) as Record<string, unknown>
+      nm.format = namingFormat.trim() || nm.format
+      next.macro.naming = nm
       const res = (await window.electron.plan.importData(next, summary?.project_dir)) as PlanImportResult
+      planObjRef.current = next
       setSummary(res)
       setPlanObj(next)
       setStatus(t('aidc:import.tuneApplied', { ver: res.mcPlanVersion, pfc, cnp }))
@@ -268,7 +359,12 @@ export function AidcImportDialog({ open, onClose }: { open: boolean; onClose: ()
                 <p className={clsx('font-medium', validation.ok ? 'text-green-600' : 'text-red-500')}>
                   {validation.ok ? t('aidc:import.validatePass') : t('aidc:import.validateFail', { count: validation.issue_count })}
                 </p>
-                {validation.issues.slice(0, 8).map((it, i) => <p key={i} className="pl-2 text-gray-500">- {it}</p>)}
+                {validation.issues.slice(issuePage * 8, (issuePage + 1) * 8).map((it, i) => <p key={i} className="pl-2 text-gray-500">- {it}</p>)}
+                {validation.issues.length > 8 && (
+                  <Pager page={issuePage} total={validation.issues.length} pageSize={8} t={t}
+                    onPrev={() => setIssuePage((p) => Math.max(0, p - 1))}
+                    onNext={() => setIssuePage((p) => p + 1)} />
+                )}
               </div>
             )}
             {summary && (
@@ -300,10 +396,44 @@ export function AidcImportDialog({ open, onClose }: { open: boolean; onClose: ()
               <label className="text-2xs text-gray-500">{t('aidc:import.tuneCnp')}
                 <input className={clsx(inputCls, '!w-16 ml-1')} type="number" min={0} max={7} value={cnp} onChange={(e) => setCnp(e.target.value)} />
               </label>
+              {/* MC-M3f: bgpMaxPaths */}
+              <label className="text-2xs text-gray-500">{t('aidc:import.tuneBgpMax')}
+                <input className={clsx(inputCls, '!w-20 ml-1')} type="number" min={1} max={32} value={bgpMax} onChange={(e) => setBgpMax(e.target.value)} />
+              </label>
               <Button size="sm" variant="secondary" icon={<RefreshCw size={12} />} onClick={doTune} disabled={busy}>
                 {t('aidc:import.tuneApply')}
               </Button>
             </div>
+            <details className="text-2xs text-gray-500 border border-gray-200 dark:border-gray-700 rounded p-2">
+              <summary className="cursor-pointer font-medium">{t('aidc:import.tuneAdvanced')}</summary>
+              <div className="mt-2 space-y-2">
+                <div>
+                  <div className="text-2xs text-gray-400 mb-1">{t('aidc:import.tuneIpSegments')}</div>
+                  <div className="grid grid-cols-2 gap-2">
+                    {SEGMENT_KEYS.map((k) => (
+                      <label key={k} className="flex items-center gap-1">
+                        <span className="w-24 shrink-0">{t(`aidc:import.seg.${k}`)}</span>
+                        <input
+                          className={clsx(inputCls, 'flex-1 font-mono')}
+                          value={segments[k] ?? ''}
+                          onChange={(e) => setSegments((s) => ({ ...s, [k]: e.target.value }))}
+                          placeholder="10.1.0.0/20"
+                        />
+                      </label>
+                    ))}
+                  </div>
+                </div>
+                <label className="flex items-center gap-1">
+                  <span className="w-24 shrink-0">{t('aidc:import.tuneNamingFormat')}</span>
+                  <input
+                    className={clsx(inputCls, 'flex-1 font-mono')}
+                    value={namingFormat}
+                    onChange={(e) => setNamingFormat(e.target.value)}
+                    placeholder="{site}-R{rack:02d}-AIDC-{vendor}-{abbr}-{seq:02d}"
+                  />
+                </label>
+              </div>
+            </details>
           </div>
         )}
 
@@ -336,23 +466,34 @@ export function AidcImportDialog({ open, onClose }: { open: boolean; onClose: ()
             {resultTab === 'tables' && (tables
               ? (
                 <div className="space-y-2 max-h-[320px] overflow-auto">
-                  {tables.map((tb) => (
-                    <div key={tb.name} className="border rounded overflow-auto">
-                      <p className="text-2xs font-medium px-2 py-1 bg-gray-50 dark:bg-gray-800 sticky left-0">{tb.name}</p>
-                      <table className="w-full text-2xs">
-                        <thead className="sticky top-0 bg-gray-50 dark:bg-gray-800">
-                          <tr>{tb.headers.map((h) => <th key={h} className="px-1.5 py-0.5 text-left">{h}</th>)}</tr>
-                        </thead>
-                        <tbody>
-                          {tb.rows.slice(0, 100).map((r, i) => (
-                            <tr key={i} className="border-t border-gray-100 dark:border-gray-700">
-                              {tb.headers.map((h) => <td key={h} className="px-1.5 py-0.5">{String(r[h] ?? '')}</td>)}
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  ))}
+                  {tables.map((tb) => {
+                    const page = tablePage[tb.name] ?? 0
+                    const pageRows = tb.rows.slice(page * PAGE_SIZE_TABLE, (page + 1) * PAGE_SIZE_TABLE)
+                    return (
+                      <div key={tb.name} className="border rounded overflow-auto">
+                        <div className="flex items-center justify-between px-2 py-1 bg-gray-50 dark:bg-gray-800 sticky left-0">
+                          <p className="text-2xs font-medium">{tb.name}</p>
+                          {tb.rows.length > PAGE_SIZE_TABLE && (
+                            <Pager page={page} total={tb.rows.length} pageSize={PAGE_SIZE_TABLE} t={t}
+                              onPrev={() => setTablePage((p) => ({ ...p, [tb.name]: Math.max(0, (p[tb.name] ?? 0) - 1) }))}
+                              onNext={() => setTablePage((p) => ({ ...p, [tb.name]: (p[tb.name] ?? 0) + 1 }))} />
+                          )}
+                        </div>
+                        <table className="w-full text-2xs">
+                          <thead className="sticky top-0 bg-gray-50 dark:bg-gray-800">
+                            <tr>{tb.headers.map((h) => <th key={h} className="px-1.5 py-0.5 text-left">{h}</th>)}</tr>
+                          </thead>
+                          <tbody>
+                            {pageRows.map((r, i) => (
+                              <tr key={i} className="border-t border-gray-100 dark:border-gray-700">
+                                {tb.headers.map((h) => <td key={h} className="px-1.5 py-0.5">{String(r[h] ?? '')}</td>)}
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )
+                  })}
                 </div>
               ) : <p className="text-2xs text-gray-400">{t('aidc:import.tablesHint')}</p>)}
 
@@ -360,42 +501,63 @@ export function AidcImportDialog({ open, onClose }: { open: boolean; onClose: ()
               ? (
                 <div className="text-2xs overflow-auto max-h-[320px]">
                   {verify.devices?.length ? (
-                    <table className="w-full">
-                      <thead className="sticky top-0 bg-gray-50 dark:bg-gray-800"><tr><th className="px-1.5 py-1 text-left">{t('aidc:import.deviceHeader')}</th>{verify.checks.map((c) => <th key={c} className="px-1">{c}</th>)}</tr></thead>
-                      <tbody>
-                        {verify.devices.slice(0, 20).map((d) => (
-                          <tr key={d.name} className="border-t border-gray-100 dark:border-gray-700">
-                            <td className="px-1.5 py-0.5 font-mono">{d.name}</td>
-                            {d.results.map((r) => (
-                              <td key={r.check} className={clsx('px-1 text-center', !r.applicable ? 'text-gray-300 dark:text-gray-600' : r.hit ? 'text-green-600' : 'text-red-500')}>
-                                {!r.applicable ? '—' : r.hit ? '✓' : '✗'}
-                              </td>
-                            ))}
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                    <>
+                      {verify.devices.length > PAGE_SIZE_VERIFY && (
+                        <div className="flex justify-end sticky top-0 bg-gray-50 dark:bg-gray-800 z-10 px-1 py-0.5">
+                          <Pager page={verifyPage} total={verify.devices.length} pageSize={PAGE_SIZE_VERIFY} t={t}
+                            onPrev={() => setVerifyPage((p) => Math.max(0, p - 1))}
+                            onNext={() => setVerifyPage((p) => p + 1)} />
+                        </div>
+                      )}
+                      <table className="w-full">
+                        <thead className="sticky top-0 bg-gray-50 dark:bg-gray-800"><tr><th className="px-1.5 py-1 text-left">{t('aidc:import.deviceHeader')}</th>{verify.checks.map((c) => <th key={c} className="px-1">{c}</th>)}</tr></thead>
+                        <tbody>
+                          {verify.devices.slice(verifyPage * PAGE_SIZE_VERIFY, (verifyPage + 1) * PAGE_SIZE_VERIFY).map((d) => (
+                            <tr key={d.name} className="border-t border-gray-100 dark:border-gray-700">
+                              <td className="px-1.5 py-0.5 font-mono">{d.name}</td>
+                              {d.results.map((r) => (
+                                <td key={r.check} className={clsx('px-1 text-center', !r.applicable ? 'text-gray-300 dark:text-gray-600' : r.hit ? 'text-green-600' : 'text-red-500')}>
+                                  {!r.applicable ? '—' : r.hit ? '✓' : '✗'}
+                                </td>
+                              ))}
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </>
                   ) : <p className="text-gray-400">{verify.error ?? t('aidc:import.verifyEmpty')}</p>}
                 </div>
               ) : <p className="text-2xs text-gray-400">{t('aidc:import.verifyHint')}</p>)}
 
             {resultTab === 'topo' && (topo
               ? (
-                <div className="border rounded overflow-auto">
-                  <svg width={1000} height={280}>
-                    {topo.edges.map((e, i) => {
-                      const a = topo.nodes.find((n) => n.id === e.s)
-                      const b = topo.nodes.find((n) => n.id === e.t)
-                      if (!a || !b) return null
-                      return <line key={i} x1={a.x + 60} y1={a.y + 10} x2={b.x} y2={b.y + 10} stroke="#94a3b8" strokeWidth={0.4} opacity={0.35} />
-                    })}
-                    {topo.nodes.map((n) => (
-                      <g key={n.id}>
-                        <rect x={n.x} y={n.y} width={116} height={20} rx={3} fill={(PLANE_COLOR[n.plane] ?? '#999') + '33'} stroke={PLANE_COLOR[n.plane] ?? '#999'} />
-                        <text x={n.x + 6} y={n.y + 14} fontSize={9} fill="currentColor">{n.id.length > 16 ? n.id.slice(0, 15) + '…' : n.id}</text>
-                      </g>
-                    ))}
-                  </svg>
+                <div className="border rounded">
+                  <div className="flex items-center gap-1 px-1 py-0.5 border-b bg-gray-50 dark:bg-gray-800 sticky top-0 z-10">
+                    <button type="button" onClick={() => setTopoZoom((z) => Math.min(2, z + 0.25))} title={t('aidc:import.topoZoomIn')}
+                      className="px-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 text-xs">+</button>
+                    <button type="button" onClick={() => setTopoZoom((z) => Math.max(0.5, z - 0.25))} title={t('aidc:import.topoZoomOut')}
+                      className="px-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 text-xs">−</button>
+                    <button type="button" onClick={() => setTopoZoom(1)} title={t('aidc:import.topoZoomReset')}
+                      className="px-1.5 rounded text-2xs text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700">{Math.round(topoZoom * 100)}%</button>
+                  </div>
+                  <div className="overflow-auto max-h-[300px]">
+                    <div style={{ transform: `scale(${topoZoom})`, transformOrigin: 'top left', width: 1000 * topoZoom, height: 280 * topoZoom }}>
+                      <svg width={1000} height={280}>
+                        {topo.edges.map((e, i) => {
+                          const a = topo.nodes.find((n) => n.id === e.s)
+                          const b = topo.nodes.find((n) => n.id === e.t)
+                          if (!a || !b) return null
+                          return <line key={i} x1={a.x + 60} y1={a.y + 10} x2={b.x} y2={b.y + 10} stroke="#94a3b8" strokeWidth={0.4} opacity={0.35} />
+                        })}
+                        {topo.nodes.map((n) => (
+                          <g key={n.id}>
+                            <rect x={n.x} y={n.y} width={116} height={20} rx={3} fill={(PLANE_COLOR[n.plane] ?? '#999') + '33'} stroke={PLANE_COLOR[n.plane] ?? '#999'} />
+                            <text x={n.x + 6} y={n.y + 14} fontSize={9} fill="currentColor">{n.id.length > 16 ? n.id.slice(0, 15) + '…' : n.id}</text>
+                          </g>
+                        ))}
+                      </svg>
+                    </div>
+                  </div>
                 </div>
               ) : <p className="text-2xs text-gray-400">{t('aidc:import.topoHint')}</p>)}
 

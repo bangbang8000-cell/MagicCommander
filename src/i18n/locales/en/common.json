@@ -45,7 +45,8 @@
     "tools": "Tools",
     "help": "Help",
     "newProject": "New Project",
-    "openProject": "Open Project",
+    "recentProjects": "Recent Projects",
+    "noRecentProjects": "No recent projects",
     "openProjectDir": "Open Project Directory",
     "saveFile": "Save File",
     "exit": "Exit",
@@ -237,7 +238,8 @@
     "exportToDir": "Export to Folder",
     "exportSuccess": "Export successful",
     "exportFailed": "Export failed",
-    "exporting": "Exporting..."
+    "exporting": "Exporting...",
+    "exportDone": "Exported: {{path}}"
   },
   "renderPanel": {
     "projectInfo": "Project Info",

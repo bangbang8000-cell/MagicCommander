@@ -5,6 +5,7 @@ import { useEditorStore } from '@/stores/editor.store'
 import { useUIStore } from '@/stores/ui.store'
 import { errorService } from '@/services/errorService'
 import { Button } from '@/components/ui/Button'
+import { showError, showSuccess } from '@/components/ui/Toast'
 import {
   ChevronRight,
   ChevronDown,
@@ -147,27 +148,24 @@ export function OutputPanel() {
     selectProject(project)
   }
 
-  // 导出操作
+  // 导出操作（MC-M3m：真 ZIP 交付包 / 目录复制，不再仅打开资源管理器）
   const handleExportAll = useCallback(async () => {
     if (!selectedProject) return
     setIsExporting(true)
     try {
-      const workspacePath = await window.electron.app.getPath('workspace')
-      const projectPath = `${workspacePath}/${selectedProject.name}`
-      // TODO Phase 2: 实现真正的 ZIP 导出或目录导出
-      // 当前打开资源管理器指向输出目录
-      const outputDir = outputStructure[0]
-      if (outputDir) {
-        window.electron.shell.showItemInFolder(`${projectPath}/${outputDir.path}`)
-      } else {
-        window.electron.shell.showItemInFolder(projectPath)
-      }
+      const dest = await window.electron.output.export(selectedProject.name, exportFormat)
+      showSuccess(t('common:outputPanel.exportDone', { path: dest }))
+      window.electron.shell.showItemInFolder(dest)
     } catch (err) {
-      errorService.handleError(err, 'OutputPanel.exportAll')
+      const m = err instanceof Error ? err.message : String(err)
+      if (m !== '已取消导出') {
+        showError(m)
+        errorService.handleError(err, 'OutputPanel.exportAll')
+      }
     } finally {
       setIsExporting(false)
     }
-  }, [selectedProject, outputStructure])
+  }, [selectedProject, exportFormat, t])
 
   // 计算总输出文件数
   const totalFiles = outputStructure.reduce((sum, dir) => sum + (dir.children?.length || 0), 0)

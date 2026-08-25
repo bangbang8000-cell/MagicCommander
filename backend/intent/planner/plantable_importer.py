@@ -14,6 +14,7 @@ import datetime
 import json
 import os
 import re
+import time
 
 from ..resolver import IntentContext
 from ..project_single import SingleProjectGenerator
@@ -49,16 +50,19 @@ def plantable_to_project(plan: dict, project_dir: str) -> str:
     return SingleProjectGenerator(ctx).write(project_dir)
 
 
-def find_mc_project_by_origin(origin_project_id: str, workspace_dir: str) -> str | None:
-    """契约 v1.2（M-3 / P2 M-4 铺垫）：扫描 MC workspace，返回 originProjectId 匹配的已有项目目录名或 None。
+# MC-M3n / MC-E1: originProjectId → 项目目录 索引缓存（TTL 5s）。
+# 仅在"新建项目"时失效（更新不改索引键），保证自动流转（导入→校验→细化）中重复匹配不误建重复项目。
+_origin_index_cache: dict = {}
+_ORIGIN_INDEX_TTL = 5.0
 
-    读取各项目 template.meta.json 的 originProjectId（无该文件 / 无身份的项目跳过）。
-    P0 仅用于摘要 matched 报告；P2 将据此做自动路由/更新语义。
-    """
-    import json as _json
-    import os
-    if not origin_project_id or not workspace_dir or not os.path.isdir(workspace_dir):
-        return None
+
+def invalidate_origin_index(workspace_dir: str) -> None:
+    """MC-M3n: 新建项目后失效索引（下次 find 重新扫描以命中新项目）"""
+    _origin_index_cache.pop(workspace_dir, None)
+
+
+def _build_origin_index(workspace_dir: str) -> dict:
+    idx: dict = {}
     for name in sorted(os.listdir(workspace_dir)):
         proj_dir = os.path.join(workspace_dir, name)
         if not os.path.isdir(proj_dir):
@@ -68,12 +72,31 @@ def find_mc_project_by_origin(origin_project_id: str, workspace_dir: str) -> str
             continue
         try:
             with open(meta_path, 'r', encoding='utf-8') as f:
-                tmeta = _json.load(f)
+                tmeta = json.load(f)
         except (OSError, ValueError):
             continue
-        if tmeta.get('originProjectId') == origin_project_id:
-            return name
-    return None
+        oid = tmeta.get('originProjectId')
+        if oid:
+            idx[oid] = name
+    return idx
+
+
+def find_mc_project_by_origin(origin_project_id: str, workspace_dir: str) -> str | None:
+    """契约 v1.2（M-3 / P2 M-4 铺垫）：扫描 MC workspace，返回 originProjectId 匹配的已有项目目录名或 None。
+
+    读取各项目 template.meta.json 的 originProjectId（无该文件 / 无身份的项目跳过）。
+    P0 仅用于摘要 matched 报告；P2 将据此做自动路由/更新语义。
+    MC-M3n：命中 TTL 索引缓存（5s），避免高频导入重复 O(n) 全量扫描。
+    """
+    if not origin_project_id or not workspace_dir or not os.path.isdir(workspace_dir):
+        return None
+    cached = _origin_index_cache.get(workspace_dir)
+    now = time.monotonic()
+    if cached and now - cached[0] < _ORIGIN_INDEX_TTL:
+        return cached[1].get(origin_project_id)
+    idx = _build_origin_index(workspace_dir)
+    _origin_index_cache[workspace_dir] = (now, idx)
+    return idx.get(origin_project_id)
 
 
 def _now_utc() -> str:
@@ -210,6 +233,9 @@ def import_plan_auto(plan: dict, workspace_dir: str,
     _write_json(os.path.join(project_dir, 'template.meta.json'), tmeta)
 
     matched = 'update' if existing else ('none' if not origin_id else 'new')
+    # MC-M3n: 新建项目后失效索引（更新不改索引键，无需失效）
+    if matched == 'new':
+        invalidate_origin_index(workspace_dir)
     return {
         'ok': True, 'matched': matched, 'name': name, 'project_dir': project_dir,
         'device_count': _device_count(plan), 'connections': len(plan.get('connections', [])),

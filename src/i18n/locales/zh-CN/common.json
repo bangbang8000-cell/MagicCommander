@@ -45,7 +45,8 @@
     "tools": "工具",
     "help": "帮助",
     "newProject": "新建项目",
-    "openProject": "打开项目",
+    "recentProjects": "最近项目",
+    "noRecentProjects": "暂无最近项目",
     "openProjectDir": "打开项目目录",
     "saveFile": "保存文件",
     "exit": "退出",
@@ -230,7 +231,8 @@
     "exportToDir": "导出到文件夹",
     "exportSuccess": "导出成功",
     "exportFailed": "导出失败",
-    "exporting": "正在导出..."
+    "exporting": "正在导出...",
+    "exportDone": "已导出：{{path}}"
   },
   "renderPanel": {
     "projectInfo": "项目信息",

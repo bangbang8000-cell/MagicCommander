@@ -113,16 +113,6 @@ async function loadProjectVariables(tab: { projectId: number; projectName?: stri
   }
 }
 
-function findSection(el: HTMLElement | null): HTMLElement | null {
-  let current: HTMLElement | null = el
-  while (current) {
-    if (current.tagName && current.tagName.toLowerCase() === 'section') return current
-    if (current === document.body) break
-    current = current.parentElement
-  }
-  return null
-}
-
 interface MonacoEditorProps {
   tab: EditorTab
 }
@@ -142,30 +132,6 @@ export function MonacoEditor({ tab }: MonacoEditorProps) {
   const wrapperRef = useRef<HTMLDivElement>(null)
   const isMountedRef = useRef(true)
   const loadingFilePathRef = useRef<string | null>(null)
-
-  // 确保容器有最小尺寸
-  useEffect(() => {
-    const ensureSize = () => {
-      if (wrapperRef.current) {
-        const parent = wrapperRef.current.parentElement
-        if (parent) {
-          const parentRect = parent.getBoundingClientRect()
-          if (parentRect.width > 0 && parentRect.height > 0) {
-            wrapperRef.current.style.width = parentRect.width + 'px'
-            wrapperRef.current.style.height = parentRect.height + 'px'
-          }
-        }
-      }
-    }
-
-    ensureSize()
-    const ro = new ResizeObserver(ensureSize)
-    if (wrapperRef.current) {
-      ro.observe(wrapperRef.current.parentElement || wrapperRef.current)
-    }
-
-    return () => ro.disconnect()
-  }, [])
 
   useEffect(() => {
     const currentPath = `${tab.projectId}:${tab.filePath}`
@@ -269,9 +235,6 @@ export function MonacoEditor({ tab }: MonacoEditorProps) {
       },
     })
 
-    const container = editor.getContainerDomNode() as HTMLElement | null
-    const section = findSection(container)
-
     if (language === 'jinja') {
       try {
         monaco.languages.register({ id: 'jinja' })
@@ -358,38 +321,6 @@ export function MonacoEditor({ tab }: MonacoEditorProps) {
       }
     }
 
-    const doLayout = () => {
-      const rect = wrapperRef.current?.getBoundingClientRect()
-      if (!rect || rect.width <= 0 || rect.height <= 0) return
-
-      const w = Math.floor(rect.width)
-      const h = Math.floor(rect.height)
-
-      if (section) {
-        section.style.width = w + 'px'
-        section.style.height = h + 'px'
-      }
-      if (container) {
-        container.style.width = w + 'px'
-        container.style.height = h + 'px'
-      }
-      try {
-        editor.layout({ width: w, height: h })
-      } catch {
-        // ignore
-      }
-    }
-
-    doLayout()
-    requestAnimationFrame(() => {
-      requestAnimationFrame(doLayout)
-    })
-
-    const ro = new ResizeObserver(doLayout)
-    if (wrapperRef.current) {
-      ro.observe(wrapperRef.current)
-    }
-
     editor.onDidChangeCursorPosition((e: { position: { lineNumber: number; column: number } | null }) => {
       if (e?.position) {
         setCursorPosition({ line: e.position.lineNumber, column: e.position.column })
@@ -416,20 +347,10 @@ export function MonacoEditor({ tab }: MonacoEditorProps) {
     window.addEventListener('mc-editor-scroll', scrollHandler)
 
     editor.onDidDispose(() => {
-      ro.disconnect()
       scrollDisposable?.dispose()
       window.removeEventListener('mc-editor-scroll', scrollHandler)
     })
   }
-
-  useEffect(() => {
-    if (wrapperRef.current) {
-      const rect = wrapperRef.current.getBoundingClientRect()
-      if (rect.width > 0 && rect.height > 0 && editorRef.current) {
-        editorRef.current.layout({ width: Math.floor(rect.width), height: Math.floor(rect.height) })
-      }
-    }
-  }, [loading, error, content])
 
   return (
     <div ref={wrapperRef} className={`w-full h-full relative ${isDark ? 'bg-gray-900' : 'bg-white'}`}>

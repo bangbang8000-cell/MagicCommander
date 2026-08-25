@@ -145,6 +145,17 @@ export class RenderHandler {
     return await this.runPythonCommand(['plan', 'validate', safePlan], true)
   }
 
+  // MC-M3e: 校验数据源统一——以内存 plan 对象为准（临时文件导入，路径仅初始载入）
+  async planValidateData(plan: unknown): Promise<unknown> {
+    const tmp = path.join(os.tmpdir(), `aidc_validate_${Date.now()}.json`)
+    fs.writeFileSync(tmp, JSON.stringify(plan), 'utf-8')
+    try {
+      return await this.runPythonCommand(['plan', 'validate', sanitizePathArg(tmp)], true)
+    } finally {
+      try { fs.unlinkSync(tmp) } catch { /* ignore */ }
+    }
+  }
+
   // P2（V-MC2）：渲染命令核对矩阵（结构化 JSON）
   async planVerify(projectDir: string): Promise<unknown> {
     const safeDir = this.assertWorkspaceDir(projectDir)

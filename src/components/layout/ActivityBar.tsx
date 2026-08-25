@@ -22,13 +22,13 @@ interface ActivityItem {
 }
 
 const activities: ActivityItem[] = [
-  { id: 'search', icon: <Search size={20} />, labelKey: 'common:sidebar.search', shortcut: 'Ctrl+Shift+F' },
-  { id: 'cloud', icon: <Cloud size={20} />, labelKey: 'cloud:title', shortcut: 'Ctrl+Shift+C' },
-  { id: 'chat', icon: <MessageSquare size={20} />, labelKey: 'chat:title', shortcut: 'Ctrl+Shift+H' },
-  { id: 'explorer', icon: <FolderOpen size={20} />, labelKey: 'menu.projectExplorer', shortcut: 'Ctrl+Shift+E' },
-  { id: 'workbench', icon: <Zap size={20} />, labelKey: 'menu.workbench', shortcut: 'Ctrl+Shift+W' },
-  { id: 'output', icon: <FileCheck size={20} />, labelKey: 'menu.outputResults', shortcut: 'Ctrl+Shift+O' },
-  { id: 'settings', icon: <Settings size={20} />, labelKey: 'common:settings.title', shortcut: 'Ctrl+,' },
+  { id: 'search', icon: <Search size={20} />, labelKey: 'nav:search', shortcut: 'Ctrl+Shift+F' },
+  { id: 'cloud', icon: <Cloud size={20} />, labelKey: 'nav:cloud', shortcut: 'Ctrl+Shift+C' },
+  { id: 'chat', icon: <MessageSquare size={20} />, labelKey: 'nav:chat', shortcut: 'Ctrl+Shift+H' },
+  { id: 'explorer', icon: <FolderOpen size={20} />, labelKey: 'nav:explorer', shortcut: 'Ctrl+Shift+E' },
+  { id: 'workbench', icon: <Zap size={20} />, labelKey: 'nav:workbench', shortcut: 'Ctrl+Shift+W' },
+  { id: 'output', icon: <FileCheck size={20} />, labelKey: 'nav:output', shortcut: 'Ctrl+Shift+O' },
+  { id: 'settings', icon: <Settings size={20} />, labelKey: 'nav:settings', shortcut: 'Ctrl+,' },
 ]
 
 /**

@@ -70,6 +70,7 @@ const api = {
     importData: (plan: unknown, projectDir?: string) => ipcRenderer.invoke('plan:importData', plan, projectDir),
     analyze: (projectDir: string) => ipcRenderer.invoke('plan:analyze', projectDir),
     validate: (planJson: string) => ipcRenderer.invoke('plan:validate', planJson),
+    validateData: (plan: unknown) => ipcRenderer.invoke('plan:validateData', plan),
     verify: (projectDir: string) => ipcRenderer.invoke('plan:verify', projectDir),
   },
   render: {
@@ -151,6 +152,10 @@ const api = {
   },
   shell: {
     showItemInFolder: (path: string) => ipcRenderer.invoke('shell:showItemInFolder', path),
+  },
+  output: {
+    export: (projectName: string, format: 'zip' | 'dir') =>
+      ipcRenderer.invoke('output:export', projectName, format),
   },
   aihub: {
     start: () => ipcRenderer.invoke('aihub:start'),

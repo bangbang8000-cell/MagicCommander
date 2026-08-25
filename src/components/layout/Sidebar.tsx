@@ -20,13 +20,13 @@ export function Sidebar({ panels }: SidebarProps) {
   // MC-M2e / MC-I18-2: 面板标题在每次渲染时用 t() 求值（语言切换经 useTranslation 订阅触发
   // 重渲染即时更新），不依赖模块顶层静态对象缓存，杜绝切换语言后标题停留在旧语言。
   const panelTitle: Record<ActivityType, string> = {
-    cloud: t('cloud:title'),
-    search: t('common:sidebar.search'),
-    explorer: t('menu.projectExplorer'),
-    output: t('menu.outputResults'),
-    workbench: t('common:sidebar.workbench'),
-    chat: t('chat:title'),
-    settings: t('common:settings.title'),
+    cloud: t('nav:cloud'),
+    search: t('nav:search'),
+    explorer: t('nav:explorer'),
+    output: t('nav:output'),
+    workbench: t('nav:workbench'),
+    chat: t('nav:chat'),
+    settings: t('nav:settings'),
   }
 
   const activePanel = panels[activeActivity]

@@ -868,6 +868,11 @@ export function setupIpcHandlers(window: BrowserWindow): void {
     if (!isTrustedSender(e)) throw new Error('无权执行该操作')
     return await renderHandler.planValidate(planJson)
   })
+  // MC-M3e: 校验数据源统一——以内存 plan 对象为准
+  ipcMain.handle('plan:validateData', async (e, plan: unknown): Promise<unknown> => {
+    if (!isTrustedSender(e)) throw new Error('无权执行该操作')
+    return await renderHandler.planValidateData(plan)
+  })
   // P2（V-MC2）：渲染命令核对矩阵
   ipcMain.handle('plan:verify', async (e, projectDir: string): Promise<unknown> => {
     if (!isTrustedSender(e)) throw new Error('无权执行该操作')
@@ -1318,6 +1323,47 @@ export function setupIpcHandlers(window: BrowserWindow): void {
     if (!isTrustedSender(e)) throw new Error('无权执行该操作')
     if (!fs.existsSync(filePath)) return
     shell.showItemInFolder(filePath)
+  })
+
+  // MC-M3m: 输出「导出全部」——真正打包交付包（zip），或复制到指定目录（dir）。
+  // 仅允许导出 workspace 内单项目下的 output 目录，杜绝任意路径读取（安全）。
+  ipcMain.handle('output:export', async (e, projectName: string, format: 'zip' | 'dir'): Promise<string> => {
+    if (!isTrustedSender(e)) throw new Error('无权执行该操作')
+    validateProjectName(projectName)
+    if (format !== 'zip' && format !== 'dir') throw new Error('不支持的导出格式')
+    const workspace = getWorkspaceDir()
+    const projectDir = path.join(workspace, projectName)
+    if (!isPathSafe(projectDir, workspace)) throw new Error('项目路径不在工作区内')
+    const outputDir = path.join(projectDir, 'output')
+    if (!fs.existsSync(outputDir) || !fs.statSync(outputDir).isDirectory()) {
+      throw new Error('该项目还没有 output 输出目录，请先渲染')
+    }
+    const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19)
+    const baseName = `${projectName}-output-${stamp}`
+    if (format === 'zip') {
+      const win = BrowserWindow.fromWebContents(e.sender)
+      const dst = await dialog.showSaveDialog(win!, {
+        title: '导出输出交付包 (ZIP)',
+        defaultPath: path.join(app.getPath('downloads'), `${baseName}.zip`),
+        filters: [{ name: 'ZIP Archive', extensions: ['zip'] }],
+      })
+      if (dst.canceled || !dst.filePath) throw new Error('已取消导出')
+      const AdmZip = (await import('adm-zip')).default
+      const zip = new AdmZip()
+      zip.addLocalFolder(outputDir, projectName)
+      zip.writeZip(dst.filePath)
+      return dst.filePath
+    }
+    // dir：目标由用户在目录选择器中指定，子目录以项目名命名
+    const win = BrowserWindow.fromWebContents(e.sender)
+    const pick = await dialog.showOpenDialog(win!, {
+      title: '选择导出目录',
+      properties: ['openDirectory', 'createDirectory'],
+    })
+    if (pick.canceled || !pick.filePaths.length) throw new Error('已取消导出')
+    const dest = path.join(pick.filePaths[0], `${baseName}`)
+    fs.cpSync(outputDir, dest, { recursive: true })
+    return dest
   })
 
   // ====== AI Hub IPC ======
