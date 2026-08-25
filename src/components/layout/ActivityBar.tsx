@@ -43,13 +43,41 @@ const DEVICE_LIBRARY_PLACEHOLDER = true
  * MC-N4: 激活条发光色不再硬编码绿色，而是按各入口语义色派生。
  */
 const ACTIVITY_COLORS: Record<string, { text: string; bar: string; glow: string }> = {
-  search: { text: 'text-teal-500 dark:text-teal-400', bar: 'bg-teal-500 dark:bg-teal-400', glow: 'rgba(20,184,166,0.45)' },
-  cloud: { text: 'text-cyan-500 dark:text-cyan-400', bar: 'bg-cyan-500 dark:bg-cyan-400', glow: 'rgba(6,182,212,0.45)' },
-  chat: { text: 'text-fuchsia-500 dark:text-fuchsia-400', bar: 'bg-fuchsia-500 dark:bg-fuchsia-400', glow: 'rgba(217,70,239,0.45)' },
-  explorer: { text: 'text-primary-500 dark:text-primary-400', bar: 'bg-primary-500 dark:bg-primary-400', glow: 'rgba(59,130,246,0.45)' },
-  workbench: { text: 'text-primary-500 dark:text-primary-400', bar: 'bg-primary-500 dark:bg-primary-400', glow: 'rgba(59,130,246,0.45)' },
-  output: { text: 'text-amber-500 dark:text-amber-400', bar: 'bg-amber-500 dark:bg-amber-400', glow: 'rgba(245,158,11,0.45)' },
-  settings: { text: 'text-gray-500 dark:text-gray-400', bar: 'bg-gray-500 dark:bg-gray-400', glow: 'rgba(107,114,128,0.45)' },
+  search: {
+    text: 'text-teal-500 dark:text-teal-400',
+    bar: 'bg-teal-500 dark:bg-teal-400',
+    glow: 'rgba(20,184,166,0.45)',
+  },
+  cloud: {
+    text: 'text-cyan-500 dark:text-cyan-400',
+    bar: 'bg-cyan-500 dark:bg-cyan-400',
+    glow: 'rgba(6,182,212,0.45)',
+  },
+  chat: {
+    text: 'text-fuchsia-500 dark:text-fuchsia-400',
+    bar: 'bg-fuchsia-500 dark:bg-fuchsia-400',
+    glow: 'rgba(217,70,239,0.45)',
+  },
+  explorer: {
+    text: 'text-primary-500 dark:text-primary-400',
+    bar: 'bg-primary-500 dark:bg-primary-400',
+    glow: 'rgba(59,130,246,0.45)',
+  },
+  workbench: {
+    text: 'text-primary-500 dark:text-primary-400',
+    bar: 'bg-primary-500 dark:bg-primary-400',
+    glow: 'rgba(59,130,246,0.45)',
+  },
+  output: {
+    text: 'text-amber-500 dark:text-amber-400',
+    bar: 'bg-amber-500 dark:bg-amber-400',
+    glow: 'rgba(245,158,11,0.45)',
+  },
+  settings: {
+    text: 'text-gray-500 dark:text-gray-400',
+    bar: 'bg-gray-500 dark:bg-gray-400',
+    glow: 'rgba(107,114,128,0.45)',
+  },
 }
 
 export function ActivityBar() {

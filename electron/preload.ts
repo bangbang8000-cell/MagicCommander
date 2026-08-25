@@ -154,8 +154,7 @@ const api = {
     showItemInFolder: (path: string) => ipcRenderer.invoke('shell:showItemInFolder', path),
   },
   output: {
-    export: (projectName: string, format: 'zip' | 'dir') =>
-      ipcRenderer.invoke('output:export', projectName, format),
+    export: (projectName: string, format: 'zip' | 'dir') => ipcRenderer.invoke('output:export', projectName, format),
   },
   aihub: {
     start: () => ipcRenderer.invoke('aihub:start'),

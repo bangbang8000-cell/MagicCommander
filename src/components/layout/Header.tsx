@@ -366,12 +366,17 @@ export function Header({ onCheatsheet }: HeaderProps) {
       renderSeparator('sep-f0'),
       <div
         key="recent-label"
-        className={clsx('px-3 py-1 text-[10px] font-medium uppercase tracking-wider', isDark ? 'text-gray-500' : 'text-gray-400')}
+        className={clsx(
+          'px-3 py-1 text-[10px] font-medium uppercase tracking-wider',
+          isDark ? 'text-gray-500' : 'text-gray-400',
+        )}
       >
         {t('menu.recentProjects')}
       </div>,
       ...(recentProjects.length
-        ? recentProjects.slice(0, 5).map((name) => renderMenuItem(`recent-${name}`, name, '', () => handleOpenRecent(name)))
+        ? recentProjects
+            .slice(0, 5)
+            .map((name) => renderMenuItem(`recent-${name}`, name, '', () => handleOpenRecent(name)))
         : [renderMenuItem('noRecent', t('menu.noRecentProjects'), '', undefined, true)]),
       renderSeparator('sep-f0b'),
       renderMenuItem('saveFile', t('menu.saveFile'), 'Ctrl+S', handleSaveFile),
@@ -394,7 +399,9 @@ export function Header({ onCheatsheet }: HeaderProps) {
     view: [
       renderMenuItem('search', t('common:sidebar.search'), 'Ctrl+Shift+F', () => handleGoToActivity('search')),
       // v1.2：云开关关闭时隐藏云入口
-      ...(cloudEnabled ? [renderMenuItem('cloud', t('cloud:title'), 'Ctrl+Shift+C', () => handleGoToActivity('cloud'))] : []),
+      ...(cloudEnabled
+        ? [renderMenuItem('cloud', t('cloud:title'), 'Ctrl+Shift+C', () => handleGoToActivity('cloud'))]
+        : []),
       renderMenuItem('chat', t('menu.chat'), 'Ctrl+Shift+H', () => handleGoToActivity('chat')),
       renderMenuItem('explorer', t('common:sidebar.explorer'), 'Ctrl+Shift+E', () => handleGoToActivity('explorer')),
       renderMenuItem('workbench', t('menu.workbench'), 'Ctrl+Shift+W', () => handleGoToActivity('workbench')),

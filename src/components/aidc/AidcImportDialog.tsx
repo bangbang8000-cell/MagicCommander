@@ -9,8 +9,16 @@ import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/Button'
 import { Modal } from '@/components/ui/Modal'
 import {
-  FileJson, FolderOpen, CheckCircle2, AlertTriangle, Play, ShieldCheck,
-  Table2, SearchCheck, GitCompare, RefreshCw,
+  FileJson,
+  FolderOpen,
+  CheckCircle2,
+  AlertTriangle,
+  Play,
+  ShieldCheck,
+  Table2,
+  SearchCheck,
+  GitCompare,
+  RefreshCw,
 } from 'lucide-react'
 import clsx from 'clsx'
 import type { PlanImportResult, PlanValidateResult, VerifyResult } from '@/types/ipc'
@@ -22,7 +30,11 @@ interface AidcPlan {
   connections: Array<{ src: string; src_port?: string; dst: string; rate?: string; desc?: string }>
 }
 
-interface TableData { name: string; headers: string[]; rows: Record<string, unknown>[] }
+interface TableData {
+  name: string
+  headers: string[]
+  rows: Record<string, unknown>[]
+}
 
 const STEPS_KEYS = ['import', 'validate', 'tune', 'render', 'proofread'] as const
 const EXCEL_FILES = ['hostname', 'connection', 'ipaddress', 'parameter']
@@ -33,7 +45,12 @@ const PAGE_SIZE_VERIFY = 20
 
 /** 轻量翻页条：superset 时展示，避免一次性渲染海量行 */
 function Pager({
-  page, total, pageSize, t, onPrev, onNext,
+  page,
+  total,
+  pageSize,
+  t,
+  onPrev,
+  onNext,
 }: {
   page: number
   total: number
@@ -70,11 +87,20 @@ function Pager({
 
 /** 角色 → 平面（i18n key 后缀：param/storage/biz/oob） */
 const ROLE_PLANE: Record<string, 'param' | 'storage' | 'biz' | 'oob'> = {
-  SPINE: 'param', LEAF: 'param', STO_SPINE: 'storage', STO_LEAF: 'storage',
-  BIZ_AGG: 'biz', BIZ_ACCESS: 'biz', OOB_AGG: 'oob', OOB_ACCESS: 'oob',
+  SPINE: 'param',
+  LEAF: 'param',
+  STO_SPINE: 'storage',
+  STO_LEAF: 'storage',
+  BIZ_AGG: 'biz',
+  BIZ_ACCESS: 'biz',
+  OOB_AGG: 'oob',
+  OOB_ACCESS: 'oob',
 }
 const PLANE_COLOR: Record<string, string> = {
-  param: '#F59E0B', storage: '#10B981', biz: '#0284C7', oob: '#6B7280',
+  param: '#F59E0B',
+  storage: '#10B981',
+  biz: '#0284C7',
+  oob: '#6B7280',
 }
 
 export function AidcImportDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
@@ -106,9 +132,13 @@ export function AidcImportDialog({ open, onClose }: { open: boolean; onClose: ()
   // MC-U1: 状态字段驱动样式（i18n 后不能靠 includes('失败') 判断）
   const [msgError, setMsgError] = useState(false)
 
-  const inputCls = 'w-full text-xs rounded border px-2 py-1 bg-white dark:bg-gray-900 border-gray-300 dark:border-gray-700'
+  const inputCls =
+    'w-full text-xs rounded border px-2 py-1 bg-white dark:bg-gray-900 border-gray-300 dark:border-gray-700'
 
-  const setStatus = (m: string, isError = false) => { setMsg(m); setMsgError(isError) }
+  const setStatus = (m: string, isError = false) => {
+    setMsg(m)
+    setMsgError(isError)
+  }
 
   const pickPlan = async () => {
     const p = await window.electron.dialog.openFile({
@@ -142,12 +172,19 @@ export function AidcImportDialog({ open, onClose }: { open: boolean; onClose: ()
         })
         setNamingFormat((naming?.format as string) ?? '{site}-R{rack:02d}-AIDC-{vendor}-{abbr}-{seq:02d}')
       }
-    } catch { /* 读 plan 失败不阻塞 */ }
+    } catch {
+      /* 读 plan 失败不阻塞 */
+    }
   }
 
   const doImport = async () => {
-    if (!planJson) { setStatus(t('aidc:import.selectPlan'), true); return }
-    setBusy(true); setStatus(''); setSummary(null)
+    if (!planJson) {
+      setStatus(t('aidc:import.selectPlan'), true)
+      return
+    }
+    setBusy(true)
+    setStatus('')
+    setSummary(null)
     try {
       const res = (await window.electron.plan.import(planJson)) as PlanImportResult
       setSummary(res)
@@ -155,7 +192,8 @@ export function AidcImportDialog({ open, onClose }: { open: boolean; onClose: ()
       if (m === 'skip') {
         setStatus(t('aidc:import.skipped', { name: res.name, ver: res.mcPlanVersion }))
       } else {
-        const action = m === 'update' ? t('aidc:import.updated') : m === 'new' ? t('aidc:import.created') : t('aidc:import.imported')
+        const action =
+          m === 'update' ? t('aidc:import.updated') : m === 'new' ? t('aidc:import.created') : t('aidc:import.imported')
         setStatus(t('aidc:import.importedMsg', { action, name: res.name, ver: res.mcPlanVersion }))
       }
       await loadPlanObject(res.name, res.mcpara_id)
@@ -172,14 +210,21 @@ export function AidcImportDialog({ open, onClose }: { open: boolean; onClose: ()
   const doValidate = async () => {
     // MC-M3e: 校验数据源统一——优先以内存 plan 对象为准；路径仅在初始导入时读取
     const current = planObjRef.current ?? planObj
-    if (!current && !planJson) { setStatus(t('aidc:import.selectPlan'), true); return }
-    setBusy(true); setStatus('')
+    if (!current && !planJson) {
+      setStatus(t('aidc:import.selectPlan'), true)
+      return
+    }
+    setBusy(true)
+    setStatus('')
     try {
       const res = current
-        ? (await window.electron.plan.validateData(current)) as PlanValidateResult
-        : (await window.electron.plan.validate(planJson)) as PlanValidateResult
+        ? ((await window.electron.plan.validateData(current)) as PlanValidateResult)
+        : ((await window.electron.plan.validate(planJson)) as PlanValidateResult)
       setValidation(res)
-      setStatus(res.ok ? t('aidc:import.validatePass') : t('aidc:import.validateFail', { count: res.issue_count }), !res.ok)
+      setStatus(
+        res.ok ? t('aidc:import.validatePass') : t('aidc:import.validateFail', { count: res.issue_count }),
+        !res.ok,
+      )
       if (res.ok) {
         setStep(2)
         // MC-M3a: 校验通过自动细化（用已载入的 PFC/CNP 队列值）
@@ -194,8 +239,12 @@ export function AidcImportDialog({ open, onClose }: { open: boolean; onClose: ()
 
   const doTune = async () => {
     const current = planObjRef.current ?? planObj
-    if (!current) { setStatus(t('aidc:import.selectPlanFirst'), true); return }
-    setBusy(true); setStatus('')
+    if (!current) {
+      setStatus(t('aidc:import.selectPlanFirst'), true)
+      return
+    }
+    setBusy(true)
+    setStatus('')
     try {
       const next = structuredClone(current) as AidcPlan
       next.macro.pfcQueue = Number(pfc)
@@ -226,8 +275,12 @@ export function AidcImportDialog({ open, onClose }: { open: boolean; onClose: ()
   }
 
   const doRender = async () => {
-    if (!summary?.mcpara_id) { setStatus(t('aidc:import.needMcpara'), true); return }
-    setBusy(true); setStatus('')
+    if (!summary?.mcpara_id) {
+      setStatus(t('aidc:import.needMcpara'), true)
+      return
+    }
+    setBusy(true)
+    setStatus('')
     try {
       await window.electron.render.project([String(summary.mcpara_id)])
       setStatus(t('aidc:import.rendered', { name: summary.name, count: summary.device_count }))
@@ -240,13 +293,22 @@ export function AidcImportDialog({ open, onClose }: { open: boolean; onClose: ()
   }
 
   const doVerify = async () => {
-    if (!summary?.project_dir) { setStatus(t('aidc:import.needImport'), true); return }
-    setBusy(true); setStatus('')
+    if (!summary?.project_dir) {
+      setStatus(t('aidc:import.needImport'), true)
+      return
+    }
+    setBusy(true)
+    setStatus('')
     try {
       const res = (await window.electron.plan.verify(summary.project_dir)) as VerifyResult
       setVerify(res)
       setResultTab('verify')
-      setStatus(res.ok ? t('aidc:import.verifyDone', { count: res.devices?.length ?? 0 }) : (res.error ?? t('aidc:import.verifyFailed', { err: '' })), !res.ok)
+      setStatus(
+        res.ok
+          ? t('aidc:import.verifyDone', { count: res.devices?.length ?? 0 })
+          : (res.error ?? t('aidc:import.verifyFailed', { err: '' })),
+        !res.ok,
+      )
     } catch (e) {
       setStatus(t('aidc:import.verifyFailed', { err: (e as Error).message }), true)
     } finally {
@@ -255,12 +317,20 @@ export function AidcImportDialog({ open, onClose }: { open: boolean; onClose: ()
   }
 
   const doTables = async () => {
-    if (!summary?.mcpara_id) { setStatus(t('aidc:import.needImport'), true); return }
-    setBusy(true); setStatus('')
+    if (!summary?.mcpara_id) {
+      setStatus(t('aidc:import.needImport'), true)
+      return
+    }
+    setBusy(true)
+    setStatus('')
     try {
       const all: TableData[] = []
       for (const f of EXCEL_FILES) {
-        const data = (await window.electron.project.readExcel(summary.mcpara_id, `excel/${f}.xlsx`, summary.name)) as TableData[]
+        const data = (await window.electron.project.readExcel(
+          summary.mcpara_id,
+          `excel/${f}.xlsx`,
+          summary.name,
+        )) as TableData[]
         if (Array.isArray(data)) all.push(...data)
       }
       setTables(all)
@@ -273,7 +343,14 @@ export function AidcImportDialog({ open, onClose }: { open: boolean; onClose: ()
     }
   }
 
-  const close = () => { onClose(); setStep(0); setSummary(null); setPlanObj(null); setPlanJson(''); setStatus('') }
+  const close = () => {
+    onClose()
+    setStep(0)
+    setSummary(null)
+    setPlanObj(null)
+    setPlanJson('')
+    setStatus('')
+  }
 
   // 轻量拓扑回显
   const topo = useMemo(() => {
@@ -281,7 +358,9 @@ export function AidcImportDialog({ open, onClose }: { open: boolean; onClose: ()
     const devs = planObj.deviceList.filter((d) => d.name)
     const byName = new Map(devs.map((d) => [d.name!, d]))
     const byRole: Record<string, string[]> = {}
-    for (const d of devs) { (byRole[d.role] ??= []).push(d.name!) }
+    for (const d of devs) {
+      ;(byRole[d.role] ??= []).push(d.name!)
+    }
     const pos: Record<string, { x: number; y: number }> = {}
     const nodes = devs.map((d, i) => {
       const plane = ROLE_PLANE[d.role] ?? 'other'
@@ -306,27 +385,47 @@ export function AidcImportDialog({ open, onClose }: { open: boolean; onClose: ()
     return { nodes, edges }
   }, [planObj])
 
-  const matchedLabel = summary?.origin?.matched === 'skip' ? t('aidc:import.matched.skip')
-    : summary?.origin?.matched === 'update' ? t('aidc:import.matched.update')
-    : summary?.origin?.matched === 'new' ? t('aidc:import.matched.new') : t('aidc:import.matched.import')
+  const matchedLabel =
+    summary?.origin?.matched === 'skip'
+      ? t('aidc:import.matched.skip')
+      : summary?.origin?.matched === 'update'
+        ? t('aidc:import.matched.update')
+        : summary?.origin?.matched === 'new'
+          ? t('aidc:import.matched.new')
+          : t('aidc:import.matched.import')
 
   const stepLabel = (key: string) => t(`aidc:import.steps.${key}`)
 
   return (
-    <Modal open={open} onClose={close} title={t('aidc:import.title')} width="820px"
+    <Modal
+      open={open}
+      onClose={close}
+      title={t('aidc:import.title')}
+      width="820px"
       footer={
         <div className="flex items-center gap-2">
           <span className={clsx('text-2xs flex-1', msgError ? 'text-red-500' : 'text-gray-500')}>{msg}</span>
-          <Button size="sm" variant="secondary" onClick={close}>{t('aidc:import.close')}</Button>
+          <Button size="sm" variant="secondary" onClick={close}>
+            {t('aidc:import.close')}
+          </Button>
         </div>
-      }>
+      }
+    >
       <div className="space-y-3">
         {/* 步骤指示 */}
         <div className="flex items-center gap-1">
           {STEPS_KEYS.map((k, i) => (
             <div key={k} className="flex items-center gap-1">
-              <span className={clsx('px-2 py-0.5 text-2xs rounded',
-                i === step ? 'bg-primary-500 text-white' : i < step ? 'bg-success-100 dark:bg-success-900/30 text-success-600' : 'bg-gray-100 dark:bg-gray-700 text-gray-500')}>
+              <span
+                className={clsx(
+                  'px-2 py-0.5 text-2xs rounded',
+                  i === step
+                    ? 'bg-primary-500 text-white'
+                    : i < step
+                      ? 'bg-success-100 dark:bg-success-900/30 text-success-600'
+                      : 'bg-gray-100 dark:bg-gray-700 text-gray-500',
+                )}
+              >
                 {i + 1}. {stepLabel(k)}
               </span>
               {i < STEPS_KEYS.length - 1 && <span className="text-gray-300 dark:text-gray-600">→</span>}
@@ -339,10 +438,23 @@ export function AidcImportDialog({ open, onClose }: { open: boolean; onClose: ()
           <div className="space-y-2">
             <label className="block text-2xs text-gray-500">{t('aidc:import.pathLabel')}</label>
             <div className="flex gap-1.5">
-              <input className={inputCls} value={planJson} onChange={(e) => setPlanJson(e.target.value)} placeholder={t('aidc:import.pathPlaceholder')} />
-              <Button size="sm" variant="secondary" onClick={pickPlan}><FolderOpen size={12} /></Button>
+              <input
+                className={inputCls}
+                value={planJson}
+                onChange={(e) => setPlanJson(e.target.value)}
+                placeholder={t('aidc:import.pathPlaceholder')}
+              />
+              <Button size="sm" variant="secondary" onClick={pickPlan}>
+                <FolderOpen size={12} />
+              </Button>
             </div>
-            <Button size="sm" variant="primary" icon={<FileJson size={12} />} onClick={doImport} disabled={busy || !planJson}>
+            <Button
+              size="sm"
+              variant="primary"
+              icon={<FileJson size={12} />}
+              onClick={doImport}
+              disabled={busy || !planJson}
+            >
               {busy ? t('aidc:import.importing') : t('aidc:import.importBtn')}
             </Button>
           </div>
@@ -357,27 +469,42 @@ export function AidcImportDialog({ open, onClose }: { open: boolean; onClose: ()
             {validation && (
               <div className="text-2xs space-y-0.5">
                 <p className={clsx('font-medium', validation.ok ? 'text-green-600' : 'text-red-500')}>
-                  {validation.ok ? t('aidc:import.validatePass') : t('aidc:import.validateFail', { count: validation.issue_count })}
+                  {validation.ok
+                    ? t('aidc:import.validatePass')
+                    : t('aidc:import.validateFail', { count: validation.issue_count })}
                 </p>
-                {validation.issues.slice(issuePage * 8, (issuePage + 1) * 8).map((it, i) => <p key={i} className="pl-2 text-gray-500">- {it}</p>)}
+                {validation.issues.slice(issuePage * 8, (issuePage + 1) * 8).map((it, i) => (
+                  <p key={i} className="pl-2 text-gray-500">
+                    - {it}
+                  </p>
+                ))}
                 {validation.issues.length > 8 && (
-                  <Pager page={issuePage} total={validation.issues.length} pageSize={8} t={t}
+                  <Pager
+                    page={issuePage}
+                    total={validation.issues.length}
+                    pageSize={8}
+                    t={t}
                     onPrev={() => setIssuePage((p) => Math.max(0, p - 1))}
-                    onNext={() => setIssuePage((p) => p + 1)} />
+                    onNext={() => setIssuePage((p) => p + 1)}
+                  />
                 )}
               </div>
             )}
             {summary && (
               <div className="text-2xs text-gray-500 space-y-0.5 border-t pt-2">
                 <p className="font-medium text-gray-700 dark:text-gray-300">
-                  {summary.name} · {t('aidc:import.devices', { count: summary.device_count })} · {matchedLabel} · MC v{summary.mcPlanVersion}
+                  {summary.name} · {t('aidc:import.devices', { count: summary.device_count })} · {matchedLabel} · MC v
+                  {summary.mcPlanVersion}
                   {summary.origin?.planVersion != null ? ` · AL v${summary.origin.planVersion}` : ''}
                 </p>
                 {summary.origin?.projectId && (
                   <p className="flex items-center gap-1">
                     <GitCompare size={12} />
-                    {t('aidc:import.sourceProject')}{summary.origin.projectName || '-'}
-                    <span className="font-mono text-gray-400">#{String(summary.origin.projectId).replace(/-/g, '').slice(0, 8)}</span>
+                    {t('aidc:import.sourceProject')}
+                    {summary.origin.projectName || '-'}
+                    <span className="font-mono text-gray-400">
+                      #{String(summary.origin.projectId).replace(/-/g, '').slice(0, 8)}
+                    </span>
                   </p>
                 )}
               </div>
@@ -390,15 +517,39 @@ export function AidcImportDialog({ open, onClose }: { open: boolean; onClose: ()
           <div className="space-y-2">
             <p className="text-2xs text-gray-500">{t('aidc:import.tuneDesc')}</p>
             <div className="flex items-center gap-3">
-              <label className="text-2xs text-gray-500">{t('aidc:import.tunePfc')}
-                <input className={clsx(inputCls, '!w-16 ml-1')} type="number" min={0} max={7} value={pfc} onChange={(e) => setPfc(e.target.value)} />
+              <label className="text-2xs text-gray-500">
+                {t('aidc:import.tunePfc')}
+                <input
+                  className={clsx(inputCls, '!w-16 ml-1')}
+                  type="number"
+                  min={0}
+                  max={7}
+                  value={pfc}
+                  onChange={(e) => setPfc(e.target.value)}
+                />
               </label>
-              <label className="text-2xs text-gray-500">{t('aidc:import.tuneCnp')}
-                <input className={clsx(inputCls, '!w-16 ml-1')} type="number" min={0} max={7} value={cnp} onChange={(e) => setCnp(e.target.value)} />
+              <label className="text-2xs text-gray-500">
+                {t('aidc:import.tuneCnp')}
+                <input
+                  className={clsx(inputCls, '!w-16 ml-1')}
+                  type="number"
+                  min={0}
+                  max={7}
+                  value={cnp}
+                  onChange={(e) => setCnp(e.target.value)}
+                />
               </label>
               {/* MC-M3f: bgpMaxPaths */}
-              <label className="text-2xs text-gray-500">{t('aidc:import.tuneBgpMax')}
-                <input className={clsx(inputCls, '!w-20 ml-1')} type="number" min={1} max={32} value={bgpMax} onChange={(e) => setBgpMax(e.target.value)} />
+              <label className="text-2xs text-gray-500">
+                {t('aidc:import.tuneBgpMax')}
+                <input
+                  className={clsx(inputCls, '!w-20 ml-1')}
+                  type="number"
+                  min={1}
+                  max={32}
+                  value={bgpMax}
+                  onChange={(e) => setBgpMax(e.target.value)}
+                />
               </label>
               <Button size="sm" variant="secondary" icon={<RefreshCw size={12} />} onClick={doTune} disabled={busy}>
                 {t('aidc:import.tuneApply')}
@@ -441,7 +592,13 @@ export function AidcImportDialog({ open, onClose }: { open: boolean; onClose: ()
         {step === 3 && (
           <div className="space-y-2">
             <p className="text-2xs text-gray-500">{t('aidc:import.renderDesc')}</p>
-            <Button size="sm" variant="danger" icon={<Play size={12} />} onClick={doRender} disabled={busy || !summary?.mcpara_id}>
+            <Button
+              size="sm"
+              variant="danger"
+              icon={<Play size={12} />}
+              onClick={doRender}
+              disabled={busy || !summary?.mcpara_id}
+            >
               {busy ? t('aidc:import.rendering') : t('aidc:import.renderBtn', { count: summary?.device_count ?? 0 })}
             </Button>
           </div>
@@ -451,20 +608,38 @@ export function AidcImportDialog({ open, onClose }: { open: boolean; onClose: ()
         {step === 4 && (
           <div className="space-y-2">
             <div className="flex flex-wrap gap-2">
-              <Button size="sm" variant="secondary" icon={<Table2 size={12} />} onClick={doTables} disabled={busy}>{t('aidc:import.proofTables')}</Button>
-              <Button size="sm" variant="secondary" icon={<SearchCheck size={12} />} onClick={doVerify} disabled={busy}>{t('aidc:import.proofVerify')}</Button>
+              <Button size="sm" variant="secondary" icon={<Table2 size={12} />} onClick={doTables} disabled={busy}>
+                {t('aidc:import.proofTables')}
+              </Button>
+              <Button size="sm" variant="secondary" icon={<SearchCheck size={12} />} onClick={doVerify} disabled={busy}>
+                {t('aidc:import.proofVerify')}
+              </Button>
             </div>
             <div className="flex flex-wrap gap-2 mb-1">
-              {([['tables', t('aidc:import.proofTables')], ['verify', t('aidc:import.proofVerify')], ['topo', t('aidc:import.proofTopo')], ['changelog', t('aidc:import.proofChangelog')]] as const).map(([k, l]) => (
-                <button key={k} type="button" onClick={() => setResultTab(k)}
-                  className={clsx('text-2xs px-2 py-0.5 rounded', resultTab === k ? 'bg-primary-500 text-white' : 'bg-gray-100 dark:bg-gray-700')}>
+              {(
+                [
+                  ['tables', t('aidc:import.proofTables')],
+                  ['verify', t('aidc:import.proofVerify')],
+                  ['topo', t('aidc:import.proofTopo')],
+                  ['changelog', t('aidc:import.proofChangelog')],
+                ] as const
+              ).map(([k, l]) => (
+                <button
+                  key={k}
+                  type="button"
+                  onClick={() => setResultTab(k)}
+                  className={clsx(
+                    'text-2xs px-2 py-0.5 rounded',
+                    resultTab === k ? 'bg-primary-500 text-white' : 'bg-gray-100 dark:bg-gray-700',
+                  )}
+                >
                   {l}
                 </button>
               ))}
             </div>
 
-            {resultTab === 'tables' && (tables
-              ? (
+            {resultTab === 'tables' &&
+              (tables ? (
                 <div className="space-y-2 max-h-[320px] overflow-auto">
                   {tables.map((tb) => {
                     const page = tablePage[tb.name] ?? 0
@@ -474,19 +649,36 @@ export function AidcImportDialog({ open, onClose }: { open: boolean; onClose: ()
                         <div className="flex items-center justify-between px-2 py-1 bg-gray-50 dark:bg-gray-800 sticky left-0">
                           <p className="text-2xs font-medium">{tb.name}</p>
                           {tb.rows.length > PAGE_SIZE_TABLE && (
-                            <Pager page={page} total={tb.rows.length} pageSize={PAGE_SIZE_TABLE} t={t}
-                              onPrev={() => setTablePage((p) => ({ ...p, [tb.name]: Math.max(0, (p[tb.name] ?? 0) - 1) }))}
-                              onNext={() => setTablePage((p) => ({ ...p, [tb.name]: (p[tb.name] ?? 0) + 1 }))} />
+                            <Pager
+                              page={page}
+                              total={tb.rows.length}
+                              pageSize={PAGE_SIZE_TABLE}
+                              t={t}
+                              onPrev={() =>
+                                setTablePage((p) => ({ ...p, [tb.name]: Math.max(0, (p[tb.name] ?? 0) - 1) }))
+                              }
+                              onNext={() => setTablePage((p) => ({ ...p, [tb.name]: (p[tb.name] ?? 0) + 1 }))}
+                            />
                           )}
                         </div>
                         <table className="w-full text-2xs">
                           <thead className="sticky top-0 bg-gray-50 dark:bg-gray-800">
-                            <tr>{tb.headers.map((h) => <th key={h} className="px-1.5 py-0.5 text-left">{h}</th>)}</tr>
+                            <tr>
+                              {tb.headers.map((h) => (
+                                <th key={h} className="px-1.5 py-0.5 text-left">
+                                  {h}
+                                </th>
+                              ))}
+                            </tr>
                           </thead>
                           <tbody>
                             {pageRows.map((r, i) => (
                               <tr key={i} className="border-t border-gray-100 dark:border-gray-700">
-                                {tb.headers.map((h) => <td key={h} className="px-1.5 py-0.5">{String(r[h] ?? '')}</td>)}
+                                {tb.headers.map((h) => (
+                                  <td key={h} className="px-1.5 py-0.5">
+                                    {String(r[h] ?? '')}
+                                  </td>
+                                ))}
                               </tr>
                             ))}
                           </tbody>
@@ -495,80 +687,166 @@ export function AidcImportDialog({ open, onClose }: { open: boolean; onClose: ()
                     )
                   })}
                 </div>
-              ) : <p className="text-2xs text-gray-400">{t('aidc:import.tablesHint')}</p>)}
+              ) : (
+                <p className="text-2xs text-gray-400">{t('aidc:import.tablesHint')}</p>
+              ))}
 
-            {resultTab === 'verify' && (verify
-              ? (
+            {resultTab === 'verify' &&
+              (verify ? (
                 <div className="text-2xs overflow-auto max-h-[320px]">
                   {verify.devices?.length ? (
                     <>
                       {verify.devices.length > PAGE_SIZE_VERIFY && (
                         <div className="flex justify-end sticky top-0 bg-gray-50 dark:bg-gray-800 z-10 px-1 py-0.5">
-                          <Pager page={verifyPage} total={verify.devices.length} pageSize={PAGE_SIZE_VERIFY} t={t}
+                          <Pager
+                            page={verifyPage}
+                            total={verify.devices.length}
+                            pageSize={PAGE_SIZE_VERIFY}
+                            t={t}
                             onPrev={() => setVerifyPage((p) => Math.max(0, p - 1))}
-                            onNext={() => setVerifyPage((p) => p + 1)} />
+                            onNext={() => setVerifyPage((p) => p + 1)}
+                          />
                         </div>
                       )}
                       <table className="w-full">
-                        <thead className="sticky top-0 bg-gray-50 dark:bg-gray-800"><tr><th className="px-1.5 py-1 text-left">{t('aidc:import.deviceHeader')}</th>{verify.checks.map((c) => <th key={c} className="px-1">{c}</th>)}</tr></thead>
+                        <thead className="sticky top-0 bg-gray-50 dark:bg-gray-800">
+                          <tr>
+                            <th className="px-1.5 py-1 text-left">{t('aidc:import.deviceHeader')}</th>
+                            {verify.checks.map((c) => (
+                              <th key={c} className="px-1">
+                                {c}
+                              </th>
+                            ))}
+                          </tr>
+                        </thead>
                         <tbody>
-                          {verify.devices.slice(verifyPage * PAGE_SIZE_VERIFY, (verifyPage + 1) * PAGE_SIZE_VERIFY).map((d) => (
-                            <tr key={d.name} className="border-t border-gray-100 dark:border-gray-700">
-                              <td className="px-1.5 py-0.5 font-mono">{d.name}</td>
-                              {d.results.map((r) => (
-                                <td key={r.check} className={clsx('px-1 text-center', !r.applicable ? 'text-gray-300 dark:text-gray-600' : r.hit ? 'text-green-600' : 'text-red-500')}>
-                                  {!r.applicable ? '—' : r.hit ? '✓' : '✗'}
-                                </td>
-                              ))}
-                            </tr>
-                          ))}
+                          {verify.devices
+                            .slice(verifyPage * PAGE_SIZE_VERIFY, (verifyPage + 1) * PAGE_SIZE_VERIFY)
+                            .map((d) => (
+                              <tr key={d.name} className="border-t border-gray-100 dark:border-gray-700">
+                                <td className="px-1.5 py-0.5 font-mono">{d.name}</td>
+                                {d.results.map((r) => (
+                                  <td
+                                    key={r.check}
+                                    className={clsx(
+                                      'px-1 text-center',
+                                      !r.applicable
+                                        ? 'text-gray-300 dark:text-gray-600'
+                                        : r.hit
+                                          ? 'text-green-600'
+                                          : 'text-red-500',
+                                    )}
+                                  >
+                                    {!r.applicable ? '—' : r.hit ? '✓' : '✗'}
+                                  </td>
+                                ))}
+                              </tr>
+                            ))}
                         </tbody>
                       </table>
                     </>
-                  ) : <p className="text-gray-400">{verify.error ?? t('aidc:import.verifyEmpty')}</p>}
+                  ) : (
+                    <p className="text-gray-400">{verify.error ?? t('aidc:import.verifyEmpty')}</p>
+                  )}
                 </div>
-              ) : <p className="text-2xs text-gray-400">{t('aidc:import.verifyHint')}</p>)}
+              ) : (
+                <p className="text-2xs text-gray-400">{t('aidc:import.verifyHint')}</p>
+              ))}
 
-            {resultTab === 'topo' && (topo
-              ? (
+            {resultTab === 'topo' &&
+              (topo ? (
                 <div className="border rounded">
                   <div className="flex items-center gap-1 px-1 py-0.5 border-b bg-gray-50 dark:bg-gray-800 sticky top-0 z-10">
-                    <button type="button" onClick={() => setTopoZoom((z) => Math.min(2, z + 0.25))} title={t('aidc:import.topoZoomIn')}
-                      className="px-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 text-xs">+</button>
-                    <button type="button" onClick={() => setTopoZoom((z) => Math.max(0.5, z - 0.25))} title={t('aidc:import.topoZoomOut')}
-                      className="px-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 text-xs">−</button>
-                    <button type="button" onClick={() => setTopoZoom(1)} title={t('aidc:import.topoZoomReset')}
-                      className="px-1.5 rounded text-2xs text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700">{Math.round(topoZoom * 100)}%</button>
+                    <button
+                      type="button"
+                      onClick={() => setTopoZoom((z) => Math.min(2, z + 0.25))}
+                      title={t('aidc:import.topoZoomIn')}
+                      className="px-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 text-xs"
+                    >
+                      +
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setTopoZoom((z) => Math.max(0.5, z - 0.25))}
+                      title={t('aidc:import.topoZoomOut')}
+                      className="px-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 text-xs"
+                    >
+                      −
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setTopoZoom(1)}
+                      title={t('aidc:import.topoZoomReset')}
+                      className="px-1.5 rounded text-2xs text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700"
+                    >
+                      {Math.round(topoZoom * 100)}%
+                    </button>
                   </div>
                   <div className="overflow-auto max-h-[300px]">
-                    <div style={{ transform: `scale(${topoZoom})`, transformOrigin: 'top left', width: 1000 * topoZoom, height: 280 * topoZoom }}>
+                    <div
+                      style={{
+                        transform: `scale(${topoZoom})`,
+                        transformOrigin: 'top left',
+                        width: 1000 * topoZoom,
+                        height: 280 * topoZoom,
+                      }}
+                    >
                       <svg width={1000} height={280}>
                         {topo.edges.map((e, i) => {
                           const a = topo.nodes.find((n) => n.id === e.s)
                           const b = topo.nodes.find((n) => n.id === e.t)
                           if (!a || !b) return null
-                          return <line key={i} x1={a.x + 60} y1={a.y + 10} x2={b.x} y2={b.y + 10} stroke="#94a3b8" strokeWidth={0.4} opacity={0.35} />
+                          return (
+                            <line
+                              key={i}
+                              x1={a.x + 60}
+                              y1={a.y + 10}
+                              x2={b.x}
+                              y2={b.y + 10}
+                              stroke="#94a3b8"
+                              strokeWidth={0.4}
+                              opacity={0.35}
+                            />
+                          )
                         })}
                         {topo.nodes.map((n) => (
                           <g key={n.id}>
-                            <rect x={n.x} y={n.y} width={116} height={20} rx={3} fill={(PLANE_COLOR[n.plane] ?? '#999') + '33'} stroke={PLANE_COLOR[n.plane] ?? '#999'} />
-                            <text x={n.x + 6} y={n.y + 14} fontSize={9} fill="currentColor">{n.id.length > 16 ? n.id.slice(0, 15) + '…' : n.id}</text>
+                            <rect
+                              x={n.x}
+                              y={n.y}
+                              width={116}
+                              height={20}
+                              rx={3}
+                              fill={(PLANE_COLOR[n.plane] ?? '#999') + '33'}
+                              stroke={PLANE_COLOR[n.plane] ?? '#999'}
+                            />
+                            <text x={n.x + 6} y={n.y + 14} fontSize={9} fill="currentColor">
+                              {n.id.length > 16 ? n.id.slice(0, 15) + '…' : n.id}
+                            </text>
                           </g>
                         ))}
                       </svg>
                     </div>
                   </div>
                 </div>
-              ) : <p className="text-2xs text-gray-400">{t('aidc:import.topoHint')}</p>)}
+              ) : (
+                <p className="text-2xs text-gray-400">{t('aidc:import.topoHint')}</p>
+              ))}
 
             {resultTab === 'changelog' && (
               <div className="text-2xs space-y-1 max-h-[320px] overflow-auto">
-                {summary?.changelog?.length ? summary.changelog.map((c, i) => (
-                  <div key={i} className="border rounded p-2">
-                    <p className="text-gray-500">MC v{c.mcPlanVersion}（AL v{c.planVersion ?? '-'}）· {c.at?.slice(0, 19)?.replace('T', ' ')}</p>
-                    <p className="mt-0.5">{c.summary || t('aidc:import.noChange')}</p>
-                  </div>
-                )) : <p className="text-gray-400">{t('aidc:import.changelogEmpty')}</p>}
+                {summary?.changelog?.length ? (
+                  summary.changelog.map((c, i) => (
+                    <div key={i} className="border rounded p-2">
+                      <p className="text-gray-500">
+                        MC v{c.mcPlanVersion}（AL v{c.planVersion ?? '-'}）· {c.at?.slice(0, 19)?.replace('T', ' ')}
+                      </p>
+                      <p className="mt-0.5">{c.summary || t('aidc:import.noChange')}</p>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-gray-400">{t('aidc:import.changelogEmpty')}</p>
+                )}
               </div>
             )}
           </div>

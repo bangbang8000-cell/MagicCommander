@@ -127,7 +127,11 @@ export class RenderHandler {
     try {
       return await this.runPythonCommand(args, true)
     } finally {
-      try { fs.unlinkSync(tmp) } catch { /* ignore */ }
+      try {
+        fs.unlinkSync(tmp)
+      } catch {
+        /* ignore */
+      }
     }
   }
 
@@ -152,7 +156,11 @@ export class RenderHandler {
     try {
       return await this.runPythonCommand(['plan', 'validate', sanitizePathArg(tmp)], true)
     } finally {
-      try { fs.unlinkSync(tmp) } catch { /* ignore */ }
+      try {
+        fs.unlinkSync(tmp)
+      } catch {
+        /* ignore */
+      }
     }
   }
 

@@ -390,10 +390,14 @@ export default function App() {
   )
   useHotkey('ctrl+shift+e', () => setActiveActivity('explorer'), [setActiveActivity])
   useHotkey('ctrl+shift+f', () => setActiveActivity('search'), [setActiveActivity])
-  useHotkey('ctrl+shift+c', () => {
-    // 打磨轮（v1.2 / M2）：云开关关闭时不响应
-    if (useUIStore.getState().generalSettings.cloudEnabled) setActiveActivity('cloud')
-  }, [setActiveActivity])
+  useHotkey(
+    'ctrl+shift+c',
+    () => {
+      // 打磨轮（v1.2 / M2）：云开关关闭时不响应
+      if (useUIStore.getState().generalSettings.cloudEnabled) setActiveActivity('cloud')
+    },
+    [setActiveActivity],
+  )
   useHotkey('ctrl+shift+o', () => setActiveActivity('output'), [setActiveActivity])
   useHotkey('ctrl+shift+w', () => setActiveActivity('workbench'), [setActiveActivity])
   useHotkey('ctrl+shift+h', () => setActiveActivity('chat'), [setActiveActivity])

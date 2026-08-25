@@ -6,8 +6,8 @@
 :root {
   /* —— 圆角 —— */
   --radius-sm: 0.375rem; /* 6px */
-  --radius-md: 0.5rem;   /* 8px，对齐 AL rounded-lg */
-  --radius-lg: 0.75rem;  /* 12px */
+  --radius-md: 0.5rem; /* 8px，对齐 AL rounded-lg */
+  --radius-lg: 0.75rem; /* 12px */
 
   /* —— 阴影（对齐 AL shadow-lg）—— */
   --card-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);

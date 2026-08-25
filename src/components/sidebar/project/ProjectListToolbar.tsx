@@ -23,7 +23,8 @@ export function ProjectListToolbar({
   onImportAl,
 }: ProjectListToolbarProps) {
   const { t } = useTranslation('project')
-  const btnCls = 'flex items-center gap-1 px-2 py-1 text-xs rounded hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-40 disabled:cursor-not-allowed'
+  const btnCls =
+    'flex items-center gap-1 px-2 py-1 text-xs rounded hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-40 disabled:cursor-not-allowed'
   return (
     <div className="p-2 border-b border-gray-200 dark:border-gray-700 space-y-2">
       {/* 第一行：搜索 + 排序 */}
@@ -51,9 +52,11 @@ export function ProjectListToolbar({
           <Plus size={13} />
           {t('projectList.newProject')}
         </button>
-        <button onClick={onImportAl}
+        <button
+          onClick={onImportAl}
           className={`${btnCls} text-emerald-600 dark:text-emerald-400`}
-          title="导入 AutoLink 项目（导入→校验→细化→渲染→校对）">
+          title="导入 AutoLink 项目（导入→校验→细化→渲染→校对）"
+        >
           <Download size={13} />
           {t('projectList.importAl')}
         </button>

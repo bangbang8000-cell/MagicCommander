@@ -91,7 +91,8 @@ export function escapePythonArg(arg: string): string {
 export function sanitizePathArg(arg: string): string {
   if (!arg || typeof arg !== 'string') return ''
 
-  // 去除 NUL 与控制字符
+  // 去除 NUL 与控制字符（no-control-regex 禁用：此处为安全过滤的故意使用）
+  // eslint-disable-next-line no-control-regex
   let safe = arg.replace(/[\u0000-\u001f\u007f]/g, '')
 
   // 逗号替换为下划线（多 ID 逗号拼接场景防歧义）

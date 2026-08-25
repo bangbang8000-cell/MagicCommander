@@ -1186,12 +1186,12 @@ export function setupIpcHandlers(window: BrowserWindow): void {
   // MC-M2d / MC-I18-5: 返回结构化结果，非 zh-CN/en 语言缺文档时回退英文并标记 usedFallback，供渲染层显示提示条
   ipcMain.handle(
     'guide:getContent',
-    async (
-      _e,
-      lang: string,
-    ): Promise<{ content: string; usedFallback: boolean; requestedLang: string }> => {
+    async (_e, lang: string): Promise<{ content: string; usedFallback: boolean; requestedLang: string }> => {
       // 同时尝试 public/docs（开发环境，Vite 直接服务）和 dist/docs（生产环境，构建产物）
-      const possibleDirs = [path.join(process.cwd(), 'public', 'docs'), path.join(__dirname, '..', '..', 'dist', 'docs')]
+      const possibleDirs = [
+        path.join(process.cwd(), 'public', 'docs'),
+        path.join(__dirname, '..', '..', 'dist', 'docs'),
+      ]
       const supportedLangs = ['zh-CN', 'en', 'ja', 'ko', 'fr']
       const requested = supportedLangs.includes(lang) ? lang : 'zh-CN'
       for (const guideDir of possibleDirs) {
@@ -1275,7 +1275,11 @@ export function setupIpcHandlers(window: BrowserWindow): void {
     'dialog:openFile',
     async (
       _e,
-      options: { title?: string; filters?: { name: string; extensions: string[] }[]; properties?: Array<'openFile' | 'openDirectory' | 'multiSelections'> },
+      options: {
+        title?: string
+        filters?: { name: string; extensions: string[] }[]
+        properties?: Array<'openFile' | 'openDirectory' | 'multiSelections'>
+      },
     ): Promise<string | null> => {
       if (!isTrustedSender(_e)) throw new Error('无权执行该操作')
       // G4：支持 openDirectory（目录选择器），默认保持 openFile

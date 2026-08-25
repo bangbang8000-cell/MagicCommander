@@ -47,12 +47,21 @@ export interface PlanImportResult {
   bridge?: { source?: string; projectType?: string; bridgeVersion?: string }
   mcpara_id?: number
   /** 契约 v1.2（M-3）：来源身份 + 匹配检测 */
-  origin?: { projectId?: string; projectName?: string; site?: string; planVersion?: number; matched?: 'new' | 'update' | 'none' | 'skip' }
+  origin?: {
+    projectId?: string
+    projectName?: string
+    site?: string
+    planVersion?: number
+    matched?: 'new' | 'update' | 'none' | 'skip'
+  }
   /** 契约 v1.2（P2）：导入版本 + 变更记录 */
   mcPlanVersion?: number
   changed?: boolean
   changelog?: Array<{
-    at?: string; planVersion?: number; mcPlanVersion?: number; planHash?: string
+    at?: string
+    planVersion?: number
+    mcPlanVersion?: number
+    planHash?: string
     changed?: Array<{ field: string; from?: unknown; to?: unknown }>
     summary?: string
   }>

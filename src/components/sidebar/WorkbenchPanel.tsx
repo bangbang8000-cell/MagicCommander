@@ -21,7 +21,6 @@ import { ExternalLink, Zap } from 'lucide-react'
 
 /** MC-M3h / J-UIX-2: 三步步骤分组标签（与 AL v1.6 对齐：①配置与就绪 / ②渲染材料与操作 / ③校对与输出） */
 function StepLabel({ text }: { text: string }) {
-  const { t } = useTranslation('project')
   return (
     <div className="flex items-center gap-1.5 mb-1.5">
       <span className="px-1.5 py-0.5 text-2xs rounded bg-primary-100 dark:bg-primary-900/40 text-primary-700 dark:text-primary-300 font-semibold">
