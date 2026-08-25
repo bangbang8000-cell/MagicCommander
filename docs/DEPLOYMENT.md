@@ -1,6 +1,6 @@
 # MagicCommander 部署指南
 
-> 适用于 v3.8.0。涵盖：开发环境、构建测试、版本管理与发布（GitHub Actions）、客户端安装、云平台（MagicCommander Platform）部署。
+> 适用于 v3.9.0。涵盖：开发环境、构建测试、版本管理与发布（GitHub Actions）、客户端安装、云平台（MagicCommander Platform）部署。
 
 ## 目录
 
@@ -120,10 +120,10 @@ CI 会自动执行以上门禁（typecheck / lint / format:check / check-version
 
 ```json
 {
-  "version": "3.8.0",
-  "build": "26082101",
-  "displayVersion": "V3.8.0 Build 26082101",
-  "releaseDate": "2026-08-21"
+  "version": "3.9.0",
+  "build": "26082501",
+  "displayVersion": "V3.9.0 Build 26082501",
+  "releaseDate": "2026-08-25"
 }
 ```
 
