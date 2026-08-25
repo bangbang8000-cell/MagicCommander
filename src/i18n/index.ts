@@ -14,6 +14,7 @@ import projectZh from './locales/zh-CN/project.json'
 import errorsZh from './locales/zh-CN/errors.json'
 import welcomeZh from './locales/zh-CN/welcome.json'
 import terminalZh from './locales/zh-CN/terminal.json'
+import aidcZh from './locales/zh-CN/aidc.json'
 
 import commonZhTw from './locales/zh-TW/common.json'
 import chatZhTw from './locales/zh-TW/chat.json'
@@ -23,6 +24,7 @@ import projectZhTw from './locales/zh-TW/project.json'
 import errorsZhTw from './locales/zh-TW/errors.json'
 import welcomeZhTw from './locales/zh-TW/welcome.json'
 import terminalZhTw from './locales/zh-TW/terminal.json'
+import aidcZhTw from './locales/zh-TW/aidc.json'
 
 import commonEn from './locales/en/common.json'
 import chatEn from './locales/en/chat.json'
@@ -32,6 +34,7 @@ import projectEn from './locales/en/project.json'
 import errorsEn from './locales/en/errors.json'
 import welcomeEn from './locales/en/welcome.json'
 import terminalEn from './locales/en/terminal.json'
+import aidcEn from './locales/en/aidc.json'
 
 import commonJa from './locales/ja/common.json'
 import chatJa from './locales/ja/chat.json'
@@ -41,6 +44,7 @@ import projectJa from './locales/ja/project.json'
 import errorsJa from './locales/ja/errors.json'
 import welcomeJa from './locales/ja/welcome.json'
 import terminalJa from './locales/ja/terminal.json'
+import aidcJa from './locales/ja/aidc.json'
 
 import commonKo from './locales/ko/common.json'
 import chatKo from './locales/ko/chat.json'
@@ -50,6 +54,7 @@ import projectKo from './locales/ko/project.json'
 import errorsKo from './locales/ko/errors.json'
 import welcomeKo from './locales/ko/welcome.json'
 import terminalKo from './locales/ko/terminal.json'
+import aidcKo from './locales/ko/aidc.json'
 
 import commonFr from './locales/fr/common.json'
 import chatFr from './locales/fr/chat.json'
@@ -59,6 +64,7 @@ import projectFr from './locales/fr/project.json'
 import errorsFr from './locales/fr/errors.json'
 import welcomeFr from './locales/fr/welcome.json'
 import terminalFr from './locales/fr/terminal.json'
+import aidcFr from './locales/fr/aidc.json'
 
 i18n.use(initReactI18next).init({
   resources: {
@@ -71,6 +77,7 @@ i18n.use(initReactI18next).init({
       errors: errorsZh,
       welcome: welcomeZh,
       terminal: terminalZh,
+      aidc: aidcZh,
     },
     'zh-TW': {
       common: commonZhTw,
@@ -81,6 +88,7 @@ i18n.use(initReactI18next).init({
       errors: errorsZhTw,
       welcome: welcomeZhTw,
       terminal: terminalZhTw,
+      aidc: aidcZhTw,
     },
     en: {
       common: commonEn,
@@ -91,6 +99,7 @@ i18n.use(initReactI18next).init({
       errors: errorsEn,
       welcome: welcomeEn,
       terminal: terminalEn,
+      aidc: aidcEn,
     },
     ja: {
       common: commonJa,
@@ -101,6 +110,7 @@ i18n.use(initReactI18next).init({
       errors: errorsJa,
       welcome: welcomeJa,
       terminal: terminalJa,
+      aidc: aidcJa,
     },
     ko: {
       common: commonKo,
@@ -111,6 +121,7 @@ i18n.use(initReactI18next).init({
       errors: errorsKo,
       welcome: welcomeKo,
       terminal: terminalKo,
+      aidc: aidcKo,
     },
     fr: {
       common: commonFr,
@@ -121,11 +132,12 @@ i18n.use(initReactI18next).init({
       errors: errorsFr,
       welcome: welcomeFr,
       terminal: terminalFr,
+      aidc: aidcFr,
     },
   },
   lng: 'zh-CN',
   fallbackLng: 'zh-CN',
-  ns: ['common', 'chat', 'cloud', 'editor', 'project', 'errors', 'welcome', 'terminal'],
+  ns: ['common', 'chat', 'cloud', 'editor', 'project', 'errors', 'welcome', 'terminal', 'aidc'],
   defaultNS: 'common',
   interpolation: {
     escapeValue: false,
