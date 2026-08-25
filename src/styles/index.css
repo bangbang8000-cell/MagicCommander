@@ -1,3 +1,5 @@
+@import './tokens.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -91,6 +93,12 @@
   /* 卡片样式 */
   .card {
     @apply bg-white dark:bg-gray-800/80 rounded-lg border border-gray-200 dark:border-gray-700/50 shadow-sm;
+  }
+
+  /* Popover 浮层表面（MC-M5a：圆角/阴影走 token，对齐 AL） */
+  .popover-surface {
+    border-radius: var(--popover-radius);
+    box-shadow: var(--popover-shadow);
   }
 
   /* 面板头部 - 瘦身版 */

@@ -40,8 +40,9 @@ export function Popover({ open, onClose, children, className, isDark }: PopoverP
     <div
       ref={ref}
       className={clsx(
-        'absolute top-full right-0 z-50 min-w-[220px] py-1.5 rounded-lg shadow-lg border',
+        'absolute top-full right-0 z-50 min-w-[220px] border popover-surface',
         isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200',
+        'py-[var(--popover-pad-y)]',
         className,
       )}
     >
