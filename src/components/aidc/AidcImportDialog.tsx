@@ -270,6 +270,10 @@ export function AidcImportDialog({ open, onClose }: { open: boolean; onClose: ()
       setPlanObj(next)
       setStatus(t('aidc:import.tuneApplied', { ver: res.mcPlanVersion, pfc, cnp }))
       setStep(3)
+      // 打磨轮（B）：细化应用成功 → 自动渲染（一条龙：导入→校验→细化→渲染→校对）
+      if (res.mcpara_id != null) {
+        await doRender(res.mcpara_id)
+      }
     } catch (e) {
       setStatus(t('aidc:import.tuneFailed', { err: (e as Error).message }), true)
     } finally {
@@ -277,16 +281,17 @@ export function AidcImportDialog({ open, onClose }: { open: boolean; onClose: ()
     }
   }
 
-  const doRender = async () => {
-    if (!summary?.mcpara_id) {
+  const doRender = async (mcparaId?: string | number) => {
+    const id = mcparaId ?? summary?.mcpara_id
+    if (id == null) {
       setStatus(t('aidc:import.needMcpara'), true)
       return
     }
     setBusy(true)
     setStatus('')
     try {
-      await window.electron.render.project([String(summary.mcpara_id)])
-      setStatus(t('aidc:import.rendered', { name: summary.name, count: summary.device_count }))
+      await window.electron.render.project([String(id)])
+      setStatus(t('aidc:import.rendered', { name: summary?.name ?? '', count: summary?.device_count ?? 0 }))
       setStep(4)
     } catch (e) {
       setStatus(t('aidc:import.renderFailed', { err: (e as Error).message }), true)
@@ -599,7 +604,7 @@ export function AidcImportDialog({ open, onClose }: { open: boolean; onClose: ()
               size="sm"
               variant="danger"
               icon={<Play size={12} />}
-              onClick={doRender}
+              onClick={() => doRender()}
               disabled={busy || !summary?.mcpara_id}
             >
               {busy ? t('aidc:import.rendering') : t('aidc:import.renderBtn', { count: summary?.device_count ?? 0 })}
