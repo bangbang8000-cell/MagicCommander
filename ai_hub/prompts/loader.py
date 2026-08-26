@@ -12,6 +12,19 @@ PROMPTS_DIR = Path(__file__).parent
 # 缓存
 _cache: dict[str, str] = {}
 
+# M7d: system prompt 版本（记忆等动态上下文变更时失效，会话内据此刷新）
+_cache_version = 0
+
+
+def invalidate_system_prompt_cache() -> None:
+    """使会话内 system prompt 失效（记忆/技能等动态上下文变更时调用）"""
+    global _cache_version
+    _cache_version += 1
+
+
+def get_system_prompt_version() -> int:
+    return _cache_version
+
 
 def load_prompt(name: str) -> str:
     """加载指定名称的 prompt 文件"""

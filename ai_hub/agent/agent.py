@@ -36,6 +36,16 @@ class AgentSession:
         self.last_used: float = time.time()
         # 待用户确认的工具调用（CONFIRM 权限分级）
         self.pending_confirmation: dict | None = None
+        # M7d: system prompt 缓存版本（记忆变更时刷新）
+        self._prompt_version: int = -1
+
+    def _refresh_prompt_if_needed(self):
+        """M7d: 记忆/技能等动态上下文变更时刷新本会话 system prompt（避免陈旧记忆）"""
+        from ai_hub.prompts.loader import get_system_prompt_version
+        version = get_system_prompt_version()
+        if version != self._prompt_version:
+            self.system_prompt = get_system_prompt(self.mode, self.current_project)
+            self._prompt_version = version
 
     def set_provider(self, name: Optional[str] = None):
         self.provider = registry.get(name)
@@ -67,6 +77,8 @@ class AgentSession:
         if not self.provider:
             yield "错误: 没有可用的 AI Provider，请先配置 API Key。"
             return
+        # M7d: 记忆/动态上下文变更时刷新 system prompt
+        self._refresh_prompt_if_needed()
 
         tools = get_tool_definitions()
         self.last_used = time.time()
