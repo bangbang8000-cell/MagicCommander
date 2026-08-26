@@ -41,7 +41,12 @@ describe('MarkdownViewer', () => {
 
   it('无 tab.content 的普通文件标签走 project.readFile', async () => {
     readFileMock.mockResolvedValue('# 文件内容')
-    render(<MarkdownViewer tab={makeTab(undefined, { id: 'tab1', filePath: 'docs/file.md', projectId: 1, projectName: 'p1' })} inline />)
+    render(
+      <MarkdownViewer
+        tab={makeTab(undefined, { id: 'tab1', filePath: 'docs/file.md', projectId: 1, projectName: 'p1' })}
+        inline
+      />,
+    )
 
     await waitFor(() => {
       expect(readFileMock).toHaveBeenCalledWith(1, 'docs/file.md', 'p1')
