@@ -62,9 +62,15 @@ export class AIHubService extends EventEmitter {
       const occupied = await new Promise<boolean>((resolve) => {
         const sock = new net.Socket()
         sock.setTimeout(1500)
-        sock.once('connect', () => { sock.destroy(); resolve(true) })
+        sock.once('connect', () => {
+          sock.destroy()
+          resolve(true)
+        })
         sock.once('error', () => resolve(false))
-        sock.once('timeout', () => { sock.destroy(); resolve(false) })
+        sock.once('timeout', () => {
+          sock.destroy()
+          resolve(false)
+        })
         sock.connect(this.port, this.host)
       })
       if (!occupied) return
@@ -81,7 +87,9 @@ export class AIHubService extends EventEmitter {
         try {
           process.kill(pid, 'SIGKILL')
           logger.info(`[AIHub] Killed stale process ${pid}`)
-        } catch { /* 已退出 */ }
+        } catch {
+          /* 已退出 */
+        }
       }
       // 等待端口释放
       await new Promise((r) => setTimeout(r, 800))
@@ -108,9 +116,12 @@ export class AIHubService extends EventEmitter {
     } catch (err) {
       const msg = (err as Error).message || ''
       const isAuthOrConn =
-        msg.includes('401') || msg.includes('Unauthorized') ||
-        msg.includes('ECONNREFUSED') || msg.includes('fetch failed') ||
-        msg.includes('Failed to fetch') || msg.includes('Connection reset')
+        msg.includes('401') ||
+        msg.includes('Unauthorized') ||
+        msg.includes('ECONNREFUSED') ||
+        msg.includes('fetch failed') ||
+        msg.includes('Failed to fetch') ||
+        msg.includes('Connection reset')
       if (!isAuthOrConn) throw err
       logger.warn('[AIHub] Auth/connection failure, restarting hub and retrying once')
       await this.stop()
@@ -513,7 +524,13 @@ export class AIHubService extends EventEmitter {
   /**
    * 配置 Provider API Key
    */
-  async configureProvider(provider: string, apiKey: string, model?: string, baseUrl?: string, models?: string[]): Promise<void> {
+  async configureProvider(
+    provider: string,
+    apiKey: string,
+    model?: string,
+    baseUrl?: string,
+    models?: string[],
+  ): Promise<void> {
     await this.ensureRunning()
     await fetch(`${this.baseUrl}/api/chat/config`, {
       method: 'POST',

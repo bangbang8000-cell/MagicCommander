@@ -71,7 +71,10 @@ interface UIState {
   // AI 配置
   aiConfig: AIConfig
   setAIConfig: (config: Partial<AIConfig>) => void
-  setProviderConfig: (key: string, config: { apiKey?: string; model?: string; baseUrl?: string; models?: string[] }) => void
+  setProviderConfig: (
+    key: string,
+    config: { apiKey?: string; model?: string; baseUrl?: string; models?: string[] },
+  ) => void
 
   // 自主模式（从 chat.store 迁移到此，统一由设置面板管理）
   autonomyMode: 'advisor' | 'semi_auto' | 'full_auto'

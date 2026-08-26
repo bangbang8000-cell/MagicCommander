@@ -726,7 +726,10 @@ export function SettingsPanel() {
                     )}
                   >
                     <option value="">{t('common:settings.ai.selectModel')}</option>
-                    {(fetchedModels.length > 0 ? fetchedModels : aiConfig.providers[activeProvider]?.models ?? []).map((m) => (
+                    {(fetchedModels.length > 0
+                      ? fetchedModels
+                      : (aiConfig.providers[activeProvider]?.models ?? [])
+                    ).map((m) => (
                       <option key={m} value={m}>
                         {m}
                       </option>

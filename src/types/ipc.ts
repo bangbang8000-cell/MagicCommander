@@ -450,7 +450,13 @@ export interface AIHubIpcApi {
   ) => Promise<string>
   clearSession: (sessionId: string) => Promise<void>
   getProviders: () => Promise<AIHubProvider[]>
-  configureProvider: (provider: string, apiKey: string, model?: string, baseUrl?: string, models?: string[]) => Promise<void>
+  configureProvider: (
+    provider: string,
+    apiKey: string,
+    model?: string,
+    baseUrl?: string,
+    models?: string[],
+  ) => Promise<void>
   setDefaultProvider: (provider: string) => Promise<void>
   testConnection: (
     provider: string,
