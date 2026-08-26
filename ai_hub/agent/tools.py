@@ -208,6 +208,15 @@ async def _create_template(args: dict) -> str:
     return await _run_python_cli(["template", "save", source, name])
 
 
+async def _list_templates(args: dict) -> str:
+    return await _run_python_cli(["template", "list"])
+
+
+async def _delete_template(args: dict) -> str:
+    name = args["templateName"]
+    return await _run_python_cli(["template", "delete", "--force", name])
+
+
 async def _update_template(args: dict) -> str:
     name = args["templateName"]
     file_path = args["filePath"]
@@ -757,6 +766,30 @@ def init_tools():
             "required": ["sourceProject", "templateName"],
         },
         _create_template,
+    )
+
+    register_tool(
+        "template_list",
+        "列出所有可用的示例模板（模板中心）",
+        {
+            "type": "object",
+            "properties": {},
+            "required": [],
+        },
+        _list_templates,
+    )
+
+    register_tool(
+        "template_delete",
+        "删除示例模板（不可恢复，请谨慎使用）",
+        {
+            "type": "object",
+            "properties": {
+                "templateName": {"type": "string", "description": "模板名称"},
+            },
+            "required": ["templateName"],
+        },
+        _delete_template,
     )
 
     register_tool(

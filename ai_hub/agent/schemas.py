@@ -10,6 +10,7 @@ TOOL_PERMISSIONS: dict[str, ToolPermission] = {
     "list_projects": ToolPermission.AUTO,
     "read_file": ToolPermission.AUTO, "read_excel": ToolPermission.AUTO,
     "search_files": ToolPermission.AUTO, "recommend_template": ToolPermission.AUTO,
+    "template_list": ToolPermission.AUTO,
     "analyze_project": ToolPermission.AUTO, "get_project_info": ToolPermission.AUTO,
     "list_project_files": ToolPermission.AUTO, "validate_template": ToolPermission.AUTO,
     "validate_excel": ToolPermission.AUTO, "dry_run": ToolPermission.AUTO,
@@ -20,7 +21,7 @@ TOOL_PERMISSIONS: dict[str, ToolPermission] = {
     "generate_labels": ToolPermission.NOTIFY, "generate_label_md": ToolPermission.NOTIFY,
     "undo_render": ToolPermission.NOTIFY,
     "delete_project": ToolPermission.CONFIRM, "delete_files": ToolPermission.CONFIRM,
-    "delete_labels": ToolPermission.CONFIRM, "render_config": ToolPermission.CONFIRM,
+    "delete_labels": ToolPermission.CONFIRM, "template_delete": ToolPermission.CONFIRM, "render_config": ToolPermission.CONFIRM,
     "render_yaml": ToolPermission.CONFIRM, "reverse_engineer_config": ToolPermission.CONFIRM,
 }
 

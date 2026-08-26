@@ -21,6 +21,15 @@ def test_permission_levels():
     assert get_tool_permission("delete_project") == ToolPermission.CONFIRM
 
 
+# --- M6-b: 模板 CRUD 工具权限 ---
+
+def test_m6_template_permissions():
+    assert get_tool_permission("template_list") == ToolPermission.AUTO
+    assert get_tool_permission("create_template") == ToolPermission.NOTIFY
+    assert get_tool_permission("update_template") == ToolPermission.NOTIFY
+    assert get_tool_permission("template_delete") == ToolPermission.CONFIRM
+
+
 def test_unknown_tool_defaults_to_confirm():
     assert get_tool_permission("unknown_tool_xyz") == ToolPermission.CONFIRM
 

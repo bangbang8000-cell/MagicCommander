@@ -246,6 +246,20 @@ def main():
     template_preview_parser.add_argument('ids', help='项目ID或名称')
     template_preview_parser.add_argument('template', help='模板文件相对路径（如 templates/ASW.j2）')
 
+    # M6-b: 模板 CRUD（example 模板中心）
+    template_list_parser = template_subparsers.add_parser('list', help='列出示例模板（example 目录）')
+    template_list_parser.add_argument('--format', choices=['text', 'json'], default='json', help='输出格式')
+    template_save_parser = template_subparsers.add_parser('save', help='将现有项目保存为示例模板')
+    template_save_parser.add_argument('project', help='项目名称')
+    template_save_parser.add_argument('name', help='新模板名称')
+    template_update_parser = template_subparsers.add_parser('update', help='修改模板文件内容')
+    template_update_parser.add_argument('name', help='模板名称')
+    template_update_parser.add_argument('file_path', help='模板内文件相对路径（如 templates/ASW.j2）')
+    template_update_parser.add_argument('content', help='新内容')
+    template_delete_parser = template_subparsers.add_parser('delete', help='删除示例模板')
+    template_delete_parser.add_argument('name', help='模板名称')
+    template_delete_parser.add_argument('--force', action='store_true', help='无需确认直接删除')
+
     # 标签功能命令
     label_parser = subparsers.add_parser('label', help='标签功能操作')
     label_subparsers = label_parser.add_subparsers(title='标签操作', dest='subcommand', help='标签子命令')
@@ -902,17 +916,99 @@ def handle_proofread_command(processor, args):
         print(json.dumps(report, ensure_ascii=False))
 
 
-def handle_template_command(processor, args):
-    """模板调试沙盒"""
-    target_str = convert_to_project_string(process_project_ids(args.ids, processor.project_name))
+def _example_dir() -> str:
+    """示例模板（模板中心）目录：backend 上级 / example"""
+    return os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'example')
 
+
+def _valid_template_name(name: str) -> bool:
+    """模板名校验：非空、无路径分隔/穿越、非隐藏"""
+    name = (name or '').strip()
+    if not name or name.startswith(('.', '_')):
+        return False
+    if any(c in name for c in ('/', '\\', '..', ':', '*', '?', '"', '<', '>', '|')):
+        return False
+    return True
+
+
+def handle_template_command(processor, args):
+    """模板操作命令（M6-b：list/save/update/delete + preview）"""
     if args.subcommand == 'preview':
         # 安全校验模板相对路径，禁止穿越到项目外
+        target_str = convert_to_project_string(process_project_ids(args.ids, processor.project_name))
         if '..' in args.template or args.template.startswith(('/', '\\')):
             print_error(f'模板路径无效: {args.template}')
             sys.exit(1)
         processor.execute_template_preview(target_str, args.template)
         print_success(f'模板预览完成')
+
+    elif args.subcommand == 'list':
+        ex = _example_dir()
+        templates = []
+        if os.path.isdir(ex):
+            for entry in sorted(os.listdir(ex)):
+                d = os.path.join(ex, entry)
+                if os.path.isdir(d) and not entry.startswith(('.', '_')):
+                    if os.path.exists(os.path.join(d, 'para.xlsx')) or os.path.isdir(os.path.join(d, 'templates')):
+                        templates.append(entry)
+        print(json.dumps({'status': 'success', 'message': '模板列表获取成功',
+                          'data': templates}, ensure_ascii=False, indent=2))
+
+    elif args.subcommand == 'save':
+        if not _valid_template_name(args.name):
+            print_error(f'模板名无效: {args.name}')
+            sys.exit(1)
+        proj = os.path.join(WORKSPACE_DIR, args.project)
+        if not os.path.isdir(proj):
+            print_error(f'项目不存在: {args.project}')
+            sys.exit(1)
+        target = os.path.join(_example_dir(), args.name)
+        if os.path.exists(target):
+            print_error(f'模板已存在: {args.name}')
+            sys.exit(1)
+        os.makedirs(_example_dir(), exist_ok=True)
+        shutil.copytree(proj, target, ignore=shutil.ignore_patterns(
+            'output', 'yaml', 'output-label', '.output_backups', '.render_cache'))
+        print_success(f'模板 "{args.name}" 保存成功')
+
+    elif args.subcommand == 'update':
+        name = args.name
+        if not _valid_template_name(name):
+            print_error(f'模板名无效: {name}')
+            sys.exit(1)
+        if '..' in args.file_path or args.file_path.startswith(('/', '\\')):
+            print_error(f'文件路径无效: {args.file_path}')
+            sys.exit(1)
+        target = os.path.join(_example_dir(), name, args.file_path)
+        target_abs = os.path.abspath(target)
+        root_abs = os.path.abspath(os.path.join(_example_dir(), name))
+        if os.path.commonpath([target_abs, root_abs]) != root_abs:
+            print_error('路径越界，禁止写入')
+            sys.exit(1)
+        if not os.path.isfile(target):
+            print_error(f'文件不存在: {name}/{args.file_path}')
+            sys.exit(1)
+        os.makedirs(os.path.dirname(target), exist_ok=True)
+        with open(target, 'w', encoding='utf-8') as f:
+            f.write(args.content)
+        print_success(f'模板文件更新: {name}/{args.file_path}')
+
+    elif args.subcommand == 'delete':
+        name = args.name
+        if not _valid_template_name(name):
+            print_error(f'模板名无效: {name}')
+            sys.exit(1)
+        target = os.path.join(_example_dir(), name)
+        if not os.path.isdir(target):
+            print_error(f'模板不存在: {name}')
+            sys.exit(1)
+        if not args.force:
+            confirm = input(f'确认删除模板: {name} [y/N]: ')
+            if confirm.lower() != 'y':
+                print_info('操作已取消')
+                sys.exit(0)
+        shutil.rmtree(target, ignore_errors=True)
+        print_success(f'模板 "{name}" 删除成功')
 
 def handle_file_command(processor, args):
     """处理文件操作命令"""

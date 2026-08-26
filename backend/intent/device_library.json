@@ -5,7 +5,7 @@
     "model": "S9827",
     "port_count": 128,
     "port_speed": "400G",
-    "port_type": "QSFP-DD",
+    "port_type": "OSFP",
     "description": "H3C S9827 128×400G 智算参数网交换机（Spine/Leaf，2 层 CLOS 覆盖 1024 档）",
     "applicable_networks": [
       "param"
