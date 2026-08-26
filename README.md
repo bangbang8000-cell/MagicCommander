@@ -2,7 +2,7 @@
 
 **批量生成网络设备配置 | Network Device Configuration Automation**
 
-[![Version](https://img.shields.io/badge/version-3.9.3-blue)](https://github.com/bangbang8000-cell/MagicCommander/releases)
+[![Version](https://img.shields.io/badge/version-3.10.0-blue)](https://github.com/bangbang8000-cell/MagicCommander/releases)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![Windows](https://img.shields.io/badge/Windows-NSIS-blue)](https://github.com/bangbang8000-cell/MagicCommander/releases)
 [![macOS](https://img.shields.io/badge/macOS-DMG-silver)](https://github.com/bangbang8000-cell/MagicCommander/releases)
@@ -245,6 +245,7 @@ MagicCommander/
 
 | 版本 | 日期 | 更新内容 |
 |------|------|---------|
+| **3.10.0 Build 26082601** | 2026-08-26 | **AI 修复 + 模板 CRUD + 双端一致性**：AI Hub 全部调用加运行守卫 + 旧进程端口回收 + 401 自动重启重试（聊天 401 根因修复）；模型自动拉取持久化回写 + 下拉最新；模板 CRUD（template list/save/update/delete CLI + AI 工具，修复 create/update 落空）；设备库 h3c_s9827 对齐 AL 权威库 OSFP；记忆引擎去抖写盘 + flush + system prompt 缓存版本化（会话内记忆自动刷新）；chat.store 流式优化回灌 AL（rAF 节流 + Provider 指纹去重 + 活跃超时）；模板删除 CONFIRM |
 | **3.9.2 Build 26082503** | 2026-08-25 | **导入后自动渲染**——导入 AutoLink 交付包后细化应用成功即自动触发渲染（一条龙：导入→校验→细化→渲染→校对），无需手动点击渲染 |
 | **3.9.1 Build 26082502** | 2026-08-25 | **修复：导入后项目列表不刷新**——导入 AutoLink 交付包成功后主动刷新项目浏览器，新项目立即可见（此前为应用启动快照，需重启才显示） |
 | **3.9.0 Build 26082501** | 2026-08-25 | **安全加固 + i18n 全量接入 + 导入一条龙 + 工作台重构**：M1 安全加固（`escapePythonArg` Windows 路径修复 / zip-slip / `file:` 读取限界 / `isTrustedSender` 全覆盖 / `will-navigate` + 语言白名单 / `MC_Para` 增量写）；M2 i18n（AidcImportDialog 125 处全量接入 + 6 语言补齐 + i18n 门禁）；M3 导入 UX + MenuBar + 工作台重构（导入自动流转 导入→校验→细化、结果分页、真 ZIP 导出、tunable 扩展 BGP/地址段/命名、经典菜单栏文件/编辑/视图/工具/帮助 + 最近项目、工作台三步分组对齐 AL、无项目空态、ActivityBar 语义色对齐、nav 命名空间统一、Monaco 布局收敛、项目匹配索引）；M5 Popover 视觉对齐 AL（CSS token 层） |
