@@ -1,4 +1,7 @@
 {
+  "header": {
+    "guideFallbackBanner": "> ⚠️ 当前语言暂无指南，已使用英文版"
+  },
   "app": {
     "title": "MagicCommander",
     "subtitle": "网络设备配置管理工具",

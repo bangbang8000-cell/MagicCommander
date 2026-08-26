@@ -153,6 +153,15 @@ export function MarkdownViewer({ content, title, onClose, tab, inline = false }:
   useEffect(() => {
     if (!tab) {
       setFileContent(content ?? '')
+      setLoading(false)
+      return
+    }
+
+    // 指南等已携带 content 的标签：直接渲染，不走磁盘读取（修复"使用指南无法打开"）
+    if (typeof tab.content === 'string' && tab.content) {
+      setFileContent(tab.content)
+      setLoading(false)
+      setError(null)
       return
     }
 

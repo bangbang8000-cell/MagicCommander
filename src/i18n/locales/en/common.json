@@ -1,4 +1,7 @@
 {
+  "header": {
+    "guideFallbackBanner": "> ⚠️ This language has no guide yet; showing the English version."
+  },
   "app": {
     "title": "MagicCommander",
     "subtitle": "Network Device Configuration Management Tool",

@@ -1,4 +1,7 @@
 {
+  "header": {
+    "guideFallbackBanner": "> ⚠️ この言語のガイドはまだありません。英語版を表示しています。"
+  },
   "app": {
     "title": "MagicCommander",
     "subtitle": "ネットワーク機器設定管理ツール",

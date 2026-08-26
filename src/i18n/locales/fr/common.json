@@ -1,4 +1,7 @@
 {
+  "header": {
+    "guideFallbackBanner": "> ⚠️ Ce guide n'est pas encore disponible dans cette langue ; affichage de la version anglaise."
+  },
   "app": {
     "title": "MagicCommander",
     "subtitle": "Outil de gestion de configuration des équipements réseau",

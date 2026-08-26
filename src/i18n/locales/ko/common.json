@@ -1,4 +1,7 @@
 {
+  "header": {
+    "guideFallbackBanner": "> ⚠️ 이 언어의 가이드가 아직 없습니다. 영어 버전을 표시합니다."
+  },
   "app": {
     "title": "MagicCommander",
     "subtitle": "네트워크 장비 구성 관리 도구",
