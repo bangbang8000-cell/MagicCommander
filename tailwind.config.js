@@ -48,6 +48,9 @@ export default {
         'body-sm': ['0.8125rem', { lineHeight: '1.375rem' }],
         'caption': ['0.75rem', { lineHeight: '1.25rem' }],
         'tiny': ['0.625rem', { lineHeight: '1rem' }],
+        // 辅助小字号（与 AL 对齐）
+        '2xs': ['0.6875rem', { lineHeight: '0.9375rem' }],
+        '3xs': ['0.625rem', { lineHeight: '0.8125rem' }],
       },
       animation: {
         'fade-in': 'fadeIn 0.2s ease-in-out',

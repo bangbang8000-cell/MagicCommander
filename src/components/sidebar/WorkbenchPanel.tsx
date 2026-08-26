@@ -19,13 +19,25 @@ import { WorkbenchResultCard } from './workbench/WorkbenchResultCard'
 import { Button } from '@/components/ui/Button'
 import { ExternalLink, Zap } from 'lucide-react'
 
-/** MC-M3h / J-UIX-2: 三步步骤分组标签（与 AL v1.6 对齐：①配置与就绪 / ②渲染材料与操作 / ③校对与输出） */
-function StepLabel({ text }: { text: string }) {
+/** MC-M3h / J-UIX-2: 三步步骤分组标签（与 AL v1.6 对齐：①配置与就绪 / ②渲染材料与操作 / ③校对与输出）
+ *  v2.0 M3: 升级为数字徽章 + 标题 + 渐变连接线的步骤条语言（编号由 JSX 传入，与 i18n 文案解耦） */
+function StepLabel({ n, text }: { n: string; text: string }) {
   return (
-    <div className="flex items-center gap-1.5 mb-1.5">
-      <span className="px-1.5 py-0.5 text-2xs rounded bg-primary-100 dark:bg-primary-900/40 text-primary-700 dark:text-primary-300 font-semibold">
-        {text}
+    <div className="flex items-center gap-2 mb-2">
+      <span className="flex items-center justify-center w-6 h-6 rounded-full bg-primary-500 text-white text-xs font-semibold shadow-sm shrink-0">
+        {n}
       </span>
+      <span className="text-xs font-semibold text-gray-700 dark:text-gray-200">{text}</span>
+      <span className="flex-1 h-px bg-gradient-to-r from-primary-200 dark:from-primary-700 to-transparent" />
+    </div>
+  )
+}
+
+/** 三步分组容器：圆角浅底 + 顶部主色 accent 边框（对齐 AL WorkbenchTab 分组语言） */
+function StepGroup({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="rounded-lg bg-gray-50/70 dark:bg-gray-800/40 border border-gray-200 dark:border-gray-700 border-t-2 border-t-primary-200 dark:border-t-primary-700 p-3 space-y-3">
+      {children}
     </div>
   )
 }
@@ -187,35 +199,37 @@ export const WorkbenchPanel = React.memo(function WorkbenchPanel() {
         // MC-M3i / MC-WS2: 无项目 → 统一空态引导（不渲染 7 张空白卡片骨架）
         <EmptyProjectGuide />
       ) : (
-        <div className="p-3 space-y-3">
+        <div className="p-3 space-y-4">
           {/* ① 配置与就绪 */}
-          <StepLabel text={t('workbench.stepConfig')} />
-          <WorkbenchScopeCard
-            selectedProject={selectedProject}
-            projectInfo={projectInfo}
-            projects={projects}
-            selectedProjectIds={selectedProjectIds}
-            projectStatuses={projectStatuses}
-            isDark={isDark}
-            onToggleProject={toggleProject}
-            onOpenFolder={openInFolder}
-          />
+          <StepGroup>
+            <StepLabel n="①" text={t('workbench.stepConfig')} />
+            <WorkbenchScopeCard
+              selectedProject={selectedProject}
+              projectInfo={projectInfo}
+              projects={projects}
+              selectedProjectIds={selectedProjectIds}
+              projectStatuses={projectStatuses}
+              isDark={isDark}
+              onToggleProject={toggleProject}
+              onOpenFolder={openInFolder}
+            />
 
-          <WorkbenchReadinessCard
-            projectInfo={projectInfo}
-            isDark={isDark}
-            selectedProject={selectedProject !== null}
-            isValidationRunning={isValidationRunning}
-            validationResults={validationResults}
-            onOpenParaConfig={openParaConfig}
-            onValidateTemplate={handleValidateTemplate}
-            onValidateExcel={handleValidateExcel}
-            onClearValidation={clearValidationResults}
-          />
+            <WorkbenchReadinessCard
+              projectInfo={projectInfo}
+              isDark={isDark}
+              selectedProject={selectedProject !== null}
+              isValidationRunning={isValidationRunning}
+              validationResults={validationResults}
+              onOpenParaConfig={openParaConfig}
+              onValidateTemplate={handleValidateTemplate}
+              onValidateExcel={handleValidateExcel}
+              onClearValidation={clearValidationResults}
+            />
+          </StepGroup>
 
           {/* ② 渲染材料与操作 */}
-          <div className={clsx('border-t pt-3', isDark ? 'border-gray-700' : 'border-gray-200')}>
-            <StepLabel text={t('workbench.stepRender')} />
+          <StepGroup>
+            <StepLabel n="②" text={t('workbench.stepRender')} />
             <WorkbenchOutputCard
               outputFormat={config.outputFormat}
               renderType={config.renderType}
@@ -235,11 +249,11 @@ export const WorkbenchPanel = React.memo(function WorkbenchPanel() {
               onDeleteOutput={handleDeleteOutput}
               onDeleteYaml={handleDeleteYaml}
             />
-          </div>
+          </StepGroup>
 
           {/* ③ 校对与输出 */}
-          <div className={clsx('border-t pt-3', isDark ? 'border-gray-700' : 'border-gray-200')}>
-            <StepLabel text={t('workbench.stepResult')} />
+          <StepGroup>
+            <StepLabel n="③" text={t('workbench.stepResult')} />
             <WorkbenchDependencyCard selectedProject={selectedProject} isDark={isDark} />
             <WorkbenchProofreadCard selectedProject={selectedProject} isDark={isDark} />
             <WorkbenchLabelCard selectedProjectIds={selectedProjectIds} isDark={isDark} />
@@ -267,7 +281,7 @@ export const WorkbenchPanel = React.memo(function WorkbenchPanel() {
                 isDark={isDark}
               />
             )}
-          </div>
+          </StepGroup>
         </div>
       )}
     </div>
