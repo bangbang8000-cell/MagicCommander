@@ -71,7 +71,7 @@ interface UIState {
   // AI 配置
   aiConfig: AIConfig
   setAIConfig: (config: Partial<AIConfig>) => void
-  setProviderConfig: (key: string, config: { apiKey?: string; model?: string; baseUrl?: string }) => void
+  setProviderConfig: (key: string, config: { apiKey?: string; model?: string; baseUrl?: string; models?: string[] }) => void
 
   // 自主模式（从 chat.store 迁移到此，统一由设置面板管理）
   autonomyMode: 'advisor' | 'semi_auto' | 'full_auto'
@@ -102,6 +102,8 @@ export interface ProviderConfig {
   apiKey: string
   model: string
   baseUrl: string
+  /** M2: 已拉取的模型列表（持久化回写，下拉优先显示最新模型） */
+  models?: string[]
 }
 
 export interface GeneralSettings {

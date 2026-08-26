@@ -1437,9 +1437,9 @@ export function setupIpcHandlers(window: BrowserWindow): void {
 
   ipcMain.handle(
     'aihub:configureProvider',
-    async (e, provider: string, apiKey: string, model?: string, baseUrl?: string): Promise<void> => {
+    async (e, provider: string, apiKey: string, model?: string, baseUrl?: string, models?: string[]): Promise<void> => {
       if (!isTrustedSender(e)) throw new Error('无权执行该操作')
-      await aiHubService.configureProvider(provider, apiKey, model, baseUrl)
+      await aiHubService.configureProvider(provider, apiKey, model, baseUrl, models)
     },
   )
 

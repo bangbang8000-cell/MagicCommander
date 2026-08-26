@@ -172,8 +172,8 @@ const api = {
     ) => ipcRenderer.invoke('aihub:chat', sessionId, message, mode, provider, attachments, autonomyMode, projectName),
     clearSession: (sessionId: string) => ipcRenderer.invoke('aihub:clearSession', sessionId),
     getProviders: () => ipcRenderer.invoke('aihub:getProviders'),
-    configureProvider: (provider: string, apiKey: string, model?: string, baseUrl?: string) =>
-      ipcRenderer.invoke('aihub:configureProvider', provider, apiKey, model, baseUrl),
+    configureProvider: (provider: string, apiKey: string, model?: string, baseUrl?: string, models?: string[]) =>
+      ipcRenderer.invoke('aihub:configureProvider', provider, apiKey, model, baseUrl, models),
     setDefaultProvider: (provider: string) => ipcRenderer.invoke('aihub:setDefaultProvider', provider),
     testConnection: (provider: string, apiKey: string, baseUrl: string, model: string) =>
       ipcRenderer.invoke('aihub:testConnection', provider, apiKey, baseUrl, model),

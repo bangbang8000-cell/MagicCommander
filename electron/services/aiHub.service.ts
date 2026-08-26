@@ -5,6 +5,7 @@
 import { spawn, execSync, ChildProcess } from 'child_process'
 import * as path from 'path'
 import * as fs from 'fs'
+import * as net from 'net'
 import crypto from 'crypto'
 import { EventEmitter } from 'events'
 import { getPythonPath, getBackendDir, getWorkspaceDir, getTemplateDir } from '../config'
@@ -50,6 +51,72 @@ export class AIHubService extends EventEmitter {
 
   getStatus(): AIHubStatus {
     return { ...this.status }
+  }
+
+  /**
+   * M2 修复：回收被旧 AI Hub 进程占用的端口（401 根因——旧进程持旧 token）
+   * 端口被占用 → 找到占用 PID 并 kill（该端口为本应用 AI Hub 专用）
+   */
+  private async reclaimPort(): Promise<void> {
+    try {
+      const occupied = await new Promise<boolean>((resolve) => {
+        const sock = new net.Socket()
+        sock.setTimeout(1500)
+        sock.once('connect', () => { sock.destroy(); resolve(true) })
+        sock.once('error', () => resolve(false))
+        sock.once('timeout', () => { sock.destroy(); resolve(false) })
+        sock.connect(this.port, this.host)
+      })
+      if (!occupied) return
+      logger.warn(`[AIHub] Port ${this.port} occupied by stale process, reclaiming...`)
+      const isWin = process.platform === 'win32'
+      const cmd = isWin ? `netstat -ano | findstr :${this.port}` : `lsof -ti :${this.port}`
+      const out = execSync(cmd, { encoding: 'utf-8', timeout: 5000, stdio: ['pipe', 'pipe', 'pipe'] })
+      const pids = new Set<number>()
+      for (const line of out.split('\n')) {
+        const m = line.match(/(\d+)\s*$/)
+        if (m && m[1] !== String(process.pid)) pids.add(Number(m[1]))
+      }
+      for (const pid of pids) {
+        try {
+          process.kill(pid, 'SIGKILL')
+          logger.info(`[AIHub] Killed stale process ${pid}`)
+        } catch { /* 已退出 */ }
+      }
+      // 等待端口释放
+      await new Promise((r) => setTimeout(r, 800))
+    } catch {
+      /* 无占用或命令不可用，忽略 */
+    }
+  }
+
+  /**
+   * M2 修复：确保 AI Hub 已运行（所有 /api/chat/* 调用前调用）
+   */
+  private async ensureRunning(): Promise<void> {
+    if (this.status.running) return
+    await this.reclaimPort()
+    await this.start()
+  }
+
+  /**
+   * M2 修复：401/连接失败 → 重启 hub 重试一次
+   */
+  private async withRetry<T>(fn: () => Promise<T>): Promise<T> {
+    try {
+      return await fn()
+    } catch (err) {
+      const msg = (err as Error).message || ''
+      const isAuthOrConn =
+        msg.includes('401') || msg.includes('Unauthorized') ||
+        msg.includes('ECONNREFUSED') || msg.includes('fetch failed') ||
+        msg.includes('Failed to fetch') || msg.includes('Connection reset')
+      if (!isAuthOrConn) throw err
+      logger.warn('[AIHub] Auth/connection failure, restarting hub and retrying once')
+      await this.stop()
+      await this.ensureRunning()
+      return await fn()
+    }
   }
 
   /**
@@ -366,62 +433,67 @@ export class AIHubService extends EventEmitter {
     projectName?: string,
     onChunk?: (text: string) => void,
   ): Promise<string> {
-    const response = await fetch(`${this.baseUrl}/api/chat/send`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', ...this.authHeaders() },
-      body: JSON.stringify({
-        session_id: sessionId,
-        message,
-        mode,
-        provider,
-        attachments,
-        autonomy_mode: autonomyMode,
-        project_name: projectName,
-      }),
-    })
+    // M2 修复：调用前确保运行（未运行先启动），401/连接失败重启重试一次
+    await this.ensureRunning()
+    return this.withRetry(async () => {
+      const response = await fetch(`${this.baseUrl}/api/chat/send`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...this.authHeaders() },
+        body: JSON.stringify({
+          session_id: sessionId,
+          message,
+          mode,
+          provider,
+          attachments,
+          autonomy_mode: autonomyMode,
+          project_name: projectName,
+        }),
+      })
 
-    if (!response.ok) {
-      const err = await response.text()
-      throw new Error(`AI Hub 请求失败: ${response.status} ${err}`)
-    }
+      if (!response.ok) {
+        const err = await response.text()
+        throw new Error(`AI Hub 请求失败: ${response.status} ${err}`)
+      }
 
-    const reader = response.body?.getReader()
-    if (!reader) throw new Error('无法读取流式响应')
+      const reader = response.body?.getReader()
+      if (!reader) throw new Error('无法读取流式响应')
 
-    const decoder = new TextDecoder()
-    let fullContent = ''
-    let buffer = ''
+      const decoder = new TextDecoder()
+      let fullContent = ''
+      let buffer = ''
 
-    while (true) {
-      const { done, value } = await reader.read()
-      if (done) break
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
 
-      buffer += decoder.decode(value, { stream: true })
-      const lines = buffer.split('\n')
-      buffer = lines.pop() || ''
+        buffer += decoder.decode(value, { stream: true })
+        const lines = buffer.split('\n')
+        buffer = lines.pop() || ''
 
-      for (const line of lines) {
-        if (line.startsWith('data: ')) {
-          try {
-            const data = JSON.parse(line.slice(6))
-            if (data.content) {
-              fullContent += data.content
-              onChunk?.(data.content)
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            try {
+              const data = JSON.parse(line.slice(6))
+              if (data.content) {
+                fullContent += data.content
+                onChunk?.(data.content)
+              }
+            } catch {
+              // 忽略解析错误
             }
-          } catch {
-            // 忽略解析错误
           }
         }
       }
-    }
 
-    return fullContent
+      return fullContent
+    })
   }
 
   /**
    * 清除会话
    */
   async clearSession(sessionId: string): Promise<void> {
+    await this.ensureRunning()
     await fetch(`${this.baseUrl}/api/chat/clear?session_id=${encodeURIComponent(sessionId)}`, {
       method: 'POST',
       headers: this.authHeaders(),
@@ -432,6 +504,7 @@ export class AIHubService extends EventEmitter {
    * 获取 Provider 列表
    */
   async getProviders(): Promise<Array<{ name: string; model: string; enabled: boolean; is_default: boolean }>> {
+    await this.ensureRunning()
     const response = await fetch(`${this.baseUrl}/api/chat/providers`, { headers: this.authHeaders() })
     const data = await response.json()
     return data.providers || []
@@ -440,11 +513,12 @@ export class AIHubService extends EventEmitter {
   /**
    * 配置 Provider API Key
    */
-  async configureProvider(provider: string, apiKey: string, model?: string, baseUrl?: string): Promise<void> {
+  async configureProvider(provider: string, apiKey: string, model?: string, baseUrl?: string, models?: string[]): Promise<void> {
+    await this.ensureRunning()
     await fetch(`${this.baseUrl}/api/chat/config`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...this.authHeaders() },
-      body: JSON.stringify({ provider, api_key: apiKey, model, base_url: baseUrl }),
+      body: JSON.stringify({ provider, api_key: apiKey, model, base_url: baseUrl, models }),
     })
   }
 
@@ -452,6 +526,7 @@ export class AIHubService extends EventEmitter {
    * 设置默认 Provider
    */
   async setDefaultProvider(provider: string): Promise<void> {
+    await this.ensureRunning()
     await fetch(`${this.baseUrl}/api/chat/config/default`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...this.authHeaders() },
@@ -468,6 +543,7 @@ export class AIHubService extends EventEmitter {
     baseUrl: string,
     model: string,
   ): Promise<{ status: string; message: string }> {
+    await this.ensureRunning()
     const response = await fetch(`${this.baseUrl}/api/chat/test`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...this.authHeaders() },
@@ -550,6 +626,7 @@ export class AIHubService extends EventEmitter {
    * 保存 Skill
    */
   async saveSkill(name: string, content: string): Promise<{ status: string; name: string }> {
+    await this.ensureRunning()
     const response = await fetch(`${this.baseUrl}/api/chat/skill/save`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...this.authHeaders() },
@@ -562,12 +639,16 @@ export class AIHubService extends EventEmitter {
    * 获取可用模型列表
    */
   async fetchModels(baseUrl: string, apiKey: string): Promise<{ status: string; models: string[]; message?: string }> {
-    const response = await fetch(`${this.baseUrl}/api/chat/models`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', ...this.authHeaders() },
-      body: JSON.stringify({ base_url: baseUrl, api_key: apiKey }),
+    // M2 修复：调用前确保运行 + 401/连接失败重启重试
+    await this.ensureRunning()
+    return this.withRetry(async () => {
+      const response = await fetch(`${this.baseUrl}/api/chat/models`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...this.authHeaders() },
+        body: JSON.stringify({ base_url: baseUrl, api_key: apiKey }),
+      })
+      return await response.json()
     })
-    return await response.json()
   }
 }
 

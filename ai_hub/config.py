@@ -134,11 +134,13 @@ class AIHubSettings(BaseSettings):
         result = []
         for key, catalog in PROVIDER_CATALOG.items():
             config = self.get_provider_config(key)
+            # M2: 已拉取模型优先（secrets 持久化），否则用静态目录
+            fetched = (self.provider_configs.get(key) or {}).get("models") or catalog["models"]
             result.append({
                 "key": key,
                 "name": catalog["name"],
                 "base_url": catalog["base_url"],
-                "models": catalog["models"],
+                "models": fetched,
                 "current_model": config.model,
                 "enabled": config.enabled,
                 "is_default": key == self.default_provider,

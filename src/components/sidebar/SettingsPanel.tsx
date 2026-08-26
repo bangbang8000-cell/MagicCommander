@@ -280,7 +280,18 @@ export function SettingsPanel() {
         return
       }
       const result = await window.electron.aihub.fetchModels(baseUrl.trim() || catalog.baseUrl, apiKey.trim())
-      if (result.status === 'ok' && result.models.length > 0) setFetchedModels(result.models)
+      if (result.status === 'ok' && result.models.length > 0) {
+        setFetchedModels(result.models)
+        // M2: 拉取结果写回本地配置 + 同步后端持久化（下拉优先显示最新模型）
+        setProviderConfig(activeProvider, { models: result.models })
+        await window.electron.aihub.configureProvider(
+          activeProvider,
+          apiKey.trim(),
+          model,
+          baseUrl.trim() || catalog.baseUrl,
+          result.models,
+        )
+      }
     } catch (e) {
       console.error('Fetch models failed:', e)
     } finally {
@@ -703,7 +714,7 @@ export function SettingsPanel() {
                         : 'bg-white text-gray-900 focus:ring-1 focus:ring-blue-400 border border-gray-300',
                     )}
                   />
-                ) : fetchedModels.length > 0 ? (
+                ) : fetchedModels.length > 0 || aiConfig.providers[activeProvider]?.models?.length ? (
                   <select
                     value={model}
                     onChange={(e) => setModel(e.target.value)}
@@ -715,7 +726,7 @@ export function SettingsPanel() {
                     )}
                   >
                     <option value="">{t('common:settings.ai.selectModel')}</option>
-                    {fetchedModels.map((m) => (
+                    {(fetchedModels.length > 0 ? fetchedModels : aiConfig.providers[activeProvider]?.models ?? []).map((m) => (
                       <option key={m} value={m}>
                         {m}
                       </option>

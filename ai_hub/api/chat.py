@@ -227,11 +227,15 @@ async def configure_provider(req: ConfigProvidersRequest):
     from ai_hub.config import save_secrets, load_secrets
 
     secrets = load_secrets()
-    secrets[req.provider] = {
+    entry = {
         "api_key": req.api_key,
         "model": req.model or "",
         "base_url": req.base_url or "",
     }
+    # M2: 模型列表持久化回写（保留已拉取的最新模型）
+    if req.models:
+        entry["models"] = req.models
+    secrets[req.provider] = entry
     save_secrets(secrets)
 
     from ai_hub.config import apply_secrets
