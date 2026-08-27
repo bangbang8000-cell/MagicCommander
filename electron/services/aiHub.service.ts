@@ -292,6 +292,27 @@ export class AIHubService extends EventEmitter {
 
       proc.stdout?.on('data', (data: Buffer) => {
         const text = data.toString().trim()
+        // AI-2 修复：端口被占用信号（main.py 预绑定失败退出码 2 的 stdout 标记，防御性兜底）。
+        // 置 lastError 并判本次启动失败：started 仍为 false，随后进程 exit 回调不会调度自动重启，
+        // 交由上层（reclaimPort 主防线 + 用户提示）处理，避免无限重启。
+        if (text.includes('AI_HUB_PORT_IN_USE')) {
+          if (started) return
+          clearTimeout(timeout)
+          this.process = null
+          this.status = {
+            ...this.status,
+            running: false,
+            lastError: `端口 ${this.port} 被占用`,
+          }
+          logger.error(`[AIHub] Port ${this.port} in use`)
+          try {
+            proc.kill()
+          } catch {
+            /* 进程可能已退出 */
+          }
+          reject(new Error(`端口 ${this.port} 被占用`))
+          return
+        }
         if (text.includes('AI_HUB_READY')) {
           started = true
           clearTimeout(timeout)

@@ -52,6 +52,22 @@ def main():
     from ai_hub.llm.provider import init_providers
     init_providers()
 
+    # 预绑定端口（防御性兜底）：uvicorn 启动前先占用端口，若已被占用立即输出
+    # AI_HUB_PORT_IN_USE 信号并以退出码 2 退出，供 Electron 侧识别。
+    # 主防线是 Electron 侧 reclaimPort（M2），此处为兜底防线。
+    import socket
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    try:
+        # POSIX 设 SO_REUSEADDR（TIME_WAIT 快速复用）；Windows 不设避免意外复用占用端口
+        if hasattr(socket, "SO_REUSEADDR") and not sys.platform.startswith("win"):
+            sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        sock.bind((args.host, args.port))
+        sock.listen(2048)
+    except OSError as e:
+        print(f"AI_HUB_PORT_IN_USE port={args.port} err={e}", flush=True)
+        sock.close()
+        sys.exit(2)
+
     # 启动打印就绪信号（Electron 主进程通过此信号判断启动成功）
     print(f"AI_HUB_READY port={args.port}", flush=True)
 
@@ -74,15 +90,20 @@ def main():
 
     app.include_router(chat_router)
 
-    # 启动 FastAPI
+    # 启动 FastAPI（复用预绑定 socket，避免端口竞态）
     import uvicorn
-    uvicorn.run(
+    config = uvicorn.Config(
         app,
         host=args.host,
         port=args.port,
         log_level="info",
         log_config=None,  # 使用自定义 logging
     )
+    server = uvicorn.Server(config)
+    try:
+        server.run(sockets=[sock])
+    finally:
+        sock.close()
 
 
 if __name__ == "__main__":
