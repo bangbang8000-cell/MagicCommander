@@ -4,15 +4,18 @@
  * - isAutoFetchThrottled：30s 节流窗口判断
  */
 import { describe, it, expect } from 'vitest'
-import {
-  AUTO_FETCH_THROTTLE_MS,
-  isAutoFetchThrottled,
-  shouldAutoFetchModels,
-} from '@/components/sidebar/SettingsPanel'
+import { AUTO_FETCH_THROTTLE_MS, isAutoFetchThrottled, shouldAutoFetchModels } from '@/components/sidebar/SettingsPanel'
 
 describe('shouldAutoFetchModels（保存配置后应自动拉取条件）', () => {
   it('已配 apiKey + baseUrl 的非本地 provider → 应拉取', () => {
-    expect(shouldAutoFetchModels({ apiKey: 'sk-123', baseUrl: 'https://api.deepseek.com/v1', isOllama: false, isCustom: false })).toBe(true)
+    expect(
+      shouldAutoFetchModels({
+        apiKey: 'sk-123',
+        baseUrl: 'https://api.deepseek.com/v1',
+        isOllama: false,
+        isCustom: false,
+      }),
+    ).toBe(true)
   })
 
   it('已配 apiKey 但 baseUrl 为空 → 不应拉取（无法请求）', () => {
@@ -20,11 +23,15 @@ describe('shouldAutoFetchModels（保存配置后应自动拉取条件）', () =
   })
 
   it('无 apiKey 的远程 provider → 不应拉取', () => {
-    expect(shouldAutoFetchModels({ apiKey: '', baseUrl: 'https://api.deepseek.com/v1', isOllama: false, isCustom: false })).toBe(false)
+    expect(
+      shouldAutoFetchModels({ apiKey: '', baseUrl: 'https://api.deepseek.com/v1', isOllama: false, isCustom: false }),
+    ).toBe(false)
   })
 
   it('ollama 有默认 baseUrl 但无 apiKey → 应拉取（本地模型无需 key）', () => {
-    expect(shouldAutoFetchModels({ apiKey: '', baseUrl: 'http://localhost:11434/v1', isOllama: true, isCustom: false })).toBe(true)
+    expect(
+      shouldAutoFetchModels({ apiKey: '', baseUrl: 'http://localhost:11434/v1', isOllama: true, isCustom: false }),
+    ).toBe(true)
   })
 
   it('ollama 无 baseUrl 也无 apiKey → 不应拉取', () => {
@@ -32,7 +39,14 @@ describe('shouldAutoFetchModels（保存配置后应自动拉取条件）', () =
   })
 
   it('custom 已配 apiKey + baseUrl → 应拉取', () => {
-    expect(shouldAutoFetchModels({ apiKey: 'sk-abc', baseUrl: 'https://custom.example/v1', isOllama: false, isCustom: true })).toBe(true)
+    expect(
+      shouldAutoFetchModels({
+        apiKey: 'sk-abc',
+        baseUrl: 'https://custom.example/v1',
+        isOllama: false,
+        isCustom: true,
+      }),
+    ).toBe(true)
   })
 
   it('custom 有 apiKey 但 baseUrl 为空 → 不应拉取', () => {
