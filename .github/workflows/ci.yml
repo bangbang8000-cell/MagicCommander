@@ -17,6 +17,7 @@ jobs:
         with: { python-version: '3.12' }
       - run: npm ci --ignore-scripts
       - run: pip install -r backend/requirements.txt
+      - run: pip install -r ai_hub/requirements.txt
       - run: npm run typecheck
       - run: npm run lint
       - run: npm run format:check
