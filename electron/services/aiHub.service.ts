@@ -504,10 +504,13 @@ export class AIHubService extends EventEmitter {
    * 清除会话
    */
   async clearSession(sessionId: string): Promise<void> {
+    // AI-2 修复：调用前确保运行，401/连接失败重启重试一次
     await this.ensureRunning()
-    await fetch(`${this.baseUrl}/api/chat/clear?session_id=${encodeURIComponent(sessionId)}`, {
-      method: 'POST',
-      headers: this.authHeaders(),
+    return this.withRetry(async () => {
+      await fetch(`${this.baseUrl}/api/chat/clear?session_id=${encodeURIComponent(sessionId)}`, {
+        method: 'POST',
+        headers: this.authHeaders(),
+      })
     })
   }
 
@@ -515,10 +518,13 @@ export class AIHubService extends EventEmitter {
    * 获取 Provider 列表
    */
   async getProviders(): Promise<Array<{ name: string; model: string; enabled: boolean; is_default: boolean }>> {
+    // AI-2 修复：调用前确保运行，401/连接失败重启重试一次
     await this.ensureRunning()
-    const response = await fetch(`${this.baseUrl}/api/chat/providers`, { headers: this.authHeaders() })
-    const data = await response.json()
-    return data.providers || []
+    return this.withRetry(async () => {
+      const response = await fetch(`${this.baseUrl}/api/chat/providers`, { headers: this.authHeaders() })
+      const data = await response.json()
+      return data.providers || []
+    })
   }
 
   /**
@@ -531,11 +537,14 @@ export class AIHubService extends EventEmitter {
     baseUrl?: string,
     models?: string[],
   ): Promise<void> {
+    // AI-2 修复：调用前确保运行，401/连接失败重启重试一次
     await this.ensureRunning()
-    await fetch(`${this.baseUrl}/api/chat/config`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', ...this.authHeaders() },
-      body: JSON.stringify({ provider, api_key: apiKey, model, base_url: baseUrl, models }),
+    return this.withRetry(async () => {
+      await fetch(`${this.baseUrl}/api/chat/config`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...this.authHeaders() },
+        body: JSON.stringify({ provider, api_key: apiKey, model, base_url: baseUrl, models }),
+      })
     })
   }
 
@@ -543,11 +552,14 @@ export class AIHubService extends EventEmitter {
    * 设置默认 Provider
    */
   async setDefaultProvider(provider: string): Promise<void> {
+    // AI-2 修复：调用前确保运行，401/连接失败重启重试一次
     await this.ensureRunning()
-    await fetch(`${this.baseUrl}/api/chat/config/default`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', ...this.authHeaders() },
-      body: JSON.stringify({ provider }),
+    return this.withRetry(async () => {
+      await fetch(`${this.baseUrl}/api/chat/config/default`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...this.authHeaders() },
+        body: JSON.stringify({ provider }),
+      })
     })
   }
 
@@ -560,13 +572,16 @@ export class AIHubService extends EventEmitter {
     baseUrl: string,
     model: string,
   ): Promise<{ status: string; message: string }> {
+    // AI-2 修复：调用前确保运行，401/连接失败重启重试一次
     await this.ensureRunning()
-    const response = await fetch(`${this.baseUrl}/api/chat/test`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', ...this.authHeaders() },
-      body: JSON.stringify({ provider, api_key: apiKey, base_url: baseUrl, model }),
+    return this.withRetry(async () => {
+      const response = await fetch(`${this.baseUrl}/api/chat/test`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...this.authHeaders() },
+        body: JSON.stringify({ provider, api_key: apiKey, base_url: baseUrl, model }),
+      })
+      return await response.json()
     })
-    return await response.json()
   }
 
   /**
@@ -643,13 +658,16 @@ export class AIHubService extends EventEmitter {
    * 保存 Skill
    */
   async saveSkill(name: string, content: string): Promise<{ status: string; name: string }> {
+    // AI-2 修复：调用前确保运行，401/连接失败重启重试一次
     await this.ensureRunning()
-    const response = await fetch(`${this.baseUrl}/api/chat/skill/save`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', ...this.authHeaders() },
-      body: JSON.stringify({ name, content }),
+    return this.withRetry(async () => {
+      const response = await fetch(`${this.baseUrl}/api/chat/skill/save`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...this.authHeaders() },
+        body: JSON.stringify({ name, content }),
+      })
+      return await response.json()
     })
-    return await response.json()
   }
 
   /**
