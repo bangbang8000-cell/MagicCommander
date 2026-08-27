@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useUIStore } from '@/stores/ui.store'
 import { usePlatformStore } from '@/stores/platform.store'
 import {
@@ -76,6 +76,36 @@ const PROVIDER_CATALOG: Record<string, { name: string; baseUrl: string; models: 
 
 const PROVIDER_KEYS = Object.keys(PROVIDER_CATALOG)
 type SettingsTab = 'general' | 'ai' | 'platform' | 'advanced' | 'about'
+
+// AI-3：保存配置后自动拉取模型的节流窗口（毫秒）
+export const AUTO_FETCH_THROTTLE_MS = 30_000
+
+export interface AutoFetchModelsCondition {
+  apiKey: string
+  baseUrl: string
+  isOllama: boolean
+  isCustom: boolean
+}
+
+/**
+ * AI-3：判断保存 Provider 配置后是否应自动拉取模型。
+ * 仅对已配 apiKey 的 provider 触发；ollama 为本地服务可无 key（有 baseUrl 即可）。
+ */
+export function shouldAutoFetchModels(cfg: AutoFetchModelsCondition): boolean {
+  const hasKey = Boolean(cfg.apiKey.trim())
+  const hasBase = Boolean(cfg.baseUrl.trim())
+  if (cfg.isOllama) {
+    return hasBase
+  }
+  return hasKey && hasBase
+}
+
+/**
+ * AI-3：节流判断——距上次自动拉取未超过 windowMs 则返回 true（节流中，跳过本次）。
+ */
+export function isAutoFetchThrottled(lastFetchAt: number, now: number, windowMs: number): boolean {
+  return now - lastFetchAt < windowMs
+}
 
 const TAB_CONFIG: { id: SettingsTab; icon: React.ReactNode; labelKey: string }[] = [
   { id: 'general', icon: <Globe size={14} />, labelKey: 'cloud:settings.general' },
@@ -188,6 +218,39 @@ export function SettingsPanel() {
   const isCustom = activeProvider === 'custom'
   const isDefault = aiConfig.defaultProvider === activeProvider
 
+  // AI-3：自动拉取模型节流时间戳（ref，不触发重渲染；仅保存成功后自动拉取使用）
+  const lastAutoFetchRef = useRef(0)
+
+  /**
+   * AI-3：保存/应用 Provider 配置成功后，对已配 apiKey 的 provider 节流触发一次模型拉取。
+   * 失败静默（不打断用户操作），30s 窗口内不重复自动拉取。
+   */
+  const autoFetchModels = useCallback(async () => {
+    const now = Date.now()
+    if (isAutoFetchThrottled(lastAutoFetchRef.current, now, AUTO_FETCH_THROTTLE_MS)) return
+    if (!shouldAutoFetchModels({ apiKey, baseUrl: baseUrl.trim() || catalog.baseUrl, isOllama, isCustom })) return
+    lastAutoFetchRef.current = now
+    try {
+      const err = await ensureAIHubReady()
+      if (err) return
+      const result = await window.electron.aihub.fetchModels(baseUrl.trim() || catalog.baseUrl, apiKey.trim())
+      if (result.status === 'ok' && result.models.length > 0) {
+        setFetchedModels(result.models)
+        // 拉取结果写回本地配置 + 同步后端持久化（下拉优先显示最新模型）
+        setProviderConfig(activeProvider, { models: result.models })
+        await window.electron.aihub.configureProvider(
+          activeProvider,
+          apiKey.trim(),
+          model,
+          baseUrl.trim() || catalog.baseUrl,
+          result.models,
+        )
+      }
+    } catch {
+      /* AI-3：静默失败 */
+    }
+  }, [apiKey, baseUrl, model, activeProvider, catalog, isOllama, isCustom, ensureAIHubReady, setProviderConfig])
+
   useEffect(() => {
     const saved = aiConfig.providers[activeProvider]
     setApiKey(saved?.apiKey || '')
@@ -223,12 +286,14 @@ export function SettingsPanel() {
       }
       setSaved(true)
       setTimeout(() => setSaved(false), 2000)
+      // AI-3：保存成功后节流自动拉取模型（静默失败，不阻塞保存提示）
+      void autoFetchModels()
     } catch (e) {
       console.error('Save provider config failed:', e)
     } finally {
       setSaving(false)
     }
-  }, [activeProvider, apiKey, model, baseUrl, catalog, isOllama, isCustom, setProviderConfig])
+  }, [activeProvider, apiKey, model, baseUrl, catalog, isOllama, isCustom, setProviderConfig, autoFetchModels])
 
   const handleSetDefault = useCallback(async () => {
     try {
