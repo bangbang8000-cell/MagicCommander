@@ -172,7 +172,10 @@ class AgentSession:
             if validation.permission == ToolPermission.CONFIRM and self.autonomy_mode != "full_auto":
                 # 记录待确认工具，等待用户下一条回复确认/取消
                 self.pending_confirmation = {"name": tool_name, "args": tool_args}
-                yield f"\n\n> ⚠️ 操作 `{tool_name}` 需要确认。请回复 '确认' 继续，或 '取消' 中止。\n\n"
+                # M1（PRD v3.3 AI-1）：结构化确认标记，独立一行 `---CONFIRM:<tool>---`，
+                # 前端据此渲染「确认/取消」按钮卡片（渲染时按行剥离，不进显示区）。
+                # 保留原确认文本，旧版前端/无标记场景仍可手动输入"确认"/"取消"。
+                yield f"\n---CONFIRM:{tool_name}---\n\n> ⚠️ 操作 `{tool_name}` 需要确认。请回复 '确认' 继续，或 '取消' 中止。\n\n"
                 return
 
             tool_call_id = f"call_{uuid.uuid4().hex[:12]}"

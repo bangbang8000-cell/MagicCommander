@@ -7,6 +7,7 @@
 """
 import asyncio
 import os
+import re
 import sys
 from unittest import mock
 
@@ -92,3 +93,53 @@ def test_run_stream_tool_progress_contains_tool_name():
 
     joined = "\n".join(chunks)
     assert "list_projects" in joined
+
+
+# --- CONFIRM 结构化标记（PRD v3.3 AI-1 确认卡片）---
+
+TOOL_CALL_CONFIRM = (
+    "<tool_calls><invoke name=\"delete_project\">"
+    "<parameter name=\"projectName\">projX</parameter>"
+    "</invoke></tool_calls>"
+)
+
+
+def test_confirm_branch_yields_structured_marker():
+    """CONFIRM 分支 yield 独立标记行 ---CONFIRM:<tool>--- 且保留原确认文本（向后兼容）"""
+    session = AgentSession()
+    session.provider = MockStreamProvider([TOOL_CALL_CONFIRM])
+    session.autonomy_mode = "semi_auto"
+    chunks = _collect(session)
+    joined = "\n".join(chunks)
+    assert "---CONFIRM:delete_project---" in joined
+    assert "需要确认" in joined
+    assert session.pending_confirmation is not None
+    assert session.pending_confirmation["name"] == "delete_project"
+    assert session.pending_confirmation["args"] == {"projectName": "projX"}
+
+
+def test_confirm_marker_on_own_line():
+    """标记必须位于独立行（前端按行剥离，不进显示区）"""
+    session = AgentSession()
+    session.provider = MockStreamProvider([TOOL_CALL_CONFIRM])
+    session.autonomy_mode = "semi_auto"
+    chunks = _collect(session)
+    joined = "\n".join(chunks)
+    assert re.search(r"(^|\n)---CONFIRM:delete_project---(\n|$)", joined)
+
+
+def test_full_auto_no_confirm_marker():
+    """full_auto 直接执行，不产出确认标记"""
+    session = AgentSession()
+    session.provider = MockStreamProvider([TOOL_CALL_CONFIRM])
+    session.autonomy_mode = "full_auto"
+
+    async def fake_execute(name, args):
+        return {"success": True, "result": "deleted"}
+
+    with mock.patch("ai_hub.agent.agent.execute_tool", new=fake_execute):
+        chunks = _collect(session)
+
+    joined = "\n".join(chunks)
+    assert "---CONFIRM:" not in joined
+    assert "正在调用工具" in joined
