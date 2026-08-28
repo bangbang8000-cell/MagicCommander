@@ -2,12 +2,19 @@ import { useTranslation } from 'react-i18next'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import clsx from 'clsx'
-import { User, Bot, Copy, Check, Save, X } from 'lucide-react'
+import { User, Bot, Copy, Check, Save, X, Loader2 } from 'lucide-react'
 import { useState, useCallback, useMemo, memo } from 'react'
 import type { ChatMessage } from '@/types/chat'
 import { AttachmentPreview } from './AttachmentPreview'
 import { PlanDisplay } from './PlanDisplay'
 import type { PlanStep } from './PlanDisplay'
+import {
+  useChatStore,
+  parseConfirmationMarker,
+  isWaitingFirstChunk,
+  sendConfirmationReply,
+} from '@/stores/chat.store'
+import { useProjectStore } from '@/stores/project.store'
 
 interface ChatMessageBubbleProps {
   message: ChatMessage
@@ -97,12 +104,42 @@ export const ChatMessageBubble = memo(function ChatMessageBubble({
   const [copied, setCopied] = useState(false)
   const [skillSaved, setSkillSaved] = useState(false)
   const [skillDismissed, setSkillDismissed] = useState(false)
+  // PRD v3.3 AI-1：确认卡片已处理（点击确认/取消后卡片消失）
+  const [confirmationResolved, setConfirmationResolved] = useState(false)
   const isUser = message.role === 'user'
   const isSystem = message.role === 'system'
 
   const { steps, cleanedContent } = useMemo(
     () => (isUser || isSystem ? { steps: [], cleanedContent: message.content } : parsePlanSteps(message.content)),
     [message.content, isUser, isSystem],
+  )
+
+  // PRD v3.3 AI-1：解析确认标记（assistant 消息），渲染时剥离标记行
+  const confirmation = useMemo(
+    () => (isUser || isSystem ? null : parseConfirmationMarker(message.content)),
+    [message.content, isUser, isSystem],
+  )
+  const displayContent = confirmation ? confirmation.displayContent : message.content
+
+  // PRD v3.3 AI-2：订阅「等待首 chunk」流式状态，判定本消息是否在思考期
+  const waitingFirstChunk = useChatStore((s) => s.waitingFirstChunk)
+  const pendingAssistantMsgId = useChatStore((s) => s.pendingAssistantMsgId)
+  const isSending = useChatStore((s) => s.isSending)
+  const showThinking = useMemo(
+    () => isWaitingFirstChunk(message, waitingFirstChunk, pendingAssistantMsgId),
+    [message, waitingFirstChunk, pendingAssistantMsgId],
+  )
+
+  // PRD v3.3 AI-1：确认/取消按钮回灌；空闲时才发送，发送后卡片立即消失
+  const handleConfirmation = useCallback(
+    (reply: '确认' | '取消') => {
+      if (isSending || confirmationResolved) return
+      setConfirmationResolved(true)
+      // 带入当前项目名，与 ChatPanel.handleSend 一致，避免后端 set_mode 重置项目上下文
+      const projectName = useProjectStore.getState().selectedProject?.name
+      sendConfirmationReply(reply, projectName)
+    },
+    [isSending, confirmationResolved],
   )
 
   const skillSuggestion = useMemo(
@@ -112,13 +149,13 @@ export const ChatMessageBubble = memo(function ChatMessageBubble({
 
   const handleCopy = useCallback(async () => {
     try {
-      await navigator.clipboard.writeText(message.content)
+      await navigator.clipboard.writeText(displayContent)
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     } catch {
       /* 忽略预期错误 */
     }
-  }, [message.content])
+  }, [displayContent])
 
   const handleSaveSkill = useCallback(async () => {
     if (!skillSuggestion) return
@@ -174,7 +211,15 @@ export const ChatMessageBubble = memo(function ChatMessageBubble({
         {/* 📋 执行计划展示 */}
         {steps.length > 0 && <PlanDisplay steps={steps} isDark={isDark} />}
 
-        {/* Markdown 内容 */}
+        {/* PRD v3.3 AI-2：等待首 chunk 思考指示器（动态指示，收到首 chunk 后消失） */}
+        {showThinking && (
+          <div className={clsx('flex items-center gap-1.5 text-xs py-0.5', isDark ? 'text-gray-400' : 'text-gray-500')}>
+            <Loader2 size={12} className="animate-spin" />
+            <span>{t('common:chat.thinking')}</span>
+          </div>
+        )}
+
+        {/* Markdown 内容（确认标记行已剥离，不进显示区） */}
         <div
           className={clsx(
             'prose max-w-none',
@@ -187,9 +232,49 @@ export const ChatMessageBubble = memo(function ChatMessageBubble({
           )}
         >
           <ReactMarkdown remarkPlugins={[remarkGfm]}>
-            {steps.length > 0 ? cleanedContent : message.content}
+            {steps.length > 0 ? cleanedContent : displayContent}
           </ReactMarkdown>
         </div>
+
+        {/* PRD v3.3 AI-1：工具确认卡片（点确认/取消以用户消息回灌，发送后卡片消失） */}
+        {confirmation && !confirmationResolved && (
+          <div
+            className={clsx(
+              'mt-2 flex items-center gap-2 px-3 py-2 rounded-lg border text-xs',
+              isDark ? 'border-amber-700 bg-amber-900/20' : 'border-amber-200 bg-amber-50',
+            )}
+          >
+            <span className={clsx('flex-1', isDark ? 'text-amber-200' : 'text-amber-800')}>
+              {t('common:chat.confirmTool', { tool: confirmation.tool })}
+            </span>
+            <button
+              onClick={() => handleConfirmation('确认')}
+              disabled={isSending}
+              className={clsx(
+                'flex items-center gap-0.5 px-2.5 py-1 rounded text-xs font-medium transition-colors',
+                isDark
+                  ? 'bg-amber-600 hover:bg-amber-500 text-white disabled:opacity-50'
+                  : 'bg-amber-500 hover:bg-amber-600 text-white disabled:opacity-50',
+              )}
+            >
+              <Check size={12} />
+              {t('common:app.confirm')}
+            </button>
+            <button
+              onClick={() => handleConfirmation('取消')}
+              disabled={isSending}
+              className={clsx(
+                'flex items-center gap-0.5 px-2.5 py-1 rounded text-xs font-medium transition-colors',
+                isDark
+                  ? 'bg-gray-700 hover:bg-gray-600 text-gray-200 disabled:opacity-50'
+                  : 'bg-gray-200 hover:bg-gray-300 text-gray-700 disabled:opacity-50',
+              )}
+            >
+              <X size={12} />
+              {t('common:app.cancel')}
+            </button>
+          </div>
+        )}
 
         {/* Skill 保存提示 */}
         {skillSuggestion && !skillSaved && !skillDismissed && (

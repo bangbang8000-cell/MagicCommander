@@ -38,6 +38,12 @@ interface ChatState {
   isSending: boolean
   setIsSending: (v: boolean) => void
 
+  // 流式状态（PRD v3.3 AI-2 思考指示器）
+  // waitingFirstChunk: assistant 占位已创建但尚未收到首 chunk（思考期）
+  // pendingAssistantMsgId: 当前流对应的 assistant 消息 id（供气泡判定"正在思考"归属）
+  waitingFirstChunk: boolean
+  pendingAssistantMsgId: string | null
+
   // AI Hub 状态
   aiHubStatus: AIHubStatus
   setAIHubStatus: (status: AIHubStatus) => void
@@ -63,6 +69,8 @@ export const useChatStore = create<ChatState>()(
       pendingAttachments: [],
       inputValue: '',
       isSending: false,
+      waitingFirstChunk: false,
+      pendingAssistantMsgId: null,
       aiHubStatus: { running: false, port: 0 },
       aiHubProviders: [],
       selectedProvider: undefined,
@@ -332,6 +340,8 @@ export async function sendMessage(
     content: '',
     mode,
   })
+  // PRD v3.3 AI-2：assistant 占位已创建但尚无内容 → 进入「等待首 chunk/思考期」态
+  useChatStore.setState({ waitingFirstChunk: true, pendingAssistantMsgId: aiMsgId })
 
   // 尝试使用 AI Hub
   try {
@@ -413,6 +423,10 @@ export async function sendMessage(
       if (sid !== sessionId) return
       fullContent += chunk
       pendingContent = fullContent
+      // PRD v3.3 AI-2：收到首 chunk 即清除「正在思考」指示
+      if (useChatStore.getState().waitingFirstChunk) {
+        useChatStore.setState({ waitingFirstChunk: false })
+      }
       // M7-e 回灌 AL T6-7：活跃超时——有输出则重置计时（长工具链不因硬超时中断）
       scheduleTimeout()
       if (!rafId) {
@@ -475,6 +489,8 @@ export async function sendMessage(
       }))
     }
     store.setIsSending(false)
+    // 流正常结束：清除「等待首 chunk」态
+    useChatStore.setState({ waitingFirstChunk: false, pendingAssistantMsgId: null })
   } catch (err) {
     const errorMsg = (err instanceof Error ? err.message : String(err)) || i18n.t('chat:aihub.error.unknown')
 
@@ -515,6 +531,63 @@ export async function sendMessage(
     }
 
     store.setIsSending(false)
+    // 流异常结束：清除「等待首 chunk」态
+    useChatStore.setState({ waitingFirstChunk: false, pendingAssistantMsgId: null })
     throw err // 抛出给 ChatPanel 显示错误提示
   }
+}
+
+// ===== PRD v3.3 AI-1/AI-2：确认卡片 + 思考指示器的可测纯函数与回灌入口 =====
+
+/**
+ * 从 assistant 消息内容解析确认标记（后端 run_stream CONFIRM 分支 yield 的独立行
+ * `---CONFIRM:<tool>---`）。返回工具名与剥离标记后的展示内容；无标记返回 null。
+ * 向后兼容：无标记时前端不渲染卡片，用户仍可手动输入"确认"/"取消"。
+ */
+export function parseConfirmationMarker(content: string): { tool: string; displayContent: string } | null {
+  const rx = /(^|\n)---CONFIRM:([^\s-]+)---(\n|$)/
+  const m = content.match(rx)
+  if (!m) return null
+  const tool = m[2]
+  const displayContent = content.replace(rx, '\n').trim()
+  return { tool, displayContent }
+}
+
+/**
+ * 判定 assistant 消息是否处于「等待首 chunk/思考期」。
+ * 条件：全局 waitingFirstChunk 置位、归属于当前流、assistant 角色、且尚无内容。
+ */
+export function isWaitingFirstChunk(
+  message: ChatMessage,
+  waitingFirstChunk: boolean,
+  pendingAssistantMsgId: string | null,
+): boolean {
+  return (
+    waitingFirstChunk &&
+    pendingAssistantMsgId === message.id &&
+    message.role === 'assistant' &&
+    !message.content
+  )
+}
+
+/**
+ * PRD v3.3 AI-1：确认/取消按钮回灌。
+ * 以用户身份发送「确认」/「取消」消息（复用 sendMessage 路径），
+ * 仅在空闲（非 isSending）时发起，避免与进行中的流并发；fire-and-forget，不阻塞按钮交互。
+ * @param projectName 当前项目名（由调用方传入，避免后端 set_mode 重置项目上下文）
+ * 返回是否已发起（isSending 期间的点击将被忽略并返回 false）。
+ */
+export function sendConfirmationReply(reply: '确认' | '取消', projectName?: string): boolean {
+  const store = useChatStore.getState()
+  if (store.isSending) return false
+  const session = store.getActiveSession()
+  const mode = session?.mode || store.currentMode
+  void (async () => {
+    try {
+      await sendMessage(store, reply, mode, [], projectName)
+    } catch (e) {
+      console.error('[chat.store] 确认/取消回复发送失败', e)
+    }
+  })()
+  return true
 }

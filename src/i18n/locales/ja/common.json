@@ -41,6 +41,10 @@
     "retry": "再試行",
     "dismiss": "閉じる"
   },
+  "chat": {
+    "thinking": "考え中...",
+    "confirmTool": "ツール「{{tool}}」の実行を確認しますか？"
+  },
   "menu": {
     "file": "ファイル",
     "edit": "編集",

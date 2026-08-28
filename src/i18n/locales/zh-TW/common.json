@@ -41,6 +41,10 @@
     "retry": "重試",
     "dismiss": "關閉"
   },
+  "chat": {
+    "thinking": "正在思考…",
+    "confirmTool": "確認執行工具「{{tool}}」嗎？"
+  },
   "menu": {
     "file": "檔案",
     "edit": "編輯",

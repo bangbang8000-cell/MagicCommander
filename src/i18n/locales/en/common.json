@@ -41,6 +41,10 @@
     "retry": "Retry",
     "dismiss": "Dismiss"
   },
+  "chat": {
+    "thinking": "Thinking...",
+    "confirmTool": "Confirm running tool \"{{tool}}\"?"
+  },
   "menu": {
     "file": "File",
     "edit": "Edit",
