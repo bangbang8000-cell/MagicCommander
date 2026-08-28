@@ -100,9 +100,13 @@ class OpenAICompatibleProvider(LLMProvider):
                 async for chunk in stream:
                     if chunk.choices and chunk.choices[0].delta:
                         delta = chunk.choices[0].delta
-                        # 收集 DeepSeek thinking mode 的 reasoning_content
+                        # 收集 DeepSeek thinking mode 的 reasoning_content，并作为内容流转发：
+                        # 思考期（content 为空）也 yield，保证前端在思考期有 chunk（重置活跃超时 + 可见输出），
+                        # 避免 reasoning-only 流被当成空流
                         if hasattr(delta, 'reasoning_content') and delta.reasoning_content:
                             self.last_reasoning_content += delta.reasoning_content
+                            if not delta.content:
+                                yield delta.reasoning_content
                         if delta.content:
                             yield delta.content
                 return
