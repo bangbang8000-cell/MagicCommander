@@ -101,7 +101,9 @@ describe('AIHubService', () => {
   it('withRetry：非 401 错误不重试，原样抛出', async () => {
     const s = new AIHubService() as PrivateHub
     const stopSpy = vi.spyOn(s, 'stop').mockResolvedValue(undefined)
-    const fn = vi.fn(async () => { throw new Error('模型响应超时') })
+    const fn = vi.fn(async () => {
+      throw new Error('模型响应超时')
+    })
 
     await expect(s.withRetry(fn)).rejects.toThrow('模型响应超时')
     expect(fn).toHaveBeenCalledTimes(1)
@@ -210,13 +212,49 @@ describe('AIHubService', () => {
       const fetchMock = vi.fn().mockResolvedValue({ ok: true })
       vi.stubGlobal('fetch', fetchMock)
 
-      await s.syncProviders(
-        [{ provider: 'deepseek', apiKey: 'sk-1', model: 'm1', baseUrl: 'http://x' }],
-        'deepseek',
-      )
+      await s.syncProviders([{ provider: 'deepseek', apiKey: 'sk-1', model: 'm1', baseUrl: 'http://x' }], 'deepseek')
       expect(fetchMock).toHaveBeenCalledTimes(2) // configureProvider + setDefaultProvider
       expect(stopSpy).not.toHaveBeenCalled()
       expect(ensureSpy).toHaveBeenCalled()
+    })
+  })
+
+  describe('MC-401 configureProvider 非 2xx 不再静默成功', () => {
+    it('500 → 抛清晰错误（含状态码与 body），不再静默成功（否则新 key 未落盘却被提示已保存）', async () => {
+      const s = new AIHubService() as PrivateHub
+      const ensureSpy = vi.spyOn(s, 'ensureRunning').mockResolvedValue(undefined)
+      const fetchMock = vi.fn().mockResolvedValue({
+        ok: false,
+        status: 500,
+        text: async () => '{"detail":"Internal Server Error"}',
+      })
+      vi.stubGlobal('fetch', fetchMock)
+
+      const err = await s
+        .configureProvider('deepseek', 'sk-xxx', 'deepseek-chat', 'https://api.deepseek.com/v1', ['deepseek-chat'])
+        .catch((e) => e)
+      expect(err).toBeInstanceOf(Error)
+      expect(err.message).toMatch(/500/)
+      expect(err.message).toMatch(/Internal Server Error/)
+      expect(fetchMock).toHaveBeenCalledTimes(1)
+      expect(ensureSpy).toHaveBeenCalled()
+    })
+
+    it('非 2xx 错误不触发 withRetry 重启（错误信息不含 401/连接类关键词）', async () => {
+      const s = new AIHubService() as PrivateHub
+      const stopSpy = vi.spyOn(s, 'stop').mockResolvedValue(undefined)
+      const ensureSpy = vi.spyOn(s, 'ensureRunning').mockResolvedValue(undefined)
+      const fetchMock = vi.fn().mockResolvedValue({
+        ok: false,
+        status: 500,
+        text: async () => 'Internal Server Error',
+      })
+      vi.stubGlobal('fetch', fetchMock)
+
+      await expect(s.configureProvider('deepseek', 'sk-xxx')).rejects.toThrow(/500/)
+      expect(fetchMock).toHaveBeenCalledTimes(1)
+      expect(stopSpy).not.toHaveBeenCalled()
+      expect(ensureSpy).toHaveBeenCalledTimes(1)
     })
   })
 
