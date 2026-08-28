@@ -2,7 +2,7 @@
 
 **批量生成网络设备配置 | Network Device Configuration Automation**
 
-[![Version](https://img.shields.io/badge/version-3.10.0-blue)](https://github.com/bangbang8000-cell/MagicCommander/releases)
+[![Version](https://img.shields.io/badge/version-3.10.2-blue)](https://github.com/bangbang8000-cell/MagicCommander/releases)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![Windows](https://img.shields.io/badge/Windows-NSIS-blue)](https://github.com/bangbang8000-cell/MagicCommander/releases)
 [![macOS](https://img.shields.io/badge/macOS-DMG-silver)](https://github.com/bangbang8000-cell/MagicCommander/releases)
@@ -245,6 +245,7 @@ MagicCommander/
 
 | 版本 | 日期 | 更新内容 |
 |------|------|---------|
+| **3.10.2 Build 26082801** | 2026-08-28 | **AI 对话无输出修复 + 技能管理补齐**：推理内容流式转发（DeepSeek 等推理模型思考期前端可见输出、不再被 60s 活跃超时误杀）；`run_stream` 空流兜底（模型空返回时显示友好提示）+ 工具执行进度占位（长工具执行期前端有反馈）；前端完成时补最终 flush（修复单 chunk 短回复/确认被丢弃）与空内容兜底；SkillsEngine 新增 `delete_skill`（防路径穿越）+ HTTP `/skill/delete` 对称端点 |
 | **3.10.1 Build 26082701** | 2026-08-27 | **打磨收口**：AI Hub `withRetry` 覆盖全部 /api/chat 调用（401 自动重启重试）+ `main.py` 预绑定端口与 `AI_HUB_PORT_IN_USE` 信号/退出码 2（防御性端口协议，兜底 Electron 侧回收）；保存配置后 30s 节流自动拉取模型（失败静默降级静态目录）；补齐自主/SSE 流式/技能/规划器测试维度 + AI 能力测试矩阵文档（8 维覆盖登记） |
 | **3.10.0 Build 26082601** | 2026-08-26 | **AI 修复 + 模板 CRUD + 双端一致性**：AI Hub 全部调用加运行守卫 + 旧进程端口回收 + 401 自动重启重试（聊天 401 根因修复）；模型自动拉取持久化回写 + 下拉最新；模板 CRUD（template list/save/update/delete CLI + AI 工具，修复 create/update 落空）；设备库 h3c_s9827 对齐 AL 权威库 OSFP；记忆引擎去抖写盘 + flush + system prompt 缓存版本化（会话内记忆自动刷新）；chat.store 流式优化回灌 AL（rAF 节流 + Provider 指纹去重 + 活跃超时）；模板删除 CONFIRM |
 | **3.9.2 Build 26082503** | 2026-08-25 | **导入后自动渲染**——导入 AutoLink 交付包后细化应用成功即自动触发渲染（一条龙：导入→校验→细化→渲染→校对），无需手动点击渲染 |
