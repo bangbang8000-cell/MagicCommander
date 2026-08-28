@@ -107,6 +107,23 @@ export function isAutoFetchThrottled(lastFetchAt: number, now: number, windowMs:
   return now - lastFetchAt < windowMs
 }
 
+export interface ProviderSaveOutcome {
+  showSaved: boolean
+  error: string | null
+}
+
+/**
+ * MC-401：根据 AI Hub 同步结果决定保存提示。
+ * - hub 运行中但 configure 抛错（如 /config 500，新 key 未落盘）→ 显示真实错误、不显示已保存
+ * - hub 未运行（本地先行保存，后续 ensureAIHubReady 兜底同步）或 configure 成功 → 显示已保存
+ */
+export function resolveProviderSaveOutcome(hubRunning: boolean, syncError: unknown): ProviderSaveOutcome {
+  if (hubRunning && syncError) {
+    return { showSaved: false, error: syncError instanceof Error ? syncError.message : String(syncError) }
+  }
+  return { showSaved: true, error: null }
+}
+
 const TAB_CONFIG: { id: SettingsTab; icon: React.ReactNode; labelKey: string }[] = [
   { id: 'general', icon: <Globe size={14} />, labelKey: 'cloud:settings.general' },
   { id: 'ai', icon: <Cpu size={14} />, labelKey: 'cloud:settings.ai' },
@@ -146,6 +163,7 @@ export function SettingsPanel() {
   const [showKey, setShowKey] = useState(false)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [saveError, setSaveError] = useState<string | null>(null)
   const [testing, setTesting] = useState(false)
   const [testResult, setTestResult] = useState<{ ok: boolean; msg: string } | null>(null)
   const [fetchingModels, setFetchingModels] = useState(false)
@@ -258,6 +276,7 @@ export function SettingsPanel() {
     setBaseUrl(saved?.baseUrl || catalog.baseUrl)
     setShowKey(false)
     setSaved(false)
+    setSaveError(null)
     setTestResult(null)
     setFetchedModels([])
   }, [activeProvider, aiConfig.providers, catalog.defaultModel, catalog.baseUrl])
@@ -265,31 +284,41 @@ export function SettingsPanel() {
   const handleSave = useCallback(async () => {
     if (!apiKey.trim() && !isOllama && !isCustom) return
     setSaving(true)
+    setSaveError(null)
     try {
       setProviderConfig(activeProvider, {
         apiKey: apiKey.trim(),
         model: model.trim() || catalog.defaultModel,
         baseUrl: baseUrl.trim() || catalog.baseUrl,
       })
-      try {
-        const status = await window.electron.aihub.status()
-        if (status.running) {
+      // MC-401 修复：configure 非 2xx 现在会抛错 → 提示真实错误，不再无条件 setSaved(true)；
+      // 成功才显示已保存（否则 /config 500 时新 key 未落盘却被提示已保存，对话继续用旧 key 401）
+      const status = await window.electron.aihub.status()
+      let syncError: unknown = null
+      if (status.running) {
+        try {
           await window.electron.aihub.configureProvider(
             activeProvider,
             apiKey.trim(),
             model.trim() || catalog.defaultModel,
             baseUrl.trim() || catalog.baseUrl,
           )
+        } catch (e) {
+          syncError = e
         }
-      } catch {
-        /* AI Hub 未运行 */
       }
-      setSaved(true)
-      setTimeout(() => setSaved(false), 2000)
-      // AI-3：保存成功后节流自动拉取模型（静默失败，不阻塞保存提示）
-      void autoFetchModels()
+      const outcome = resolveProviderSaveOutcome(status.running, syncError)
+      if (outcome.showSaved) {
+        setSaved(true)
+        setTimeout(() => setSaved(false), 2000)
+        // AI-3：保存成功后节流自动拉取模型（静默失败，不阻塞保存提示）
+        void autoFetchModels()
+      } else {
+        setSaveError(outcome.error)
+      }
     } catch (e) {
       console.error('Save provider config failed:', e)
+      setSaveError(e instanceof Error ? e.message : String(e))
     } finally {
       setSaving(false)
     }
@@ -834,6 +863,18 @@ export function SettingsPanel() {
                 >
                   {testResult.ok ? <Check size={12} /> : <XCircle size={12} />}
                   <span>{testResult.msg}</span>
+                </div>
+              )}
+              {/* MC-401：保存失败展示真实错误（不再无条件显示已保存） */}
+              {saveError && (
+                <div
+                  className={clsx(
+                    'flex items-start gap-1.5 text-[11px] p-2 rounded',
+                    isDark ? 'bg-red-900/30 text-red-300' : 'bg-red-50 text-red-700',
+                  )}
+                >
+                  <XCircle size={12} />
+                  <span>{saveError}</span>
                 </div>
               )}
             </div>
