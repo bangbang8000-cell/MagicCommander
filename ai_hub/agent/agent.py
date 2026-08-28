@@ -143,6 +143,12 @@ class AgentSession:
             # 检测是否有 tool call
             tool_call = _parse_tool_call(full_content)
             if not tool_call:
+                # 空流兜底：模型既无正文也无推理内容（可能思考过长耗尽 max_tokens 或异常静默），
+                # yield 友好提示保证 SSE 有 message 事件，前端不空白
+                if not full_content.strip():
+                    fallback = "AI 未返回内容（可能是思考过长或模型未产出正文），请重试或更换模型"
+                    full_content = fallback
+                    yield fallback
                 reason = _get_reasoning(self.provider)
                 self.add_message("assistant", full_content, {"reasoning_content": reason} if reason else None)
                 return
@@ -179,6 +185,8 @@ class AgentSession:
                 yield f"\n\n> 🔧 正在调用工具: `{tool_name}`...\n\n"
 
             # === Agent v2: 执行工具 + 错误恢复 ===
+            # 工具执行期占位：执行前先产出 chunk（工具名取解析结果），前端活跃超时窗口得以重置
+            yield f"⏳ 正在执行工具: `{tool_name}`…\n\n"
             retry_count = 0
             max_retries = 2
             result = None
