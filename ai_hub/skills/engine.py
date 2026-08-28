@@ -56,6 +56,25 @@ class SkillsEngine:
         self.skills[safe_name] = skill
         return skill
 
+    def delete_skill(self, name: str) -> bool:
+        """删除技能文件，返回是否删除成功；不存在的技能返回 False 不抛错。
+
+        复用 save_skill 的名称清洗，并额外防护路径穿越：
+        拒绝空名、含 .. 或 \\ 的名称（../ 等穿越攻击直接返回 False）。
+        """
+        safe_name = name.lower().replace(" ", "-").replace("/", "-")
+        if not safe_name or ".." in safe_name or "\\" in safe_name:
+            return False
+        file_path = SKILLS_DIR / f"{safe_name}.md"
+        if not file_path.exists():
+            return False
+        try:
+            file_path.unlink()
+        except OSError:
+            return False
+        self.skills.pop(safe_name, None)
+        return True
+
     def record_usage(self, name: str):
         if name in self.skills:
             self.skills[name].use_count += 1

@@ -6,8 +6,10 @@
 - get_skills_prompt：拼装"可用技能"块，禁用技能不输出，空技能返回空串
 - reload：重新扫描磁盘（删除后的技能不再残留）
 - record_usage：使用次数/最后使用时间统计
+- delete_skill：正式删除 API（返回 bool），删除后文件消失/prompt 不含该技能/reload 不残留，
+  不存在的技能返回 False 不崩溃，拒绝路径穿越（含 .. 的名称）
 
-缺口记录：SkillsEngine 无 delete_skill 方法，删除维度仅以"删文件 + reload 不残留"间接覆盖。
+缺口记录：删除维度已由正式 delete_skill API 覆盖。
 """
 import os
 import sys
@@ -126,3 +128,41 @@ def test_record_usage_tracks_count_and_last_used(tmp_path, monkeypatch):
 def test_record_usage_unknown_skill_no_crash(tmp_path, monkeypatch):
     eng = _make_engine(tmp_path, monkeypatch)
     eng.record_usage("no_such_skill")  # 不应抛异常
+
+
+# --- delete_skill ---
+
+def test_delete_skill_removes_file_and_prompt(tmp_path, monkeypatch):
+    eng = _make_engine(tmp_path, monkeypatch)
+    eng.save_skill("alpha", "技能内容A")
+    assert (tmp_path / "alpha.md").exists()
+    assert eng.delete_skill("alpha") is True
+    assert not (tmp_path / "alpha.md").exists()
+    assert "alpha" not in eng.skills
+    assert "alpha" not in eng.get_skills_prompt()
+
+
+def test_delete_skill_missing_returns_false(tmp_path, monkeypatch):
+    eng = _make_engine(tmp_path, monkeypatch)
+    assert eng.delete_skill("no_such_skill") is False
+
+
+def test_delete_skill_no_residue_after_reload(tmp_path, monkeypatch):
+    eng = _make_engine(tmp_path, monkeypatch)
+    eng.save_skill("alpha", "技能内容A")
+    eng.save_skill("beta", "技能内容B")
+    assert eng.delete_skill("alpha") is True
+    eng.reload()
+    assert "alpha" not in eng.skills
+    assert "beta" in eng.skills
+
+
+def test_delete_skill_rejects_path_traversal(tmp_path, monkeypatch):
+    eng = _make_engine(tmp_path, monkeypatch)
+    eng.save_skill("alpha", "技能内容A")
+    # 路径穿越名称（含 ..）应被拒绝，不删除任何文件
+    assert eng.delete_skill("../alpha") is False
+    assert eng.delete_skill("..\\alpha") is False
+    assert (tmp_path / "alpha.md").exists()
+    assert not (tmp_path.parent / "alpha.md").exists()
+    assert not (tmp_path.parent / ".." / "alpha.md").exists()
