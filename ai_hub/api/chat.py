@@ -125,6 +125,19 @@ async def save_skill(req: SaveSkillRequest):
     return {"status": "ok", "name": skill.name}
 
 
+class DeleteSkillRequest(BaseModel):
+    name: str
+
+
+@router.post("/skill/delete")
+async def delete_skill(req: DeleteSkillRequest):
+    """删除 Skill（与 save 对称）"""
+    from ai_hub.skills.engine import get_skills_engine
+    engine = get_skills_engine()
+    deleted = engine.delete_skill(req.name)
+    return {"status": "ok", "deleted": deleted}
+
+
 @router.post("/clear")
 async def clear_chat(session_id: str):
     """清除会话"""
