@@ -561,11 +561,17 @@ export class AIHubService extends EventEmitter {
     // AI-2 修复：调用前确保运行，401/连接失败重启重试一次
     await this.ensureRunning()
     return this.withRetry(async () => {
-      await fetch(`${this.baseUrl}/api/chat/config`, {
+      const response = await fetch(`${this.baseUrl}/api/chat/config`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...this.authHeaders() },
         body: JSON.stringify({ provider, api_key: apiKey, model, base_url: baseUrl, models }),
       })
+      // MC-401 修复：非 2xx 抛清晰错误（含状态码/body），不再静默成功——
+      // 否则 /config 500 时新 key 未落盘，却被上层当作已保存，对话继续用旧 key 401
+      if (!response.ok) {
+        const errBody = await response.text()
+        throw new Error(`AI Hub 配置失败: HTTP ${response.status} ${errBody}`)
+      }
     })
   }
 
