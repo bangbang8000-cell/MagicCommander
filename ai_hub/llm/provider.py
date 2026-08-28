@@ -195,6 +195,8 @@ registry = ProviderRegistry()
 
 def init_providers():
     """初始化所有可用的 Provider"""
+    # MC-401 防御：先清空 registry 再注册，避免清 key 后旧 Provider 实例残留（复用旧 key 请求 401）
+    registry._providers.clear()
     for key in PROVIDER_CATALOG:
         try:
             config = settings.get_provider_config(key)

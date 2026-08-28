@@ -150,6 +150,9 @@ class ConfigProvidersRequest(BaseModel):
     api_key: str
     model: Optional[str] = None
     base_url: Optional[str] = None
+    # MC-401 修复：缺 models 声明导致 Pydantic v2 `req.models` 访问抛 AttributeError → /config 恒 500，
+    # save_secrets/apply_secrets/init_providers 不执行 → 新 key 不落盘、registry 不刷新（对话仍用旧 key 401）
+    models: Optional[list[str]] = None
 
 
 class SetDefaultRequest(BaseModel):
