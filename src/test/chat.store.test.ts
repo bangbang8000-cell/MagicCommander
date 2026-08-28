@@ -82,7 +82,10 @@ describe('chat.store sendMessage 流式收尾', () => {
     mock.finish()
     await p
 
-    const ai = useChatStore.getState().getActiveSession()?.messages.find((m) => m.role === 'assistant')
+    const ai = useChatStore
+      .getState()
+      .getActiveSession()
+      ?.messages.find((m) => m.role === 'assistant')
     expect(ai?.content).toBe('你好')
   })
 
@@ -94,7 +97,10 @@ describe('chat.store sendMessage 流式收尾', () => {
     mock.finish()
     await p
 
-    const ai = useChatStore.getState().getActiveSession()?.messages.find((m) => m.role === 'assistant')
+    const ai = useChatStore
+      .getState()
+      .getActiveSession()
+      ?.messages.find((m) => m.role === 'assistant')
     expect(ai?.content).toBeTruthy()
     expect(ai?.content!.length).toBeGreaterThan(0)
   })
