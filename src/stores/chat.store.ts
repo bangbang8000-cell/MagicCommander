@@ -456,8 +456,24 @@ export async function sendMessage(
 
     await Promise.race([chatPromise, timeoutPromise])
     if (timeoutId) clearTimeout(timeoutId)
+    // 补最终 flush：把 pendingContent 落库（rAF 未触发时单 chunk 短回复也能保存）
+    flushStream()
     if (rafId) cancelAnimationFrame(rafId)
     unsub()
+    // 空内容兜底：后端无任何产出（SSE 仅 done）时补友好提示，避免空气泡；
+    // 后端已产出友好文本时 fullContent 非空，此处不重复追加
+    if (!fullContent.trim()) {
+      useChatStore.setState((s) => ({
+        sessions: s.sessions.map((ses) =>
+          ses.id === sessionId
+            ? {
+                ...ses,
+                messages: ses.messages.map((m) => (m.id === aiMsgId ? { ...m, content: 'AI 未返回内容，请重试' } : m)),
+              }
+            : ses,
+        ),
+      }))
+    }
     store.setIsSending(false)
   } catch (err) {
     const errorMsg = (err instanceof Error ? err.message : String(err)) || i18n.t('chat:aihub.error.unknown')
