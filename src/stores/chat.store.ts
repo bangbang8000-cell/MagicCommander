@@ -15,6 +15,8 @@ interface ChatState {
   updateSessionMode: (mode: ChatMode) => void
   deleteSession: (id: string) => void
   clearCurrentSession: () => void
+  renameSession: (id: string, title: string) => void
+  clearSessionContext: (sessionId?: string) => Promise<void>
 
   // 消息管理
   addMessage: (message: Omit<ChatMessage, 'id' | 'timestamp'> & { id?: string }) => void
@@ -79,7 +81,9 @@ export const useChatStore = create<ChatState>()(
 
       createSession: (mode?: ChatMode) => {
         const m = mode || get().currentMode
-        const id = `session_${Date.now()}`
+        // PRD v3.5 MC-SESS1：id 追加随机后缀，避免同一毫秒内连续新建会话生成重复 id
+        // （重复 id 会导致 sessions 出现同 id 会话：消息错写/删除误伤）
+        const id = `session_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
         const session: ChatSession = {
           id,
           title: i18n.t('chat:session.newChat'),
@@ -121,6 +125,32 @@ export const useChatStore = create<ChatState>()(
             ses.id === activeId ? { ...ses, messages: [], updatedAt: Date.now() } : ses,
           ),
         }))
+      },
+
+      // PRD v3.5 MC-SESS3：清空上下文 = 清空该会话前端消息 + 后端对应会话 history（新对话）
+      renameSession: (id, title) => {
+        const trimmed = title.trim()
+        if (!trimmed) return
+        set((s) => ({
+          sessions: s.sessions.map((ses) => (ses.id === id ? { ...ses, title: trimmed, updatedAt: Date.now() } : ses)),
+        }))
+      },
+
+      // PRD v3.5 MC-SESS3：清空上下文（前端 + 后端联动）
+      // 复用既有后端能力 /api/chat/clear（electron aihub.clearSession 既有通道，无需扩展 IPC）
+      // 后端不可用/失败时仅完成前端清空，不阻断（与清空交互一致性优先）
+      clearSessionContext: async (sessionId) => {
+        const id = sessionId || get().activeSessionId
+        if (!id) return
+        set((s) => ({
+          sessions: s.sessions.map((ses) => (ses.id === id ? { ...ses, messages: [], updatedAt: Date.now() } : ses)),
+        }))
+        try {
+          const aiHub = window.electron?.aihub
+          if (aiHub?.clearSession) await aiHub.clearSession(id)
+        } catch {
+          /* 后端不可用/失败时仅完成前端清空 */
+        }
       },
 
       addMessage: (message) => {

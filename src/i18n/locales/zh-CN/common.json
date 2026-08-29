@@ -43,7 +43,11 @@
   },
   "chat": {
     "thinking": "正在思考…",
-    "confirmTool": "确认执行工具「{{tool}}」吗？"
+    "confirmTool": "确认执行工具「{{tool}}」吗？",
+    "session": {
+      "rename": "重命名对话",
+      "renamePlaceholder": "输入新名称"
+    }
   },
   "menu": {
     "file": "文件",

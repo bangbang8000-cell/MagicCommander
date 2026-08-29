@@ -12,6 +12,7 @@ import {
   RotateCcw,
   ChevronDown,
   Check,
+  Pencil,
 } from 'lucide-react'
 import { useChatStore, sendMessage } from '@/stores/chat.store'
 import { useUIStore } from '@/stores/ui.store'
@@ -42,7 +43,8 @@ export function ChatPanel() {
   const createSession = useChatStore((s) => s.createSession)
   const deleteSession = useChatStore((s) => s.deleteSession)
   const setActiveSession = useChatStore((s) => s.setActiveSession)
-  const clearCurrentSession = useChatStore((s) => s.clearCurrentSession)
+  const renameSession = useChatStore((s) => s.renameSession)
+  const clearSessionContext = useChatStore((s) => s.clearSessionContext)
   const inputValue = useChatStore((s) => s.inputValue)
   const isSending = useChatStore((s) => s.isSending)
   const getActiveSession = useChatStore((s) => s.getActiveSession)
@@ -58,6 +60,9 @@ export function ChatPanel() {
   const [, setLastError] = useState<string | null>(null)
   const [aiHubError, setAIHubError] = useState<string | null>(null)
   const [historyOpen, setHistoryOpen] = useState(false)
+  // PRD v3.5 MC-SESS1：会话重命名（内联编辑）
+  const [renamingId, setRenamingId] = useState<string | null>(null)
+  const [renameValue, setRenameValue] = useState('')
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const tabBarRef = useRef<HTMLDivElement>(null)
@@ -189,7 +194,19 @@ export function ChatPanel() {
   }, [inputValue, isSending, t, generateTitle])
 
   const handleNewChat = useCallback(() => createSession(), [createSession])
-  const handleClearChat = useCallback(() => clearCurrentSession(), [clearCurrentSession])
+  // PRD v3.5 MC-SESS3：清空上下文 = 清空当前会话前端消息 + 后端会话 history（新对话）
+  const handleClearChat = useCallback(() => {
+    void clearSessionContext()
+  }, [clearSessionContext])
+  // PRD v3.5 MC-SESS1：会话重命名（内联编辑入口）
+  const startRename = useCallback((id: string, title: string) => {
+    setRenamingId(id)
+    setRenameValue(title)
+  }, [])
+  const commitRename = useCallback(() => {
+    if (renamingId) renameSession(renamingId, renameValue)
+    setRenamingId(null)
+  }, [renamingId, renameValue, renameSession])
 
   const sortedSessions = sessions.slice().sort((a, b) => b.updatedAt - a.updatedAt)
   const visibleSessions =
@@ -290,11 +307,17 @@ export function ChatPanel() {
       >
         {visibleSessions.map((s) => {
           const isActive = s.id === activeSessionId
+          const isRenaming = renamingId === s.id
           return (
             <div
               key={s.id}
               data-tab
-              onClick={() => setActiveSession(s.id)}
+              onClick={() => {
+                if (!isRenaming) setActiveSession(s.id)
+              }}
+              onDoubleClick={() => {
+                if (!isRenaming) startRename(s.id, s.title)
+              }}
               className={clsx(
                 'group flex items-center gap-1 px-2 py-0.5 rounded text-xs cursor-pointer transition-colors whitespace-nowrap shrink-0 max-w-[160px]',
                 isActive
@@ -308,21 +331,59 @@ export function ChatPanel() {
               title={s.title}
             >
               <MessageSquare size={10} className="shrink-0" />
-              <span className="truncate">{s.title}</span>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation()
-                  deleteSession(s.id)
-                }}
-                className={clsx(
-                  'shrink-0 p-0.5 rounded-full transition-opacity',
-                  isActive ? 'opacity-70 hover:opacity-100' : 'opacity-0 group-hover:opacity-100',
-                  isActive ? 'hover:bg-blue-700' : isDark ? 'hover:bg-gray-600' : 'hover:bg-gray-300',
-                )}
-                title={t('chat:session.delete')}
-              >
-                <Trash2 size={8} />
-              </button>
+              {isRenaming ? (
+                <input
+                  autoFocus
+                  value={renameValue}
+                  placeholder={t('chat.session.renamePlaceholder')}
+                  onChange={(e) => setRenameValue(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') commitRename()
+                    else if (e.key === 'Escape') setRenamingId(null)
+                  }}
+                  onBlur={commitRename}
+                  onClick={(e) => e.stopPropagation()}
+                  onDoubleClick={(e) => e.stopPropagation()}
+                  className={clsx(
+                    'w-24 min-w-0 px-1 py-0 rounded text-xs outline-none border',
+                    isDark ? 'bg-gray-900 border-blue-500 text-gray-100' : 'bg-white border-blue-500 text-gray-800',
+                  )}
+                />
+              ) : (
+                <span className="truncate">{s.title}</span>
+              )}
+              {!isRenaming && (
+                <>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      startRename(s.id, s.title)
+                    }}
+                    className={clsx(
+                      'shrink-0 p-0.5 rounded-full transition-opacity',
+                      isActive ? 'opacity-70 hover:opacity-100' : 'opacity-0 group-hover:opacity-100',
+                      isActive ? 'hover:bg-blue-700' : isDark ? 'hover:bg-gray-600' : 'hover:bg-gray-300',
+                    )}
+                    title={t('chat.session.rename')}
+                  >
+                    <Pencil size={8} />
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      deleteSession(s.id)
+                    }}
+                    className={clsx(
+                      'shrink-0 p-0.5 rounded-full transition-opacity',
+                      isActive ? 'opacity-70 hover:opacity-100' : 'opacity-0 group-hover:opacity-100',
+                      isActive ? 'hover:bg-blue-700' : isDark ? 'hover:bg-gray-600' : 'hover:bg-gray-300',
+                    )}
+                    title={t('chat:session.delete')}
+                  >
+                    <Trash2 size={8} />
+                  </button>
+                </>
+              )}
             </div>
           )
         })}

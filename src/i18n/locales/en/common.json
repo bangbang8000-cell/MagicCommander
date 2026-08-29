@@ -43,7 +43,11 @@
   },
   "chat": {
     "thinking": "Thinking...",
-    "confirmTool": "Confirm running tool \"{{tool}}\"?"
+    "confirmTool": "Confirm running tool \"{{tool}}\"?",
+    "session": {
+      "rename": "Rename chat",
+      "renamePlaceholder": "Enter a new name"
+    }
   },
   "menu": {
     "file": "File",

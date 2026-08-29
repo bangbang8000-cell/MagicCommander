@@ -43,7 +43,11 @@
   },
   "chat": {
     "thinking": "考え中...",
-    "confirmTool": "ツール「{{tool}}」の実行を確認しますか？"
+    "confirmTool": "ツール「{{tool}}」の実行を確認しますか？",
+    "session": {
+      "rename": "会話名を変更",
+      "renamePlaceholder": "新しい名前を入力"
+    }
   },
   "menu": {
     "file": "ファイル",
