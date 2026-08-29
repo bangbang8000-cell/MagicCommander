@@ -68,7 +68,8 @@ function mockAIHub() {
 
 describe('parseConfirmationMarker（确认标记解析）', () => {
   it('识别独立标记行并提取工具名', () => {
-    const content = '\n---CONFIRM:delete_project---\n\n> ⚠️ 操作 `delete_project` 需要确认。请回复 确认 继续，或 取消 中止。\n\n'
+    const content =
+      '\n---CONFIRM:delete_project---\n\n> ⚠️ 操作 `delete_project` 需要确认。请回复 确认 继续，或 取消 中止。\n\n'
     const r = parseConfirmationMarker(content)
     expect(r).not.toBeNull()
     expect(r!.tool).toBe('delete_project')

@@ -8,12 +8,7 @@ import type { ChatMessage } from '@/types/chat'
 import { AttachmentPreview } from './AttachmentPreview'
 import { PlanDisplay } from './PlanDisplay'
 import type { PlanStep } from './PlanDisplay'
-import {
-  useChatStore,
-  parseConfirmationMarker,
-  isWaitingFirstChunk,
-  sendConfirmationReply,
-} from '@/stores/chat.store'
+import { useChatStore, parseConfirmationMarker, isWaitingFirstChunk, sendConfirmationReply } from '@/stores/chat.store'
 import { useProjectStore } from '@/stores/project.store'
 
 interface ChatMessageBubbleProps {

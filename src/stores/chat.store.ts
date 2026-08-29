@@ -562,12 +562,7 @@ export function isWaitingFirstChunk(
   waitingFirstChunk: boolean,
   pendingAssistantMsgId: string | null,
 ): boolean {
-  return (
-    waitingFirstChunk &&
-    pendingAssistantMsgId === message.id &&
-    message.role === 'assistant' &&
-    !message.content
-  )
+  return waitingFirstChunk && pendingAssistantMsgId === message.id && message.role === 'assistant' && !message.content
 }
 
 /**
