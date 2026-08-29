@@ -72,6 +72,23 @@ class AgentSession:
             msg = f"用户上传了以下附件：\n{file_list}\n\n用户消息：{content}"
         self.add_message("user", msg)
 
+    # M-F4（PRD v3.6 F4-1）：用摘要替换会话 history（压缩上下文，新对话语义）
+    def replace_history_with_summary(self, summary: str):
+        """用生成的摘要替换整个会话 history，后续对话基于摘要继续"""
+        self.messages = [
+            {
+                "role": "user",
+                "content": f"（以下是本会话先前对话的压缩摘要，请基于此继续对话）\n\n{summary}",
+            }
+        ]
+
+    # M-F4（PRD v3.6 F4-2）：截断会话 history，仅保留最近 keep 条（新对话语义）
+    def truncate_history(self, keep: int = 100):
+        """截断会话 history，仅保留最近 keep 条消息"""
+        keep = max(1, int(keep))
+        if len(self.messages) > keep:
+            self.messages = self.messages[-keep:]
+
     async def run_stream(self, max_tool_rounds: Optional[int] = None) -> AsyncIterator[str]:
         """运行 Agent 推理，流式返回结果
 
