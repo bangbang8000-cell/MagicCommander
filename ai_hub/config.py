@@ -9,6 +9,24 @@ from typing import Optional
 from pydantic_settings import BaseSettings
 
 # ============================================================
+# 工具循环上限（MC-LOOP1/2，PRD v3.4）
+# 多轮工具循环的最大轮数，provider 无关，默认 5，clamp 1-10
+# ============================================================
+MAX_TOOL_LOOP_ROUNDS_MIN = 1
+MAX_TOOL_LOOP_ROUNDS_MAX = 10
+MAX_TOOL_LOOP_ROUNDS_DEFAULT = 5
+
+
+def clamp_max_tool_loop_rounds(value) -> int:
+    """将输入 clamp 到 [1, 10]，非法输入回退默认 5"""
+    try:
+        v = int(value)
+    except (TypeError, ValueError):
+        return MAX_TOOL_LOOP_ROUNDS_DEFAULT
+    return max(MAX_TOOL_LOOP_ROUNDS_MIN, min(MAX_TOOL_LOOP_ROUNDS_MAX, v))
+
+
+# ============================================================
 # 模型目录 - 2026年7月最新
 # ============================================================
 
@@ -101,6 +119,9 @@ class AIHubSettings(BaseSettings):
     # 本地鉴权 token（由 Electron 生成并传入，所有 /api/* 请求必须携带）
     auth_token: str = ""
 
+    # MC-LOOP1：多轮工具循环最大轮数（provider 无关，clamp 1-10，默认 5）
+    max_tool_loop_rounds: int = MAX_TOOL_LOOP_ROUNDS_DEFAULT
+
     model_config = {"env_prefix": "MC_AI_", "extra": "allow"}
 
     def get_provider_config(self, provider: str) -> ProviderConfig:
@@ -186,6 +207,36 @@ def save_secrets(secrets: dict) -> None:
 def apply_secrets():
     """从文件加载密钥并应用到配置"""
     secrets = load_secrets()
-    settings.provider_configs = {k: v for k, v in secrets.items() if k != "default_provider"}
+    settings.provider_configs = {
+        k: v for k, v in secrets.items() if k not in ("default_provider", "max_tool_loop_rounds")
+    }
     if "default_provider" in secrets:
         settings.default_provider = secrets["default_provider"]
+    if "max_tool_loop_rounds" in secrets:
+        settings.max_tool_loop_rounds = clamp_max_tool_loop_rounds(secrets["max_tool_loop_rounds"])
+
+
+def get_max_tool_loop_rounds() -> int:
+    """读取当前生效的最大工具循环轮数（clamp 1-10，默认 5）。
+
+    实时读取 secrets 文件（而非仅内存 settings）：无论值是后端接口写入还是
+    前端直接落盘 secrets，调整后均立即生效（MC-LOOP2 调小立即生效）。
+    文件缺失/损坏时回退内存 settings 值。
+    """
+    try:
+        secrets = load_secrets()
+        if "max_tool_loop_rounds" in secrets:
+            return clamp_max_tool_loop_rounds(secrets["max_tool_loop_rounds"])
+    except Exception:
+        pass
+    return clamp_max_tool_loop_rounds(settings.max_tool_loop_rounds)
+
+
+def set_max_tool_loop_rounds(value: int) -> int:
+    """设置最大工具循环轮数：clamp 1-10 → 更新内存 settings → 持久化到 secrets 文件"""
+    clamped = clamp_max_tool_loop_rounds(value)
+    settings.max_tool_loop_rounds = clamped
+    secrets = load_secrets()
+    secrets["max_tool_loop_rounds"] = clamped
+    save_secrets(secrets)
+    return clamped

@@ -153,6 +153,14 @@ class ConfigProvidersRequest(BaseModel):
     # MC-401 修复：缺 models 声明导致 Pydantic v2 `req.models` 访问抛 AttributeError → /config 恒 500，
     # save_secrets/apply_secrets/init_providers 不执行 → 新 key 不落盘、registry 不刷新（对话仍用旧 key 401）
     models: Optional[list[str]] = None
+    # MC-LOOP1：可选随 configure 链路一起持久化工具循环上限（provider 无关）
+    max_tool_loop_rounds: Optional[int] = None
+
+
+class GeneralConfigRequest(BaseModel):
+    """MC-LOOP1：通用（provider 无关）AI 配置——目前含最大工具循环轮数"""
+
+    max_tool_loop_rounds: int = 5
 
 
 class SetDefaultRequest(BaseModel):
@@ -252,6 +260,10 @@ async def configure_provider(req: ConfigProvidersRequest):
     if req.models:
         entry["models"] = req.models
     secrets[req.provider] = entry
+    # MC-LOOP1：随 configure 链路可选持久化工具循环上限（provider 无关）
+    if req.max_tool_loop_rounds is not None:
+        from ai_hub.config import set_max_tool_loop_rounds
+        set_max_tool_loop_rounds(req.max_tool_loop_rounds)
     save_secrets(secrets)
 
     from ai_hub.config import apply_secrets
@@ -261,6 +273,18 @@ async def configure_provider(req: ConfigProvidersRequest):
     init_providers()
 
     return {"status": "ok", "provider": req.provider}
+
+
+@router.post("/config/general")
+async def configure_general(req: GeneralConfigRequest):
+    """MC-LOOP1：设置通用（provider 无关）AI 配置——最大工具循环轮数（clamp 1-10，默认 5）
+
+    持久化到既有 secrets 结构并立即生效；后端 agent 每 send 实时读取该值。
+    """
+    from ai_hub.config import set_max_tool_loop_rounds
+
+    rounds = set_max_tool_loop_rounds(req.max_tool_loop_rounds)
+    return {"status": "ok", "max_tool_loop_rounds": rounds}
 
 
 @router.post("/config/default")

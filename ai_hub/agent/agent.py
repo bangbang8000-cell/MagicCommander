@@ -72,8 +72,17 @@ class AgentSession:
             msg = f"用户上传了以下附件：\n{file_list}\n\n用户消息：{content}"
         self.add_message("user", msg)
 
-    async def run_stream(self, max_tool_rounds: int = 5) -> AsyncIterator[str]:
-        """运行 Agent 推理，流式返回结果"""
+    async def run_stream(self, max_tool_rounds: Optional[int] = None) -> AsyncIterator[str]:
+        """运行 Agent 推理，流式返回结果
+
+        MC-LOOP1：max_tool_rounds 缺省时读取 settings.max_tool_loop_rounds
+        （每 send 实时读取，避免缓存旧值，clamp 1-10，默认 5）。
+        """
+        # MC-LOOP1：每次调用实时读取配置，保证「调小后立即生效」
+        if max_tool_rounds is None:
+            from ai_hub.config import get_max_tool_loop_rounds
+            max_tool_rounds = get_max_tool_loop_rounds()
+
         if not self.provider:
             yield "错误: 没有可用的 AI Provider，请先配置 API Key。"
             return
@@ -256,9 +265,10 @@ class AgentSession:
 
             yield f"> 工具执行结果:\n```json\n{tool_result_json}\n```\n\n"
 
-        yield "\n\n> 已达到最大工具调用轮次，任务可能未完成。"
+        # MC-LOOP2：达到上限时提示具体轮数并正常结束（不报错）
+        yield f"\n\n> 已达到最大工具循环轮数 {max_tool_rounds}，任务可能未完成。"
 
-    async def run(self, max_tool_rounds: int = 5) -> str:
+    async def run(self, max_tool_rounds: Optional[int] = None) -> str:
         """非流式运行 Agent"""
         result_parts = []
         async for chunk in self.run_stream(max_tool_rounds=max_tool_rounds):
