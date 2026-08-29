@@ -5,6 +5,21 @@ import type { ChatMessage, ChatSession, ChatAttachment, ChatMode, AttachmentType
 import { generateId } from '@/types/chat'
 import type { AIHubStatus, AIHubProvider } from '@/types/ipc'
 
+// ===== M-F4（PRD v3.6）：MC 上下文压缩——会话内手动摘要 / 长会话上限截断 =====
+// 后端 /send 控制消息前缀：前端受限于 electron IPC 通道不可扩展，复用既有 aiHub.chat
+// 通道 + 后端 /send 控制消息（@@MC_SUMMARIZE@@ / @@MC_TRUNCATE@@:N）转发压缩请求。
+export const CTRL_SUMMARIZE_PREFIX = '@@MC_SUMMARIZE@@'
+export const CTRL_TRUNCATE_PREFIX = '@@MC_TRUNCATE@@:'
+
+/** 长会话截断阈值（消息条数）与保留条数 */
+export const TRUNCATE_THRESHOLD = 200
+export const TRUNCATE_KEEP = 100
+
+/** 是否达到截断阈值（纯函数，可测）：会话消息数 >= threshold 时提示 */
+export function shouldShowTruncateNotice(count: number, threshold = TRUNCATE_THRESHOLD): boolean {
+  return count >= threshold
+}
+
 interface ChatState {
   // 会话管理
   sessions: ChatSession[]
@@ -59,6 +74,15 @@ interface ChatState {
 
   // AI 提炼标题
   generateTitle: (sessionId: string) => Promise<void>
+
+  // M-F4（PRD v3.6 F4-1/F4-2）：上下文压缩——会话内手动摘要 / 长会话上限截断
+  summarizeSession: (
+    sessionId: string | undefined,
+    opts?: { keepFull?: boolean },
+  ) => Promise<{ ok: boolean; summary?: string; error?: string }>
+  truncateSession: (sessionId: string | undefined, keep?: number) => Promise<{ ok: boolean }>
+  truncateNotice: { sessionId: string; count: number } | null
+  dismissTruncateNotice: () => void
 }
 
 export const useChatStore = create<ChatState>()(
@@ -76,8 +100,20 @@ export const useChatStore = create<ChatState>()(
       aiHubStatus: { running: false, port: 0 },
       aiHubProviders: [],
       selectedProvider: undefined,
+      truncateNotice: null,
 
-      setActiveSession: (id) => set({ activeSessionId: id }),
+      setActiveSession: (id) =>
+        set((s) => {
+          const target = s.sessions.find((ses) => ses.id === id)
+          let truncateNotice = s.truncateNotice
+          // M-F4（F4-2）：切到超阈值会话时提示截断（每个会话只提示一次）
+          if (target && shouldShowTruncateNotice(target.messages.length)) {
+            if (!truncateNotice || truncateNotice.sessionId !== id) {
+              truncateNotice = { sessionId: id, count: target.messages.length }
+            }
+          }
+          return { activeSessionId: id, truncateNotice }
+        }),
 
       createSession: (mode?: ChatMode) => {
         const m = mode || get().currentMode
@@ -124,6 +160,7 @@ export const useChatStore = create<ChatState>()(
           sessions: s.sessions.map((ses) =>
             ses.id === activeId ? { ...ses, messages: [], updatedAt: Date.now() } : ses,
           ),
+          truncateNotice: s.truncateNotice && s.truncateNotice.sessionId === activeId ? null : s.truncateNotice,
         }))
       },
 
@@ -144,6 +181,7 @@ export const useChatStore = create<ChatState>()(
         if (!id) return
         set((s) => ({
           sessions: s.sessions.map((ses) => (ses.id === id ? { ...ses, messages: [], updatedAt: Date.now() } : ses)),
+          truncateNotice: s.truncateNotice && s.truncateNotice.sessionId === id ? null : s.truncateNotice,
         }))
         try {
           const aiHub = window.electron?.aihub
@@ -167,8 +205,8 @@ export const useChatStore = create<ChatState>()(
           timestamp: Date.now(),
         }
 
-        set((s) => ({
-          sessions: s.sessions.map((ses) =>
+        set((s) => {
+          const sessions = s.sessions.map((ses) =>
             ses.id === sessionId
               ? {
                   ...ses,
@@ -181,8 +219,17 @@ export const useChatStore = create<ChatState>()(
                   updatedAt: Date.now(),
                 }
               : ses,
-          ),
-        }))
+          )
+          // M-F4（F4-2）：会话消息超阈值时提示截断（每个会话只提示一次）
+          let truncateNotice = s.truncateNotice
+          const target = sessions.find((ses) => ses.id === sessionId)
+          if (target && shouldShowTruncateNotice(target.messages.length)) {
+            if (!truncateNotice || truncateNotice.sessionId !== sessionId) {
+              truncateNotice = { sessionId, count: target.messages.length }
+            }
+          }
+          return { sessions, truncateNotice }
+        })
       },
 
       deleteMessage: (messageId) => {
@@ -279,6 +326,102 @@ export const useChatStore = create<ChatState>()(
           /* 静默失败，保持默认标题 */
         }
       },
+
+      // ===== M-F4（PRD v3.6 F4-1）：会话内手动摘要 =====
+      // 前端受限于 electron IPC 通道不可扩展，复用既有 aiHub.chat 通道 + 后端 /send 控制消息
+      // （@@MC_SUMMARIZE@@前缀）生成摘要；默认用摘要替换会话历史（新对话语义），
+      // keepFull=true 保留完整历史、仅在会话顶部标记摘要。
+      summarizeSession: async (sessionId, opts) => {
+        const id = sessionId || get().activeSessionId
+        if (!id) return { ok: false, error: i18n.t('common:chat.summarizeNoSession') }
+        const session = get().sessions.find((s) => s.id === id)
+        if (!session || session.messages.length === 0)
+          return { ok: false, error: i18n.t('common:chat.summarizeNoSession') }
+        const aiHub = window.electron?.aihub
+        if (!aiHub) return { ok: false, error: i18n.t('chat:aihub.error.hubFailed') }
+        try {
+          // 确保 AI Hub 已运行
+          const status = await aiHub.status()
+          if (!status.running) {
+            await aiHub.start()
+            for (let i = 0; i < 15; i++) {
+              await new Promise((r) => setTimeout(r, 1000))
+              const st = await aiHub.status()
+              if (st.running) break
+            }
+          }
+          const { useUIStore } = await import('@/stores/ui.store')
+          const aiConfig = useUIStore.getState().aiConfig
+          const provider = get().selectedProvider || aiConfig.defaultProvider
+          if (!provider) return { ok: false, error: i18n.t('chat:aihub.error.noModel') }
+          // 构建历史文本（跳过 system 摘要标记，避免把摘要本身再摘要）
+          const historyText = session.messages
+            .filter((m) => m.role !== 'system')
+            .map((m) => `${m.role === 'user' ? '用户' : 'AI'}：${(m.content || '').trim()}`)
+            .join('\n')
+          if (!historyText.trim()) return { ok: false, error: i18n.t('common:chat.summarizeNoSession') }
+          const summary = await aiHub.chat(
+            id,
+            `${CTRL_SUMMARIZE_PREFIX}${historyText}`,
+            'general',
+            provider,
+            [],
+            'semi_auto',
+          )
+          if (!summary || /^(错误|Error)/.test(summary.trim())) {
+            return { ok: false, error: summary || i18n.t('common:chat.summarizeFailed') }
+          }
+          const keepFull = opts?.keepFull ?? false
+          const markerLabel = keepFull ? i18n.t('common:chat.summarizeMarker') : i18n.t('common:chat.summarizeReplaced')
+          set((s) => ({
+            sessions: s.sessions.map((ses) => {
+              if (ses.id !== id) return ses
+              const marker: ChatMessage = {
+                id: generateId(),
+                role: 'system',
+                content: `${markerLabel}\n\n${summary}`,
+                timestamp: Date.now(),
+                mode: ses.mode,
+              }
+              return {
+                ...ses,
+                messages: keepFull ? [marker, ...ses.messages] : [marker],
+                updatedAt: Date.now(),
+              }
+            }),
+          }))
+          return { ok: true, summary }
+        } catch (e) {
+          // 失败保持原历史 + 返回错误（不破坏会话）
+          return { ok: false, error: e instanceof Error ? e.message : String(e) }
+        }
+      },
+
+      // ===== M-F4（PRD v3.6 F4-2）：长会话上限截断 =====
+      // 前端同步裁剪保留最近 keep 条（新对话语义），并复用既有 aiHub.chat 通道 +
+      // 后端 /send 控制消息（@@MC_TRUNCATE@@:N）截断后端会话 history。
+      truncateSession: async (sessionId, keep) => {
+        const id = sessionId || get().activeSessionId
+        if (!id) return { ok: false }
+        const n = Math.max(1, keep ?? TRUNCATE_KEEP)
+        set((s) => ({
+          sessions: s.sessions.map((ses) =>
+            ses.id === id && ses.messages.length > n
+              ? { ...ses, messages: ses.messages.slice(-n), updatedAt: Date.now() }
+              : ses,
+          ),
+          truncateNotice: s.truncateNotice && s.truncateNotice.sessionId === id ? null : s.truncateNotice,
+        }))
+        try {
+          const aiHub = window.electron?.aihub
+          if (aiHub?.chat) await aiHub.chat(id, `${CTRL_TRUNCATE_PREFIX}${n}`, 'general', undefined, [], 'semi_auto')
+        } catch {
+          /* 后端不可用时仅完成前端裁剪 */
+        }
+        return { ok: true }
+      },
+
+      dismissTruncateNotice: () => set({ truncateNotice: null }),
     }),
     {
       name: 'mc-chat-state',

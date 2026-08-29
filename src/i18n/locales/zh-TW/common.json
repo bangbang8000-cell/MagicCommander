@@ -44,6 +44,17 @@
   "chat": {
     "thinking": "正在思考…",
     "confirmTool": "確認執行工具「{{tool}}」嗎？",
+    "summarize": "摘要上下文",
+    "summarizeCompress": "壓縮歷史並繼續",
+    "summarizeKeepFull": "保留完整歷史",
+    "summarizeDone": "已產生摘要",
+    "summarizeFailed": "摘要產生失敗，已保留原對話",
+    "summarizeNoSession": "暫無對話內容可摘要",
+    "summarizeReplaced": "（以下為本對話摘要，原歷史已壓縮）",
+    "summarizeMarker": "（以下為本對話摘要，完整歷史已保留）",
+    "truncateBanner": "對話訊息已達 {{count}} 則，可截斷舊訊息（保留最近 {{keep}} 則）",
+    "truncateNow": "截斷舊訊息",
+    "truncateDone": "已截斷舊訊息",
     "session": {
       "rename": "重新命名對話",
       "renamePlaceholder": "輸入新名稱"

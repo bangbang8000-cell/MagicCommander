@@ -44,6 +44,17 @@
   "chat": {
     "thinking": "Thinking...",
     "confirmTool": "Confirm running tool \"{{tool}}\"?",
+    "summarize": "Summarize Context",
+    "summarizeCompress": "Compress history and continue",
+    "summarizeKeepFull": "Keep full history",
+    "summarizeDone": "Summary generated",
+    "summarizeFailed": "Failed to summarize; the original conversation is kept",
+    "summarizeNoSession": "No conversation to summarize",
+    "summarizeReplaced": "(Below is the summary of this conversation; the original history was compressed)",
+    "summarizeMarker": "(Below is the summary of this conversation; full history is kept)",
+    "truncateBanner": "This conversation has {{count}} messages. You can truncate old messages (keep the latest {{keep}}).",
+    "truncateNow": "Truncate old messages",
+    "truncateDone": "Old messages truncated",
     "session": {
       "rename": "Rename chat",
       "renamePlaceholder": "Enter a new name"

@@ -44,6 +44,17 @@
   "chat": {
     "thinking": "考え中...",
     "confirmTool": "ツール「{{tool}}」の実行を確認しますか？",
+    "summarize": "コンテキストを要約",
+    "summarizeCompress": "履歴を圧縮して続行",
+    "summarizeKeepFull": "完全な履歴を保持",
+    "summarizeDone": "要約を生成しました",
+    "summarizeFailed": "要約の生成に失敗しました。元の会話は保持されています",
+    "summarizeNoSession": "要約できる会話がありません",
+    "summarizeReplaced": "（以下は本会話の要約です。元の履歴は圧縮されました）",
+    "summarizeMarker": "（以下は本会話の要約です。完全な履歴は保持されています）",
+    "truncateBanner": "会話メッセージが {{count}} 件に達しました。古いメッセージを切り詰められます（最新 {{keep}} 件を保持）",
+    "truncateNow": "古いメッセージを切り詰め",
+    "truncateDone": "古いメッセージを切り詰めました",
     "session": {
       "rename": "会話名を変更",
       "renamePlaceholder": "新しい名前を入力"

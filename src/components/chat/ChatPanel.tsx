@@ -13,10 +13,13 @@ import {
   ChevronDown,
   Check,
   Pencil,
+  FileText,
+  Loader2,
 } from 'lucide-react'
-import { useChatStore, sendMessage } from '@/stores/chat.store'
+import { useChatStore, sendMessage, TRUNCATE_KEEP } from '@/stores/chat.store'
 import { useUIStore } from '@/stores/ui.store'
 import { useProjectStore } from '@/stores/project.store'
+import { showSuccess, showError } from '@/components/ui/Toast'
 import { ChatMessageBubble } from './ChatMessageBubble'
 import { ChatInput } from './ChatInput'
 
@@ -54,6 +57,9 @@ export function ChatPanel() {
   const setAIHubProviders = useChatStore((s) => s.setAIHubProviders)
   const selectedProvider = useChatStore((s) => s.selectedProvider)
   const setSelectedProvider = useChatStore((s) => s.setSelectedProvider)
+  // M-F4（PRD v3.6）：上下文压缩——摘要 / 截断提示
+  const truncateNotice = useChatStore((s) => s.truncateNotice)
+  const dismissTruncateNotice = useChatStore((s) => s.dismissTruncateNotice)
 
   const aiConfig = useUIStore((s) => s.aiConfig)
 
@@ -63,6 +69,9 @@ export function ChatPanel() {
   // PRD v3.5 MC-SESS1：会话重命名（内联编辑）
   const [renamingId, setRenamingId] = useState<string | null>(null)
   const [renameValue, setRenameValue] = useState('')
+  // M-F4（PRD v3.6）：摘要上下文下拉 + 生成中状态
+  const [summarizeOpen, setSummarizeOpen] = useState(false)
+  const [summarizing, setSummarizing] = useState(false)
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const tabBarRef = useRef<HTMLDivElement>(null)
@@ -198,6 +207,30 @@ export function ChatPanel() {
   const handleClearChat = useCallback(() => {
     void clearSessionContext()
   }, [clearSessionContext])
+  // M-F4（PRD v3.6 F4-1）：会话内手动摘要（keepFull=true 保留完整历史，仅标记摘要）
+  const runSummarize = useCallback(
+    async (keepFull: boolean) => {
+      setSummarizeOpen(false)
+      const store = useChatStore.getState()
+      const id = store.activeSessionId
+      if (!id) return
+      setSummarizing(true)
+      const res = await store.summarizeSession(id, { keepFull })
+      setSummarizing(false)
+      if (res.ok) showSuccess(t('common:chat.summarizeDone'))
+      else showError(res.error || t('common:chat.summarizeFailed'))
+    },
+    [t],
+  )
+  // M-F4（PRD v3.6 F4-2）：长会话截断（保留最近 TRUNCATE_KEEP 条，新对话语义）
+  const handleTruncate = useCallback(() => {
+    const store = useChatStore.getState()
+    const id = store.activeSessionId
+    if (!id) return
+    void store.truncateSession(id).then((r) => {
+      if (r.ok) showSuccess(t('common:chat.truncateDone'))
+    })
+  }, [t])
   // PRD v3.5 MC-SESS1：会话重命名（内联编辑入口）
   const startRename = useCallback((id: string, title: string) => {
     setRenamingId(id)
@@ -283,6 +316,50 @@ export function ChatPanel() {
         >
           <Settings size={13} />
         </button>
+        {/* M-F4（PRD v3.6 F4-1）：会话内手动摘要——摘要上下文 */}
+        {activeSession && activeSession.messages.length > 0 ? (
+          <div className="relative">
+            <button
+              onClick={() => setSummarizeOpen((v) => !v)}
+              disabled={summarizing}
+              className={clsx(
+                'p-1 rounded transition-colors',
+                isDark ? 'hover:bg-gray-700 text-gray-400' : 'hover:bg-gray-200 text-gray-500',
+                summarizing ? 'opacity-60 cursor-wait' : '',
+              )}
+              title={t('common:chat.summarize')}
+            >
+              {summarizing ? <Loader2 size={13} className="animate-spin" /> : <FileText size={13} />}
+            </button>
+            {summarizeOpen && (
+              <div
+                className={clsx(
+                  'absolute right-0 top-full mt-1 z-50 w-48 py-1 rounded-lg shadow-lg border',
+                  isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200',
+                )}
+              >
+                <button
+                  onClick={() => void runSummarize(false)}
+                  className={clsx(
+                    'w-full text-left px-3 py-1.5 text-xs transition-colors',
+                    isDark ? 'hover:bg-gray-700 text-gray-300' : 'hover:bg-gray-100 text-gray-700',
+                  )}
+                >
+                  {t('common:chat.summarizeCompress')}
+                </button>
+                <button
+                  onClick={() => void runSummarize(true)}
+                  className={clsx(
+                    'w-full text-left px-3 py-1.5 text-xs transition-colors',
+                    isDark ? 'hover:bg-gray-700 text-gray-300' : 'hover:bg-gray-100 text-gray-700',
+                  )}
+                >
+                  {t('common:chat.summarizeKeepFull')}
+                </button>
+              </div>
+            )}
+          </div>
+        ) : null}
         {activeSession?.messages.length ? (
           <button
             onClick={handleClearChat}
@@ -495,6 +572,41 @@ export function ChatPanel() {
           </div>
         )}
       </div>
+
+      {/* M-F4（PRD v3.6 F4-2）：长会话超阈值 → 截断提示横幅 */}
+      {truncateNotice && truncateNotice.sessionId === activeSessionId && (
+        <div
+          className={clsx(
+            'flex items-center justify-between gap-2 px-3 py-1.5 text-xs border-t shrink-0',
+            isDark ? 'bg-amber-900/30 border-amber-800 text-amber-300' : 'bg-amber-50 border-amber-200 text-amber-700',
+          )}
+        >
+          <span className="flex items-center gap-1.5">
+            <AlertCircle size={12} />
+            {t('common:chat.truncateBanner', { count: truncateNotice.count, keep: TRUNCATE_KEEP })}
+          </span>
+          <div className="flex items-center gap-1.5 shrink-0">
+            <button
+              onClick={handleTruncate}
+              className={clsx(
+                'px-2 py-0.5 rounded text-xs font-medium transition-colors',
+                isDark ? 'bg-amber-700 hover:bg-amber-600 text-white' : 'bg-amber-500 hover:bg-amber-600 text-white',
+              )}
+            >
+              {t('common:chat.truncateNow')}
+            </button>
+            <button
+              onClick={dismissTruncateNotice}
+              className={clsx(
+                'px-2 py-0.5 rounded text-xs transition-colors',
+                isDark ? 'hover:bg-amber-800/50' : 'hover:bg-amber-100',
+              )}
+            >
+              {t('common:app.dismiss')}
+            </button>
+          </div>
+        </div>
+      )}
 
       <ChatInput isDark={isDark} onSend={handleSend} />
 
