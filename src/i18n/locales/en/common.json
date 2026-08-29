@@ -396,7 +396,9 @@
       "hubFailed": "AI Hub failed to start, please check Python environment",
       "hubNotReady": "AI Hub not ready",
       "testFailed": "Test failed",
-      "providerConfig": "{{name}} Configuration"
+      "providerConfig": "{{name}} Configuration",
+      "maxToolLoopRounds": "Max Tool Loop Rounds",
+      "maxToolLoopRoundsDesc": "Max tool rounds an AI conversation may run (1-10, default 5); ends normally when reached"
     },
     "general": {
       "title": "General",

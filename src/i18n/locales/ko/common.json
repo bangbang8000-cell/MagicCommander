@@ -328,5 +328,11 @@
     "checkButton": "Check for Updates",
     "downloadButton": "Download Update",
     "installButton": "Restart and Install"
+  },
+  "settings": {
+    "ai": {
+      "maxToolLoopRounds": "최대 도구 루프 수",
+      "maxToolLoopRoundsDesc": "AI 대화에서 실행 가능한 최대 도구 라운드 수(1-10, 기본 5). 상한 도달 시 정상 종료"
+    }
   }
 }

@@ -328,5 +328,11 @@
     "checkButton": "Check for Updates",
     "downloadButton": "Download Update",
     "installButton": "Restart and Install"
+  },
+  "settings": {
+    "ai": {
+      "maxToolLoopRounds": "最大工具循環輪數",
+      "maxToolLoopRoundsDesc": "AI 單次對話最多執行的工具輪數（1-10，預設 5），達到上限後正常結束"
+    }
   }
 }

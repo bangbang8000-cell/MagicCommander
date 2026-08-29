@@ -328,5 +328,11 @@
     "checkButton": "Check for Updates",
     "downloadButton": "Download Update",
     "installButton": "Restart and Install"
+  },
+  "settings": {
+    "ai": {
+      "maxToolLoopRounds": "最大ツールループ数",
+      "maxToolLoopRoundsDesc": "AI が 1 回の会話で実行できるツールの最大ラウンド数（1〜10、デフォルト 5）。上限到達で正常終了"
+    }
   }
 }

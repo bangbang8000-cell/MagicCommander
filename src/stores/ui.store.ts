@@ -99,6 +99,8 @@ export interface AIConfig {
   routingEnabled: boolean
   routingRules: RoutingRule[]
   providers: Record<string, ProviderConfig>
+  /** MC-LOOP1：AI 多轮工具循环最大轮数（1-10，默认 5，provider 无关） */
+  maxToolLoopRounds: number
 }
 
 export interface ProviderConfig {
@@ -226,6 +228,7 @@ export const useUIStore = create<UIState>()(
             { taskType: 'complex', provider: 'deepseek' },
           ],
           providers: {},
+          maxToolLoopRounds: 5,
         },
         setAIConfig: (config) => set((s) => ({ aiConfig: { ...s.aiConfig, ...config } })),
         setProviderConfig: (key, config) =>
@@ -299,6 +302,11 @@ export const useUIStore = create<UIState>()(
               }
               if (!state.templateListHeight || state.templateListHeight < LAYOUT_INTERNAL_MIN) {
                 state.templateListHeight = LAYOUT_TEMPLATE_LIST_DEFAULT
+              }
+
+              // MC-LOOP1：旧持久化数据缺少 maxToolLoopRounds 时迁移为默认 5
+              if (state.aiConfig && typeof state.aiConfig.maxToolLoopRounds !== 'number') {
+                state.aiConfig.maxToolLoopRounds = 5
               }
 
               // AI 配置恢复：如果 providers 为空，尝试从文件备份恢复

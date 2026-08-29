@@ -80,6 +80,20 @@ type SettingsTab = 'general' | 'ai' | 'platform' | 'advanced' | 'about'
 // AI-3：保存配置后自动拉取模型的节流窗口（毫秒）
 export const AUTO_FETCH_THROTTLE_MS = 30_000
 
+// MC-LOOP1：AI 多轮工具循环上限（1-10，默认 5，provider 无关）
+export const MAX_TOOL_LOOP_ROUNDS_MIN = 1
+export const MAX_TOOL_LOOP_ROUNDS_MAX = 10
+export const MAX_TOOL_LOOP_ROUNDS_DEFAULT = 5
+
+/**
+ * MC-LOOP1：将「最大工具循环轮数」输入 clamp 到 [1, 10]；非法/缺失回退默认 5。
+ * 纯函数，便于单测。
+ */
+export function clampToolLoopRounds(value: number): number {
+  if (!Number.isFinite(value)) return MAX_TOOL_LOOP_ROUNDS_DEFAULT
+  return Math.max(MAX_TOOL_LOOP_ROUNDS_MIN, Math.min(MAX_TOOL_LOOP_ROUNDS_MAX, Math.round(value)))
+}
+
 export interface AutoFetchModelsCondition {
   apiKey: string
   baseUrl: string
@@ -392,6 +406,39 @@ export function SettingsPanel() {
       setFetchingModels(false)
     }
   }, [baseUrl, apiKey, catalog, isOllama, ensureAIHubReady])
+
+  // MC-LOOP1：将「最大工具循环轮数」同步到后端 secrets 文件（agent 每 send 实时读取）
+  // 说明：现有 electron IPC 面为固定 configureProvider 参数，无法透传通用设置；
+  // 因此通过既有可信 file 读写 IPC 将值写入 <workspace>/.mc_ai_secrets.json，与后端 save_secrets 同一文件。
+  const persistMaxToolLoopRounds = useCallback(async (rounds: number) => {
+    try {
+      const workspace = await window.electron.app.getPath('workspace')
+      const secretsPath = `${workspace.replace(/[\\/]+$/, '')}/.mc_ai_secrets.json`
+      let secrets: Record<string, unknown> = {}
+      try {
+        if (await window.electron.file.exists(secretsPath)) {
+          const raw = await window.electron.file.read(secretsPath)
+          if (raw) secrets = JSON.parse(raw)
+        }
+      } catch {
+        /* 文件缺失或损坏，按空对象重建 */
+      }
+      secrets.max_tool_loop_rounds = clampToolLoopRounds(rounds)
+      await window.electron.file.write(secretsPath, JSON.stringify(secrets, null, 2))
+    } catch {
+      /* 静默失败：值已保存在本地 store，AI Hub 启动时由 apply_secrets 兜底 */
+    }
+  }, [])
+
+  const handleMaxToolLoopRoundsChange = useCallback(
+    (raw: number) => {
+      const rounds = clampToolLoopRounds(raw)
+      setAIConfig({ maxToolLoopRounds: rounds })
+      // MC-LOOP1：保存后同步后端，保证调小后立即生效（失败不阻塞 UI）
+      void persistMaxToolLoopRounds(rounds)
+    },
+    [setAIConfig, persistMaxToolLoopRounds],
+  )
 
   const handleLanguageChange = useCallback(
     (locale: string) => {
@@ -1047,6 +1094,43 @@ export function SettingsPanel() {
                 })}
               </div>
             )}
+          </div>
+        </div>
+      </div>
+
+      {/* MC-LOOP1：工具循环上限（provider 无关，1-10，默认 5） */}
+      <div
+        className={clsx(
+          'rounded-lg border p-3',
+          isDark ? 'border-gray-700 bg-gray-800/50' : 'border-gray-200 bg-gray-50',
+        )}
+      >
+        <div className="flex items-start gap-3">
+          <div className={clsx('mt-0.5', isDark ? 'text-gray-400' : 'text-gray-500')}>
+            <RefreshCw size={16} />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center justify-between">
+              <div>
+                <h4 className={clsx('text-sm font-medium', isDark ? 'text-gray-200' : 'text-gray-700')}>
+                  {t('common:settings.ai.maxToolLoopRounds')}
+                </h4>
+                <p className={clsx('text-xs mt-0.5', isDark ? 'text-gray-500' : 'text-gray-400')}>
+                  {t('common:settings.ai.maxToolLoopRoundsDesc')}
+                </p>
+              </div>
+              <input
+                type="number"
+                min={MAX_TOOL_LOOP_ROUNDS_MIN}
+                max={MAX_TOOL_LOOP_ROUNDS_MAX}
+                value={aiConfig.maxToolLoopRounds ?? MAX_TOOL_LOOP_ROUNDS_DEFAULT}
+                onChange={(e) => handleMaxToolLoopRoundsChange(Number(e.target.value))}
+                className={clsx(
+                  'w-16 px-2 py-1 rounded text-xs text-center border',
+                  isDark ? 'border-gray-600 bg-gray-700 text-gray-200' : 'border-gray-300 bg-white text-gray-700',
+                )}
+              />
+            </div>
           </div>
         </div>
       </div>

@@ -397,7 +397,9 @@
       "hubFailed": "AI Hub 启动失败，请检查 Python 环境",
       "hubNotReady": "AI Hub 未就绪",
       "testFailed": "测试失败",
-      "providerConfig": "{{name}} 配置"
+      "providerConfig": "{{name}} 配置",
+      "maxToolLoopRounds": "最大工具循环轮数",
+      "maxToolLoopRoundsDesc": "AI 单次对话最多执行的工具轮数（1-10，默认 5），达到上限后正常结束"
     },
     "general": {
       "title": "通用设置",
