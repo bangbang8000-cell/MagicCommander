@@ -20,7 +20,9 @@ router = APIRouter(prefix="/api/chat", tags=["chat"])
 
 
 class ChatRequest(BaseModel):
-    session_id: str
+    # PRD v3.5 MC-SESS2：conversationId（session_id）缺省时回落 "default" 会话，
+    # 兼容既有单会话调用（不传 conversationId 时所有消息进入默认会话，行为不变）
+    session_id: Optional[str] = "default"
     message: str
     mode: str = "general"  # template | config | general
     provider: Optional[str] = None
@@ -81,7 +83,8 @@ async def send_message(req: ChatRequest):
             detail=f"Provider '{req.provider or settings.default_provider}' 不可用，请先配置 API Key",
         )
 
-    session = get_or_create_session(req.session_id)
+    # conversationId（session_id）缺省时回落默认会话（兼容既有单会话）
+    session = get_or_create_session(req.session_id or "default")
     session.set_provider(req.provider)
     # 带入客户端当前选中的项目名，让 AI 感知项目上下文（记忆/校验/系统提示词）
     session.set_mode(req.mode, req.project_name or "")
