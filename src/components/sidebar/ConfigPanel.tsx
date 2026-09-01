@@ -1,11 +1,22 @@
 import { useProjectStore } from '@/stores/project.store'
 import { useRenderStore } from '@/stores/render.store'
 import { useEditorStore } from '@/stores/editor.store'
+import {
+  useProjectHistoryStore,
+  createBackup,
+  restoreLatestBackup,
+  listScope,
+  restoreScope,
+  defaultHistoryIo,
+  VERSION_HISTORY_LIMIT,
+  BACKUP_LIMIT,
+  type VersionMeta,
+} from '@/stores/projectHistory.store'
 import { Button } from '@/components/ui/Button'
 import type { ProjectInfoDetail } from '@/types/ipc'
-import { Play, RefreshCw, FolderOpen, FileCheck, FileCode, FileOutput } from 'lucide-react'
+import { Play, RefreshCw, FolderOpen, FileCheck, FileCode, FileOutput, History, Archive } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 
 export function ConfigPanel() {
   const { t } = useTranslation('project')
@@ -27,16 +38,146 @@ export function ConfigPanel() {
 
   const [projectInfo, setProjectInfo] = useState<ProjectInfoDetail | null>(null)
 
+  // V4.2.0-42-b/42-c：版本回滚 + 备份/一键恢复
+  const historyBusy = useProjectHistoryStore((s) => s.busy)
+  const historyMessage = useProjectHistoryStore((s) => s.message)
+  const historyKind = useProjectHistoryStore((s) => s.kind)
+  const setHistoryBusy = useProjectHistoryStore((s) => s.setBusy)
+  const notify = useProjectHistoryStore((s) => s.notify)
+  const clearMessage = useProjectHistoryStore((s) => s.clearMessage)
+  const [versions, setVersions] = useState<VersionMeta[]>([])
+  const [backups, setBackups] = useState<VersionMeta[]>([])
+
+  const projectRef = useMemo(
+    () => (selectedProject ? { id: selectedProject.id, name: selectedProject.name } : null),
+    [selectedProject],
+  )
+
+  const refreshHistory = useCallback(async () => {
+    if (!projectRef) return
+    try {
+      const [v, b] = await Promise.all([
+        listScope(projectRef, 'history', defaultHistoryIo()),
+        listScope(projectRef, 'backup', defaultHistoryIo()),
+      ])
+      setVersions(v)
+      setBackups(b)
+    } catch {
+      /* 读取失败忽略 */
+    }
+  }, [projectRef])
+
   useEffect(() => {
     if (selectedProject) {
       window.electron.project
         .info(String(selectedProject.id))
         .then(setProjectInfo)
         .catch(() => setProjectInfo(null))
+      void refreshHistory()
     } else {
       setProjectInfo(null)
+      setVersions([])
+      setBackups([])
     }
-  }, [selectedProject])
+  }, [selectedProject, refreshHistory])
+
+  // 恢复后重开项目标签，让编辑器读取磁盘上恢复后的内容
+  const reloadProjectTabs = useCallback(async (projectId: number) => {
+    const metas = useEditorStore.getState().tabMetas.filter((m) => m.projectId === projectId)
+    useEditorStore.getState().closeTabsByProject(projectId)
+    await new Promise((resolve) => setTimeout(resolve, 50))
+    for (const meta of metas) {
+      useEditorStore.getState().openFile({
+        id: meta.tabId,
+        title: meta.title,
+        filePath: meta.filePath,
+        fileType: meta.fileType,
+        projectId: meta.projectId,
+        projectName: meta.projectName,
+        isDirty: false,
+      })
+    }
+  }, [])
+
+  const handleBackup = useCallback(async () => {
+    if (!projectRef) return
+    setHistoryBusy(true)
+    clearMessage()
+    try {
+      const r = await createBackup(projectRef)
+      if (r.ok) {
+        notify('success', '备份成功（自动轮转保留最近 5 份）')
+        void refreshHistory()
+      } else {
+        notify('error', `备份失败：${r.reason || '未知原因'}`)
+      }
+    } catch (e) {
+      notify('error', e instanceof Error ? e.message : String(e))
+    } finally {
+      setHistoryBusy(false)
+    }
+  }, [projectRef, setHistoryBusy, clearMessage, notify, refreshHistory])
+
+  const handleRestoreLatestBackup = useCallback(async () => {
+    if (!projectRef || !selectedProject) return
+    try {
+      const confirmed = await window.electron.dialog.showConfirm({
+        title: '一键恢复',
+        message: '将用最近一次备份覆盖当前项目的配置/参数文件，是否继续？',
+      })
+      if (!confirmed) return
+    } catch {
+      /* 对话框失败则继续 */
+    }
+    setHistoryBusy(true)
+    clearMessage()
+    try {
+      const r = await restoreLatestBackup(projectRef)
+      if (r.ok) {
+        notify('success', `已恢复 ${r.restored} 个文件`)
+        void reloadProjectTabs(selectedProject.id)
+        void refreshHistory()
+      } else {
+        notify('error', `恢复失败：${r.reason || '无可用备份'}`)
+      }
+    } catch (e) {
+      notify('error', e instanceof Error ? e.message : String(e))
+    } finally {
+      setHistoryBusy(false)
+    }
+  }, [projectRef, selectedProject, setHistoryBusy, clearMessage, notify, refreshHistory, reloadProjectTabs])
+
+  const handleRestoreVersion = useCallback(
+    async (id: string) => {
+      if (!projectRef || !selectedProject) return
+      try {
+        const confirmed = await window.electron.dialog.showConfirm({
+          title: '回滚到历史版本',
+          message: '将用所选历史版本覆盖当前项目的配置/参数文件，是否继续？',
+        })
+        if (!confirmed) return
+      } catch {
+        /* 对话框失败则继续 */
+      }
+      setHistoryBusy(true)
+      clearMessage()
+      try {
+        const r = await restoreScope(projectRef, 'history', id, defaultHistoryIo())
+        if (r.ok) {
+          notify('success', `已回滚 ${r.restored} 个文件`)
+          void reloadProjectTabs(selectedProject.id)
+          void refreshHistory()
+        } else {
+          notify('error', `回滚失败：${r.reason || '未知原因'}`)
+        }
+      } catch (e) {
+        notify('error', e instanceof Error ? e.message : String(e))
+      } finally {
+        setHistoryBusy(false)
+      }
+    },
+    [projectRef, selectedProject, setHistoryBusy, clearMessage, notify, refreshHistory, reloadProjectTabs],
+  )
 
   if (!selectedProject) {
     return (
@@ -216,6 +357,83 @@ export function ConfigPanel() {
             >
               {t('render.deleteYaml')}
             </Button>
+          </div>
+        </div>
+
+        {/* V4.2.0-42-b/42-c：备份 + 版本回滚（F2-2b / F2-3） */}
+        <div className="space-y-1.5">
+          <h4 className="text-xs font-semibold text-gray-700 flex items-center gap-1">
+            <Archive size={12} /> {t('workbench.backupRestore')}
+          </h4>
+          <div className="flex flex-col gap-1">
+            <Button
+              variant="secondary"
+              size="sm"
+              icon={<Archive size={12} />}
+              onClick={handleBackup}
+              disabled={historyBusy}
+              className="w-full justify-start"
+            >
+              {t('workbench.createBackup')}
+            </Button>
+            <Button
+              variant="secondary"
+              size="sm"
+              icon={<History size={12} />}
+              onClick={handleRestoreLatestBackup}
+              disabled={historyBusy}
+              className="w-full justify-start"
+            >
+              {t('workbench.restoreLatestBackup')}
+            </Button>
+          </div>
+          {historyMessage && (
+            <p
+              className={`text-[11px] ${
+                historyKind === 'success'
+                  ? 'text-green-600'
+                  : historyKind === 'error'
+                    ? 'text-red-600'
+                    : 'text-gray-500'
+              }`}
+            >
+              {historyMessage}
+            </p>
+          )}
+          <div className="bg-gray-50 rounded p-2 text-[11px] space-y-1">
+            <div className="flex items-center gap-1 font-medium text-gray-600">
+              <History size={10} /> {t('workbench.versionHistory')}（最近 {VERSION_HISTORY_LIMIT} 版）
+            </div>
+            {versions.length === 0 ? (
+              <p className="text-gray-400">{t('workbench.noVersionHistory')}</p>
+            ) : (
+              [...versions].reverse().map((v) => (
+                <div key={v.id} className="flex items-center justify-between gap-2">
+                  <span className="truncate text-gray-500">
+                    {new Date(v.timestamp).toLocaleString()} · {v.note || '自动保存'} · {v.fileCount} 文件
+                  </span>
+                  <button
+                    onClick={() => handleRestoreVersion(v.id)}
+                    disabled={historyBusy}
+                    className="text-blue-500 hover:underline shrink-0 disabled:opacity-40"
+                  >
+                    {t('workbench.rollback')}
+                  </button>
+                </div>
+              ))
+            )}
+            <div className="flex items-center gap-1 font-medium text-gray-600 pt-1 border-t border-gray-200">
+              <Archive size={10} /> {t('workbench.backups')}（最近 {BACKUP_LIMIT} 份）
+            </div>
+            {backups.length === 0 ? (
+              <p className="text-gray-400">{t('workbench.noBackups')}</p>
+            ) : (
+              [...backups].reverse().map((b) => (
+                <div key={b.id} className="truncate text-gray-500">
+                  {new Date(b.timestamp).toLocaleString()} · {b.note || '自动备份'} · {b.fileCount} 文件
+                </div>
+              ))
+            )}
           </div>
         </div>
 
