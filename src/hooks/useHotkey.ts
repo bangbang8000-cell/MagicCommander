@@ -28,6 +28,17 @@ const KEY_NORMALIZE: Record<string, string> = {
   ' ': 'Space',
 }
 
+/** 是否为可编辑输入目标（INPUT / TEXTAREA / contentEditable） */
+function isEditableTarget(el: unknown): boolean {
+  if (!(el instanceof HTMLElement)) return false
+  const tag = el.tagName
+  if (tag === 'INPUT' || tag === 'TEXTAREA') return true
+  if (el.isContentEditable) return true
+  // jsdom 兼容：isContentEditable 可能为 undefined，退化为检查 contenteditable 属性
+  const attr = el.getAttribute('contenteditable')
+  return attr === 'true' || attr === ''
+}
+
 /** 解析 "ctrl+s" / "ctrl+shift+e" 等字符串 */
 export function parseKeyCombo(raw: string): KeyCombo {
   const parts = raw
@@ -61,10 +72,9 @@ export function useHotkey(
     const { key, modifiers, enableInInput } = comboRef.current
 
     const listener = (e: KeyboardEvent) => {
-      // 不在输入框中触发（除非明确允许）
+      // 不在输入框中触发（除非明确允许）：同时检查事件目标与当前聚焦元素（聚焦输入框时系统键跳过）
       if (!enableInInput) {
-        const tag = (e.target as HTMLElement)?.tagName
-        if (tag === 'INPUT' || tag === 'TEXTAREA' || (e.target as HTMLElement)?.isContentEditable) {
+        if (isEditableTarget(e.target) || isEditableTarget(document.activeElement)) {
           return
         }
       }

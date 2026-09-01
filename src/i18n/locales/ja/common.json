@@ -313,7 +313,12 @@
     "projectConfig": "プロジェクト設定",
     "labelPrint": "ラベル印刷",
     "renderOperations": "レンダリング操作",
-    "outputResults": "出力結果"
+    "outputResults": "出力結果",
+    "commandPalette": "コマンドパレット",
+    "toggleTerminal": "ターミナル/ログパネルを切り替え",
+    "renderCurrentProject": "現在のプロジェクトをレンダリング",
+    "exportOutput": "エクスポート/出力",
+    "projectPanel": "プロジェクトパネル"
   },
   "hotkeyCategories": {
     "file": "ファイル",
@@ -350,5 +355,43 @@
       "maxToolLoopRounds": "最大ツールループ数",
       "maxToolLoopRoundsDesc": "AI が 1 回の会話で実行できるツールの最大ラウンド数（1〜10、デフォルト 5）。上限到達で正常終了"
     }
+  },
+  "efficiency": {
+    "pipelineTitle": "ワンクリックパイプライン",
+    "pipelinePlanMode": "AutoLink プランパイプライン",
+    "pipelineTemplateMode": "テンプレート一括処理",
+    "pipelinePlanDesc": "AutoLink プラン JSON のインポート → レンダリング → エクスポートを一括実行",
+    "pipelineTemplateDesc": "複数テンプレートを選択し、ソースプロジェクトを一括レンダリング＆エクスポート",
+    "pipelineImport": "インポート",
+    "pipelineRender": "レンダリング",
+    "pipelineExport": "エクスポート",
+    "pipelineRun": "パイプライン実行",
+    "pipelineStop": "停止",
+    "pipelineRetry": "再試行",
+    "pipelineReset": "リセット",
+    "pipelinePlanPath": "プランファイルパス",
+    "pipelinePickPlan": "プランファイルを選択",
+    "pipelineRunning": "パイプライン実行中...",
+    "pipelineStopped": "パイプラインを停止しました",
+    "pipelineDone": "パイプライン完了",
+    "pipelineFailed": "パイプライン失敗",
+    "pipelineSelectTemplate": "テンプレートを選択",
+    "pipelineExportPath": "エクスポート先",
+    "stepIdle": "待機",
+    "stepRunning": "実行中",
+    "stepDone": "完了",
+    "stepFailed": "失敗",
+    "stepCancelled": "キャンセル済み",
+    "batchTitle": "一括操作",
+    "batchRender": "一括レンダリング",
+    "batchExport": "一括エクスポート",
+    "batchApplyParams": "パラメータ一括適用",
+    "batchNoSelection": "プロジェクトを選択してください",
+    "batchProgress": "進捗",
+    "batchSummary": "全 {{total}} 件：成功 {{done}}、失敗 {{failed}}",
+    "batchFailureSummary": "失敗サマリー",
+    "batchErrors": "エラー",
+    "batchEditHint": "ソースプロジェクトのパラメータシート（Excel）を選択プロジェクトへ一括適用",
+    "batchStop": "停止"
   }
 }

@@ -313,7 +313,12 @@
     "projectConfig": "프로젝트 설정",
     "labelPrint": "라벨 인쇄",
     "renderOperations": "렌더링 작업",
-    "outputResults": "출력 결과"
+    "outputResults": "출력 결과",
+    "commandPalette": "명령 팔레트",
+    "toggleTerminal": "터미널/로그 패널 전환",
+    "renderCurrentProject": "현재 프로젝트 렌더링",
+    "exportOutput": "내보내기/출력",
+    "projectPanel": "프로젝트 패널"
   },
   "hotkeyCategories": {
     "file": "파일",
@@ -350,5 +355,43 @@
       "maxToolLoopRounds": "최대 도구 루프 수",
       "maxToolLoopRoundsDesc": "AI 대화에서 실행 가능한 최대 도구 라운드 수(1-10, 기본 5). 상한 도달 시 정상 종료"
     }
+  },
+  "efficiency": {
+    "pipelineTitle": "원클릭 파이프라인",
+    "pipelinePlanMode": "AutoLink 플랜 파이프라인",
+    "pipelineTemplateMode": "템플릿 일괄 처리",
+    "pipelinePlanDesc": "AutoLink 플랜 JSON 가져오기 → 렌더링 → 내보내기를 원클릭으로 순서대로 실행",
+    "pipelineTemplateDesc": "여러 템플릿을 선택해 소스 프로젝트를 일괄 렌더링하고 내보내기",
+    "pipelineImport": "가져오기",
+    "pipelineRender": "렌더링",
+    "pipelineExport": "내보내기",
+    "pipelineRun": "파이프라인 실행",
+    "pipelineStop": "중지",
+    "pipelineRetry": "재시도",
+    "pipelineReset": "초기화",
+    "pipelinePlanPath": "플랜 파일 경로",
+    "pipelinePickPlan": "플랜 파일 선택",
+    "pipelineRunning": "파이프라인 실행 중...",
+    "pipelineStopped": "파이프라인 중지됨",
+    "pipelineDone": "파이프라인 완료",
+    "pipelineFailed": "파이프라인 실패",
+    "pipelineSelectTemplate": "템플릿 선택",
+    "pipelineExportPath": "내보내기 경로",
+    "stepIdle": "대기",
+    "stepRunning": "실행 중",
+    "stepDone": "완료",
+    "stepFailed": "실패",
+    "stepCancelled": "취소됨",
+    "batchTitle": "일괄 작업",
+    "batchRender": "일괄 렌더링",
+    "batchExport": "일괄 내보내기",
+    "batchApplyParams": "파라미터 일괄 적용",
+    "batchNoSelection": "프로젝트를 먼저 선택하세요",
+    "batchProgress": "진행률",
+    "batchSummary": "총 {{total}}건: 성공 {{done}}, 실패 {{failed}}",
+    "batchFailureSummary": "실패 요약",
+    "batchErrors": "오류",
+    "batchEditHint": "소스 프로젝트의 파라미터 시트(Excel)를 선택한 프로젝트에 일괄 적용",
+    "batchStop": "중지"
   }
 }

@@ -313,7 +313,12 @@
     "projectConfig": "專案配置",
     "labelPrint": "標籤列印",
     "renderOperations": "渲染操作",
-    "outputResults": "輸出結果"
+    "outputResults": "輸出結果",
+    "commandPalette": "命令面板",
+    "toggleTerminal": "切換終端/日誌面板",
+    "renderCurrentProject": "渲染目前專案",
+    "exportOutput": "匯出/輸出",
+    "projectPanel": "專案面板"
   },
   "hotkeyCategories": {
     "file": "檔案",
@@ -350,5 +355,43 @@
       "maxToolLoopRounds": "最大工具循環輪數",
       "maxToolLoopRoundsDesc": "AI 單次對話最多執行的工具輪數（1-10，預設 5），達到上限後正常結束"
     }
+  },
+  "efficiency": {
+    "pipelineTitle": "一鍵管線",
+    "pipelinePlanMode": "AutoLink 規劃管線",
+    "pipelineTemplateMode": "模板批次處理",
+    "pipelinePlanDesc": "匯入 AutoLink 規劃 JSON → 渲染 → 匯出，一鍵依序執行",
+    "pipelineTemplateDesc": "選擇多個模板，一鍵渲染並匯出其來源專案",
+    "pipelineImport": "匯入",
+    "pipelineRender": "渲染",
+    "pipelineExport": "匯出",
+    "pipelineRun": "執行管線",
+    "pipelineStop": "停止",
+    "pipelineRetry": "重試",
+    "pipelineReset": "重置",
+    "pipelinePlanPath": "規劃檔案路徑",
+    "pipelinePickPlan": "選擇規劃檔案",
+    "pipelineRunning": "管線執行中...",
+    "pipelineStopped": "管線已停止",
+    "pipelineDone": "管線完成",
+    "pipelineFailed": "管線失敗",
+    "pipelineSelectTemplate": "選擇模板",
+    "pipelineExportPath": "匯出路徑",
+    "stepIdle": "待執行",
+    "stepRunning": "執行中",
+    "stepDone": "完成",
+    "stepFailed": "失敗",
+    "stepCancelled": "已取消",
+    "batchTitle": "批次操作",
+    "batchRender": "批次渲染",
+    "batchExport": "批次匯出",
+    "batchApplyParams": "批次套用參數",
+    "batchNoSelection": "請先選擇專案",
+    "batchProgress": "進度",
+    "batchSummary": "共 {{total}} 項：成功 {{done}}，失敗 {{failed}}",
+    "batchFailureSummary": "失敗彙總",
+    "batchErrors": "錯誤",
+    "batchEditHint": "把來源專案的參數表（Excel）批次套用到所選專案",
+    "batchStop": "停止"
   }
 }
