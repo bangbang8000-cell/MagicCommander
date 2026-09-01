@@ -13,6 +13,7 @@ export const app = {
   isPackaged: false,
   getPath: (name: string) => `/mock/${name}`,
   getAppPath: () => '/mock/app',
+  getVersion: () => '4.1.0',
   setPath: () => {},
   on: () => {},
   whenReady: () => Promise.resolve(),
@@ -23,6 +24,10 @@ export const ipcMain = {
   on: () => {},
   handle: () => {},
   removeHandler: () => {},
+}
+
+export const crashReporter = {
+  start: () => {},
 }
 
 export const ipcRenderer = {

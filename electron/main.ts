@@ -5,11 +5,27 @@ import { initializeAppDirs, initializeWorkspace, isDev } from './config'
 import { updateService } from './services/update.service'
 import { logger } from './utils/logger'
 import { aiHubService } from './services/aiHub.service'
+import { initCrashReporting, registerProcessGuards, watchRendererCrashes, getCrashInfo } from './utils/crash'
 
 import electronI18n from './electron-i18n'
 
 // 初始化应用目录
 initializeAppDirs()
+
+// V4.2.0-42-a: 崩溃上报接线 —— 本地转储 + 主进程异常兜底（脱敏 errors.log）
+initCrashReporting()
+registerProcessGuards()
+
+// V4.2.0-42-a: 启动摘要 —— 上次会话遗留崩溃记录数（诊断入口预留，4.7 诊断中心使用）
+{
+  const crashInfo = getCrashInfo()
+  if (crashInfo.errorCount > 0) {
+    logger.warn('[crash] 检测到上次会话遗留崩溃记录:', crashInfo.errorCount)
+    for (const line of crashInfo.lastLines) {
+      logger.debug('[crash] ' + line)
+    }
+  }
+}
 
 class MagicCommanderApp {
   private mainWindow: BrowserWindow | null = null
@@ -178,18 +194,8 @@ class MagicCommanderApp {
       }
     })
 
-    // 渲染进程崩溃恢复：崩溃/无响应时自动重载，避免白屏
-    this.mainWindow.webContents.on('render-process-gone', (_event, details) => {
-      logger.error(`[Renderer] 渲染进程异常退出: ${details.reason}`, details)
-      if (details.reason !== 'clean-exit') {
-        setTimeout(() => {
-          if (this.mainWindow && !this.mainWindow.isDestroyed()) {
-            logger.info('[Renderer] 自动重载渲染进程')
-            this.mainWindow.webContents.reload()
-          }
-        }, 1000)
-      }
-    })
+    // 渲染进程崩溃恢复：V4.2.0-42-a 统一走 crash.ts（脱敏 errors.log + 非 clean-exit 自动重载），避免白屏
+    watchRendererCrashes(this.mainWindow)
     this.mainWindow.webContents.on('unresponsive', () => {
       logger.warn('[Renderer] 渲染进程无响应，尝试重载')
       setTimeout(() => {
