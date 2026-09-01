@@ -6,6 +6,9 @@
   "skip": "Ne plus afficher",
   "successStart": "Bienvenue dans MagicCommander, commencez votre parcours de gestion de configuration !",
   "successDismiss": "Votre choix a été enregistré, la page d'accueil ne sera plus affichée au prochain démarrage",
+  "fromTemplate": "Nouveau à partir d'un modèle",
+  "recentTitle": "Projets récents",
+  "recentOpen": "Ouvrir",
   "steps": {
     "step1": {
       "title": "Créer ou sélectionner un projet",

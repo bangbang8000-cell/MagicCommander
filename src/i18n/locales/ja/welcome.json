@@ -6,6 +6,9 @@
   "skip": "今後表示しない",
   "successStart": "MagicCommander へようこそ、設定管理の旅を始めましょう！",
   "successDismiss": "選択を記憶しました。次回起動時はウェルカムページを表示しません",
+  "fromTemplate": "テンプレートから新規作成",
+  "recentTitle": "最近使用",
+  "recentOpen": "開く",
   "steps": {
     "step1": {
       "title": "プロジェクトを作成または選択",

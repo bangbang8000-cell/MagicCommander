@@ -6,6 +6,9 @@
   "skip": "不再提示",
   "successStart": "欢迎使用 MagicCommander，开始你的配置管理之旅！",
   "successDismiss": "已记住你的选择，下次启动不再显示欢迎页",
+  "fromTemplate": "从模板新建",
+  "recentTitle": "最近使用",
+  "recentOpen": "打开",
   "steps": {
     "step1": {
       "title": "创建或选择项目",

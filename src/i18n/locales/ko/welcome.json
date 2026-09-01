@@ -6,6 +6,9 @@
   "skip": "다시 표시하지 않음",
   "successStart": "MagicCommander에 오신 것을 환영합니다. 구성 관리 여정을 시작하세요!",
   "successDismiss": "선택 사항이 저장되었습니다. 다음 실행 시 시작 페이지가 표시되지 않습니다.",
+  "fromTemplate": "템플릿에서 새로 만들기",
+  "recentTitle": "최근 사용",
+  "recentOpen": "열기",
   "steps": {
     "step1": {
       "title": "프로젝트 생성 또는 선택",

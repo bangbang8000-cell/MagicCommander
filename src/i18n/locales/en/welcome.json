@@ -6,6 +6,9 @@
   "skip": "Don't show again",
   "successStart": "Welcome to MagicCommander, start your configuration management journey!",
   "successDismiss": "Your preference has been saved. The welcome page will not be shown on next launch.",
+  "fromTemplate": "New from Template",
+  "recentTitle": "Recent Projects",
+  "recentOpen": "Open",
   "steps": {
     "step1": {
       "title": "Create or Select a Project",
