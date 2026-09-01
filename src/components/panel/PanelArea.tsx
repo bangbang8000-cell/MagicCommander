@@ -1,8 +1,9 @@
 import { useTranslation } from 'react-i18next'
 import { useUIStore } from '@/stores/ui.store'
 import { useLogStore } from '@/stores/log.store'
-import { ChevronUp, Terminal, ScrollText } from 'lucide-react'
+import { ChevronUp, Terminal, ScrollText, Gauge } from 'lucide-react'
 import { TerminalPanel } from '../terminal/TerminalPanel'
+import { PerformancePanel } from './PerformancePanel'
 import clsx from 'clsx'
 import { useState, useEffect, useRef } from 'react'
 import { showSuccess, showError } from '../ui/Toast'
@@ -53,6 +54,22 @@ export function PanelArea() {
           >
             <Terminal size={12} /> {t('common:panel.terminal')}
           </button>
+          {/* 4.2.0-42-e：性能仪表盘（与日志/终端并列标签） */}
+          <button
+            onClick={() => setActivePanel('perf')}
+            className={clsx(
+              'flex items-center gap-1 px-2 py-1 text-[11px] rounded',
+              activePanel === 'perf'
+                ? isDark
+                  ? 'bg-gray-900 text-gray-100'
+                  : 'bg-white text-gray-900'
+                : isDark
+                  ? 'text-gray-400 hover:text-gray-200 hover:bg-gray-700'
+                  : 'text-gray-500 hover:text-gray-700',
+            )}
+          >
+            <Gauge size={12} /> 性能
+          </button>
         </div>
         <div className="flex items-center gap-1">
           <button
@@ -72,6 +89,7 @@ export function PanelArea() {
         <div className="flex-1 overflow-hidden min-h-0">
           {activePanel === 'log' && <LogPanel />}
           {activePanel === 'terminal' && <TerminalPanel />}
+          {activePanel === 'perf' && <PerformancePanel />}
           {activePanel === 'problems' && (
             <div
               className={`flex items-center justify-center h-full text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}

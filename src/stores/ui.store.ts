@@ -2,7 +2,7 @@ import { create } from 'zustand'
 import { persist, subscribeWithSelector } from 'zustand/middleware'
 
 export type ActivityType = 'search' | 'chat' | 'explorer' | 'output' | 'workbench' | 'settings' | 'cloud'
-export type PanelType = 'log' | 'terminal' | 'problems'
+export type PanelType = 'log' | 'terminal' | 'problems' | 'perf'
 
 /** 主题模式（4.1 F1-1/F1-2）：light/dark/system + 高对比主题（WCAG AA） */
 export type ThemeMode = 'light' | 'dark' | 'system' | 'high-contrast'
