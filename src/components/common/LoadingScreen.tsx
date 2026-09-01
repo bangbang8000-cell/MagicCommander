@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import clsx from 'clsx'
 import { getRandomQuote, resetQuoteIndex } from '@/config/networkQuotes'
 import { AppLogo } from '@/components/common'
+import { useBuildInfo } from '@/hooks/useAppVersion'
 
 interface LoadingScreenProps {
   isLoading: boolean
@@ -18,6 +19,8 @@ const STAGE_KEYS = [
 
 export function LoadingScreen({ isLoading, stage = 0 }: LoadingScreenProps) {
   const { t } = useTranslation()
+  // 4.1 F1-4：品牌资产统一——启动画面显示版本号
+  const buildInfo = useBuildInfo()
   // 组件挂载时立即可见，isLoading 控制是否淡出
   const [currentQuote, setCurrentQuote] = useState('')
   const [fadeQuote, setFadeQuote] = useState(false)
@@ -72,12 +75,13 @@ export function LoadingScreen({ isLoading, stage = 0 }: LoadingScreenProps) {
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">MagicCommander</h1>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{t('app.subtitle')}</p>
+          <p className="text-xs text-gray-400 dark:text-gray-500 mt-1.5 font-mono">{buildInfo.displayVersion}</p>
         </div>
 
         {/* 进度条 */}
         <div className="w-64 h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
           <div
-            className="h-full bg-gradient-to-r from-primary-500 via-primary-400 to-primary-500 rounded-full transition-all duration-500 ease-out"
+            className="h-full bg-gradient-to-r from-primary via-primary to-primary-hover rounded-full transition-all duration-500 ease-out"
             style={{ width: isLoading ? `${Math.min(progress + 10, 90)}%` : '100%' }}
           />
         </div>
@@ -100,15 +104,13 @@ export function LoadingScreen({ isLoading, stage = 0 }: LoadingScreenProps) {
         >
           <div className="relative px-4 py-3">
             {/* 引号装饰 */}
-            <span className="absolute -top-2 -start-1 text-4xl text-primary-300 dark:text-primary-700 opacity-50 font-serif">
-              "
-            </span>
+            <span className="absolute -top-2 -start-1 text-4xl text-primary/40 opacity-60 font-serif">"</span>
 
             <p className="text-sm text-gray-600 dark:text-gray-400 italic leading-relaxed px-4">
               {currentQuote || t('common:loading.defaultQuote')}
             </p>
 
-            <span className="absolute -bottom-4 -end-1 text-4xl text-primary-300 dark:text-primary-700 opacity-50 font-serif rotate-180">
+            <span className="absolute -bottom-4 -end-1 text-4xl text-primary/40 opacity-60 font-serif rotate-180">
               "
             </span>
           </div>
@@ -119,9 +121,9 @@ export function LoadingScreen({ isLoading, stage = 0 }: LoadingScreenProps) {
 
         {/* 底部加载指示 */}
         <div className="flex items-center gap-2 mt-4">
-          <div className="w-2 h-2 rounded-full bg-primary-500 animate-bounce" style={{ animationDelay: '0ms' }} />
-          <div className="w-2 h-2 rounded-full bg-primary-400 animate-bounce" style={{ animationDelay: '150ms' }} />
-          <div className="w-2 h-2 rounded-full bg-primary-300 animate-bounce" style={{ animationDelay: '300ms' }} />
+          <div className="w-2 h-2 rounded-full bg-primary animate-bounce" style={{ animationDelay: '0ms' }} />
+          <div className="w-2 h-2 rounded-full bg-primary/70 animate-bounce" style={{ animationDelay: '150ms' }} />
+          <div className="w-2 h-2 rounded-full bg-primary/40 animate-bounce" style={{ animationDelay: '300ms' }} />
         </div>
       </div>
     </div>
