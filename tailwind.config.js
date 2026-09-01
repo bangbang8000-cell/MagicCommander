@@ -5,10 +5,13 @@ export default {
   theme: {
     extend: {
       colors: {
+        // 语义色（契约值：docs/双端设计Token契约_v1.0_2026-08-29.md）
         primary: {
           50: '#eff6ff', 100: '#dbeafe', 200: '#bfdbfe', 300: '#93c5fd',
           400: '#60a5fa', 500: '#3b82f6', 600: '#2563eb', 700: '#1d4ed8',
           800: '#1e40af', 900: '#1e3a8a',
+          DEFAULT: '#2f6fed',
+          hover: '#1e5bc9',
         },
         gray: {
           50: '#f9fafb', 100: '#f3f4f6', 200: '#e5e7eb', 300: '#d1d5db',
@@ -19,18 +22,36 @@ export default {
         success: {
           50: '#f0fdf4', 100: '#dcfce7', 200: '#bbf7d0', 300: '#86efac',
           400: '#4ade80', 500: '#22c55e', 600: '#16a34a', 700: '#15803d',
+          DEFAULT: '#16a34a',
         },
         warning: {
           50: '#fffbeb', 100: '#fef3c7', 200: '#fde68a', 300: '#fcd34d',
           400: '#fbbf24', 500: '#f59e0b', 600: '#d97706', 700: '#b45309',
+          DEFAULT: '#f59e0b',
         },
         danger: {
           50: '#fef2f2', 100: '#fee2e2', 200: '#fecaca', 300: '#fca5a5',
           400: '#f87171', 500: '#ef4444', 600: '#dc2626', 700: '#b91c1c',
+          DEFAULT: '#dc2626',
         },
         info: {
           50: '#eff6ff', 100: '#dbeafe', 200: '#bfdbfe', 300: '#93c5fd',
           400: '#60a5fa', 500: '#3b82f6', 600: '#2563eb', 700: '#1d4ed8',
+          DEFAULT: '#0ea5e9',
+        },
+        // 中性色 / Surface（单源：src/styles/tokens.css，light/dark 由 CSS 变量切换）
+        app: {
+          DEFAULT: 'var(--color-app)',
+          surface: 'var(--color-app-surface)',
+          hover: 'var(--color-app-hover)',
+        },
+        edge: {
+          subtle: 'var(--color-edge-subtle)',
+        },
+        text: {
+          primary: 'var(--color-text-primary)',
+          secondary: 'var(--color-text-secondary)',
+          muted: 'var(--color-text-muted)',
         },
       },
       fontFamily: {
