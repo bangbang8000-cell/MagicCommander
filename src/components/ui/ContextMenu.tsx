@@ -25,10 +25,16 @@ export function ContextMenu({ items, children, className }: ContextMenuProps) {
   const isDark = useUIStore((s) => s.isDark)
 
   useEffect(() => {
+    if (!visible) return
     const handleClick = () => setVisible(false)
-    if (visible) {
-      document.addEventListener('click', handleClick)
-      return () => document.removeEventListener('click', handleClick)
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setVisible(false)
+    }
+    document.addEventListener('click', handleClick)
+    document.addEventListener('keydown', handleKeyDown)
+    return () => {
+      document.removeEventListener('click', handleClick)
+      document.removeEventListener('keydown', handleKeyDown)
     }
   }, [visible])
 

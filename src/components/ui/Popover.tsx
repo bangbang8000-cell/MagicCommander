@@ -24,13 +24,18 @@ export function Popover({ open, onClose, children, className, isDark }: PopoverP
         onClose()
       }
     }
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose()
+    }
     // 延迟绑定，避免触发按钮的 click 立即关闭
     const timer = setTimeout(() => {
       document.addEventListener('mousedown', handleClickOutside)
+      document.addEventListener('keydown', handleKeyDown)
     }, 0)
     return () => {
       clearTimeout(timer)
       document.removeEventListener('mousedown', handleClickOutside)
+      document.removeEventListener('keydown', handleKeyDown)
     }
   }, [open, onClose])
 

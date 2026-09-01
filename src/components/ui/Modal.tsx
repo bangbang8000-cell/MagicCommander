@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { X } from 'lucide-react'
 import clsx from 'clsx'
 import { useUIStore } from '@/stores/ui.store'
@@ -10,10 +10,36 @@ interface ModalProps {
   children: ReactNode
   width?: string
   footer?: ReactNode
+  /** ESC 关闭（默认开启，符合 4.0 组件行为契约） */
+  closeOnEsc?: boolean
 }
 
-export function Modal({ open, onClose, title, children, width = '500px', footer }: ModalProps) {
+export function Modal({ open, onClose, title, children, width = '500px', footer, closeOnEsc = true }: ModalProps) {
   const isDark = useUIStore((s) => s.isDark)
+  const panelRef = useRef<HTMLDivElement>(null)
+
+  // 4.0 行为契约：ESC 关闭 + 打开后焦点进入对话框
+  useEffect(() => {
+    if (!open) return
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && closeOnEsc) {
+        e.preventDefault()
+        onClose()
+      }
+    }
+    document.addEventListener('keydown', handleKeyDown)
+    const focusTimer = setTimeout(() => {
+      const focusable = panelRef.current?.querySelector<HTMLElement>(
+        'input, textarea, select, button:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      )
+      focusable?.focus()
+    }, 0)
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown)
+      clearTimeout(focusTimer)
+    }
+  }, [open, closeOnEsc, onClose])
+
   if (!open) return null
 
   return (
@@ -23,6 +49,9 @@ export function Modal({ open, onClose, title, children, width = '500px', footer 
       style={{ animationDuration: '0.15s' }}
     >
       <div
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
         className={clsx(
           'rounded-lg flex flex-col max-h-[90vh] animate-scale-in',
           isDark ? 'bg-gray-800 border border-gray-700 shadow-xl shadow-black/30' : 'bg-white shadow-2xl',
