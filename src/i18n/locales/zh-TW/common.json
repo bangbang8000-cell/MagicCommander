@@ -81,6 +81,7 @@
     "showSidebar": "顯示側邊欄",
     "lightMode": "淺色模式",
     "darkMode": "深色模式",
+    "highContrastMode": "高對比模式",
     "userGuide": "使用指南",
     "about": "關於",
     "guideLoadFailed": "# 載入失敗\n\n無法載入使用指南，請稍後重試。",

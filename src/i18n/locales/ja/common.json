@@ -81,6 +81,7 @@
     "showSidebar": "サイドバーを表示",
     "lightMode": "ライトモード",
     "darkMode": "ダークモード",
+    "highContrastMode": "ハイコントラストモード",
     "userGuide": "ユーザーガイド",
     "about": "バージョン情報",
     "guideLoadFailed": "# 読み込み失敗\n\nユーザーガイドを読み込めませんでした。しばらく経ってからもう一度お試しください。",

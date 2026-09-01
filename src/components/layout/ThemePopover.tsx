@@ -1,26 +1,28 @@
 import { useTranslation } from 'react-i18next'
-import { Check, Sun, Moon, Monitor } from 'lucide-react'
+import { Check, Sun, Moon, Monitor, Contrast } from 'lucide-react'
 import clsx from 'clsx'
 import { Popover } from '@/components/ui/Popover'
+import type { ThemeMode } from '@/stores/ui.store'
 
 interface ThemePopoverProps {
   open: boolean
   onClose: () => void
   isDark: boolean
-  currentTheme: 'light' | 'dark' | 'system'
-  onSelect: (theme: 'light' | 'dark' | 'system') => void
+  currentTheme: ThemeMode
+  onSelect: (theme: ThemeMode) => void
 }
 
-const THEME_OPTIONS: { value: 'light' | 'dark' | 'system'; icon: typeof Sun; labelKey: string }[] = [
+const THEME_OPTIONS: { value: ThemeMode; icon: typeof Sun; labelKey: string }[] = [
   { value: 'light', icon: Sun, labelKey: 'menu.lightMode' },
   { value: 'dark', icon: Moon, labelKey: 'menu.darkMode' },
   { value: 'system', icon: Monitor, labelKey: 'menu.systemMode' },
+  { value: 'high-contrast', icon: Contrast, labelKey: 'menu.highContrastMode' },
 ]
 
 export function ThemePopover({ open, onClose, isDark, currentTheme, onSelect }: ThemePopoverProps) {
   const { t } = useTranslation()
 
-  const handleSelect = (theme: 'light' | 'dark' | 'system') => {
+  const handleSelect = (theme: ThemeMode) => {
     onSelect(theme)
     onClose()
   }
@@ -28,9 +30,7 @@ export function ThemePopover({ open, onClose, isDark, currentTheme, onSelect }: 
   return (
     <Popover open={open} onClose={onClose} isDark={isDark} className="min-w-[160px]">
       <div className="px-3 py-1">
-        <h4 className={clsx('text-xs font-semibold', isDark ? 'text-gray-200' : 'text-gray-700')}>
-          {t('common:settings.appearance.title')}
-        </h4>
+        <h4 className="text-xs font-semibold text-text-primary">{t('common:settings.appearance.title')}</h4>
       </div>
       {THEME_OPTIONS.map((opt) => {
         const isActive = opt.value === currentTheme
@@ -41,13 +41,7 @@ export function ThemePopover({ open, onClose, isDark, currentTheme, onSelect }: 
             onClick={() => handleSelect(opt.value)}
             className={clsx(
               'w-full flex items-center justify-between px-3 py-1.5 text-xs text-left transition-colors',
-              isActive
-                ? isDark
-                  ? 'bg-blue-900/30 text-blue-300'
-                  : 'bg-blue-50 text-blue-700'
-                : isDark
-                  ? 'text-gray-300 hover:bg-gray-700'
-                  : 'text-gray-600 hover:bg-gray-100',
+              isActive ? 'bg-primary/15 text-primary' : 'text-text-secondary hover:bg-app-hover',
             )}
           >
             <span className="flex items-center gap-2">

@@ -53,10 +53,14 @@ export default {
           secondary: 'var(--color-text-secondary)',
           muted: 'var(--color-text-muted)',
         },
+        // 焦点环（契约 token，4.1 F1-2 高对比下加宽加深）
+        focus: 'var(--color-focus-ring)',
       },
       fontFamily: {
-        sans: ['"IBM Plex Sans"', 'system-ui', '-apple-system', 'Microsoft YaHei', 'sans-serif'],
-        mono: ['"JetBrains Mono"', 'Fira Code', 'Consolas', 'monospace'],
+        // 契约 font.sans（双端统一系统 UI 字体栈）
+        sans: ['system-ui', '-apple-system', 'Segoe UI', 'Microsoft YaHei', 'sans-serif'],
+        // 契约 font.mono
+        mono: ['"JetBrains Mono"', '"Cascadia Code"', 'Consolas', 'monospace'],
       },
       fontSize: {
         // 标题层级
@@ -77,6 +81,12 @@ export default {
         'fade-in': 'fadeIn 0.2s ease-in-out',
         'slide-in': 'slideIn 0.2s ease-out',
         'scale-in': 'scaleIn 0.15s ease-out',
+      },
+      boxShadow: {
+        // 契约 shadow token（docs/双端设计Token契约_v1.0_2026-08-29.md §4）
+        sm: 'var(--shadow-sm)',
+        md: 'var(--shadow-md)',
+        lg: 'var(--shadow-lg)',
       },
       keyframes: {
         fadeIn: { '0%': { opacity: '0' }, '100%': { opacity: '1' } },

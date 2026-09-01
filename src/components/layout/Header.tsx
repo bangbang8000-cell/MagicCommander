@@ -1,9 +1,9 @@
 import { useTranslation } from 'react-i18next'
 import { useState, useRef, useEffect, useCallback } from 'react'
 import clsx from 'clsx'
-import { RefreshCw, Minus, Square, X, Sun, Moon, Monitor } from 'lucide-react'
+import { RefreshCw, Minus, Square, X, Sun, Moon, Monitor, Contrast } from 'lucide-react'
 import { useProjectStore } from '@/stores/project.store'
-import { useUIStore, type ActivityType } from '@/stores/ui.store'
+import { useUIStore, type ActivityType, type ThemeMode } from '@/stores/ui.store'
 import { useEditorStore } from '@/stores/editor.store'
 import { usePlatformStore } from '@/stores/platform.store'
 import { LoginDialog } from '@/components/auth/LoginDialog'
@@ -316,9 +316,9 @@ export function Header({ onCheatsheet }: HeaderProps) {
     window.electron?.window?.close()
   }, [])
 
-  // 切换主题
+  // 切换主题（4.1 F1-2：新增 high-contrast）
   const handleSelectTheme = useCallback(
-    (t: 'light' | 'dark' | 'system') => {
+    (t: ThemeMode) => {
       setTheme(t)
     },
     [setTheme],
@@ -333,7 +333,15 @@ export function Header({ onCheatsheet }: HeaderProps) {
   )
 
   const themeIcon =
-    theme === 'light' ? <Sun size={14} /> : theme === 'dark' ? <Moon size={14} /> : <Monitor size={14} />
+    theme === 'light' ? (
+      <Sun size={14} />
+    ) : theme === 'dark' ? (
+      <Moon size={14} />
+    ) : theme === 'high-contrast' ? (
+      <Contrast size={14} />
+    ) : (
+      <Monitor size={14} />
+    )
 
   // 菜单项渲染辅助函数
   const renderMenuItem = (key: string, label: string, shortcut?: string, onClick?: () => void, disabled?: boolean) => (

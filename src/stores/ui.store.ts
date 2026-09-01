@@ -4,6 +4,22 @@ import { persist, subscribeWithSelector } from 'zustand/middleware'
 export type ActivityType = 'search' | 'chat' | 'explorer' | 'output' | 'workbench' | 'settings' | 'cloud'
 export type PanelType = 'log' | 'terminal' | 'problems'
 
+/** 主题模式（4.1 F1-1/F1-2）：light/dark/system + 高对比主题（WCAG AA） */
+export type ThemeMode = 'light' | 'dark' | 'system' | 'high-contrast'
+
+/** 解析主题为实际渲染模式（纯函数，便于单测与无闪变脚本对齐） */
+export function resolveTheme(theme: ThemeMode, systemDark: boolean): 'light' | 'dark' | 'high-contrast' {
+  if (theme === 'high-contrast') return 'high-contrast'
+  if (theme === 'dark') return 'dark'
+  if (theme === 'system') return systemDark ? 'dark' : 'light'
+  return 'light'
+}
+
+/** 主题是否暗色（high-contrast 基于 Light 基准，视为非暗色） */
+export function themeIsDark(theme: ThemeMode, systemDark: boolean): boolean {
+  return resolveTheme(theme, systemDark) === 'dark'
+}
+
 // 布局尺寸基准（像素），与 App.tsx 保持一致
 const LAYOUT_SIDEBAR_MIN = 400
 const LAYOUT_SIDEBAR_DEFAULT = 800
@@ -25,8 +41,8 @@ interface UIState {
   togglePanel: () => void
   setActivePanel: (panel: PanelType) => void
 
-  theme: 'light' | 'dark' | 'system'
-  setTheme: (theme: UIState['theme']) => void
+  theme: ThemeMode
+  setTheme: (theme: ThemeMode) => void
   cycleTheme: () => void
 
   isDark: boolean
@@ -145,20 +161,16 @@ export const useUIStore = create<UIState>()(
 
         theme: 'light',
         setTheme: (theme) => {
-          const isDark =
-            theme === 'system'
-              ? typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches
-              : theme === 'dark'
-          set({ theme, isDark })
+          const systemDark = typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches
+          set({ theme, isDark: themeIsDark(theme, systemDark) })
         },
         cycleTheme: () =>
           set((s) => {
-            const next = s.theme === 'light' ? 'dark' : s.theme === 'dark' ? 'system' : 'light'
-            const isDark =
-              next === 'system'
-                ? typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches
-                : next === 'dark'
-            return { theme: next, isDark }
+            const order: ThemeMode[] = ['light', 'dark', 'system', 'high-contrast']
+            const next = order[(order.indexOf(s.theme) + 1) % order.length]
+            const systemDark =
+              typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches
+            return { theme: next, isDark: themeIsDark(next, systemDark) }
           }),
 
         isDark: false,

@@ -3,7 +3,7 @@ import clsx from 'clsx'
 import { useProjectStore } from './stores/project.store'
 import { useLogStore } from './stores/log.store'
 import { useRenderStore } from './stores/render.store'
-import { useUIStore, type ActivityType } from './stores/ui.store'
+import { useUIStore, type ActivityType, resolveTheme } from './stores/ui.store'
 import { useEditorStore, type EditorTab } from './stores/editor.store'
 import { usePlatformStore } from './stores/platform.store'
 import { client } from './api/platform'
@@ -40,6 +40,7 @@ export default function App() {
   const toggleSidebar = useUIStore((s) => s.toggleSidebar)
   const setActiveActivity = useUIStore((s) => s.setActiveActivity)
   const isDark = useUIStore((s) => s.isDark)
+  const theme = useUIStore((s) => s.theme)
   const openFile = useEditorStore((s) => s.openFile)
   const saveActiveTab = useEditorStore((s) => s.saveActiveTab)
   const closeTab = useEditorStore((s) => s.closeTab)
@@ -66,10 +67,13 @@ export default function App() {
   const sidebarVisible = useUIStore((s) => s.sidebarVisible)
 
   useEffect(() => {
+    // 4.1 F1-1/F1-2：维护 data-theme + .dark/.high-contrast class（DOM 标记由无闪变脚本与 store 一致）
     const root = document.documentElement
-    if (isDark) root.classList.add('dark')
-    else root.classList.remove('dark')
-  }, [isDark])
+    const resolved = resolveTheme(theme, isDark)
+    root.dataset.theme = resolved
+    root.classList.toggle('dark', resolved === 'dark')
+    root.classList.toggle('high-contrast', resolved === 'high-contrast')
+  }, [theme, isDark])
 
   // 监听系统主题变化（当 theme === 'system' 时同步）
   useEffect(() => {

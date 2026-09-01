@@ -62,6 +62,7 @@
     "showSidebar": "Afficher la barre latérale",
     "lightMode": "Mode clair",
     "darkMode": "Mode sombre",
+    "highContrastMode": "Contraste élevé",
     "userGuide": "Guide d'utilisation",
     "about": "À propos",
     "guideLoadFailed": "# Échec du chargement\n\nImpossible de charger le guide d'utilisation, veuillez réessayer plus tard.",

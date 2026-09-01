@@ -84,6 +84,7 @@
     "lightMode": "浅色模式",
     "darkMode": "深色模式",
     "systemMode": "跟随系统",
+    "highContrastMode": "高对比模式",
     "undo": "撤销",
     "redo": "重做",
     "copy": "复制",

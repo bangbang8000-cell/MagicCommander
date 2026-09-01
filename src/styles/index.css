@@ -11,38 +11,39 @@
     @apply h-full w-full overflow-hidden;
   }
   body {
-    @apply bg-gray-50 text-gray-800 antialiased;
+    @apply bg-app text-text-primary antialiased font-sans;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
 
-  /* 暗色模式基础样式 */
+  /* 暗色模式基础样式（契约 token） */
   .dark body {
-    background: radial-gradient(ellipse at 50% 0%, #141b22 0%, #0a0e14 70%);
-    @apply text-gray-100;
+    background: var(--color-app);
+    color: var(--color-text-primary);
   }
 
-  /* 滚动条样式优化 */
+  /* 滚动条样式优化（契约 token） */
   ::-webkit-scrollbar {
     width: 8px;
     height: 8px;
   }
   ::-webkit-scrollbar-track {
-    @apply bg-gray-100 dark:bg-gray-800;
+    @apply bg-app-surface;
   }
   ::-webkit-scrollbar-thumb {
-    @apply bg-gray-300 dark:bg-gray-600 rounded;
+    @apply bg-edge-subtle rounded;
   }
   ::-webkit-scrollbar-thumb:hover {
-    @apply bg-gray-400 dark:bg-gray-500;
+    @apply bg-text-muted;
   }
 
-  /* 焦点样式 */
+  /* 焦点样式：宽度/颜色走 token（4.1 F1-2：高对比下 3px + 高对比色） */
   :focus-visible {
-    @apply outline-none ring-2 ring-primary-500 ring-offset-1;
+    @apply outline-none;
+    box-shadow: 0 0 0 var(--focus-ring-width, 2px) var(--color-focus-ring, var(--color-primary));
   }
-  .dark :focus-visible {
-    @apply ring-offset-gray-900;
+  .high-contrast :focus-visible {
+    box-shadow: 0 0 0 var(--focus-ring-width, 3px) var(--color-focus-ring, var(--color-primary)) !important;
   }
 }
 
@@ -50,30 +51,30 @@
 @layer components {
   /* 标题 */
   .heading-1 {
-    @apply text-h1 text-gray-900 dark:text-gray-100;
+    @apply text-h1 text-text-primary;
   }
   .heading-2 {
-    @apply text-h2 text-gray-900 dark:text-gray-100;
+    @apply text-h2 text-text-primary;
   }
   .heading-3 {
-    @apply text-h3 text-gray-900 dark:text-gray-100;
+    @apply text-h3 text-text-primary;
   }
   .heading-4 {
-    @apply text-h4 text-gray-900 dark:text-gray-100;
+    @apply text-h4 text-text-primary;
   }
 
   /* 正文 */
   .type-body {
-    @apply text-body text-gray-700 dark:text-gray-300;
+    @apply text-body text-text-primary;
   }
   .type-body-sm {
-    @apply text-body-sm text-gray-700 dark:text-gray-300;
+    @apply text-body-sm text-text-primary;
   }
   .type-caption {
-    @apply text-caption text-gray-500 dark:text-gray-400;
+    @apply text-caption text-text-secondary;
   }
 
-  /* 语义颜色文本 */
+  /* 语义颜色文本（契约 token） */
   .text-primary {
     @apply text-primary-600 dark:text-primary-400;
   }
@@ -90,12 +91,12 @@
     @apply text-info-600 dark:text-info-400;
   }
 
-  /* 卡片样式 */
+  /* 卡片样式（契约 token） */
   .card {
-    @apply bg-white dark:bg-gray-800/80 rounded-lg border border-gray-200 dark:border-gray-700/50 shadow-sm;
+    @apply bg-app dark:bg-app-surface border border-edge-subtle shadow-sm;
   }
 
-  /* Popover 浮层表面（MC-M5a：圆角/阴影走 token，对齐 AL） */
+  /* Popover 浮层表面（圆角/阴影走 token，对齐 AL） */
   .popover-surface {
     border-radius: var(--popover-radius);
     box-shadow: var(--popover-shadow);
@@ -103,13 +104,13 @@
 
   /* 面板头部 - 瘦身版 */
   .panel-header {
-    @apply px-3 py-1 border-b border-gray-200 dark:border-gray-700/50 text-xs font-medium;
-    @apply text-gray-500 dark:text-gray-400;
+    @apply px-3 py-1 border-b border-edge-subtle text-xs font-medium;
+    @apply text-text-secondary;
   }
 
-  /* 边框分隔线 */
+  /* 边框分隔线（契约 token） */
   .border-divider {
-    @apply border-gray-200 dark:border-gray-700/50;
+    @apply border-edge-subtle;
   }
 }
 

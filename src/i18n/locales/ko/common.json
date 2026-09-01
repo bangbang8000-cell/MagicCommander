@@ -81,6 +81,7 @@
     "showSidebar": "사이드바 표시",
     "lightMode": "라이트 모드",
     "darkMode": "다크 모드",
+    "highContrastMode": "고대비 모드",
     "userGuide": "사용 설명서",
     "about": "정보",
     "guideLoadFailed": "# 로딩 실패\n\n사용 설명서를 불러올 수 없습니다. 잠시 후 다시 시도해 주십시오.",

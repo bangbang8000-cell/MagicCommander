@@ -22,7 +22,8 @@
         z-index: 99999;
         transition: opacity 0.5s ease-out;
       }
-      .app-loading.dark {
+      /* 主题由 <head> 无闪变脚本驱动 html.dark / html.high-contrast */
+      html.dark .app-loading {
         background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
       }
       .app-loading.fade-out {
@@ -61,7 +62,7 @@
         color: #6b7280;
         margin-bottom: 24px;
       }
-      .app-loading.dark .app-loading-sub {
+      html.dark .app-loading-sub {
         color: #9ca3af;
       }
       /* 进度条 */
@@ -99,7 +100,7 @@
         font-style: italic;
         line-height: 1.5;
       }
-      .app-loading.dark .app-loading-quote-text {
+      html.dark .app-loading-quote-text {
         color: #9ca3af;
       }
       .app-loading-quote-author {
@@ -139,14 +140,41 @@
       ];
     </script>
     <script>
-      // 检测并应用深色模式
+      // 4.1 F1-1/F1-2：无闪变主题应用（React 挂载前同步 DOM）
+      // 读取 zustand persist 的 mc-ui-state，与 store 的 resolveTheme 逻辑保持一致；
+      // 兼容历史版本 localStorage 'theme' 遗留值。
       (function() {
-        var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        var savedTheme = localStorage.getItem('theme');
-        if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
-          document.documentElement.classList.add('dark');
-          document.body.classList.add('dark');
+        var root = document.documentElement;
+        var theme = null;
+        var isDark = false;
+        try {
+          var raw = localStorage.getItem('mc-ui-state');
+          if (raw) {
+            var parsed = JSON.parse(raw);
+            if (parsed && parsed.state) {
+              theme = parsed.state.theme || null;
+              isDark = !!parsed.state.isDark;
+            }
+          } else {
+            var legacy = localStorage.getItem('theme');
+            if (legacy === 'dark' || legacy === 'light') { theme = legacy; }
+          }
+        } catch (e) {}
+        var resolved;
+        if (theme === 'system') {
+          resolved = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        } else if (theme === 'dark') {
+          resolved = 'dark';
+        } else if (theme === 'high-contrast') {
+          resolved = 'high-contrast';
+        } else if (theme === 'light') {
+          resolved = 'light';
+        } else {
+          resolved = isDark ? 'dark' : 'light';
         }
+        root.setAttribute('data-theme', resolved);
+        root.classList.toggle('dark', resolved === 'dark');
+        root.classList.toggle('high-contrast', resolved === 'high-contrast');
       })();
     </script>
     <script>
