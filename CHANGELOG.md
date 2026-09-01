@@ -2,6 +2,21 @@
 
 本文件为发布说明的单一事实来源（`npm run sync-version -- --release-notes` 自动抽取当前版本段）。
 
+## [4.0.0] - 2026-08-29
+
+### 新增
+
+- 4.0 系列启动 · 工程基座与质量门禁。
+- 引入 Playwright Electron E2E（冒烟三件套：启动→建项目→渲染→导出）。
+- 新增 golden 基线、模板校验、性能门禁、渲染安全基线四道 CI 门禁（对齐 AL 工程化）。
+- 版本单源 + 发布说明自动抽取（`sync-version --release-notes`）。
+
+### 改进
+
+- 设计 token 单源扩展（按双端 4.0 契约：语义色/中性/surface/圆角/阴影/间距/动效/字体）+ 断言单测防漂移。
+- 组件行为契约（Modal/Popover/ContextMenu/Select/Toast）补齐（ESC 关闭/焦点管理/受控）。
+- 工程对齐：ESLint `no-unused-vars` 升 error，lint 0 error 门禁。
+
 ## [3.10.7] - 2026-08-29
 
 ### 新增
