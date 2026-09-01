@@ -26,6 +26,17 @@ import { ErrorBoundary } from './components/ErrorBoundary'
 import { ToastContainer } from './components/ui/Toast'
 import { Cheatsheet } from './components/ui/Cheatsheet'
 import { CommandPalette, type CommandItem } from './components/ui/CommandPalette'
+import {
+  buildRenderCommands,
+  buildExportCommands,
+  buildRecentCommands,
+  buildFavoriteCommands,
+  buildPipelineCommands,
+  buildSettingsCommands,
+  buildTerminalCommands,
+} from './components/ui/CommandPalette'
+import { executeCommand, type CommandContext } from './components/terminal/commandRegistry'
+import { useBatchStore } from './stores/batch.store'
 import { LoadingScreen } from './components/common/LoadingScreen'
 import { errorService } from '@/services/errorService'
 import type { EditorTabMeta } from './types/editor'
@@ -35,7 +46,6 @@ import { RTL_LOCALES, type SupportedLocale } from './i18n/resources'
 export default function App() {
   const fetchProjects = useProjectStore((s) => s.fetchProjects)
   const selectProject = useProjectStore((s) => s.selectProject)
-  const createProject = useProjectStore((s) => s.createProject)
   const panelVisible = useUIStore((s) => s.panelVisible)
   const toggleSidebar = useUIStore((s) => s.toggleSidebar)
   const setActiveActivity = useUIStore((s) => s.setActiveActivity)
@@ -248,29 +258,54 @@ export default function App() {
     }
   }, [restoreTabs])
 
-  const [cheatsheetPending, setCheatsheetPending] = useState(false)
-  useHotkey('k', () => setCheatsheetPending(true), [])
-  useHotkey(
-    's',
-    () => {
-      if (cheatsheetPending) {
-        setCheatsheetPending(false)
-        setCheatsheetOpen(true)
-      }
-    },
-    [cheatsheetPending],
-  )
+  // 4.4 F4-1 共享快捷键规范：F1 → 快捷键 Cheatsheet；Ctrl+K → 命令面板
+  useHotkey('f1', () => setCheatsheetOpen(true), [])
+  useHotkey('ctrl+k', () => setCommandPaletteOpen(true), [])
 
-  // 命令面板：从快捷键注册表 + 菜单构建统一命令列表
+  // 命令面板：从快捷键注册表 + 菜单 + 4.4 F4-5 命令全集构建统一命令列表
   const commandItems = useMemo<CommandItem[]>(() => {
     const handler = (activity: string) => () => setActiveActivity(activity as ActivityType)
+
+    // 4.4 F4-5：渲染 / 导出 / 最近收藏 / 管线 / 设置 / 终端 命令辅助
+    const renderByKind = async (kind: 'project' | 'yaml' | 'sn') => {
+      const rs = useRenderStore.getState()
+      const proj = useProjectStore.getState().selectedProject
+      const ids = rs.selectedProjectIds.length > 0 ? rs.selectedProjectIds : proj ? [String(proj.id)] : []
+      if (ids.length === 0) return
+      if (kind === 'project') await rs.renderProject(ids)
+      else if (kind === 'yaml') await rs.renderYaml(ids)
+      else await rs.renderProjectSn(ids)
+    }
+    const exportCurrent = async () => {
+      const proj = useProjectStore.getState().selectedProject
+      if (!proj) return
+      const rs = useRenderStore.getState()
+      const ids = rs.selectedProjectIds.length > 0 ? rs.selectedProjectIds : [String(proj.id)]
+      const projects = useProjectStore.getState().projects.filter((p) => ids.includes(String(p.id)))
+      if (projects.length > 0) {
+        await useBatchStore.getState().runBatchExport(projects.map((p) => ({ id: p.id, name: p.name })))
+      } else {
+        await window.electron.output.export(proj.name, 'zip')
+      }
+    }
+    const openProjectByName = (name: string) => {
+      const p = useProjectStore.getState().projects.find((x) => x.name === name)
+      if (p) {
+        useProjectStore.getState().selectProject(p)
+        setActiveActivity('explorer')
+        useProjectStore.getState().loadStructure(name)
+      }
+    }
+    const renderSelectedCount = useRenderStore.getState().selectedProjectIds.length
+    const projectState = useProjectStore.getState()
+
     const extra: CommandItem[] = [
       {
         id: 'newProject',
         label: i18n.t('common:menu.newProject'),
         category: '文件',
         shortcut: 'Ctrl+N',
-        action: () => createProject(`Project_${Date.now().toString(36).toUpperCase()}`),
+        action: () => useProjectStore.getState().triggerCreateProject(),
       },
       {
         id: 'openProjectDir',
@@ -296,7 +331,7 @@ export default function App() {
         id: 'redo',
         label: i18n.t('common:menu.redo'),
         category: '编辑',
-        shortcut: 'Ctrl+Y',
+        shortcut: 'Ctrl+Shift+Z',
         action: () => document.execCommand('redo'),
       },
       {
@@ -317,7 +352,7 @@ export default function App() {
         id: 'cheatsheet',
         label: i18n.t('common:menu.cheatsheet'),
         category: '视图',
-        shortcut: 'Ctrl+K Ctrl+S',
+        shortcut: 'F1',
         action: () => setCheatsheetOpen(true),
       },
     ]
@@ -352,8 +387,29 @@ export default function App() {
               .getState()
               .setSplitMode(useEditorStore.getState().splitMode === 'vertical' ? 'none' : 'vertical')
           break
-        case 'ctrl+k ctrl+s':
+        case 'ctrl+k':
+          action = () => setCommandPaletteOpen(true)
+          break
+        case 'ctrl+shift+z':
+          action = () => document.execCommand('redo')
+          break
+        case 'f1':
           action = () => setCheatsheetOpen(true)
+          break
+        case 'ctrl+n':
+          action = () => useProjectStore.getState().triggerCreateProject()
+          break
+        case 'ctrl+enter':
+          action = () => void renderByKind('project')
+          break
+        case 'ctrl+e':
+          action = () => setActiveActivity('output')
+          break
+        case 'ctrl+shift+p':
+          action = () => setActiveActivity('explorer')
+          break
+        case 'ctrl+`':
+          action = () => useUIStore.getState().setActivePanel('terminal')
           break
         case 'f5':
           action = () => window.location.reload()
@@ -380,10 +436,41 @@ export default function App() {
       }
       return { id: h.combo, label: h.label, category: h.category, shortcut: h.combo, action }
     })
-    return [...fromRegistry, ...extra]
-  }, [saveActiveTab, closeTab, reopenLastClosed, toggleSidebar, setActiveActivity, createProject])
 
-  useHotkey('ctrl+shift+p', () => setCommandPaletteOpen(true), [])
+    // 4.4 F4-5：命令全集（渲染/导出/最近/收藏/管线/设置/终端）
+    const fullSet: CommandItem[] = [
+      ...buildRenderCommands((kind) => void renderByKind(kind), renderSelectedCount),
+      ...buildExportCommands(() => void exportCurrent(), renderSelectedCount),
+      ...buildRecentCommands(projectState.recentProjects, openProjectByName),
+      ...buildFavoriteCommands(projectState.favoriteProjects, openProjectByName),
+      ...buildPipelineCommands(
+        () => setActiveActivity('workbench'),
+        () => setActiveActivity('workbench'),
+      ),
+      ...buildSettingsCommands(() => setActiveActivity('settings')),
+      ...buildTerminalCommands(),
+    ]
+    return [...fromRegistry, ...extra, ...fullSet]
+  }, [saveActiveTab, closeTab, reopenLastClosed, toggleSidebar, setActiveActivity])
+
+  // 4.4 F4-5：命令面板终端命令 → 命令注册表执行（输出到日志面板）
+  const handleTerminalCommand = useCallback((cmd: string) => {
+    useUIStore.getState().setActivePanel('terminal')
+    const ctx: CommandContext = {
+      addLog: (level, message) => useLogStore.getState().addLog(level, message, 'terminal'),
+      toggleDark: () => useUIStore.getState().toggleDark(),
+      setTheme: (theme) => useUIStore.getState().setTheme(theme),
+      clearTerminal: () => {},
+      selectProject: (name) => {
+        const p = useProjectStore.getState().projects.find((x) => x.name === name)
+        if (p) useProjectStore.getState().selectProject(p)
+      },
+    }
+    void executeCommand(cmd, ctx).catch(() => {})
+  }, [])
+
+  // 4.4 F4-1 共享快捷键规范：Ctrl+Shift+P → 项目面板（项目浏览器）
+  useHotkey('ctrl+shift+p', () => setActiveActivity('explorer'), [setActiveActivity])
   useHotkey('ctrl+b', () => toggleSidebar(), [toggleSidebar])
   useHotkey(
     'ctrl+j',
@@ -406,6 +493,27 @@ export default function App() {
   useHotkey('ctrl+shift+w', () => setActiveActivity('workbench'), [setActiveActivity])
   useHotkey('ctrl+shift+h', () => setActiveActivity('chat'), [setActiveActivity])
   useHotkey('ctrl+,', () => setActiveActivity('settings'), [setActiveActivity])
+  // 4.4 F4-1：共享标准键补充
+  useHotkey('ctrl+shift+z', () => document.execCommand('redo'), [])
+  useHotkey('ctrl+e', () => setActiveActivity('output'), [setActiveActivity])
+  useHotkey(
+    'ctrl+`',
+    () => {
+      useUIStore.getState().setActivePanel('terminal')
+    },
+    [],
+  )
+  useHotkey('ctrl+n', () => useProjectStore.getState().triggerCreateProject(), [])
+  useHotkey(
+    'ctrl+enter',
+    () => {
+      const rs = useRenderStore.getState()
+      const proj = useProjectStore.getState().selectedProject
+      const ids = rs.selectedProjectIds.length > 0 ? rs.selectedProjectIds : proj ? [String(proj.id)] : []
+      if (ids.length > 0) void rs.renderProject(ids)
+    },
+    [],
+  )
   useHotkey('ctrl+s', () => saveActiveTab(), [saveActiveTab])
   useHotkey('f5', () => window.location.reload(), [])
   useHotkey(
@@ -470,6 +578,7 @@ export default function App() {
           open={commandPaletteOpen}
           onClose={() => setCommandPaletteOpen(false)}
           commands={commandItems}
+          onTerminalCommand={handleTerminalCommand}
         />
       </div>
     </ErrorBoundary>

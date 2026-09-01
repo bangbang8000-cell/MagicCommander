@@ -70,6 +70,97 @@ export function buildTemplateCommands(): CommandItem[] {
   ]
 }
 
+// ===== 4.4 F4-5：命令面板命令全集（覆盖项目/模板/渲染/导出/批量/管线/最近收藏/设置/终端） =====
+
+export function createCommand(
+  id: string,
+  label: string,
+  category: string,
+  shortcut: string | undefined,
+  action: () => void,
+): CommandItem {
+  return { id, label, category, shortcut, action }
+}
+
+/** 渲染命令：当前项目 + 所选批量（kind: project | yaml | sn） */
+export function buildRenderCommands(
+  onRender: (kind: 'project' | 'yaml' | 'sn') => void,
+  batchCount = 0,
+): CommandItem[] {
+  const items: CommandItem[] = [
+    createCommand('renderCurrent', '渲染当前项目', '渲染', 'Ctrl+Enter', () => onRender('project')),
+    createCommand('renderCurrentYaml', 'YAML 输出当前项目', '渲染', undefined, () => onRender('yaml')),
+    createCommand('renderCurrentSn', 'SN 模式渲染当前项目', '渲染', undefined, () => onRender('sn')),
+  ]
+  if (batchCount > 0) {
+    items.unshift(
+      createCommand('renderBatch', `批量渲染所选 ${batchCount} 个项目`, '渲染', undefined, () => onRender('project')),
+      createCommand('renderBatchYaml', `批量 YAML 输出所选 ${batchCount} 个项目`, '渲染', undefined, () =>
+        onRender('yaml'),
+      ),
+    )
+  }
+  return items
+}
+
+/** 导出命令：当前项目 + 所选批量 */
+export function buildExportCommands(onExport: () => void, batchCount = 0): CommandItem[] {
+  const items: CommandItem[] = [createCommand('exportCurrent', '导出当前项目', '导出', 'Ctrl+E', onExport)]
+  if (batchCount > 0) {
+    items.unshift(createCommand('exportBatch', `批量导出所选 ${batchCount} 个项目`, '导出', undefined, onExport))
+  }
+  return items
+}
+
+/** 最近使用命令 */
+export function buildRecentCommands(recent: string[], onOpen: (name: string) => void): CommandItem[] {
+  return recent
+    .slice(0, 5)
+    .map((name) => createCommand(`recent:${name}`, name, '最近使用', undefined, () => onOpen(name)))
+}
+
+/** 收藏项目命令 */
+export function buildFavoriteCommands(favorites: string[], onOpen: (name: string) => void): CommandItem[] {
+  return favorites.map((name) => createCommand(`favorite:${name}`, name, '收藏', undefined, () => onOpen(name)))
+}
+
+/** 一键管线命令（规划管线 + 模板批处理） */
+export function buildPipelineCommands(onPlan: () => void, onTemplate: () => void): CommandItem[] {
+  return [
+    createCommand('pipelinePlan', '一键管线：导入 AutoLink 规划 → 渲染 → 导出', '一键管线', undefined, onPlan),
+    createCommand('pipelineTemplate', '模板批处理：多模板一键渲染导出', '一键管线', undefined, onTemplate),
+  ]
+}
+
+/** 设置命令全集 */
+export function buildSettingsCommands(onOpen: () => void): CommandItem[] {
+  return [
+    createCommand('settings', '打开设置', '设置', 'Ctrl+,', onOpen),
+    createCommand('settingsAi', 'AI 配置', '设置', undefined, onOpen),
+    createCommand('settingsGeneral', '通用设置', '设置', undefined, onOpen),
+    createCommand('settingsAdvanced', '高级设置', '设置', undefined, onOpen),
+  ]
+}
+
+/** 终端命令全集（交终端/命令注册表执行） */
+export function buildTerminalCommands(): CommandItem[] {
+  return [
+    createBatchCommand('t-help', '终端帮助', '终端', 'help'),
+    createBatchCommand('t-list', '列出项目', '终端', 'list projects'),
+    createBatchCommand('t-list-templates', '列出模板', '终端', 'list templates'),
+    createBatchCommand('t-create', '新建项目（可指定模板）', '终端', 'create <项目名> --template <模板名>'),
+    createBatchCommand('t-render', '渲染项目', '终端', 'render project <ids>'),
+    createBatchCommand('t-render-yaml', 'YAML 输出项目', '终端', 'render yaml <ids>'),
+    createBatchCommand('t-export', '批量导出项目包', '终端', 'export projects <ids>'),
+    createBatchCommand('t-batch-render', '批量渲染', '终端', 'batch render <ids>'),
+    createBatchCommand('t-batch-export', '批量导出', '终端', 'batch export <ids>'),
+    createBatchCommand('t-validate', '模板校验', '终端', 'validate template <ids>'),
+    createBatchCommand('t-template-list', '模板管理', '终端', 'template list'),
+    createBatchCommand('t-label', '标签打印', '终端', 'label print <ids>'),
+    createBatchCommand('t-clear', '清屏', '终端', 'clear'),
+  ]
+}
+
 export function CommandPalette({ open, onClose, commands, onTerminalCommand }: CommandPaletteProps) {
   const { t } = useTranslation()
   const isDark = useUIStore((s) => s.isDark)
