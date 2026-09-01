@@ -6,6 +6,9 @@ import { useUndoStore } from '@/stores/undo.store'
 import { useHotkey } from '@/hooks/useHotkey'
 import { RefreshCw, AlertCircle, Undo2, Redo2 } from 'lucide-react'
 import { showSuccess, showError } from '@/components/ui/Toast'
+import { prepareExcelSheets } from '@/workers/excelPrepClient'
+import { measureAsync } from '@/utils/perf'
+import { VirtualizedExcelTable } from './VirtualizedExcelTable'
 
 interface SheetData {
   name: string
@@ -83,13 +86,12 @@ export function ExcelViewer({ tab }: { tab: EditorTab }) {
 
       if (!isMountedRef.current) return
 
-      const normalized: SheetData[] = Array.isArray(result)
-        ? result.map((s) => ({
-            name: s.name || 'Sheet1',
-            headers: Array.isArray(s.headers) ? s.headers : [],
-            rows: Array.isArray(s.rows) ? s.rows : [],
-          }))
-        : []
+      // 4.2.0-42-d：大参数表数据准备（万行走 Web Worker，主线程不阻塞；小表同步零开销）
+      const prep = await measureAsync('Excel 参数表数据准备', 'render', () =>
+        prepareExcelSheets(Array.isArray(result) ? result : []),
+      )
+      if (!isMountedRef.current) return
+      const normalized: SheetData[] = prep.sheets
 
       setSheets(normalized)
       setActiveSheet(normalized[0]?.name ?? '')
@@ -278,78 +280,25 @@ export function ExcelViewer({ tab }: { tab: EditorTab }) {
         </button>
       </div>
 
-      {/* 数据表格 */}
-      <div className="flex-1 overflow-auto min-h-0">
-        {currentSheet ? (
-          <table className={`border-collapse text-xs ${isDark ? 'text-gray-200' : ''}`}>
-            <thead>
-              <tr className={`sticky top-0 z-10 ${isDark ? 'bg-gray-800' : 'bg-gray-100'}`}>
-                <th
-                  className={`border px-2 py-1.5 text-center w-10 font-medium select-none ${isDark ? 'border-gray-700 text-gray-400 bg-gray-800' : 'border-gray-300 text-gray-500'}`}
-                >
-                  #
-                </th>
-                {currentSheet.headers.map((h, i) => (
-                  <th
-                    key={i}
-                    className={`border px-2 py-1.5 whitespace-nowrap min-w-[80px] font-medium select-none ${
-                      isDark ? 'border-gray-700 text-gray-300 bg-gray-800' : 'border-gray-300 text-gray-700'
-                    }`}
-                  >
-                    {String(h)}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {currentSheet.rows.map((row, ri) => (
-                <tr key={ri} className={isDark ? 'hover:bg-gray-800' : 'hover:bg-blue-50'}>
-                  <td
-                    className={`border px-2 py-0.5 text-center w-10 font-mono ${isDark ? 'border-gray-700 text-gray-500 bg-gray-900' : 'border-gray-300 text-gray-400 bg-gray-50'}`}
-                  >
-                    {ri + 1}
-                  </td>
-                  {currentSheet.headers.map((h, ci) => {
-                    const value = String(row[h] ?? '')
-                    const isEditing = editCell?.row === ri && editCell?.col === ci
-                    return (
-                      <td
-                        key={ci}
-                        className={`border px-2 py-0.5 cursor-cell min-w-[80px] ${
-                          isDark
-                            ? 'border-gray-700 text-gray-200 hover:bg-gray-700'
-                            : 'border-gray-300 text-gray-800 hover:bg-blue-100'
-                        }`}
-                        onClick={() => handleCellClick(ri, ci, value)}
-                      >
-                        {isEditing ? (
-                          <input
-                            type="text"
-                            value={editValue}
-                            onChange={(e) => setEditValue(e.target.value)}
-                            onBlur={handleCellSave}
-                            onKeyDown={handleKeyDown}
-                            className={`w-full outline-none px-1 py-0 ${isDark ? 'bg-gray-700 text-gray-100' : 'bg-blue-50'}`}
-                            autoFocus
-                          />
-                        ) : (
-                          <span className="whitespace-nowrap">{value || '\u00A0'}</span>
-                        )}
-                      </td>
-                    )
-                  })}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        ) : (
-          <div
-            className={`flex items-center justify-center h-full text-sm ${isDark ? 'text-gray-500' : 'text-gray-400'}`}
-          >
-            {t('excel.noData')}
-          </div>
-        )}
-      </div>
+      {/* 数据表格（4.2.0-42-d：虚拟化，仅渲染可见区域行，万行参数表滚动不卡） */}
+      {currentSheet ? (
+        <VirtualizedExcelTable
+          sheet={currentSheet}
+          editCell={editCell}
+          editValue={editValue}
+          isDark={isDark}
+          onCellClick={handleCellClick}
+          onCellSave={handleCellSave}
+          onCellKeyDown={handleKeyDown}
+          onEditValueChange={setEditValue}
+        />
+      ) : (
+        <div
+          className={`flex items-center justify-center h-full text-sm ${isDark ? 'text-gray-500' : 'text-gray-400'}`}
+        >
+          {t('excel.noData')}
+        </div>
+      )}
     </div>
   )
 }
