@@ -9,18 +9,21 @@ interface LoadingStateProps {
   text?: string
   /** 骨架屏行数 */
   lines?: number
-  /** 是否使用 dark 主题 */
+  /** 是否使用 dark 主题（视觉收敛后由 token 驱动，保留参数向后兼容） */
   isDark?: boolean
 }
 
-export function LoadingState({ variant = 'spinner', text, lines = 3, isDark = false }: LoadingStateProps) {
+/**
+ * 统一加载状态（4.1 F1-5：spinner / 骨架屏 / 行内，契约 token 驱动）
+ */
+export function LoadingState({ variant = 'spinner', text, lines = 3 }: LoadingStateProps) {
   const { t } = useTranslation()
 
   const loadingText = text || t('common:loading.loading')
 
   if (variant === 'inline') {
     return (
-      <span className={clsx('inline-flex items-center gap-1.5 text-xs', isDark ? 'text-gray-400' : 'text-gray-500')}>
+      <span className={clsx('inline-flex items-center gap-1.5 text-xs text-text-secondary')}>
         <Loader2 size={12} className="animate-spin" />
         {loadingText}
       </span>
@@ -33,11 +36,7 @@ export function LoadingState({ variant = 'spinner', text, lines = 3, isDark = fa
         {Array.from({ length: lines }).map((_, i) => (
           <div
             key={i}
-            className={clsx(
-              'h-3 rounded animate-pulse',
-              isDark ? 'bg-gray-700' : 'bg-gray-200',
-              i === lines - 1 ? 'w-3/4' : 'w-full',
-            )}
+            className={clsx('h-3 rounded animate-pulse bg-app-hover', i === lines - 1 ? 'w-3/4' : 'w-full')}
           />
         ))}
       </div>
@@ -47,8 +46,8 @@ export function LoadingState({ variant = 'spinner', text, lines = 3, isDark = fa
   // spinner (default)
   return (
     <div className="flex flex-col items-center justify-center gap-2 py-8">
-      <Loader2 size={24} className={clsx('animate-spin', isDark ? 'text-blue-400' : 'text-blue-500')} />
-      <span className={clsx('text-xs', isDark ? 'text-gray-400' : 'text-gray-500')}>{loadingText}</span>
+      <Loader2 size={24} className={clsx('animate-spin text-primary')} />
+      <span className="text-xs text-text-secondary">{loadingText}</span>
     </div>
   )
 }

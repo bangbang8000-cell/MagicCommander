@@ -1,5 +1,4 @@
 import clsx from 'clsx'
-import { useUIStore } from '@/stores/ui.store'
 
 interface EmptyStateProps {
   icon?: React.ReactNode
@@ -9,16 +8,16 @@ interface EmptyStateProps {
   className?: string
 }
 
+/**
+ * 通用空状态（4.1 F1-5：图标 + 主文案 + 次文案 + 操作，契约 token 驱动）
+ */
 export function EmptyState({ icon, title, description, action, className }: EmptyStateProps) {
-  const isDark = useUIStore((s) => s.isDark)
   return (
     <div className={clsx('flex flex-col items-center justify-center gap-3 p-8 text-center', className)}>
-      <div className="flex items-center justify-center">{icon}</div>
+      <div className="flex items-center justify-center text-text-muted">{icon}</div>
       <div className="space-y-1">
-        <p className={clsx('text-sm font-medium', isDark ? 'text-gray-200' : 'text-gray-700')}>{title}</p>
-        {description && (
-          <p className={clsx('text-xs', isDark ? 'text-gray-500' : 'text-gray-400', 'max-w-xs')}>{description}</p>
-        )}
+        <p className="text-sm font-medium text-text-primary">{title}</p>
+        {description && <p className="text-xs text-text-muted max-w-xs">{description}</p>}
       </div>
       {action && <div>{action}</div>}
     </div>

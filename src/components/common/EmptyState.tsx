@@ -1,6 +1,6 @@
 /**
- * 空状态页面组件
- * 为列表、搜索结果等空状态提供友好提示
+ * 空状态 / 错误状态 / 无权限状态组件
+ * 4.1 F1-5：统一空态/加载/错误态视觉，契约 token 驱动。
  */
 
 import React from 'react'
@@ -17,7 +17,6 @@ import {
   Lock,
   type LucideIcon,
 } from 'lucide-react'
-import clsx from 'clsx'
 
 interface EmptyStateProps {
   type: 'projects' | 'files' | 'search' | 'output' | 'templates' | 'excel' | 'general'
@@ -66,7 +65,7 @@ const DEFAULT_CONTENT_KEYS: Record<string, { titleKey: string; descriptionKey: s
   },
 }
 
-export function EmptyState({ type, title, description, actionText, onAction, isDark = false }: EmptyStateProps) {
+export function EmptyState({ type, title, description, actionText, onAction }: EmptyStateProps) {
   const { t } = useTranslation()
   const defaultContent = DEFAULT_CONTENT_KEYS[type] || DEFAULT_CONTENT_KEYS.general
   const IconComponent = defaultContent.icon
@@ -74,23 +73,19 @@ export function EmptyState({ type, title, description, actionText, onAction, isD
   return (
     <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
       {/* 图标 */}
-      <IconComponent size={48} className={clsx('mb-4', isDark ? 'text-gray-600' : 'text-gray-400')} />
+      <IconComponent size={48} className="mb-4 text-text-muted" />
 
       {/* 标题 */}
-      <h3 className={clsx('text-lg font-medium mb-2', isDark ? 'text-gray-300' : 'text-gray-700')}>
-        {title || t(defaultContent.titleKey)}
-      </h3>
+      <h3 className="text-lg font-medium mb-2 text-text-primary">{title || t(defaultContent.titleKey)}</h3>
 
       {/* 描述 */}
-      <p className={clsx('text-sm mb-6 max-w-md', isDark ? 'text-gray-400' : 'text-gray-500')}>
-        {description || t(defaultContent.descriptionKey)}
-      </p>
+      <p className="text-sm mb-6 max-w-md text-text-secondary">{description || t(defaultContent.descriptionKey)}</p>
 
       {/* 操作按钮 */}
       {actionText && onAction && (
         <button
           onClick={onAction}
-          className="px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors text-sm font-medium"
+          className="px-4 py-2 bg-primary text-white rounded-[var(--radius-md)] hover:bg-primary-hover transition-colors text-sm font-medium"
         >
           {actionText}
         </button>
@@ -100,7 +95,7 @@ export function EmptyState({ type, title, description, actionText, onAction, isD
 }
 
 /**
- * 错误状态组件
+ * 错误状态组件（4.1 F1-5：图标 + 主文案 + 错误消息 + 重试）
  */
 interface ErrorStateProps {
   title?: string
@@ -110,29 +105,26 @@ interface ErrorStateProps {
   isDark?: boolean
 }
 
-export function ErrorState({ title, message, retryText, onRetry, isDark = false }: ErrorStateProps) {
+export function ErrorState({ title, message, retryText, onRetry }: ErrorStateProps) {
   const { t } = useTranslation()
   const finalTitle = title || t('common:emptyState.loadFailed')
   const finalRetryText = retryText || t('common:emptyState.reload')
   return (
     <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
       {/* 图标 */}
-      <AlertTriangle size={48} className="mb-4 text-red-400" />
+      <AlertTriangle size={48} className="mb-4 text-danger" />
 
       {/* 标题 */}
-      <h3 className={clsx('text-lg font-medium mb-2', isDark ? 'text-gray-300' : 'text-gray-700')}>{finalTitle}</h3>
+      <h3 className="text-lg font-medium mb-2 text-text-primary">{finalTitle}</h3>
 
       {/* 错误消息 */}
-      <p className={clsx('text-sm mb-6 max-w-md', isDark ? 'text-gray-400' : 'text-gray-500')}>{message}</p>
+      <p className="text-sm mb-6 max-w-md text-text-secondary">{message}</p>
 
       {/* 重试按钮 */}
       {onRetry && (
         <button
           onClick={onRetry}
-          className={clsx(
-            'px-4 py-2 rounded-lg transition-colors text-sm font-medium',
-            isDark ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-100 text-gray-700 hover:bg-gray-200',
-          )}
+          className="px-4 py-2 rounded-[var(--radius-md)] transition-colors text-sm font-medium bg-app-surface text-text-primary hover:bg-app-hover border border-edge-subtle"
         >
           {finalRetryText}
         </button>
@@ -150,20 +142,20 @@ interface NoPermissionStateProps {
   isDark?: boolean
 }
 
-export function NoPermissionState({ title, message, isDark = false }: NoPermissionStateProps) {
+export function NoPermissionState({ title, message }: NoPermissionStateProps) {
   const { t } = useTranslation()
   const finalTitle = title || t('common:emptyState.noPermission')
   const finalMessage = message || t('common:emptyState.noPermissionDesc')
   return (
     <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
       {/* 图标 */}
-      <Lock size={48} className="mb-4 text-yellow-400" />
+      <Lock size={48} className="mb-4 text-warning" />
 
       {/* 标题 */}
-      <h3 className={clsx('text-lg font-medium mb-2', isDark ? 'text-gray-300' : 'text-gray-700')}>{finalTitle}</h3>
+      <h3 className="text-lg font-medium mb-2 text-text-primary">{finalTitle}</h3>
 
       {/* 消息 */}
-      <p className={clsx('text-sm', isDark ? 'text-gray-400' : 'text-gray-500')}>{finalMessage}</p>
+      <p className="text-sm text-text-secondary">{finalMessage}</p>
     </div>
   )
 }
