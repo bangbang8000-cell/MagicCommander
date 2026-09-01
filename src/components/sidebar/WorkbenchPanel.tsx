@@ -17,6 +17,9 @@ import { WorkbenchActionCard } from './workbench/WorkbenchActionCard'
 import { WorkbenchDryRunResults } from './workbench/WorkbenchDryRunResults'
 import { WorkbenchResultCard } from './workbench/WorkbenchResultCard'
 import { Button } from '@/components/ui/Button'
+import { BatchProgressPanel } from '@/components/ui/BatchProgressPanel'
+import { PipelinePanel } from '@/components/ui/PipelinePanel'
+import { useBatchStore } from '@/stores/batch.store'
 import { ExternalLink, Zap } from 'lucide-react'
 
 /** MC-M3h / J-UIX-2: 三步步骤分组标签（与 AL v1.6 对齐：①配置与就绪 / ②渲染材料与操作 / ③校对与输出）
@@ -127,12 +130,31 @@ export const WorkbenchPanel = React.memo(function WorkbenchPanel() {
 
   const handleRenderBatch = async () => {
     if (selectedProjectIds.length === 0) return
+    // 4.4 F4-2：批量渲染增强——按项目粒度并行 + 进度 + 失败汇总
+    const batchProjects = projects
+      .filter((p) => selectedProjectIds.includes(String(p.id)))
+      .map((p) => ({ id: p.id, name: p.name }))
+    const useBatch = useBatchStore.getState()
     if (config.renderType === 'project') {
-      if (config.outputFormat === 'device_name') await renderProject(selectedProjectIds)
-      else await renderProjectSn(selectedProjectIds)
+      if (config.outputFormat === 'device_name') {
+        await useBatch.runBatchRender(batchProjects, {
+          renderOne: (project) => window.electron.render.project([String(project.id)]) as Promise<unknown>,
+        })
+      } else {
+        await useBatch.runBatchRender(batchProjects, {
+          renderOne: (project) => window.electron.render.projectSn([String(project.id)]) as Promise<unknown>,
+        })
+      }
     } else {
-      if (config.outputFormat === 'device_name') await renderYaml(selectedProjectIds)
-      else await renderYamlSn(selectedProjectIds)
+      if (config.outputFormat === 'device_name') {
+        await useBatch.runBatchRender(batchProjects, {
+          renderOne: (project) => window.electron.render.yaml([String(project.id)]) as Promise<unknown>,
+        })
+      } else {
+        await useBatch.runBatchRender(batchProjects, {
+          renderOne: (project) => window.electron.render.yamlSn([String(project.id)]) as Promise<unknown>,
+        })
+      }
     }
   }
 
@@ -249,6 +271,8 @@ export const WorkbenchPanel = React.memo(function WorkbenchPanel() {
               onDeleteOutput={handleDeleteOutput}
               onDeleteYaml={handleDeleteYaml}
             />
+
+            <BatchProgressPanel />
           </StepGroup>
 
           {/* ③ 校对与输出 */}
@@ -257,6 +281,8 @@ export const WorkbenchPanel = React.memo(function WorkbenchPanel() {
             <WorkbenchDependencyCard selectedProject={selectedProject} isDark={isDark} />
             <WorkbenchProofreadCard selectedProject={selectedProject} isDark={isDark} />
             <WorkbenchLabelCard selectedProjectIds={selectedProjectIds} isDark={isDark} />
+
+            <PipelinePanel />
 
             <Button
               variant="secondary"
