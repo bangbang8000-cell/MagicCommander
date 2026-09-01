@@ -2,6 +2,20 @@
 
 本文件为发布说明的单一事实来源（`npm run sync-version -- --release-notes` 自动抽取当前版本段）。
 
+## [4.1.0] - 2026-09-01
+
+### 新增
+
+- 4.1 视觉与品牌统一。
+- 主题系统 DTCG 化：light/dark/system/**high-contrast** 四主题，无闪变 + 持久化。
+- 高对比主题（WCAG AA）：正文 21:1、次要 14.7:1、弱化 7.6:1、边界 4.8:1、主按钮 8.7:1。
+
+### 改进
+
+- 组件库视觉收敛到契约 token（Button/Input/Select/Modal/Table/Tabs/Popover/Toast/ContextMenu）。
+- 品牌资产统一（启动画面/About/徽标/字体栈按契约）。
+- 空态/加载/错误态统一（EmptyState/LoadingState/ErrorState）。
+
 ## [4.0.0] - 2026-08-29
 
 ### 新增

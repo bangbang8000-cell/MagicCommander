@@ -2,7 +2,7 @@
 
 **批量生成网络设备配置 | Network Device Configuration Automation**
 
-[![Version](https://img.shields.io/badge/version-4.0.0-blue)](https://github.com/bangbang8000-cell/MagicCommander/releases)
+[![Version](https://img.shields.io/badge/version-4.1.0-blue)](https://github.com/bangbang8000-cell/MagicCommander/releases)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![Windows](https://img.shields.io/badge/Windows-NSIS-blue)](https://github.com/bangbang8000-cell/MagicCommander/releases)
 [![macOS](https://img.shields.io/badge/macOS-DMG-silver)](https://github.com/bangbang8000-cell/MagicCommander/releases)
@@ -245,6 +245,8 @@ MagicCommander/
 
 | 版本 | 日期 | 更新内容 |
 |------|------|---------|
+| **4.1.0 Build 26090101** | 2026-09-01 | **4.1 视觉与品牌统一**：主题系统 DTCG 化（light/dark/system/**high-contrast** 无闪变+持久化，WCAG AA：正文 21:1/次要 14.7:1/边界 4.8:1）；组件库视觉收敛到契约 token（Button/Input/Select/Modal/Table/Tabs/Popover/Toast/ContextMenu）；品牌资产统一（启动/About/徽标/字体）；空态/加载/错误态统一 |
+| **4.0.0 Build 26082903** | 2026-08-29 | **4.0 系列启动 · 工程基座与质量门禁**：引入 E2E（Playwright 冒烟三件套）/ golden 基线 / 模板校验 / 性能门禁 / 渲染安全基线五道 CI 门禁；版本单源 + 发布说明自动抽取；设计 token 单源（按双端 4.0 契约）+ 组件行为契约（Modal/Popover/ContextMenu/Select/Toast）+ 工程对齐（ESLint 严格度） |
 | **3.10.7 Build 26082902** | 2026-08-29 | **4.0 前最终打磨**：会话内手动摘要（摘要替换历史/可保留完整）+ 长会话上限截断（超 200 条提示可截断保留 100，新对话语义）；摘要失败保持原历史 |
 | **3.10.6 Build 26082901** | 2026-08-29 | **AI 对话会话管理**：多会话（新建/切换/删除/重命名/清空上下文）+ 本地持久化（重启保留）；后端按会话隔离上下文（conversationId 缺省兼容既有单会话） |
 | **3.10.5 Build 26082804** | 2026-08-29 | **AI 工具循环上限可配置**：设置新增「最大工具循环轮数」（1-10，默认 5，clamp 边界），保存即生效（无需重启进程）；达上限正常提示结束 |
