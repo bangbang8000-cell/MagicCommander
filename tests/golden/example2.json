@@ -1,0 +1,139 @@
+{
+  "batch_manifest": [
+    {
+      "device": "SH-SiteA-10F-A-S5560X-ASW-10",
+      "filename": "SH-SiteA-10F-A-S5560X-ASW-10.txt",
+      "role": "ASW",
+      "sha256": "b6a6224af46b21ba"
+    },
+    {
+      "device": "SH-SiteA-10F-B-S5560X-PSW-10",
+      "filename": "SH-SiteA-10F-B-S5560X-PSW-10.txt",
+      "role": "PSW",
+      "sha256": "24635d7f78d34cd3"
+    },
+    {
+      "device": "SH-SiteA-1F-A-H6520-DOA-01",
+      "filename": "SH-SiteA-1F-A-H6520-DOA-01.txt",
+      "role": "DOA",
+      "sha256": "3dda5e6656ff84fb"
+    },
+    {
+      "device": "SH-SiteA-1F-A-S5560X-ASW-01",
+      "filename": "SH-SiteA-1F-A-S5560X-ASW-01.txt",
+      "role": "ASW",
+      "sha256": "a6461da65beb0d47"
+    },
+    {
+      "device": "SH-SiteA-1F-B-H6520-DOA-02",
+      "filename": "SH-SiteA-1F-B-H6520-DOA-02.txt",
+      "role": "DOA",
+      "sha256": "8375b133bf3ae4bb"
+    },
+    {
+      "device": "SH-SiteA-1F-B-S5560X-PSW-01",
+      "filename": "SH-SiteA-1F-B-S5560X-PSW-01.txt",
+      "role": "PSW",
+      "sha256": "694d6eeca4a9be4a"
+    },
+    {
+      "device": "SH-SiteA-2F-A-S5560X-ASW-02",
+      "filename": "SH-SiteA-2F-A-S5560X-ASW-02.txt",
+      "role": "ASW",
+      "sha256": "0ed2f87bff2829a4"
+    },
+    {
+      "device": "SH-SiteA-2F-B-S5560X-PSW-02",
+      "filename": "SH-SiteA-2F-B-S5560X-PSW-02.txt",
+      "role": "PSW",
+      "sha256": "7fd15ae00f7f761d"
+    },
+    {
+      "device": "SH-SiteA-3F-A-S5560X-ASW-03",
+      "filename": "SH-SiteA-3F-A-S5560X-ASW-03.txt",
+      "role": "ASW",
+      "sha256": "8b6ccf179343241a"
+    },
+    {
+      "device": "SH-SiteA-3F-B-S5560X-PSW-03",
+      "filename": "SH-SiteA-3F-B-S5560X-PSW-03.txt",
+      "role": "PSW",
+      "sha256": "13f50f0359d46053"
+    },
+    {
+      "device": "SH-SiteA-4F-A-S5560X-ASW-04",
+      "filename": "SH-SiteA-4F-A-S5560X-ASW-04.txt",
+      "role": "ASW",
+      "sha256": "dcfe37071ae38ab8"
+    },
+    {
+      "device": "SH-SiteA-4F-B-S5560X-PSW-04",
+      "filename": "SH-SiteA-4F-B-S5560X-PSW-04.txt",
+      "role": "PSW",
+      "sha256": "7aedc6f4ace19870"
+    },
+    {
+      "device": "SH-SiteA-5F-A-S5560X-ASW-05",
+      "filename": "SH-SiteA-5F-A-S5560X-ASW-05.txt",
+      "role": "ASW",
+      "sha256": "01410595798a227f"
+    },
+    {
+      "device": "SH-SiteA-5F-B-S5560X-PSW-05",
+      "filename": "SH-SiteA-5F-B-S5560X-PSW-05.txt",
+      "role": "PSW",
+      "sha256": "511b69d615fb7ab7"
+    },
+    {
+      "device": "SH-SiteA-6F-A-S5560X-ASW-06",
+      "filename": "SH-SiteA-6F-A-S5560X-ASW-06.txt",
+      "role": "ASW",
+      "sha256": "e3f2c2cb9489049a"
+    },
+    {
+      "device": "SH-SiteA-6F-B-S5560X-PSW-06",
+      "filename": "SH-SiteA-6F-B-S5560X-PSW-06.txt",
+      "role": "PSW",
+      "sha256": "f0f6b24ebd86ca62"
+    },
+    {
+      "device": "SH-SiteA-7F-A-S5560X-ASW-07",
+      "filename": "SH-SiteA-7F-A-S5560X-ASW-07.txt",
+      "role": "ASW",
+      "sha256": "7c85bf7093d979b6"
+    },
+    {
+      "device": "SH-SiteA-7F-B-S5560X-PSW-07",
+      "filename": "SH-SiteA-7F-B-S5560X-PSW-07.txt",
+      "role": "PSW",
+      "sha256": "66de7ce167ec4ccc"
+    },
+    {
+      "device": "SH-SiteA-8F-A-S5560X-ASW-08",
+      "filename": "SH-SiteA-8F-A-S5560X-ASW-08.txt",
+      "role": "ASW",
+      "sha256": "342977003a20b5e3"
+    },
+    {
+      "device": "SH-SiteA-8F-B-S5560X-PSW-08",
+      "filename": "SH-SiteA-8F-B-S5560X-PSW-08.txt",
+      "role": "PSW",
+      "sha256": "f92fb94160945fd9"
+    },
+    {
+      "device": "SH-SiteA-9F-A-S5560X-ASW-09",
+      "filename": "SH-SiteA-9F-A-S5560X-ASW-09.txt",
+      "role": "ASW",
+      "sha256": "836596ceac0011b2"
+    },
+    {
+      "device": "SH-SiteA-9F-B-S5560X-PSW-09",
+      "filename": "SH-SiteA-9F-B-S5560X-PSW-09.txt",
+      "role": "PSW",
+      "sha256": "a5c933f393991ed6"
+    }
+  ],
+  "device_count": 22,
+  "render_hash": "4042970016cb5aeb",
+  "source": "example/example2"
+}

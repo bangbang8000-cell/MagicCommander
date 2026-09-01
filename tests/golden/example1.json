@@ -1,0 +1,67 @@
+{
+  "batch_manifest": [
+    {
+      "device": "SW-ACCESS-01",
+      "filename": "SW-ACCESS-01.txt",
+      "role": "ASW",
+      "sha256": "918e3f34d74677dd"
+    },
+    {
+      "device": "SW-ACCESS-02",
+      "filename": "SW-ACCESS-02.txt",
+      "role": "ASW",
+      "sha256": "2f8c7613ec40aa40"
+    },
+    {
+      "device": "SW-ACCESS-03",
+      "filename": "SW-ACCESS-03.txt",
+      "role": "ASW",
+      "sha256": "1cd1db6d19deffb0"
+    },
+    {
+      "device": "SW-ACCESS-04",
+      "filename": "SW-ACCESS-04.txt",
+      "role": "ASW",
+      "sha256": "fb9f02f8b4a49c84"
+    },
+    {
+      "device": "SW-ACCESS-05",
+      "filename": "SW-ACCESS-05.txt",
+      "role": "ASW",
+      "sha256": "abbb44b36d8f2723"
+    },
+    {
+      "device": "SW-ACCESS-06",
+      "filename": "SW-ACCESS-06.txt",
+      "role": "ASW",
+      "sha256": "880c8c710720e199"
+    },
+    {
+      "device": "SW-ACCESS-07",
+      "filename": "SW-ACCESS-07.txt",
+      "role": "ASW",
+      "sha256": "ca42b63010eb619b"
+    },
+    {
+      "device": "SW-ACCESS-08",
+      "filename": "SW-ACCESS-08.txt",
+      "role": "ASW",
+      "sha256": "0eb35408bea25262"
+    },
+    {
+      "device": "SW-ACCESS-09",
+      "filename": "SW-ACCESS-09.txt",
+      "role": "ASW",
+      "sha256": "d42d05d43fca47c7"
+    },
+    {
+      "device": "SW-ACCESS-10",
+      "filename": "SW-ACCESS-10.txt",
+      "role": "ASW",
+      "sha256": "55f7cf721107365b"
+    }
+  ],
+  "device_count": 10,
+  "render_hash": "2b4c5212d6bd8eb1",
+  "source": "example/example1"
+}
