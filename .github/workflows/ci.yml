@@ -3,6 +3,8 @@ on:
   push:
     branches: [main]
   pull_request:
+  # 4.0.0-F0-1：支持手动触发 CI（验证 golden/模板/性能/安全基线步骤等）
+  workflow_dispatch:
 
 jobs:
   check:
@@ -22,7 +24,51 @@ jobs:
       - run: npm run lint
       - run: npm run format:check
       - run: npm run check-version
+      # 4.0.0-F0-2：发布说明自动抽取并入版本脚本（check-version 门禁已覆盖 CHANGELOG 版本段）
+      - run: npm run release-notes
+      # 4.0.0-F0-1（40-a）：渲染层安全基线 —— 0 Node/主进程直连 + 网络请求仅限白名单模块
+      # （MC 云平台集成合法使用 fetch，故按白名单适配，区别于 AL 的 0 网络）
+      - name: Security baseline (renderer IPC-only + network allowlist)
+        run: |
+          if grep -rEn "\brequire\(|process\.|ipcRenderer|ipcMain|contextBridge|child_process|spawn\(" src --include="*.ts" --include="*.tsx"; then
+            echo "FAIL: renderer must not access Node/main-process APIs directly"
+            exit 1
+          fi
+          if grep -rEn "\bfetch\(" src --include="*.ts" --include="*.tsx" | grep -vE "src/api/|src/stores/platform.store.ts|src/components/cloud/CloudStatusIndicator.tsx|src/components/sidebar/SettingsPanel.tsx|src/editor/jinja-textmate.ts"; then
+            echo "FAIL: renderer network calls outside whitelisted modules (src/api + platform/cloud/settings 既有白名单)"
+            exit 1
+          fi
+          echo "PASS: renderer is isolated (IPC-only + whitelisted network)"
       - run: npm test
       - run: npm run build
+      # 4.0.0-F0-1（40-b）：模板校验门禁 —— 模板库损坏时构建失败
+      - run: python scripts/validate_templates.py
+      # 4.0.0-F0-1（40-b）：golden 基线比对 —— 渲染文本/批次清单结构变化时 CI 失败
+      - run: python scripts/gen_golden.py --check
+      # 4.0.0-F0-1（40-c）：性能门禁 —— 批量渲染/单项目全量渲染超阈值退出码 1
+      - run: python scripts/bench_perf.py --rounds 1
       - run: cd backend && python3 -m pytest tests/ -v
       - run: python3 -m pytest ai_hub/tests/ -v
+
+  # 4.0.0-F0-1（40-a / G-1）：Electron E2E —— 启动→建项目→渲染→导出 冒烟三件套
+  e2e:
+    runs-on: ubuntu-latest
+    needs: check
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v5
+        with: { node-version: '22' }
+      - uses: actions/setup-python@v6
+        with: { python-version: '3.12' }
+      - run: npm ci
+      # 业务链路 E2E 的 render:project 走 Python 后端（读 Excel + Jinja2 渲染）
+      - run: pip install -r backend/requirements.txt
+      - run: pip install -r ai_hub/requirements.txt
+      # E2E 启动需 dist-electron/main.js（package.json main 入口），先编译主进程/preload
+      - run: npm run build:electron
+      # E2E 以 dev 模式启动（playwright webServer 拉起 vite :5173）
+      # Electron 系统依赖（libgtk 等）；electron 二进制随 npm ci 安装
+      - run: sudo npx playwright install-deps
+      - run: xvfb-run --auto-servernum npx playwright test

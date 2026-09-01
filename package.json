@@ -29,7 +29,13 @@
     "format": "prettier --write \"src/**/*.{ts,tsx,css}\" \"electron/**/*.ts\"",
     "format:check": "prettier --check \"src/**/*.{ts,tsx,css}\" \"electron/**/*.ts\"",
     "sync-version": "node scripts/sync-version.js",
-    "check-version": "node scripts/sync-version.js --check"
+    "check-version": "node scripts/sync-version.js --check",
+    "release-notes": "node scripts/sync-version.js --release-notes",
+    "e2e": "playwright test",
+    "golden": "python scripts/gen_golden.py",
+    "golden:check": "python scripts/gen_golden.py --check",
+    "validate-templates": "python scripts/validate_templates.py",
+    "bench-perf": "python scripts/bench_perf.py"
   },
   "dependencies": {
     "@monaco-editor/react": "^4.7.0",
@@ -58,6 +64,7 @@
     "zustand": "^4.5.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.62.1",
     "@testing-library/jest-dom": "^6.4.2",
     "@testing-library/react": "^14.2.1",
     "@types/node": "^20.11.0",
