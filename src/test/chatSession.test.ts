@@ -57,7 +57,7 @@ describe('S-2 切换会话上下文隔离', () => {
     const a = useChatStore.getState().createSession()
     useChatStore.getState().addMessage({ role: 'user', content: 'A 的消息', mode: 'general' })
 
-    const b = useChatStore.getState().createSession()
+    useChatStore.getState().createSession()
     expect(useChatStore.getState().getActiveSession()?.messages).toHaveLength(0)
 
     useChatStore.getState().setActiveSession(a)

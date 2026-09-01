@@ -254,7 +254,7 @@ describe('C-5 长会话超阈值提示', () => {
   })
 
   it('dismissTruncateNotice 清除提示；清空会话上下文也清除该会话提示', () => {
-    const id = useChatStore.getState().createSession()
+    useChatStore.getState().createSession()
     for (let i = 0; i < TRUNCATE_THRESHOLD; i++) {
       useChatStore.getState().addMessage({ role: 'user', content: `m${i}`, mode: 'general' })
     }
