@@ -10,15 +10,67 @@ export interface CommandItem {
   category: string
   shortcut?: string
   action: () => void
+  /** 4.3 F3-1b：可选终端命令文本——存在且提供了 onTerminalCommand 时交终端批量执行 */
+  terminal?: string
 }
 
 interface CommandPaletteProps {
   open: boolean
   onClose: () => void
   commands: CommandItem[]
+  /** 4.3 F3-1b：批量命令终端执行回调（命令执行有反馈由终端负责） */
+  onTerminalCommand?: (cmd: string) => void
 }
 
-export function CommandPalette({ open, onClose, commands }: CommandPaletteProps) {
+// ===== 4.3 F3-1b：批量 AI 操作命令构建器（供命令面板接入）=====
+
+export function createBatchCommand(
+  id: string,
+  label: string,
+  category: string,
+  terminal: string,
+  shortcut?: string,
+): CommandItem {
+  return { id, label, category, shortcut, terminal, action: () => {} }
+}
+
+export function buildBatchRenderCommands(ids: string[]): CommandItem[] {
+  if (ids.length === 0) return []
+  const idsArg = ids.join(',')
+  return [
+    createBatchCommand('batchRender', `批量渲染 ${ids.length} 个项目`, '批量操作', `render project ${idsArg}`),
+    createBatchCommand('batchRenderYaml', `批量渲染 YAML ${ids.length} 个项目`, '批量操作', `render yaml ${idsArg}`),
+  ]
+}
+
+export function buildBatchExportCommands(ids: string[]): CommandItem[] {
+  if (ids.length === 0) return []
+  const idsArg = ids.join(',')
+  return [createBatchCommand('batchExport', `批量导出 ${ids.length} 个项目`, '批量操作', `export projects ${idsArg}`)]
+}
+
+export function buildProjectCommands(): CommandItem[] {
+  return [
+    createBatchCommand('projectCreate', '新建项目（可指定模板）', '项目操作', 'create <项目名> --template <模板名>'),
+    createBatchCommand('projectList', '列出项目', '项目操作', 'list projects'),
+    createBatchCommand('projectDelete', '删除项目', '项目操作', 'delete project <id>'),
+  ]
+}
+
+export function buildTemplateCommands(): CommandItem[] {
+  return [
+    createBatchCommand('templatePreview', '预览模板', '模板操作', 'template preview <项目ID> <模板路径>'),
+    createBatchCommand(
+      'templateCreate',
+      '基于模板创建项目',
+      '模板操作',
+      'template create <项目名> --template <模板名>',
+    ),
+    createBatchCommand('templateList', '列出模板', '模板操作', 'template list'),
+  ]
+}
+
+export function CommandPalette({ open, onClose, commands, onTerminalCommand }: CommandPaletteProps) {
   const { t } = useTranslation()
   const isDark = useUIStore((s) => s.isDark)
   const [query, setQuery] = useState('')
@@ -53,11 +105,16 @@ export function CommandPalette({ open, onClose, commands }: CommandPaletteProps)
     (index: number) => {
       const item = filtered[index]
       if (item) {
-        item.action()
+        // 4.3 F3-1b：带 terminal 文本的批量命令交终端执行（命令执行有反馈）
+        if (item.terminal && onTerminalCommand) {
+          onTerminalCommand(item.terminal)
+        } else {
+          item.action()
+        }
         onClose()
       }
     },
-    [filtered, onClose],
+    [filtered, onClose, onTerminalCommand],
   )
 
   const handleKeyDown = (e: React.KeyboardEvent) => {

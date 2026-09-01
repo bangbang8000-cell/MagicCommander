@@ -332,14 +332,17 @@ export const commands: { [name: string]: CommandEntry } = {
 
   // ── 模板管理 ──
   template: {
-    desc: () => '模板管理: template list|save|delete',
+    desc: () => '模板管理: template list|save|delete|preview|create',
     fn: async (args, ctx) => {
       if (!window.electron?.project) {
         ctx.addLog('error', '需要 Electron 环境')
         return
       }
       if (args.length === 0) {
-        ctx.addLog('error', '用法: template list|save <项目名> <模板名>|delete <模板名>')
+        ctx.addLog(
+          'error',
+          '用法: template list|save <项目名> <模板名>|delete <模板名>|preview <项目ID> <模板路径>|create <项目名> --template <模板名>',
+        )
         return
       }
       const sub = args[0]
@@ -365,8 +368,33 @@ export const commands: { [name: string]: CommandEntry } = {
           }
           await window.electron.project.deleteTemplate(name)
           ctx.addLog('success', `模板 "${name}" 已删除`)
+        } else if (sub === 'preview') {
+          // 4.3 F3-1b：模板预览（不写文件）
+          const projectId = args[1]
+          const templatePath = args[2]
+          if (!projectId || !templatePath) {
+            ctx.addLog('error', '用法: template preview <项目ID> <模板相对路径>')
+            return
+          }
+          const result = await window.electron.project.templatePreview(projectId, templatePath)
+          const results = (result && (result as { results?: unknown[] }).results) || []
+          ctx.addLog('success', `模板预览完成 (${results.length} 项):`)
+          results.forEach((r) => ctx.addLog('info', `  - ${JSON.stringify(r).slice(0, 200)}`))
+        } else if (sub === 'create' || sub === 'create-from-template') {
+          // 4.3 F3-1b：基于模板中心模板创建项目
+          const name = args[1]
+          let templateName = ''
+          for (let i = 2; i < args.length; i++) {
+            if (args[i] === '--template' && args[i + 1]) templateName = args[++i]
+          }
+          if (!name || !templateName) {
+            ctx.addLog('error', '用法: template create <项目名> --template <模板名>')
+            return
+          }
+          await window.electron.project.create(name, { template: templateName })
+          ctx.addLog('success', `已基于模板 "${templateName}" 创建项目 "${name}"`)
         } else {
-          ctx.addLog('error', `未知子命令: ${sub}。可用: list, save, delete`)
+          ctx.addLog('error', `未知子命令: ${sub}。可用: list, save, delete, preview, create`)
         }
       } catch (err) {
         ctx.addLog('error', `操作失败: ${(err as Error).message}`)
@@ -416,6 +444,68 @@ export const commands: { [name: string]: CommandEntry } = {
       } catch (err) {
         ctx.addLog('error', `渲染失败: ${(err as Error).message}`)
       }
+    },
+  },
+
+  // ── 批量导出（4.3 F3-1b）──
+  export: {
+    desc: () => '批量导出项目包: export projects <ids>',
+    fn: async (args, ctx) => {
+      if (!window.electron?.output?.export) {
+        ctx.addLog('error', '需要 Electron 环境')
+        return
+      }
+      let rest = args
+      if (rest[0] === 'projects' || rest[0] === 'project') rest = rest.slice(1)
+      let ids: string[] = []
+      if (rest.length > 0) {
+        ids = rest
+          .join(',')
+          .split(',')
+          .map((id) => id.trim())
+          .filter(Boolean)
+      } else {
+        ids = resolveIds([])
+      }
+      if (ids.length === 0) {
+        ctx.addLog('error', '请指定项目ID，或先用 select 选择项目')
+        return
+      }
+      try {
+        // 名称映射优先取 store（当前会话已加载），其次 electron 项目列表
+        const nameById = new Map<string, string>()
+        useProjectStore.getState().projects.forEach((p) => nameById.set(String(p.id), String(p.name)))
+        if (window.electron?.project?.list) {
+          const raw = await window.electron.project.list()
+          const projects = Array.isArray(raw) ? raw : []
+          projects.forEach((p: { id: number; name: string }) => {
+            if (p.id != null) nameById.set(String(p.id), String(p.name ?? ''))
+          })
+        }
+        const exported: string[] = []
+        for (const id of ids) {
+          const name = nameById.get(id) || id
+          const path = await window.electron.output.export(name, 'zip')
+          exported.push(`${name} → ${path}`)
+        }
+        ctx.addLog('success', `批量导出完成 (${exported.length}):`)
+        exported.forEach((line) => ctx.addLog('info', `  ${line}`))
+      } catch (err) {
+        ctx.addLog('error', `导出失败: ${(err as Error).message}`)
+      }
+    },
+  },
+
+  // ── 批量统一入口（4.3 F3-1b）──
+  batch: {
+    desc: () => '批量操作: batch render|export <ids> | batch select <名称或ID>',
+    fn: (args, ctx) => {
+      const sub = args[0]
+      const rest = args.slice(1)
+      if (sub === 'render') return commands.render.fn(['project', ...rest], ctx)
+      if (sub === 'export') return commands.export.fn(rest, ctx)
+      if (sub === 'select') return commands.select.fn(rest, ctx)
+      ctx.addLog('error', '用法: batch render|export <ids> | batch select <名称或ID>')
     },
   },
 
