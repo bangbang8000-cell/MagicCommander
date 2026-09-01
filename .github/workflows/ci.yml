@@ -30,11 +30,12 @@ jobs:
       # （MC 云平台集成合法使用 fetch，故按白名单适配，区别于 AL 的 0 网络）
       - name: Security baseline (renderer IPC-only + network allowlist)
         run: |
-          if grep -rEn "\brequire\(|process\.|ipcRenderer|ipcMain|contextBridge|child_process|spawn\(" src --include="*.ts" --include="*.tsx"; then
+          # 仅扫描打包进渲染层的源码；src/test 为测试代码（合法使用 Node API），不属渲染层，排除
+          if grep -rEn --exclude-dir=test "\brequire\(|process\.|ipcRenderer|ipcMain|contextBridge|child_process|spawn\(" src --include="*.ts" --include="*.tsx"; then
             echo "FAIL: renderer must not access Node/main-process APIs directly"
             exit 1
           fi
-          if grep -rEn "\bfetch\(" src --include="*.ts" --include="*.tsx" | grep -vE "src/api/|src/stores/platform.store.ts|src/components/cloud/CloudStatusIndicator.tsx|src/components/sidebar/SettingsPanel.tsx|src/editor/jinja-textmate.ts"; then
+          if grep -rEn --exclude-dir=test "\bfetch\(" src --include="*.ts" --include="*.tsx" | grep -vE "src/api/|src/stores/platform.store.ts|src/components/cloud/CloudStatusIndicator.tsx|src/components/sidebar/SettingsPanel.tsx|src/editor/jinja-textmate.ts"; then
             echo "FAIL: renderer network calls outside whitelisted modules (src/api + platform/cloud/settings 既有白名单)"
             exit 1
           fi
