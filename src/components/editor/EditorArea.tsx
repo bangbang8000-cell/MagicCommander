@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useEditorStore, type EditorTab } from '@/stores/editor.store'
 import { useUIStore } from '@/stores/ui.store'
+import { initAutosave } from '@/stores/autosave.store'
 import { X, SplitSquareVertical, Layout, RotateCcw } from 'lucide-react'
 import clsx from 'clsx'
 import { MonacoEditor } from './MonacoEditor'
@@ -33,6 +34,12 @@ export function EditorArea() {
 
   // 初始化监听：确保 openTabs 变化时同步 activeTabId
   const isInitialized = useRef(false)
+
+  // V4.2.0-42-b（F2-2a）：自动保存（防抖）+ 崩溃/关闭前落盘
+  useEffect(() => {
+    initAutosave()
+  }, [])
+
   useEffect(() => {
     if (!isInitialized.current && openTabs.length > 0 && !activeTabId) {
       setActiveTab(openTabs[0].id)
