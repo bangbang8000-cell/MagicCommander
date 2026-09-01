@@ -23,6 +23,11 @@
 | `delete_project` | `projectName` (必需) | 删除项目（不可恢复） |
 | `get_project_info` | `projectName` (必需) | 获取项目详细信息：目录结构、文件列表 |
 | `list_project_files` | `projectName` (必需) | 列出项目目录下的所有文件和子目录结构 |
+| `update_project` | `projectName` (必需), `description` (可选), `meta` (可选) | 更新项目元数据（描述/额外字段） |
+| `import_project` | `projectName` (必需), `zipPath` (必需) | 导入项目包（zip）为项目 |
+| `export_project` | `projectName` (必需), `targetDir` (可选) | 导出项目包（zip） |
+| `create_from_template` | `projectName` (必需), `templateName` (必需) | 基于模板中心模板创建新项目 |
+| `preview_template` | `projectName` (必需), `templatePath` (必需) | 预览项目内模板渲染结果（不写文件） |
 
 ### 配置渲染
 | 工具名称 | 参数 | 说明 |
@@ -60,6 +65,15 @@
 | `validate_excel` | `projectName` (必需) | 校验 Excel 参数表 |
 | `diff_compare` | `projectName` (必需) | 对比渲染结果与已有输出差异 |
 | `analyze_project` | `projectName` (必需) | 全面分析项目：模板复杂度、变量使用、Excel 数据质量、交叉引用，生成优化建议报告 |
+
+### 技能库（4.3）
+| 工具名称 | 参数 | 说明 |
+|----------|------|------|
+| `list_skills` | 无参数 | 列出技能库中所有技能（名称/启用状态/使用统计） |
+| `get_skill` | `skillName` (必需) | 获取单个技能详情（含内容） |
+| `enable_skill` | `skillName` (必需) | 启用技能（恢复进入 AI 上下文） |
+| `disable_skill` | `skillName` (必需) | 禁用技能（保留文件不删除） |
+| `update_skill` | `skillName` (必需), `content` (必需) | 更新（创建或覆盖）技能内容 |
 
 ## 调用格式 (CRITICAL)
 

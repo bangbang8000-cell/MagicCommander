@@ -48,16 +48,56 @@ def get_tool_definitions() -> list[dict]:
 
 
 async def execute_tool(name: str, arguments: dict) -> dict:
-    """执行指定工具"""
+    """执行指定工具（4.3 F3-4：参数校验 + 业务错误可读化，全部失败均返回可读中文错误）"""
     tool = _tools.get(name)
     if not tool:
         return {"success": False, "error": f"未知工具: {name}"}
+    # 参数校验（必需字段缺失/类型错误/enum 越界 → 可读中文错误，不抛异常）
+    errors = _validate_tool_args(name, arguments, tool.get("parameters", {}))
+    if errors:
+        return {"success": False, "error": "；".join(errors)}
     try:
         result = await tool["handler"](arguments)
+        # 业务错误可读化：handler 返回 {"status":"error", "error":...} JSON 时转为失败
+        if isinstance(result, str):
+            try:
+                parsed = json.loads(result)
+                if isinstance(parsed, dict) and parsed.get("status") == "error":
+                    err = parsed.get("error") or parsed.get("message") or "操作失败"
+                    return {"success": False, "error": err}
+            except Exception:
+                pass
         return {"success": True, "result": result}
     except Exception as e:
         logger.error(f"Tool '{name}' execution failed: {e}")
         return {"success": False, "error": str(e)}
+
+
+def _validate_tool_args(name: str, args: dict, schema: dict) -> list[str]:
+    """按注册的工具 JSON Schema 校验参数：必需字段缺失、类型错误、enum 越界。
+
+    返回可读中文错误列表（空列表表示通过）。
+    """
+    errors: list[str] = []
+    props = schema.get("properties", {}) or {}
+    required = schema.get("required", []) or []
+    for r in required:
+        if r not in args or args[r] is None or args[r] == "":
+            errors.append(f"工具 {name} 缺少必需参数: {r}")
+    for key, val in args.items():
+        prop = props.get(key)
+        if not prop:
+            continue
+        ptype = prop.get("type")
+        if ptype == "string" and not isinstance(val, str):
+            errors.append(f"参数 {key} 应为字符串")
+        elif ptype == "integer" and not isinstance(val, int):
+            errors.append(f"参数 {key} 应为整数")
+        elif ptype == "number" and not isinstance(val, (int, float)):
+            errors.append(f"参数 {key} 应为数字")
+        if prop.get("enum") and val not in prop["enum"]:
+            errors.append(f"参数 {key} 取值无效，可选: {', '.join(str(e) for e in prop['enum'])}")
+    return errors
 
 
 async def _run_python_cli(args: list[str]) -> str:
@@ -727,6 +767,177 @@ async def _analyze_project(args: dict) -> str:
     return await _run_python_cli(["analyze", "project", project_name])
 
 
+# ====== 4.3 F3-4：项目/模板操作工具补齐 ======
+
+async def _update_project(args: dict) -> str:
+    """更新项目元数据（template.meta.json）：更新描述或合并额外元数据字段"""
+    project_name = args["projectName"]
+    description = args.get("description")
+    meta = args.get("meta")
+    ws = _workspace_dir or "workspace"
+    project_dir = Path(ws) / project_name
+    if not project_dir.exists():
+        return json.dumps({
+            "status": "error", "error": f"项目 '{project_name}' 不存在，无法更新",
+        }, ensure_ascii=False)
+    meta_path = project_dir / "template.meta.json"
+    data = {}
+    if meta_path.exists():
+        try:
+            data = json.loads(meta_path.read_text(encoding="utf-8"))
+        except Exception:
+            data = {}
+    if description is not None:
+        data["description"] = description
+    if isinstance(meta, dict):
+        data.update(meta)
+    meta_path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+    return json.dumps({
+        "status": "ok", "projectName": project_name,
+        "message": f"项目 '{project_name}' 元数据已更新",
+        "meta": data,
+    }, ensure_ascii=False)
+
+
+def _zip_project_dir(project_dir: Path, zip_path: Path):
+    """将项目目录递归打包为 zip（跳过隐藏目录与 __pycache__）"""
+    from zipfile import ZipFile, ZIP_DEFLATED
+    with ZipFile(zip_path, "w", ZIP_DEFLATED) as zf:
+        for root, dirs, files in os.walk(project_dir):
+            dirs[:] = [d for d in dirs if not d.startswith(".") and d != "__pycache__"]
+            for fname in files:
+                fpath = Path(root) / fname
+                arcname = fpath.relative_to(project_dir)
+                zf.write(fpath, arcname.as_posix())
+
+
+async def _export_project(args: dict) -> str:
+    """导出项目包（zip）：默认导出到 workspace/_exports/<项目名>.zip"""
+    project_name = args["projectName"]
+    target_dir = args.get("targetDir", "")
+    ws = _workspace_dir or "workspace"
+    project_dir = Path(ws) / project_name
+    if not project_dir.exists():
+        return json.dumps({
+            "status": "error", "error": f"项目 '{project_name}' 不存在，无法导出",
+        }, ensure_ascii=False)
+    out_dir = Path(target_dir) if target_dir else Path(ws) / "_exports"
+    try:
+        out_dir.mkdir(parents=True, exist_ok=True)
+    except OSError as e:
+        return json.dumps({"status": "error", "error": f"无法创建导出目录: {e}"}, ensure_ascii=False)
+    zip_path = out_dir / f"{project_name}.zip"
+    try:
+        _zip_project_dir(project_dir, zip_path)
+    except OSError as e:
+        return json.dumps({"status": "error", "error": f"导出失败: {e}"}, ensure_ascii=False)
+    return json.dumps({
+        "status": "ok", "projectName": project_name, "zipPath": str(zip_path),
+        "message": f"项目 '{project_name}' 已导出为 {zip_path.name}",
+    }, ensure_ascii=False)
+
+
+async def _import_project(args: dict) -> str:
+    """导入项目包（zip）为项目；内置 zip-slip 路径穿越防护"""
+    project_name = args["projectName"]
+    zip_path = args["zipPath"]
+    ws = _workspace_dir or "workspace"
+    src_zip = Path(zip_path)
+    if not src_zip.exists():
+        return json.dumps({
+            "status": "error", "error": f"项目包 '{zip_path}' 不存在，无法导入",
+        }, ensure_ascii=False)
+    target_dir = Path(ws) / project_name
+    if target_dir.exists():
+        return json.dumps({
+            "status": "error", "error": f"项目 '{project_name}' 已存在，请更换名称或先删除",
+        }, ensure_ascii=False)
+    from zipfile import ZipFile
+    try:
+        target_dir.mkdir(parents=True, exist_ok=True)
+        with ZipFile(src_zip) as zf:
+            for info in zf.infolist():
+                name = info.filename
+                # zip-slip 防护：拒绝绝对路径与 .. 穿越
+                if name.startswith("/") or ".." in name.replace("\\", "/").split("/"):
+                    raise RuntimeError(f"项目包包含非法路径: {name}")
+                dest = target_dir / name
+                if info.is_dir():
+                    dest.mkdir(parents=True, exist_ok=True)
+                    continue
+                dest.parent.mkdir(parents=True, exist_ok=True)
+                dest.write_bytes(zf.read(info))
+    except RuntimeError as e:
+        return json.dumps({"status": "error", "error": str(e)}, ensure_ascii=False)
+    except OSError as e:
+        return json.dumps({"status": "error", "error": f"导入失败: {e}"}, ensure_ascii=False)
+    return json.dumps({
+        "status": "ok", "projectName": project_name,
+        "message": f"项目包已导入为项目 '{project_name}'",
+    }, ensure_ascii=False)
+
+
+async def _create_from_template(args: dict) -> str:
+    """基于模板中心（example 目录）的模板创建新项目"""
+    project_name = args["projectName"]
+    template_name = args["templateName"]
+    return await _run_python_cli(["project", "create", project_name, "--template", template_name])
+
+
+async def _preview_template(args: dict) -> str:
+    """预览项目内模板的渲染结果（不写入文件）"""
+    project_name = args["projectName"]
+    template_path = args["templatePath"]
+    return await _run_python_cli(["template", "preview", project_name, template_path])
+
+
+# ====== 4.3 F3-3：技能库工具（技能可被 AI 工具调用）======
+
+async def _list_skills(args: dict) -> str:
+    from ai_hub.skills.engine import get_skills_engine
+    skills = get_skills_engine().list_skills()
+    return json.dumps({"status": "ok", "skills": skills, "total": len(skills)}, ensure_ascii=False)
+
+
+async def _get_skill(args: dict) -> str:
+    from ai_hub.skills.engine import get_skills_engine
+    skill = get_skills_engine().get_skill(args["skillName"])
+    if skill is None:
+        return json.dumps({"status": "error", "error": f"技能 '{args['skillName']}' 不存在"}, ensure_ascii=False)
+    return json.dumps({"status": "ok", "skill": skill}, ensure_ascii=False)
+
+
+async def _enable_skill(args: dict) -> str:
+    from ai_hub.skills.engine import get_skills_engine
+    ok = get_skills_engine().enable_skill(args["skillName"])
+    if not ok:
+        return json.dumps({"status": "error", "error": f"技能 '{args['skillName']}' 不存在"}, ensure_ascii=False)
+    return json.dumps({
+        "status": "ok", "skillName": args["skillName"], "enabled": True,
+        "message": f"技能 '{args['skillName']}' 已启用",
+    }, ensure_ascii=False)
+
+
+async def _disable_skill(args: dict) -> str:
+    from ai_hub.skills.engine import get_skills_engine
+    ok = get_skills_engine().disable_skill(args["skillName"])
+    if not ok:
+        return json.dumps({"status": "error", "error": f"技能 '{args['skillName']}' 不存在"}, ensure_ascii=False)
+    return json.dumps({
+        "status": "ok", "skillName": args["skillName"], "enabled": False,
+        "message": f"技能 '{args['skillName']}' 已禁用",
+    }, ensure_ascii=False)
+
+
+async def _update_skill(args: dict) -> str:
+    from ai_hub.skills.engine import get_skills_engine
+    skill = get_skills_engine().save_skill(args["skillName"], args["content"])
+    return json.dumps({
+        "status": "ok", "skillName": skill.name,
+        "message": f"技能 '{skill.name}' 已更新",
+    }, ensure_ascii=False)
+
+
 def init_tools():
     """初始化所有 Agent Tools"""
     register_tool(
@@ -1124,6 +1335,145 @@ def init_tools():
             "required": ["projectName"],
         },
         _analyze_project,
+    )
+
+    # ====== 4.3 F3-4：项目/模板操作工具补齐 ======
+
+    register_tool(
+        "update_project",
+        "更新项目元数据（template.meta.json）：更新项目描述，或通过 meta 合并额外元数据字段（如 deviceType/tags）",
+        {
+            "type": "object",
+            "properties": {
+                "projectName": {"type": "string", "description": "项目名称"},
+                "description": {"type": "string", "description": "项目描述（可选）"},
+                "meta": {"type": "object", "description": "额外元数据字段（可选，如 deviceType/tags）"},
+            },
+            "required": ["projectName"],
+        },
+        _update_project,
+    )
+
+    register_tool(
+        "export_project",
+        "导出项目包（zip）：默认导出到 workspace/_exports/<项目名>.zip，可用 targetDir 指定导出目录",
+        {
+            "type": "object",
+            "properties": {
+                "projectName": {"type": "string", "description": "项目名称"},
+                "targetDir": {"type": "string", "description": "导出目录（可选，默认 workspace/_exports）"},
+            },
+            "required": ["projectName"],
+        },
+        _export_project,
+    )
+
+    register_tool(
+        "import_project",
+        "导入项目包（zip）为项目：解压到 workspace/<项目名>（内置 zip-slip 路径穿越防护）",
+        {
+            "type": "object",
+            "properties": {
+                "projectName": {"type": "string", "description": "新项目名称"},
+                "zipPath": {"type": "string", "description": "项目包 zip 文件路径"},
+            },
+            "required": ["projectName", "zipPath"],
+        },
+        _import_project,
+    )
+
+    register_tool(
+        "create_from_template",
+        "基于模板中心（example 目录）的模板创建新项目，指定项目名称与模板名称",
+        {
+            "type": "object",
+            "properties": {
+                "projectName": {"type": "string", "description": "新项目名称"},
+                "templateName": {"type": "string", "description": "模板中心模板名称（如 example1/example2）"},
+            },
+            "required": ["projectName", "templateName"],
+        },
+        _create_from_template,
+    )
+
+    register_tool(
+        "preview_template",
+        "预览项目内模板的渲染结果（不写入文件）：指定项目名称与模板相对路径（如 templates/ASW.j2）",
+        {
+            "type": "object",
+            "properties": {
+                "projectName": {"type": "string", "description": "项目名称"},
+                "templatePath": {"type": "string", "description": "模板文件相对路径（如 templates/ASW.j2）"},
+            },
+            "required": ["projectName", "templatePath"],
+        },
+        _preview_template,
+    )
+
+    # ====== 4.3 F3-3：技能库工具 ======
+
+    register_tool(
+        "list_skills",
+        "列出技能库中所有技能（名称/启用状态/使用统计）",
+        {
+            "type": "object",
+            "properties": {},
+            "required": [],
+        },
+        _list_skills,
+    )
+
+    register_tool(
+        "get_skill",
+        "获取单个技能详情（含内容），供参考复用或向用户展示",
+        {
+            "type": "object",
+            "properties": {
+                "skillName": {"type": "string", "description": "技能名称"},
+            },
+            "required": ["skillName"],
+        },
+        _get_skill,
+    )
+
+    register_tool(
+        "enable_skill",
+        "启用技能（恢复其进入 AI 上下文）",
+        {
+            "type": "object",
+            "properties": {
+                "skillName": {"type": "string", "description": "技能名称"},
+            },
+            "required": ["skillName"],
+        },
+        _enable_skill,
+    )
+
+    register_tool(
+        "disable_skill",
+        "禁用技能（不再进入 AI 上下文，保留文件不删除）",
+        {
+            "type": "object",
+            "properties": {
+                "skillName": {"type": "string", "description": "技能名称"},
+            },
+            "required": ["skillName"],
+        },
+        _disable_skill,
+    )
+
+    register_tool(
+        "update_skill",
+        "更新（创建或覆盖）技能内容，技能会立即进入 AI 上下文",
+        {
+            "type": "object",
+            "properties": {
+                "skillName": {"type": "string", "description": "技能名称"},
+                "content": {"type": "string", "description": "技能完整内容（Markdown）"},
+            },
+            "required": ["skillName", "content"],
+        },
+        _update_skill,
     )
 
     logger.info(f"Initialized {len(_tools)} Agent tools")

@@ -15,14 +15,23 @@ TOOL_PERMISSIONS: dict[str, ToolPermission] = {
     "list_project_files": ToolPermission.AUTO, "validate_template": ToolPermission.AUTO,
     "validate_excel": ToolPermission.AUTO, "dry_run": ToolPermission.AUTO,
     "diff_compare": ToolPermission.AUTO,
+    # 4.3 F3-4：只读/导出/预览 → auto
+    "export_project": ToolPermission.AUTO, "preview_template": ToolPermission.AUTO,
     "create_project": ToolPermission.NOTIFY, "create_project_intelligent": ToolPermission.NOTIFY,
     "write_text_file": ToolPermission.NOTIFY, "write_excel": ToolPermission.NOTIFY,
     "update_template": ToolPermission.NOTIFY, "create_template": ToolPermission.NOTIFY,
     "generate_labels": ToolPermission.NOTIFY, "generate_label_md": ToolPermission.NOTIFY,
     "undo_render": ToolPermission.NOTIFY,
+    # 4.3 F3-4：创建/导入/更新 → notify
+    "create_from_template": ToolPermission.NOTIFY, "import_project": ToolPermission.NOTIFY,
+    "update_project": ToolPermission.NOTIFY,
     "delete_project": ToolPermission.CONFIRM, "delete_files": ToolPermission.CONFIRM,
     "delete_labels": ToolPermission.CONFIRM, "template_delete": ToolPermission.CONFIRM, "render_config": ToolPermission.CONFIRM,
     "render_yaml": ToolPermission.CONFIRM, "reverse_engineer_config": ToolPermission.CONFIRM,
+    # 4.3 F3-3：技能库工具（只读 auto / 写入 notify）
+    "list_skills": ToolPermission.AUTO, "get_skill": ToolPermission.AUTO,
+    "enable_skill": ToolPermission.NOTIFY, "disable_skill": ToolPermission.NOTIFY,
+    "update_skill": ToolPermission.NOTIFY,
 }
 
 TOOL_NAME_ALIASES: dict[str, str] = {
@@ -34,6 +43,16 @@ TOOL_NAME_ALIASES: dict[str, str] = {
     "analyze": "analyze_project", "get_project": "get_project_info",
     "diff": "diff_compare", "reverse": "reverse_engineer_config",
     "reverse_engineer": "reverse_engineer_config",
+    # 4.3 F3-4：项目/模板操作工具别名
+    "export": "export_project", "export_project_package": "export_project",
+    "import": "import_project", "import_project_package": "import_project",
+    "create_from_tpl": "create_from_template", "from_template": "create_from_template",
+    "preview": "preview_template", "preview_tpl": "preview_template",
+    "update_project_meta": "update_project",
+    # 4.3 F3-3：技能工具别名
+    "skills": "list_skills", "list_skill": "list_skills",
+    "skill_detail": "get_skill", "enable": "enable_skill", "disable": "disable_skill",
+    "edit_skill": "update_skill",
 }
 
 PARAM_ALIASES: dict[str, str] = {
@@ -48,6 +67,12 @@ PARAM_ALIASES: dict[str, str] = {
     "excel_name": "excelName", "sheet_name": "sheetName",
     "config_description": "configDescription", "description": "configDescription",
     "query": "query", "data": "data", "vendor": "vendor",
+    # 4.3 F3-4：项目/模板操作工具参数别名
+    "zip_path": "zipPath", "zip": "zipPath", "zip_file": "zipPath",
+    "target_dir": "targetDir", "output_dir": "targetDir",
+    "template_path": "templatePath", "tpl_path": "templatePath",
+    # 4.3 F3-3：技能工具参数别名
+    "skill": "skillName", "skill_name": "skillName",
 }
 
 def get_tool_permission(tool_name: str) -> ToolPermission:
