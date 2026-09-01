@@ -164,6 +164,8 @@ _SUMMARIZE_SYSTEM_PROMPT = (
 # 前端经既有 /send 通道转发的控制消息前缀（electron IPC 不可扩展，复用 chat 通道）
 _CTRL_SUMMARIZE = "@@MC_SUMMARIZE@@"
 _CTRL_TRUNCATE_PREFIX = "@@MC_TRUNCATE@@:"
+# 4.3 F3-2：确认卡片可编辑参数——确认时携带修改后的工具参数（b64）
+_CTRL_CONFIRM_REPLY = "@@MC_CONFIRM_REPLY@@"
 
 
 def _session_history_text(session) -> str:
@@ -194,7 +196,7 @@ async def _generate_summary(provider, history_text: str) -> str:
 
 
 def _parse_control_message(message: str) -> Optional[dict]:
-    """解析 /send 中的控制消息（摘要/截断），非控制消息返回 None"""
+    """解析 /send 中的控制消息（摘要/截断/确认参数），非控制消息返回 None"""
     if message.startswith(_CTRL_SUMMARIZE):
         return {"kind": "summarize", "history_text": message[len(_CTRL_SUMMARIZE):].strip()}
     if message.startswith(_CTRL_TRUNCATE_PREFIX):
@@ -204,6 +206,24 @@ def _parse_control_message(message: str) -> Optional[dict]:
         except ValueError:
             keep = 100
         return {"kind": "truncate", "keep": max(1, keep)}
+    if message.startswith(_CTRL_CONFIRM_REPLY):
+        encoded = message[len(_CTRL_CONFIRM_REPLY):].strip()
+        return {"kind": "confirm_reply", "encoded": encoded}
+    return None
+
+
+def _decode_confirm_reply(encoded: str) -> Optional[dict]:
+    """解码确认控制消息参数（标准/urlsafe base64 均兼容）；非法返回 None"""
+    import base64
+    try:
+        normalized = encoded.replace("-", "+").replace("_", "/")
+        padded = normalized + "=" * (-len(normalized) % 4)
+        raw = base64.b64decode(padded.encode("utf-8"))
+        data = json.loads(raw.decode("utf-8"))
+        if isinstance(data, dict):
+            return data
+    except Exception:
+        pass
     return None
 
 
@@ -245,10 +265,43 @@ async def _run_control_message(req: ChatRequest, ctrl: dict):
             ("message", {"content": summary}),
             ("done", {"status": "completed"}),
         ])
+    # confirm_reply：确认卡片可编辑参数——按新参数执行待确认工具
+    if ctrl["kind"] == "confirm_reply":
+        return await _run_confirm_reply(req.session_id or "default", ctrl["encoded"])
     # truncate：无需 provider
     session.truncate_history(ctrl["keep"])
     return _sse_response([
         ("message", {"content": f"已截断会话，保留最近 {ctrl['keep']} 条消息"}),
+        ("done", {"status": "completed"}),
+    ])
+
+
+async def _run_confirm_reply(session_id: str, encoded: str) -> EventSourceResponse:
+    """4.3 F3-2：确认卡片可编辑参数——按新参数执行待确认工具（控制消息不写入 history）"""
+    from ai_hub.agent.tools import execute_tool
+
+    session = get_or_create_session(session_id)
+    if not getattr(session, "pending_confirmation", None):
+        return _sse_response([
+            ("error", {"error": "没有待确认的操作，无法确认执行"}),
+            ("done", {"status": "completed"}),
+        ])
+    payload = _decode_confirm_reply(encoded)
+    if payload is None or not payload.get("tool"):
+        return _sse_response([
+            ("error", {"error": "确认参数解析失败，请重新操作"}),
+            ("done", {"status": "completed"}),
+        ])
+    tool_name = payload["tool"]
+    # 修改后的参数优先；未提供时回落到待确认参数的原始参数
+    args = payload.get("args") or session.pending_confirmation.get("args") or {}
+    session.pending_confirmation = None
+    result = await execute_tool(tool_name, args)
+    result_json = json.dumps(result, ensure_ascii=False)
+    session.add_message("assistant", f"✅ 已确认并按新参数执行工具: `{tool_name}`")
+    session.add_message("tool", result_json, {"tool_call_id": f"confirm_{session_id[:8]}"})
+    return _sse_response([
+        ("message", {"content": f"> ✅ 已确认执行 `{tool_name}`（使用新参数）:\n```json\n{result_json}\n```"}),
         ("done", {"status": "completed"}),
     ])
 

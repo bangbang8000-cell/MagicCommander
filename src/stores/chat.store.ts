@@ -11,9 +11,18 @@ import type { AIHubStatus, AIHubProvider } from '@/types/ipc'
 export const CTRL_SUMMARIZE_PREFIX = '@@MC_SUMMARIZE@@'
 export const CTRL_TRUNCATE_PREFIX = '@@MC_TRUNCATE@@:'
 
+/** 4.3 F3-2：确认卡片携带可编辑参数的确认控制消息前缀（后端 /send 解析后按新参数执行） */
+export const CONFIRM_REPLY_PREFIX = '@@MC_CONFIRM_REPLY@@'
+
+/** 4.3 F3-2：摘要后继续衔接文案（追加到摘要 marker，提示可基于摘要继续对话） */
+export const SUMMARY_CONTINUE_HINT = '以上为本会话摘要。您可以直接继续提问，我将基于摘要上下文继续回答。'
+
 /** 长会话截断阈值（消息条数）与保留条数 */
 export const TRUNCATE_THRESHOLD = 200
 export const TRUNCATE_KEEP = 100
+
+/** 4.3 F3-2：带归档标记的会话类型（不改动共享 ChatSession 类型） */
+export type SessionWithArchive = ChatSession & { archived?: boolean }
 
 /** 是否达到截断阈值（纯函数，可测）：会话消息数 >= threshold 时提示 */
 export function shouldShowTruncateNotice(count: number, threshold = TRUNCATE_THRESHOLD): boolean {
@@ -22,7 +31,7 @@ export function shouldShowTruncateNotice(count: number, threshold = TRUNCATE_THR
 
 interface ChatState {
   // 会话管理
-  sessions: ChatSession[]
+  sessions: SessionWithArchive[]
   activeSessionId: string | null
   hasHydrated: boolean
   setActiveSession: (id: string) => void
@@ -32,6 +41,11 @@ interface ChatState {
   clearCurrentSession: () => void
   renameSession: (id: string, title: string) => void
   clearSessionContext: (sessionId?: string) => Promise<void>
+  // 4.3 F3-2：会话归档
+  archiveSession: (id: string) => void
+  unarchiveSession: (id: string) => void
+  getActiveSessions: () => SessionWithArchive[]
+  getArchivedSessions: () => SessionWithArchive[]
 
   // 消息管理
   addMessage: (message: Omit<ChatMessage, 'id' | 'timestamp'> & { id?: string }) => void
@@ -190,6 +204,23 @@ export const useChatStore = create<ChatState>()(
           /* 后端不可用/失败时仅完成前端清空 */
         }
       },
+
+      // 4.3 F3-2：会话归档（不删除消息，仅标记归档；活跃/归档会话列表可区分）
+      archiveSession: (id) => {
+        set((s) => ({
+          sessions: s.sessions.map((ses) => (ses.id === id ? { ...ses, archived: true, updatedAt: Date.now() } : ses)),
+        }))
+      },
+
+      unarchiveSession: (id) => {
+        set((s) => ({
+          sessions: s.sessions.map((ses) => (ses.id === id ? { ...ses, archived: false, updatedAt: Date.now() } : ses)),
+        }))
+      },
+
+      getActiveSessions: () => get().sessions.filter((s) => !s.archived),
+
+      getArchivedSessions: () => get().sessions.filter((s) => !!s.archived),
 
       addMessage: (message) => {
         const activeId = get().activeSessionId
@@ -376,10 +407,11 @@ export const useChatStore = create<ChatState>()(
           set((s) => ({
             sessions: s.sessions.map((ses) => {
               if (ses.id !== id) return ses
+              // 4.3 F3-2：摘要 marker 追加「摘要后继续」衔接提示
               const marker: ChatMessage = {
                 id: generateId(),
                 role: 'system',
-                content: `${markerLabel}\n\n${summary}`,
+                content: buildSummarizedMarker(markerLabel, summary),
                 timestamp: Date.now(),
                 mode: ses.mode,
               }
@@ -713,17 +745,65 @@ export async function sendMessage(
 // ===== PRD v3.3 AI-1/AI-2：确认卡片 + 思考指示器的可测纯函数与回灌入口 =====
 
 /**
+ * 4.3 F3-2：摘要 marker 组装——在摘要后追加「摘要后继续」衔接提示（可测纯函数）
+ */
+export function buildSummarizedMarker(label: string, summary: string): string {
+  return `${label}\n\n${summary}\n\n${SUMMARY_CONTINUE_HINT}`
+}
+
+/** 4.3 F3-2：UTF-8 安全的 base64 编码（浏览器 btoa / node Buffer 双兼容） */
+export function encodeConfirmArgs(args: Record<string, unknown>): string {
+  const json = JSON.stringify(args)
+  const bytes = new TextEncoder().encode(json)
+  let binary = ''
+  bytes.forEach((b) => (binary += String.fromCharCode(b)))
+  if (typeof btoa === 'function') return btoa(binary)
+  return Buffer.from(json, 'utf-8').toString('base64')
+}
+
+/** 4.3 F3-2：UTF-8 安全的 base64 解码；非法输入返回 null（不抛错） */
+export function decodeConfirmArgs(encoded: string): Record<string, unknown> | null {
+  try {
+    let json: string
+    if (typeof atob === 'function') {
+      const binary = atob(encoded)
+      const bytes = Uint8Array.from(binary, (c) => c.charCodeAt(0))
+      json = new TextDecoder().decode(bytes)
+    } else {
+      json = Buffer.from(encoded, 'base64').toString('utf-8')
+    }
+    const parsed = JSON.parse(json)
+    if (parsed && typeof parsed === 'object') return parsed
+    return null
+  } catch {
+    return null
+  }
+}
+
+/**
  * 从 assistant 消息内容解析确认标记（后端 run_stream CONFIRM 分支 yield 的独立行
- * `---CONFIRM:<tool>---`）。返回工具名与剥离标记后的展示内容；无标记返回 null。
+ * `---CONFIRM:<tool>---`）。返回工具名、可选参数（b64 编码的工具参数，供确认前预览）与
+ * 剥离标记后的展示内容；无标记返回 null。
  * 向后兼容：无标记时前端不渲染卡片，用户仍可手动输入"确认"/"取消"。
  */
-export function parseConfirmationMarker(content: string): { tool: string; displayContent: string } | null {
-  const rx = /(^|\n)---CONFIRM:([^\s-]+)---(\n|$)/
+export function parseConfirmationMarker(content: string): {
+  tool: string
+  args?: Record<string, unknown>
+  displayContent: string
+} | null {
+  // 支持两种格式：`---CONFIRM:<tool>---`（v3.3 向后兼容）与 `---CONFIRM:<tool>:<b64args>---`（4.3 预览参数）
+  const rx = /(^|\n)---CONFIRM:([^\s:]+)(?::([^\s-]+))?---(\n|$)/
   const m = content.match(rx)
   if (!m) return null
   const tool = m[2]
+  let args: Record<string, unknown> | undefined
+  const encoded = m[3]
+  if (encoded) {
+    const decoded = decodeConfirmArgs(encoded)
+    if (decoded) args = decoded
+  }
   const displayContent = content.replace(rx, '\n').trim()
-  return { tool, displayContent }
+  return { tool, args, displayContent }
 }
 
 /**
@@ -742,17 +822,28 @@ export function isWaitingFirstChunk(
  * PRD v3.3 AI-1：确认/取消按钮回灌。
  * 以用户身份发送「确认」/「取消」消息（复用 sendMessage 路径），
  * 仅在空闲（非 isSending）时发起，避免与进行中的流并发；fire-and-forget，不阻塞按钮交互。
+ * 4.3 F3-2：options.tool + options.args 携带「可编辑确认参数」——确认时若参数被修改，
+ * 发送确认控制消息（@@MC_CONFIRM_REPLY@@<b64>），后端按新参数执行。
  * @param projectName 当前项目名（由调用方传入，避免后端 set_mode 重置项目上下文）
+ * @param options 可选：确认时携带修改后的工具参数（tool/args）
  * 返回是否已发起（isSending 期间的点击将被忽略并返回 false）。
  */
-export function sendConfirmationReply(reply: '确认' | '取消', projectName?: string): boolean {
+export function sendConfirmationReply(
+  reply: '确认' | '取消',
+  projectName?: string,
+  options?: { tool?: string; args?: Record<string, unknown> },
+): boolean {
   const store = useChatStore.getState()
   if (store.isSending) return false
   const session = store.getActiveSession()
   const mode = session?.mode || store.currentMode
+  let message: string = reply
+  if (reply === '确认' && options?.tool && options?.args) {
+    message = `${CONFIRM_REPLY_PREFIX}${encodeConfirmArgs({ tool: options.tool, args: options.args })}`
+  }
   void (async () => {
     try {
-      await sendMessage(store, reply, mode, [], projectName)
+      await sendMessage(store, message, mode, [], projectName)
     } catch (e) {
       console.error('[chat.store] 确认/取消回复发送失败', e)
     }
