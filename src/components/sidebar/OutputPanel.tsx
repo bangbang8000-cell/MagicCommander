@@ -5,6 +5,8 @@ import { useEditorStore } from '@/stores/editor.store'
 import { useUIStore } from '@/stores/ui.store'
 import { errorService } from '@/services/errorService'
 import { Button } from '@/components/ui/Button'
+import { BatchProgressPanel } from '@/components/ui/BatchProgressPanel'
+import { useBatchStore } from '@/stores/batch.store'
 import { showError, showSuccess } from '@/components/ui/Toast'
 import {
   ChevronRight,
@@ -82,6 +84,8 @@ export function OutputPanel() {
   // 导出相关状态
   const [isExporting, setIsExporting] = useState(false)
   const [exportFormat, setExportFormat] = useState<'zip' | 'dir'>('zip')
+  // 4.4 F4-2：批量导出（多项目包/批次导出）
+  const [batchSelected, setBatchSelected] = useState<Set<number>>(new Set())
 
   // 加载输出目录结构
   const loadOutputStructure = useCallback(
@@ -169,6 +173,31 @@ export function OutputPanel() {
 
   // 计算总输出文件数
   const totalFiles = outputStructure.reduce((sum, dir) => sum + (dir.children?.length || 0), 0)
+
+  // 4.4 F4-2：批量导出（多项目包/批次导出）
+  const toggleBatchSelect = (id: number) => {
+    setBatchSelected((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
+  const handleBatchExport = async () => {
+    const selected = projects.filter((p) => batchSelected.has(p.id))
+    if (selected.length === 0) return
+    try {
+      await useBatchStore.getState().runBatchExport(
+        selected.map((p) => ({ id: p.id, name: p.name })),
+        {
+          exportOne: (project) => window.electron.output.export(project.name, exportFormat),
+        },
+      )
+    } catch (err) {
+      showError(err instanceof Error ? err.message : String(err))
+    }
+  }
 
   const tabs: { id: OutputTab; labelKey: string }[] = [
     { id: 'browse', labelKey: 'common:outputPanel.tabs.browse' },
@@ -410,6 +439,45 @@ export function OutputPanel() {
                   {t('common:outputPanel.renderHint')}
                 </div>
               )}
+
+              {/* 4.4 F4-2：批量导出（多项目包/批次导出） */}
+              <div
+                className={clsx('rounded p-3 space-y-2 border-t pt-3', isDark ? 'border-gray-700' : 'border-gray-200')}
+              >
+                <div className={clsx('text-xs font-semibold', isDark ? 'text-gray-200' : 'text-gray-700')}>
+                  {t('common:efficiency.batchExport')}
+                </div>
+                <div className={clsx('max-h-36 overflow-auto space-y-1', isDark ? 'text-gray-300' : 'text-gray-700')}>
+                  {projects.map((project) => (
+                    <label
+                      key={project.id}
+                      className={clsx(
+                        'flex items-center gap-1.5 px-1.5 py-1 rounded text-xs cursor-pointer',
+                        isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-100',
+                      )}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={batchSelected.has(project.id)}
+                        onChange={() => toggleBatchSelect(project.id)}
+                        className="accent-primary-500"
+                      />
+                      <span className="truncate">{project.name}</span>
+                    </label>
+                  ))}
+                </div>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  icon={<Download size={12} />}
+                  onClick={handleBatchExport}
+                  disabled={batchSelected.size === 0}
+                  className="w-full justify-start"
+                >
+                  {t('common:efficiency.batchExport')} ({batchSelected.size})
+                </Button>
+                <BatchProgressPanel />
+              </div>
             </>
           )}
         </div>
