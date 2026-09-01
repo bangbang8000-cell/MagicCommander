@@ -2,7 +2,9 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useEditorStore, type EditorTab } from '@/stores/editor.store'
 import { useUIStore } from '@/stores/ui.store'
-import { RefreshCw, AlertCircle } from 'lucide-react'
+import { useUndoStore } from '@/stores/undo.store'
+import { useHotkey } from '@/hooks/useHotkey'
+import { RefreshCw, AlertCircle, Undo2, Redo2 } from 'lucide-react'
 import { showSuccess, showError } from '@/components/ui/Toast'
 
 interface SheetData {
@@ -29,6 +31,37 @@ export function ExcelViewer({ tab }: { tab: EditorTab }) {
   const isMountedRef = useRef(true)
   // 跟踪当前正在加载的文件路径，防止重复请求
   const loadingFilePathRef = useRef<string | null>(null)
+  // 当前表格引用（撤销/重做读取最新值，避免闭包过期）
+  const sheetsRef = useRef<SheetData[]>([])
+  sheetsRef.current = sheets
+
+  // V4.2.0-42-b：撤销/重做可用性（订阅栈深，驱动工具条按钮态）
+  const canUndo = useUndoStore((s) => (s.undoStack[tab.id] || []).length > 0)
+  const canRedo = useUndoStore((s) => (s.redoStack[tab.id] || []).length > 0)
+
+  const applySnapshot = useCallback(
+    (result: { ok: boolean; snapshot: unknown | null }) => {
+      if (!result.ok || result.snapshot === null) return
+      const next = result.snapshot as SheetData[]
+      setSheets(next)
+      updateContent(tab.id, next)
+      markDirty(tab.id, true)
+    },
+    [tab.id, updateContent, markDirty],
+  )
+
+  const handleUndo = useCallback(() => {
+    applySnapshot(useUndoStore.getState().undo(tab.id, sheetsRef.current))
+  }, [tab.id, applySnapshot])
+
+  const handleRedo = useCallback(() => {
+    applySnapshot(useUndoStore.getState().redo(tab.id, sheetsRef.current))
+  }, [tab.id, applySnapshot])
+
+  // V4.2.0-42-b：Ctrl+Z / Ctrl+Y / Ctrl+Shift+Z（输入框内不拦截，交给原生行为）
+  useHotkey('ctrl+z', handleUndo, [handleUndo])
+  useHotkey('ctrl+y', handleRedo, [handleRedo])
+  useHotkey('ctrl+shift+z', handleRedo, [handleRedo])
 
   const loadData = useCallback(async () => {
     const currentPath = `${tab.projectId}:${tab.filePath}`
@@ -121,6 +154,8 @@ export function ExcelViewer({ tab }: { tab: EditorTab }) {
 
   const handleCellSave = () => {
     if (!editCell || !currentSheet) return
+    // V4.2.0-42-b：编辑前压入撤销快照（深拷贝；新编辑清空 redo）
+    useUndoStore.getState().record(tab.id, sheets)
     const newSheets = sheets.map((s) => {
       if (s.name !== activeSheet) return s
       const newRows = [...s.rows]
@@ -213,6 +248,27 @@ export function ExcelViewer({ tab }: { tab: EditorTab }) {
           </button>
         ))}
         <div className="flex-1" />
+        {/* V4.2.0-42-b：撤销/重做工具条（Ctrl+Z / Ctrl+Y 等效） */}
+        <button
+          onClick={handleUndo}
+          disabled={!canUndo}
+          className={`p-1 rounded shrink-0 disabled:opacity-30 ${
+            isDark ? 'hover:bg-gray-700 text-gray-400' : 'hover:bg-gray-200 text-gray-400'
+          }`}
+          title="撤销 (Ctrl+Z)"
+        >
+          <Undo2 size={12} />
+        </button>
+        <button
+          onClick={handleRedo}
+          disabled={!canRedo}
+          className={`p-1 rounded shrink-0 disabled:opacity-30 ${
+            isDark ? 'hover:bg-gray-700 text-gray-400' : 'hover:bg-gray-200 text-gray-400'
+          }`}
+          title="重做 (Ctrl+Y)"
+        >
+          <Redo2 size={12} />
+        </button>
         <button
           onClick={loadData}
           className={`p-1 rounded shrink-0 ${isDark ? 'hover:bg-gray-700 text-gray-400' : 'hover:bg-gray-200 text-gray-400'}`}
