@@ -30,7 +30,11 @@ class SkillsEngine:
             try:
                 content = md_file.read_text(encoding="utf-8")
                 name = md_file.stem
-                self.skills[name] = Skill(name=name, file_path=md_file, content=content)
+                skill = Skill(name=name, file_path=md_file, content=content)
+                # 4.3 F3-3：恢复 .disabled 标记的禁用状态（跨重启保留）
+                if (md_file.parent / f"{md_file.name}.disabled").exists():
+                    skill.enabled = False
+                self.skills[name] = skill
             except Exception as e:
                 logger.error(f"Failed to load skill {md_file}: {e}")
         logger.info(f"Loaded {len(self.skills)} skills")
@@ -80,6 +84,61 @@ class SkillsEngine:
             self.skills[name].use_count += 1
             from datetime import datetime
             self.skills[name].last_used = datetime.now().isoformat()
+
+    # ====== 4.3 F3-3：技能库补齐（skills list / 详情 / 启用禁用）======
+
+    def list_skills(self) -> list[dict]:
+        """返回全部技能元信息（名称/启用状态/使用统计）"""
+        return [
+            {
+                "name": skill.name,
+                "enabled": skill.enabled,
+                "use_count": skill.use_count,
+                "last_used": skill.last_used,
+                "file_path": str(skill.file_path),
+            }
+            for skill in self.skills.values()
+        ]
+
+    def get_skill(self, name: str) -> dict | None:
+        """返回单个技能详情（含内容）；不存在返回 None"""
+        safe_name = name.lower().replace(" ", "-").replace("/", "-")
+        skill = self.skills.get(safe_name)
+        if not skill:
+            return None
+        return {
+            "name": skill.name,
+            "enabled": skill.enabled,
+            "content": skill.content,
+            "use_count": skill.use_count,
+            "last_used": skill.last_used,
+            "file_path": str(skill.file_path),
+        }
+
+    def set_enabled(self, name: str, enabled: bool) -> bool:
+        """启用/禁用技能并持久化（写/删 .disabled 标记文件）；技能不存在返回 False"""
+        safe_name = name.lower().replace(" ", "-").replace("/", "-")
+        skill = self.skills.get(safe_name)
+        if not skill:
+            return False
+        skill.enabled = bool(enabled)
+        marker = Path(str(skill.file_path) + ".disabled")
+        try:
+            if skill.enabled:
+                if marker.exists():
+                    marker.unlink()
+            else:
+                marker.write_text("", encoding="utf-8")
+        except OSError as e:
+            logger.error(f"Failed to persist skill enable state {name}: {e}")
+            return False
+        return True
+
+    def enable_skill(self, name: str) -> bool:
+        return self.set_enabled(name, True)
+
+    def disable_skill(self, name: str) -> bool:
+        return self.set_enabled(name, False)
 
 _engine: SkillsEngine | None = None
 
