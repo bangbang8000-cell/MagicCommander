@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
-import { useUIStore } from '@/stores/ui.store'
 import clsx from 'clsx'
 
 interface ContextMenuItem {
@@ -22,7 +21,6 @@ export function ContextMenu({ items, children, className }: ContextMenuProps) {
   const [visible, setVisible] = useState(false)
   const [position, setPosition] = useState({ x: 0, y: 0 })
   const menuRef = useRef<HTMLDivElement>(null)
-  const isDark = useUIStore((s) => s.isDark)
 
   useEffect(() => {
     if (!visible) return
@@ -52,14 +50,14 @@ export function ContextMenu({ items, children, className }: ContextMenuProps) {
         <div
           ref={menuRef}
           className={clsx(
-            'fixed z-50 rounded-lg shadow-lg py-1 min-w-[160px] border',
-            isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200',
+            // 4.1 F1-3：ContextMenu 表面收敛到契约 token
+            'fixed z-50 rounded-[var(--radius-md)] shadow-md py-1 min-w-[160px] border bg-app border-edge-subtle',
           )}
           style={{ left: position.x, top: position.y }}
         >
           {items.map((item, i) => {
             if (item.separator) {
-              return <div key={i} className={clsx('border-t my-1', isDark ? 'border-gray-700' : 'border-gray-200')} />
+              return <div key={i} className="border-t border-edge-subtle my-1" />
             }
             return (
               <button
@@ -73,19 +71,15 @@ export function ContextMenu({ items, children, className }: ContextMenuProps) {
                 className={clsx(
                   'w-full text-start px-3 py-1.5 text-xs flex items-center gap-2 transition-colors',
                   item.disabled
-                    ? 'text-gray-400 cursor-not-allowed'
+                    ? 'text-text-muted cursor-not-allowed'
                     : item.danger
-                      ? clsx('text-red-500', isDark ? 'hover:bg-red-900/30' : 'hover:bg-red-50')
-                      : clsx(isDark ? 'text-gray-200 hover:bg-gray-700' : 'text-gray-700 hover:bg-gray-100'),
+                      ? 'text-danger hover:bg-danger/10'
+                      : 'text-text-primary hover:bg-app-hover',
                 )}
               >
                 {item.icon && <span className="w-4 flex justify-center">{item.icon}</span>}
                 <span className="flex-1">{item.label}</span>
-                {item.shortcut && (
-                  <span className={clsx('text-[11px]', isDark ? 'text-gray-500' : 'text-gray-400')}>
-                    {item.shortcut}
-                  </span>
-                )}
+                {item.shortcut && <span className="text-[11px] text-text-muted">{item.shortcut}</span>}
               </button>
             )
           })}

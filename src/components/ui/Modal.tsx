@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { X } from 'lucide-react'
 import clsx from 'clsx'
-import { useUIStore } from '@/stores/ui.store'
 
 interface ModalProps {
   open: boolean
@@ -15,7 +14,6 @@ interface ModalProps {
 }
 
 export function Modal({ open, onClose, title, children, width = '500px', footer, closeOnEsc = true }: ModalProps) {
-  const isDark = useUIStore((s) => s.isDark)
   const panelRef = useRef<HTMLDivElement>(null)
 
   // 4.0 行为契约：ESC 关闭 + 打开后焦点进入对话框
@@ -53,40 +51,21 @@ export function Modal({ open, onClose, title, children, width = '500px', footer,
         role="dialog"
         aria-modal="true"
         className={clsx(
-          'rounded-lg flex flex-col max-h-[90vh] animate-scale-in',
-          isDark ? 'bg-gray-800 border border-gray-700 shadow-xl shadow-black/30' : 'bg-white shadow-2xl',
+          // 4.1 F1-3：radius-lg + shadow-lg（契约 token）
+          'rounded-[var(--radius-lg)] flex flex-col max-h-[90vh] animate-scale-in',
+          'bg-app border border-edge-subtle shadow-lg',
         )}
         style={{ width, animationDuration: '0.15s' }}
         onClick={(e) => e.stopPropagation()}
       >
-        <div
-          className={clsx(
-            'flex items-center justify-between px-5 py-3 border-b',
-            isDark ? 'border-gray-700' : 'border-gray-200',
-          )}
-        >
-          <h3 className={clsx('text-base font-semibold', isDark ? 'text-gray-100' : 'text-gray-900')}>{title}</h3>
-          <button
-            onClick={onClose}
-            className={clsx(
-              'p-1.5 rounded transition-colors',
-              isDark ? 'hover:bg-gray-700 text-gray-400' : 'hover:bg-gray-100 text-gray-500',
-            )}
-          >
+        <div className="flex items-center justify-between px-5 py-3 border-b border-edge-subtle">
+          <h3 className="text-base font-semibold text-text-primary">{title}</h3>
+          <button onClick={onClose} className="p-1.5 rounded transition-colors hover:bg-app-hover text-text-secondary">
             <X size={18} />
           </button>
         </div>
         <div className="flex-1 overflow-auto p-5">{children}</div>
-        {footer && (
-          <div
-            className={clsx(
-              'px-5 py-3 border-t flex justify-end gap-2',
-              isDark ? 'border-gray-700' : 'border-gray-200',
-            )}
-          >
-            {footer}
-          </div>
-        )}
+        {footer && <div className="px-5 py-3 border-t border-edge-subtle flex justify-end gap-2">{footer}</div>}
       </div>
     </div>
   )
@@ -117,7 +96,6 @@ export function useConfirm() {
   }
 
   const ConfirmDialog = () => {
-    const isDark = useUIStore((s) => s.isDark)
     return state.open && state.options ? (
       <Modal
         open
@@ -128,30 +106,20 @@ export function useConfirm() {
           <>
             <button
               onClick={() => close(false)}
-              className={clsx(
-                'px-4 py-1.5 text-sm rounded border transition-colors',
-                isDark
-                  ? 'border-gray-600 text-gray-200 hover:bg-gray-700'
-                  : 'border-gray-300 text-gray-700 hover:bg-gray-50',
-              )}
+              className="px-4 py-1.5 text-sm rounded-[var(--radius-md)] border border-edge-subtle text-text-primary hover:bg-app-hover transition-colors"
             >
               取消
             </button>
             <button
               onClick={() => close(true)}
-              className={clsx(
-                'px-4 py-1.5 text-sm rounded transition-colors',
-                isDark
-                  ? 'bg-primary-600 text-white hover:bg-primary-700'
-                  : 'bg-primary-600 text-white hover:bg-primary-700',
-              )}
+              className="px-4 py-1.5 text-sm rounded-[var(--radius-md)] bg-primary text-white hover:bg-primary-hover transition-colors"
             >
               确定
             </button>
           </>
         }
       >
-        <p className={clsx('text-sm', isDark ? 'text-gray-200' : 'text-gray-700')}>{state.options.message}</p>
+        <p className="text-sm text-text-primary">{state.options.message}</p>
       </Modal>
     ) : null
   }

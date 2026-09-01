@@ -14,7 +14,7 @@ interface PopoverProps {
  * 通用弹出面板（Popover）
  * 点击外部自动关闭
  */
-export function Popover({ open, onClose, children, className, isDark }: PopoverProps) {
+export function Popover({ open, onClose, children, className }: PopoverProps) {
   const ref = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -45,8 +45,8 @@ export function Popover({ open, onClose, children, className, isDark }: PopoverP
     <div
       ref={ref}
       className={clsx(
-        'absolute top-full right-0 z-50 min-w-[220px] border popover-surface',
-        isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200',
+        // 4.1 F1-3：浮层表面收敛到契约 token（popover-surface + app 表面）
+        'absolute top-full right-0 z-50 min-w-[220px] border popover-surface bg-app border-edge-subtle',
         'py-[var(--popover-pad-y)]',
         className,
       )}

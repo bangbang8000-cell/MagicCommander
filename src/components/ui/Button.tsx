@@ -26,16 +26,15 @@ export function Button({
   disabled,
   ...props
 }: ButtonProps) {
+  // 4.1 F1-3：视觉收敛到契约 token（primary/secondary/ghost/danger × sm/md/lg，radius-md）
   const variantClasses: Record<Variant, string> = {
-    primary: 'bg-primary-600 text-white hover:bg-primary-700 focus:ring-primary-500',
-    secondary:
-      'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600 border border-gray-200 dark:border-gray-600',
-    ghost: 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700',
-    danger: 'bg-danger-600 text-white hover:bg-danger-700 focus:ring-danger-500',
-    success: 'bg-success-600 text-white hover:bg-success-700 focus:ring-success-500',
-    warning: 'bg-warning-600 text-white hover:bg-warning-700 focus:ring-warning-500',
-    outline:
-      'border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700',
+    primary: 'bg-primary text-white hover:bg-primary-hover focus:ring-focus',
+    secondary: 'bg-app-surface text-text-primary hover:bg-app-hover border border-edge-subtle',
+    ghost: 'text-text-secondary hover:bg-app-hover',
+    danger: 'bg-danger text-white hover:bg-danger-700 focus:ring-danger',
+    success: 'bg-success text-white hover:bg-success-700 focus:ring-success',
+    warning: 'bg-warning text-white hover:bg-warning-700 focus:ring-warning',
+    outline: 'border border-edge-subtle text-text-primary hover:bg-app-hover',
   }
 
   const sizeClasses: Record<Size, string> = {
@@ -50,8 +49,8 @@ export function Button({
   return (
     <button
       className={clsx(
-        'inline-flex items-center justify-center rounded-md font-medium transition-all duration-150',
-        'focus:outline-none focus:ring-2 focus:ring-offset-1',
+        'inline-flex items-center justify-center rounded-[var(--radius-md)] font-medium transition-all duration-150',
+        'focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-offset-app',
         'disabled:opacity-50 disabled:cursor-not-allowed',
         'active:scale-[0.98]',
         variantClasses[variant],

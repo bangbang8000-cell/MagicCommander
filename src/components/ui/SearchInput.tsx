@@ -55,26 +55,23 @@ export function SearchInput({
 
   return (
     <div className={clsx('relative', className)}>
-      <Search
-        size={14}
-        className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 pointer-events-none"
-      />
+      <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" />
       <input
         type="text"
         value={localValue}
         onChange={(e) => handleChange(e.target.value)}
         placeholder={placeholder}
         className={clsx(
-          'w-full pl-8 pr-8 py-1.5 text-xs rounded-md border outline-none transition-colors',
-          'bg-gray-50 dark:bg-gray-750 border-gray-200 dark:border-gray-600',
-          'text-gray-700 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500',
-          'focus:border-primary-400 dark:focus:border-primary-500 focus:ring-1 focus:ring-primary-400/30',
+          'w-full pl-8 pr-8 py-1.5 text-xs rounded-[var(--radius-md)] border outline-none transition-colors',
+          'bg-app-surface border-edge-subtle',
+          'text-text-primary placeholder-text-muted',
+          'focus:border-focus focus:ring-1 focus:ring-focus',
         )}
       />
       {localValue && (
         <button
           onClick={handleClear}
-          className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
+          className="absolute right-2 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-secondary"
         >
           <X size={12} />
         </button>

@@ -1,7 +1,6 @@
 import { useState, useCallback, useEffect, type ReactNode } from 'react'
 import { X, CheckCircle, AlertCircle, AlertTriangle, Info } from 'lucide-react'
 import clsx from 'clsx'
-import { useUIStore } from '@/stores/ui.store'
 
 export type ToastType = 'success' | 'error' | 'warning' | 'info'
 
@@ -72,37 +71,35 @@ export function showInfo(message: string, duration?: number) {
 }
 
 function Toast({ toast, onClose }: { toast: ToastItem; onClose: () => void }) {
-  const isDark = useUIStore((s) => s.isDark)
   const icons: Record<ToastType, ReactNode> = {
-    success: <CheckCircle size={16} className="text-green-500 shrink-0" />,
-    error: <AlertCircle size={16} className="text-red-500 shrink-0" />,
-    warning: <AlertTriangle size={16} className="text-amber-500 shrink-0" />,
-    info: <Info size={16} className="text-blue-500 shrink-0" />,
+    success: <CheckCircle size={16} className="text-success shrink-0" />,
+    error: <AlertCircle size={16} className="text-danger shrink-0" />,
+    warning: <AlertTriangle size={16} className="text-warning shrink-0" />,
+    info: <Info size={16} className="text-info shrink-0" />,
   }
 
-  const bgColor = isDark ? 'bg-gray-800/95' : 'bg-white'
   const borderColor: Record<ToastType, string> = {
-    success: isDark ? 'border-green-700' : 'border-green-200',
-    error: isDark ? 'border-red-700' : 'border-red-200',
-    warning: isDark ? 'border-amber-700' : 'border-amber-200',
-    info: isDark ? 'border-blue-700' : 'border-blue-200',
+    success: 'border-success/50',
+    error: 'border-danger/50',
+    warning: 'border-warning/50',
+    info: 'border-info/50',
   }
-  const textColor = isDark ? 'text-gray-100' : 'text-gray-800'
-  const hoverBg = isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-100'
-  const xColor = isDark ? 'text-gray-400 hover:text-gray-200' : 'text-gray-400 hover:text-gray-600'
 
   return (
     <div
       className={clsx(
-        'pointer-events-auto flex items-start gap-2 px-4 py-3 rounded-lg border shadow-lg min-w-[280px] max-w-[400px]',
+        // 4.1 F1-3：Toast 表面收敛到契约 token（app 表面 + shadow-lg）
+        'pointer-events-auto flex items-start gap-2 px-4 py-3 rounded-[var(--radius-md)] border bg-app shadow-lg min-w-[280px] max-w-[400px]',
         'animate-fade-in animate-slide-in-right',
-        bgColor,
         borderColor[toast.type],
       )}
     >
       {icons[toast.type]}
-      <p className={clsx('flex-1 text-sm leading-snug', textColor)}>{toast.message}</p>
-      <button onClick={onClose} className={clsx('shrink-0 p-0.5 rounded transition-colors', hoverBg, xColor)}>
+      <p className={clsx('flex-1 text-sm leading-snug text-text-primary')}>{toast.message}</p>
+      <button
+        onClick={onClose}
+        className="shrink-0 p-0.5 rounded transition-colors hover:bg-app-hover text-text-muted hover:text-text-secondary"
+      >
         <X size={14} />
       </button>
     </div>
