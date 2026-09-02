@@ -39,6 +39,13 @@ import { aiHubService, type AIHubStatus } from '../services/aiHub.service'
 import { diagnosticsService } from '../services/diagnostics.service'
 import { healthService } from '../services/health.service'
 import { telemetryService } from '../services/telemetry.service'
+import {
+  buildSnapshotExport,
+  mergeSnapshotStores,
+  parseSnapshotImport,
+  rotateSnapshotItems,
+  snapshotLimit,
+} from '../services/snapshot-transfer.service'
 import { audit } from '../utils/audit'
 import { getLocalCommitSha, collectProjectFiles, installRemoteProject } from '../utils/git'
 
@@ -547,6 +554,72 @@ export function setupIpcHandlers(window: BrowserWindow): void {
     audit('project.importPackage', picked.filePaths[0])
     logger.info('[project:importPackage]', result)
     return result
+  })
+
+  // 4.8.0（F8-2 / 48-b）：项目历史快照「导出为文件 / 导入合并」（.mc_history/snapshots.json 或 .mc_backups）
+  ipcMain.handle('project:exportSnapshot', async (e, projectName: string, scope?: 'history' | 'backup'): Promise<unknown> => {
+    if (!isTrustedSender(e)) throw new Error('无权执行该操作')
+    validateProjectName(projectName)
+    const workspace = getWorkspaceDir()
+    const projectDir = path.join(workspace, projectName)
+    if (!isPathSafe(projectDir, workspace)) throw new Error('项目路径不在工作区内')
+    const scopeName = scope === 'backup' ? 'backup' : 'history'
+    const snapPath = path.join(projectDir, scopeName === 'backup' ? '.mc_backups' : '.mc_history', 'snapshots.json')
+    if (!fs.existsSync(snapPath)) throw new Error('该项目暂无快照可导出')
+    const raw = JSON.parse(fs.readFileSync(snapPath, 'utf-8'))
+    const bundle = buildSnapshotExport(raw)
+    const win = BrowserWindow.fromWebContents(e.sender)
+    const dst = await dialog.showSaveDialog(win!, {
+      title: '导出项目快照 (JSON)',
+      defaultPath: path.join(app.getPath('downloads'), `${projectName}-snapshot-${scopeName}.json`),
+      filters: [{ name: 'JSON', extensions: ['json'] }],
+    })
+    if (dst.canceled || !dst.filePath) throw new Error('已取消导出')
+    fs.writeFileSync(dst.filePath, JSON.stringify(bundle, null, 2), 'utf-8')
+    audit('project.exportSnapshot', `${projectName}:${scopeName}`)
+    logger.info(`[project:exportSnapshot] ${projectName} → ${dst.filePath}`)
+    return { path: dst.filePath, itemCount: Array.isArray(raw?.items) ? raw.items.length : 0 }
+  })
+
+  ipcMain.handle('project:importSnapshot', async (e, projectName: string): Promise<unknown> => {
+    if (!isTrustedSender(e)) throw new Error('无权执行该操作')
+    validateProjectName(projectName)
+    const workspace = getWorkspaceDir()
+    const projectDir = path.join(workspace, projectName)
+    if (!isPathSafe(projectDir, workspace)) throw new Error('项目路径不在工作区内')
+    const win = BrowserWindow.fromWebContents(e.sender)
+    const picked = await dialog.showOpenDialog(win!, {
+      title: '导入项目快照',
+      properties: ['openFile'],
+      filters: [{ name: 'JSON', extensions: ['json'] }],
+    })
+    if (picked.canceled || !picked.filePaths.length) throw new Error('已取消导入')
+    const srcPath = picked.filePaths[0]
+    const raw = JSON.parse(fs.readFileSync(srcPath, 'utf-8'))
+    const parsed = parseSnapshotImport(raw)
+    if (!parsed.ok) throw new Error(parsed.error)
+    const store = parsed.store
+    const snapPath = path.join(projectDir, store.scope === 'backup' ? '.mc_backups' : '.mc_history', 'snapshots.json')
+    let existing: unknown[] = []
+    if (fs.existsSync(snapPath)) {
+      try {
+        const cur = JSON.parse(fs.readFileSync(snapPath, 'utf-8'))
+        if (Array.isArray(cur?.items)) existing = cur.items
+      } catch {
+        /* 损坏则忽略既有 */
+      }
+    }
+    const merged = mergeSnapshotStores(existing as never[], store.items as never[])
+    const capped = rotateSnapshotItems(merged as never[], snapshotLimit(store.scope))
+    fs.mkdirSync(path.dirname(snapPath), { recursive: true })
+    fs.writeFileSync(
+      snapPath,
+      JSON.stringify({ schema_version: 1, scope: store.scope, items: capped }, null, 2),
+      'utf-8',
+    )
+    audit('project.importSnapshot', projectName)
+    logger.info(`[project:importSnapshot] ${projectName} ← ${srcPath}（共 ${capped.length} 条）`)
+    return { ok: true, total: capped.length, added: capped.length - existing.length }
   })
 
   ipcMain.handle('project:saveAsExample', async (e, projectName: string, exampleName: string): Promise<void> => {

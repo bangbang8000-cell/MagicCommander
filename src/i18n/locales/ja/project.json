@@ -163,6 +163,8 @@
     "backupRestore": "バックアップとロールバック",
     "createBackup": "今すぐバックアップ",
     "restoreLatestBackup": "最新バックアップを復元",
+    "exportSnapshot": "スナップショットをファイルにエクスポート",
+    "importSnapshot": "ファイルからスナップショットをインポート",
     "versionHistory": "バージョン履歴",
     "noVersionHistory": "履歴はありません",
     "rollback": "ロールバック",

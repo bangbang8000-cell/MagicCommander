@@ -163,6 +163,8 @@
     "backupRestore": "備份與回滾",
     "createBackup": "立即備份",
     "restoreLatestBackup": "一鍵恢復（最近備份）",
+    "exportSnapshot": "匯出快照為檔案",
+    "importSnapshot": "從檔案匯入快照",
     "versionHistory": "版本歷史",
     "noVersionHistory": "暫無版本歷史",
     "rollback": "回滾",

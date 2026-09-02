@@ -66,6 +66,9 @@ const api = {
     batchGetLocalSha: (projectNames: string[]) => ipcRenderer.invoke('project:batchGetLocalSha', projectNames),
     exportPackage: (projectName: string) => ipcRenderer.invoke('project:exportPackage', projectName),
     importPackage: () => ipcRenderer.invoke('project:importPackage'),
+    exportSnapshot: (projectName: string, scope?: 'history' | 'backup') =>
+      ipcRenderer.invoke('project:exportSnapshot', projectName, scope),
+    importSnapshot: (projectName: string) => ipcRenderer.invoke('project:importSnapshot', projectName),
   },
   plan: {
     import: (planJson: string, projectDir?: string) => ipcRenderer.invoke('plan:import', planJson, projectDir),

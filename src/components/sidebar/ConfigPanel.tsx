@@ -14,7 +14,7 @@ import {
 } from '@/stores/projectHistory.store'
 import { Button } from '@/components/ui/Button'
 import type { ProjectInfoDetail } from '@/types/ipc'
-import { Play, RefreshCw, FolderOpen, FileCheck, FileCode, FileOutput, History, Archive } from 'lucide-react'
+import { Play, RefreshCw, FolderOpen, FileCheck, FileCode, FileOutput, History, Archive, Download, Upload } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useState, useEffect, useCallback, useMemo } from 'react'
 
@@ -146,6 +146,39 @@ export function ConfigPanel() {
       setHistoryBusy(false)
     }
   }, [projectRef, selectedProject, setHistoryBusy, clearMessage, notify, refreshHistory, reloadProjectTabs])
+
+  // 4.8.0（F8-2 / 48-b）：快照导出为文件 / 导入合并
+  const handleExportSnapshot = useCallback(
+    async (scope: 'history' | 'backup') => {
+      if (!projectRef) return
+      setHistoryBusy(true)
+      clearMessage()
+      try {
+        const r = await window.electron.project.exportSnapshot(projectRef.name, scope)
+        notify('success', `快照已导出: ${r.path}（${r.itemCount} 条）`)
+      } catch (e) {
+        notify('error', e instanceof Error ? e.message : String(e))
+      } finally {
+        setHistoryBusy(false)
+      }
+    },
+    [projectRef, setHistoryBusy, clearMessage, notify],
+  )
+
+  const handleImportSnapshot = useCallback(async () => {
+    if (!projectRef) return
+    setHistoryBusy(true)
+    clearMessage()
+    try {
+      const r = await window.electron.project.importSnapshot(projectRef.name)
+      notify('success', `快照导入完成，共 ${r.total} 条（新增 ${r.added} 条）`)
+      void refreshHistory()
+    } catch (e) {
+      notify('error', e instanceof Error ? e.message : String(e))
+    } finally {
+      setHistoryBusy(false)
+    }
+  }, [projectRef, setHistoryBusy, clearMessage, notify, refreshHistory])
 
   const handleRestoreVersion = useCallback(
     async (id: string) => {
@@ -385,6 +418,26 @@ export function ConfigPanel() {
               className="w-full justify-start"
             >
               {t('workbench.restoreLatestBackup')}
+            </Button>
+            <Button
+              variant="secondary"
+              size="sm"
+              icon={<Download size={12} />}
+              onClick={() => void handleExportSnapshot('history')}
+              disabled={historyBusy}
+              className="w-full justify-start"
+            >
+              {t('workbench.exportSnapshot')}
+            </Button>
+            <Button
+              variant="secondary"
+              size="sm"
+              icon={<Upload size={12} />}
+              onClick={() => void handleImportSnapshot()}
+              disabled={historyBusy}
+              className="w-full justify-start"
+            >
+              {t('workbench.importSnapshot')}
             </Button>
           </div>
           {historyMessage && (

@@ -253,6 +253,8 @@
     "backupRestore": "Backup & Rollback",
     "createBackup": "Create Backup",
     "restoreLatestBackup": "Restore Latest Backup",
+    "exportSnapshot": "Export Snapshot to File",
+    "importSnapshot": "Import Snapshot from File",
     "versionHistory": "Version History",
     "noVersionHistory": "No version history",
     "rollback": "Rollback",

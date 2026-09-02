@@ -163,6 +163,8 @@
     "backupRestore": "Sauvegarde & restauration",
     "createBackup": "Créer une sauvegarde",
     "restoreLatestBackup": "Restaurer la dernière sauvegarde",
+    "exportSnapshot": "Exporter la capture en fichier",
+    "importSnapshot": "Importer une capture depuis un fichier",
     "versionHistory": "Historique des versions",
     "noVersionHistory": "Aucun historique",
     "rollback": "Restaurer",

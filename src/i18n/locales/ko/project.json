@@ -163,6 +163,8 @@
     "backupRestore": "백업 및 롤백",
     "createBackup": "지금 백업",
     "restoreLatestBackup": "최근 백업 복원",
+    "exportSnapshot": "스냅샷을 파일로 내보내기",
+    "importSnapshot": "파일에서 스냅샷 가져오기",
     "versionHistory": "버전 기록",
     "noVersionHistory": "기록 없음",
     "rollback": "롤백",

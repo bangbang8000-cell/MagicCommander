@@ -253,6 +253,8 @@
     "backupRestore": "备份与回滚",
     "createBackup": "立即备份",
     "restoreLatestBackup": "一键恢复（最近备份）",
+    "exportSnapshot": "导出快照为文件",
+    "importSnapshot": "从文件导入快照",
     "versionHistory": "版本历史",
     "noVersionHistory": "暂无版本历史",
     "rollback": "回滚",

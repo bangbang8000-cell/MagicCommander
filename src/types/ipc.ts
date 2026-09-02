@@ -194,6 +194,10 @@ export interface ProjectIpcApi {
   exportPackage: (projectName: string) => Promise<ProjectPackageExportResult>
   /** 4.8.0（F8-1 / 48-a）：导入可移植项目包（按 manifest.projectId 匹配新建/更新/跳过） */
   importPackage: () => Promise<ProjectPackageImportResult>
+  /** 4.8.0（F8-2 / 48-b）：项目历史快照导出为文件 */
+  exportSnapshot: (projectName: string, scope?: 'history' | 'backup') => Promise<{ path: string; itemCount: number }>
+  /** 4.8.0（F8-2 / 48-b）：从文件导入项目历史快照（合并去重） */
+  importSnapshot: (projectName: string) => Promise<{ ok: boolean; total: number; added: number }>
 }
 
 /** 4.8.0（F8-1 / 48-a）：项目包导出结果 */
