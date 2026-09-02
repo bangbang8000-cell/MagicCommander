@@ -1,9 +1,10 @@
 import { useTranslation } from 'react-i18next'
 import { useUIStore } from '@/stores/ui.store'
 import { useLogStore } from '@/stores/log.store'
-import { ChevronUp, Terminal, ScrollText, Gauge } from 'lucide-react'
+import { ChevronUp, Terminal, ScrollText, Gauge, ShieldCheck } from 'lucide-react'
 import { TerminalPanel } from '../terminal/TerminalPanel'
 import { PerformancePanel } from './PerformancePanel'
+import { ValidationPanel } from './ValidationPanel'
 import clsx from 'clsx'
 import { useState, useEffect, useRef } from 'react'
 import { showSuccess, showError } from '../ui/Toast'
@@ -70,6 +71,22 @@ export function PanelArea() {
           >
             <Gauge size={12} /> 性能
           </button>
+          {/* 4.5.0-45-a：校验面板（与日志/终端/性能并列标签） */}
+          <button
+            onClick={() => setActivePanel('validation')}
+            className={clsx(
+              'flex items-center gap-1 px-2 py-1 text-[11px] rounded',
+              activePanel === 'validation'
+                ? isDark
+                  ? 'bg-gray-900 text-gray-100'
+                  : 'bg-white text-gray-900'
+                : isDark
+                  ? 'text-gray-400 hover:text-gray-200 hover:bg-gray-700'
+                  : 'text-gray-500 hover:text-gray-700',
+            )}
+          >
+            <ShieldCheck size={12} /> 校验
+          </button>
         </div>
         <div className="flex items-center gap-1">
           <button
@@ -90,6 +107,7 @@ export function PanelArea() {
           {activePanel === 'log' && <LogPanel />}
           {activePanel === 'terminal' && <TerminalPanel />}
           {activePanel === 'perf' && <PerformancePanel />}
+          {activePanel === 'validation' && <ValidationPanel />}
           {activePanel === 'problems' && (
             <div
               className={`flex items-center justify-center h-full text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}
