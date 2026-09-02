@@ -48,6 +48,8 @@ jobs:
       - run: python scripts/gen_golden.py --check
       # 4.0.0-F0-1（40-c）：性能门禁 —— 批量渲染/单项目全量渲染超阈值退出码 1
       - run: python scripts/bench_perf.py --rounds 1
+      # 4.5.0（45-a）：数据准确性校验门禁 —— 一致性/导出核对/IP 规划（有 error 即失败）
+      - run: python scripts/validate_consistency.py --check
       - run: cd backend && python3 -m pytest tests/ -v
       - run: python3 -m pytest ai_hub/tests/ -v
 
