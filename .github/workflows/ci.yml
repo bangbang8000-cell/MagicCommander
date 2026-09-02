@@ -53,6 +53,37 @@ jobs:
       - run: cd backend && python3 -m pytest tests/ -v
       - run: python3 -m pytest ai_hub/tests/ -v
 
+  # 4.6.0（46-a / Q-1）：覆盖率门禁 —— 后端 --cov-fail-under（阈值单一来源）+ 前端 vitest --coverage（配置强制阈值）+ 棘轮只升不降
+  coverage:
+    runs-on: ubuntu-latest
+    needs: check
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v5
+        with: { node-version: '22' }
+      - uses: actions/setup-python@v6
+        with: { python-version: '3.12' }
+      - run: npm ci --ignore-scripts
+      - run: pip install -r backend/requirements.txt
+      - run: pip install -r ai_hub/requirements.txt
+      # 后端覆盖率门禁：阈值来自 tests/coverage_thresholds.json（backend.fail_under，只升不降）
+      - name: Backend coverage gate
+        run: |
+          COV_BACKEND=$(python3 -c "import json;print(json.load(open('tests/coverage_thresholds.json'))['backend']['fail_under'])")
+          python3 -m pytest backend/tests ai_hub/tests -q \
+            --cov=backend --cov=ai_hub --cov-fail-under=$COV_BACKEND \
+            --cov-report=json:reports/coverage/backend/coverage.json
+      # 前端覆盖率门禁：阈值由 vite.config.ts（frontend.thresholds）强制，低于阈值 vitest 失败
+      - run: npx vitest run --coverage
+      # 棘轮只升不降：当前覆盖率不得低于 tests/coverage_baseline.json 锚点（下降即失败）
+      - name: Coverage ratchet (only-up)
+        run: python3 scripts/check_coverage_baseline.py
+      # 统一质量测试报告（复用上述覆盖率产物，生成 reports/quality_report.json + HTML）
+      - name: Generate quality report
+        run: python3 scripts/test_report.py --skip-run
+
   # 4.0.0-F0-1（40-a / G-1）：Electron E2E —— 启动→建项目→渲染→导出 冒烟三件套
   e2e:
     runs-on: ubuntu-latest

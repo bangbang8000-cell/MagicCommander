@@ -7,3 +7,5 @@ pyyaml>=6.0
 python-docx>=1.0.0
 xlrd>=2.0.0
 pytest>=7.0.0
+# 4.6.0-F6-1（46-a）：覆盖率门禁（pytest-cov，阈值见 tests/coverage_thresholds.json）
+pytest-cov>=4.0.0

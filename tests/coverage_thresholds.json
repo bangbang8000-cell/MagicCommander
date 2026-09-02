@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "policy": "MC 4.6.0-F6-1（46-a）覆盖率门禁：低阈值起步，只许升不许降。后续版本只能上调，不得低于本基线（Q-1 断言 enforce）。阈值单一来源：后端以 backend.fail_under 注入 .coveragerc/CI --cov-fail-under；前端以 frontend.thresholds 注入 vite.config.ts。",
+  "backend": {
+    "fail_under": 55,
+    "paths": ["backend", "ai_hub"]
+  },
+  "frontend": {
+    "fail_under": 26,
+    "paths": ["src"],
+    "thresholds": {
+      "lines": 26,
+      "statements": 26,
+      "functions": 48,
+      "branches": 65
+    }
+  }
+}

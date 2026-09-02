@@ -1,0 +1,16 @@
+{
+  "schema": "mc.quality.coverage-baseline/1",
+  "policy": "MC 4.6.0-F6-1（46-a）覆盖率棘轮：只许升不许降。--update-baseline 上移锚点。",
+  "updatedAt": "2026-09-02T15:58:52+0800",
+  "baseline": {
+    "backend": {
+      "lines": 60.67
+    },
+    "frontend": {
+      "lines": 29.04,
+      "statements": 29.04,
+      "functions": 52.55,
+      "branches": 70.08
+    }
+  }
+}
