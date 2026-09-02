@@ -508,6 +508,47 @@ export function setupIpcHandlers(window: BrowserWindow): void {
     },
   )
 
+  // 4.8.0（F8-1 / 48-a）：项目包导出（可移植项目包，zip + manifest）
+  ipcMain.handle('project:exportPackage', async (e, projectName: string): Promise<unknown> => {
+    if (!isTrustedSender(e)) throw new Error('无权执行该操作')
+    validateProjectName(projectName)
+    const workspace = getWorkspaceDir()
+    const projectDir = path.join(workspace, projectName)
+    if (!isPathSafe(projectDir, workspace)) throw new Error('项目路径不在工作区内')
+    if (!fs.existsSync(projectDir) || !isProjectLikeDir(projectDir)) {
+      throw new Error(`项目不存在或结构无效: ${projectName}`)
+    }
+    const win = BrowserWindow.fromWebContents(e.sender)
+    const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19)
+    const dst = await dialog.showSaveDialog(win!, {
+      title: '导出可移植项目包 (ZIP)',
+      defaultPath: path.join(app.getPath('downloads'), `${projectName}-package-${stamp}.zip`),
+      filters: [{ name: 'ZIP Archive', extensions: ['zip'] }],
+    })
+    if (dst.canceled || !dst.filePath) throw new Error('已取消导出')
+    const result = await renderHandler.exportProjectPackage(projectName, dst.filePath)
+    audit('project.exportPackage', projectName)
+    logger.info(`[project:exportPackage] ${projectName} → ${dst.filePath}`)
+    return result
+  })
+
+  // 4.8.0（F8-1 / 48-a）：项目包导入（按 manifest.projectId 匹配新建/更新/跳过）
+  ipcMain.handle('project:importPackage', async (e): Promise<unknown> => {
+    if (!isTrustedSender(e)) throw new Error('无权执行该操作')
+    const win = BrowserWindow.fromWebContents(e.sender)
+    const picked = await dialog.showOpenDialog(win!, {
+      title: '导入可移植项目包',
+      properties: ['openFile'],
+      filters: [{ name: 'ZIP Archive', extensions: ['zip'] }],
+    })
+    if (picked.canceled || !picked.filePaths.length) throw new Error('已取消导入')
+    const result = await renderHandler.importProjectPackage(picked.filePaths[0])
+    refreshWorkspace()
+    audit('project.importPackage', picked.filePaths[0])
+    logger.info('[project:importPackage]', result)
+    return result
+  })
+
   ipcMain.handle('project:saveAsExample', async (e, projectName: string, exampleName: string): Promise<void> => {
     if (!isTrustedSender(e)) throw new Error('无权执行该操作')
     const projectPath = path.join(getWorkspaceDir(), projectName)

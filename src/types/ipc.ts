@@ -190,6 +190,33 @@ export interface ProjectIpcApi {
   collectProjectFiles: (projectName: string) => Promise<{ path: string; content: string }[]>
   installRemoteProject: (data: { name: string; zipData: string; owner: string }) => Promise<void>
   batchGetLocalSha: (projectNames: string[]) => Promise<Record<string, string | null>>
+  /** 4.8.0（F8-1 / 48-a）：导出可移植项目包（zip + manifest） */
+  exportPackage: (projectName: string) => Promise<ProjectPackageExportResult>
+  /** 4.8.0（F8-1 / 48-a）：导入可移植项目包（按 manifest.projectId 匹配新建/更新/跳过） */
+  importPackage: () => Promise<ProjectPackageImportResult>
+}
+
+/** 4.8.0（F8-1 / 48-a）：项目包导出结果 */
+export interface ProjectPackageExportResult {
+  status: string
+  message?: string
+  data?: {
+    path: string
+    projectId: string
+    projectName: string
+    file_count: number
+  }
+}
+
+/** 4.8.0（F8-1 / 48-a）：项目包导入结果（matched: skip/update/new） */
+export interface ProjectPackageImportResult {
+  ok: boolean
+  matched: 'skip' | 'update' | 'new'
+  name: string
+  project_dir?: string
+  projectId?: string
+  file_count?: number
+  changed?: boolean
 }
 
 /** 项目信息详情（来自后端 project info 命令） */

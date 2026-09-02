@@ -179,6 +179,35 @@ export function ExplorerPanel() {
     }
   }
 
+  // 4.8.0（F8-1 / 48-a）：项目包导出/导入入口
+  const handleExportPackage = async () => {
+    if (!selectedProject) return
+    try {
+      const result = await window.electron.project.exportPackage(selectedProject.name)
+      const data = result && typeof result === 'object' && 'data' in result ? (result as { data?: { path?: string } }).data : undefined
+      showSuccess(t('explorer.packageExported', { path: data?.path ?? '' }))
+      await fetchProjects()
+    } catch (err) {
+      showError((err as Error).message)
+    }
+  }
+
+  const handleImportPackage = async () => {
+    try {
+      const result = await window.electron.project.importPackage()
+      if (!result || !result.ok) {
+        showError(t('explorer.packageImportFailed'))
+        return
+      }
+      const verb =
+        result.matched === 'skip' ? t('explorer.packageSkip') : result.matched === 'update' ? t('explorer.packageUpdated') : t('explorer.packageCreated')
+      showSuccess(t('explorer.packageImported', { verb, name: result.name }))
+      await fetchProjects()
+    } catch (err) {
+      showError((err as Error).message)
+    }
+  }
+
   const filtered = search ? projects.filter((p) => p.name.toLowerCase().includes(search.toLowerCase())) : projects
 
   const sorted =
@@ -277,6 +306,8 @@ export function ExplorerPanel() {
               }
             }}
             onImportAl={() => setImportAlOpen(true)}
+            onExportPackage={handleExportPackage}
+            onImportPackage={handleImportPackage}
           />
 
           <div className="flex-1 min-h-0 flex flex-col overflow-hidden">

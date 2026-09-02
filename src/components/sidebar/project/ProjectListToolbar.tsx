@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import { ArrowUpDown, Download, Plus, Save, Search } from 'lucide-react'
+import { ArrowUpDown, Download, Package, Plus, Save, Search, Upload } from 'lucide-react'
 
 type ProjectListToolbarProps = {
   search: string
@@ -10,6 +10,8 @@ type ProjectListToolbarProps = {
   onCreate: () => void
   onSaveTemplate: () => void
   onImportAl: () => void
+  onExportPackage: () => void
+  onImportPackage: () => void
 }
 
 export function ProjectListToolbar({
@@ -21,6 +23,8 @@ export function ProjectListToolbar({
   onCreate,
   onSaveTemplate,
   onImportAl,
+  onExportPackage,
+  onImportPackage,
 }: ProjectListToolbarProps) {
   const { t } = useTranslation('project')
   const btnCls =
@@ -63,6 +67,23 @@ export function ProjectListToolbar({
         <button onClick={onSaveTemplate} disabled={!canSaveTemplate} className={btnCls}>
           <Save size={13} />
           {t('projectList.saveAsTemplate')}
+        </button>
+        <button
+          onClick={onExportPackage}
+          disabled={!canSaveTemplate}
+          className={`${btnCls} text-blue-600 dark:text-blue-400`}
+          title={t('projectList.exportPackage')}
+        >
+          <Package size={13} />
+          {t('projectList.exportPackage')}
+        </button>
+        <button
+          onClick={onImportPackage}
+          className={`${btnCls} text-blue-600 dark:text-blue-400`}
+          title={t('projectList.importPackage')}
+        >
+          <Upload size={13} />
+          {t('projectList.importPackage')}
         </button>
       </div>
     </div>

@@ -66,7 +66,13 @@
     "savedAsTemplate": "Saved as template: {{name}}",
     "deletedProjects": "Deleted {{count}} projects",
     "exampleDesc": "Select an example project from the example directory to copy to workspace",
-    "pushSuccess": "Project \"{{name}}\" pushed to cloud"
+    "pushSuccess": "Project \"{{name}}\" pushed to cloud",
+    "packageExported": "Project package exported: {{path}}",
+    "packageImported": "Project package {{verb}}: {{name}}",
+    "packageImportFailed": "Failed to import project package",
+    "packageSkip": "unchanged, skipped",
+    "packageUpdated": "updated",
+    "packageCreated": "created"
   },
   "template": {
     "noTemplates": "No templates",
@@ -376,7 +382,9 @@
     "sortByDate": "Sort by Date",
     "newProject": "New Project",
     "saveAsTemplate": "Save as Template",
-    "importAl": "Import AutoLink Project"
+    "importAl": "Import AutoLink Project",
+    "exportPackage": "Export Package",
+    "importPackage": "Import Package"
   },
   "excel": {
     "loading": "Loading Excel file...",

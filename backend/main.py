@@ -182,6 +182,17 @@ def main():
     info_project_parser.add_argument('id', help='项目ID')
     info_project_parser.add_argument('--format', choices=['text', 'json', 'yaml'], default='text', help='输出格式')
 
+    # 4.8.0（F8-1 / 48-a）：项目包往返（导出可移植项目包 + 按身份导入）
+    package_parser = project_subparsers.add_parser('package', help='项目包往返（导出/导入可移植项目包）')
+    package_subparsers = package_parser.add_subparsers(title='项目包操作', dest='package_action', help='项目包子命令')
+    package_export_parser = package_subparsers.add_parser('export', help='导出为可移植项目包（zip + manifest）')
+    package_export_parser.add_argument('project_name', help='项目名称')
+    package_export_parser.add_argument('output', help='目标 zip 路径')
+    package_import_parser = package_subparsers.add_parser('import', help='导入项目包（按 manifest.projectId 匹配新建/更新/跳过）')
+    package_import_parser.add_argument('package', help='项目包 zip 路径')
+    package_import_parser.add_argument('project_dir', nargs='?', default=None,
+                                       help='目标项目目录（缺省自动：命中按 projectId 更新，否则默认 projectName）')
+
     # 渲染命令
     render_parser = subparsers.add_parser('render', help='配置渲染操作')
     render_subparsers = render_parser.add_subparsers(title='渲染操作', dest='subcommand', help='渲染子命令')
@@ -468,8 +479,54 @@ def handle_plan_command(args):
         print(json.dumps(result, ensure_ascii=False))
 
 
+def _register_mc_para(proj_dir: str) -> None:
+    """将项目注册到 workspace/MC_Para.xlsx（增量追加行，保留其余列）。"""
+    mc_para = os.path.join(os.path.dirname(proj_dir), 'MC_Para.xlsx')
+    if not proj_dir or not os.path.exists(mc_para):
+        return
+    import pandas as pd
+    df = pd.read_excel(mc_para)
+    name = os.path.basename(proj_dir.rstrip('/'))
+    if name not in df['项目名称'].astype(str).tolist():
+        df = df.copy()
+        df.loc[len(df), '项目名称'] = name
+        df.to_excel(mc_para, sheet_name='项目名称', index=False)
+
+
 def handle_project_command(processor, args):
     """处理项目管理命令"""
+    if args.subcommand == 'package':
+        # 4.8.0（F8-1 / 48-a）：项目包往返（导出可移植项目包 + 按身份导入）
+        from intent.planner.project_package import export_project_package, import_project_package
+        if args.package_action == 'export':
+            proj = os.path.join(WORKSPACE_DIR, args.project_name)
+            if not os.path.isdir(proj):
+                print_error(f'项目不存在: {args.project_name}')
+                sys.exit(1)
+            manifest = export_project_package(proj, args.output)
+            summary = {'status': 'success', 'message': f'项目包已导出: {args.output}',
+                       'data': {'path': args.output, 'projectId': manifest['projectId'],
+                                'projectName': manifest['projectName'],
+                                'file_count': manifest['summary']['file_count']}}
+            print(json.dumps(summary, ensure_ascii=False))
+            return
+        if args.package_action == 'import':
+            proj_dir = args.project_dir
+            if proj_dir and not os.path.isabs(proj_dir):
+                proj_dir = os.path.join(os.getcwd(), proj_dir)
+            summary = import_project_package(args.package, WORKSPACE_DIR, explicit_dir=proj_dir)
+            if summary.get('error'):
+                print(f'导入失败: {summary["error"]}')
+                return
+            _register_mc_para(summary.get('project_dir', ''))
+            matched = summary.get('matched', 'none')
+            if matched == 'skip':
+                print(f'[skip] 项目包无变化（{summary.get("name")}），跳过')
+            else:
+                verb = '更新' if matched == 'update' else '新建'
+                print(f'[OK] {verb} → {summary.get("name")}（{summary.get("file_count")} 文件）')
+            print(json.dumps(summary, ensure_ascii=False))
+            return
     if args.subcommand == 'list':
         projects = []
         for i, name in enumerate(processor.project_name, 1):

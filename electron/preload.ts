@@ -64,6 +64,8 @@ const api = {
     installRemoteProject: (data: { name: string; zipData: string; owner: string }) =>
       ipcRenderer.invoke('project:installRemoteProject', data),
     batchGetLocalSha: (projectNames: string[]) => ipcRenderer.invoke('project:batchGetLocalSha', projectNames),
+    exportPackage: (projectName: string) => ipcRenderer.invoke('project:exportPackage', projectName),
+    importPackage: () => ipcRenderer.invoke('project:importPackage'),
   },
   plan: {
     import: (planJson: string, projectDir?: string) => ipcRenderer.invoke('plan:import', planJson, projectDir),

@@ -172,6 +172,25 @@ export class RenderHandler {
     return await this.runPythonCommand(['plan', 'verify', safeDir], true)
   }
 
+  // 4.8.0（F8-1 / 48-a）：项目包导出/导入（可移植项目包，zip + manifest）
+  async exportProjectPackage(projectName: string, outPath: string): Promise<unknown> {
+    const safeName = sanitizePathArg(projectName)
+    if (!safeName) throw new Error('无效的项目名称')
+    if (!outPath) throw new Error('无效的导出路径')
+    return await this.runPythonCommand(['project', 'package', 'export', safeName, outPath], true)
+  }
+
+  async importProjectPackage(packagePath: string, projectDir?: string): Promise<unknown> {
+    const safePackage = sanitizePathArg(packagePath)
+    if (!safePackage) throw new Error('无效的项目包路径')
+    const args = ['project', 'package', 'import', safePackage]
+    if (projectDir) {
+      const safeDir = this.assertWorkspaceDir(projectDir)
+      if (safeDir) args.push(safeDir)
+    }
+    return await this.runPythonCommand(args, true)
+  }
+
   /** 校验 projectDir 属于 workspace 内且为安全路径；不合法返回 null */
   private assertWorkspaceDir(projectDir: string): string | null {
     const safe = sanitizePathArg(projectDir)
