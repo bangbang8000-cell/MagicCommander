@@ -31,6 +31,7 @@
     "sync-version": "node scripts/sync-version.js",
     "check-version": "node scripts/sync-version.js --check",
     "release-notes": "node scripts/sync-version.js --release-notes",
+    "validate-build-config": "node scripts/validate-build-config.js",
     "e2e": "playwright test",
     "golden": "python scripts/gen_golden.py",
     "golden:check": "python scripts/gen_golden.py --check",
