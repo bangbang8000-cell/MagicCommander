@@ -193,6 +193,17 @@ def main():
     package_import_parser.add_argument('project_dir', nargs='?', default=None,
                                        help='目标项目目录（缺省自动：命中按 projectId 更新，否则默认 projectName）')
 
+    # 4.8.0（F8-3 / 48-c）：设备库可移植导入/导出（JSON/zip，schema+版本+条目清单）
+    device_parser = subparsers.add_parser('device', help='设备库操作（4.8.0 F8-3 跨端资产互灌）')
+    device_subparsers = device_parser.add_subparsers(title='设备库操作', dest='device_action', help='设备库子命令')
+    device_lib_parser = device_subparsers.add_parser('library', help='设备库导入/导出')
+    device_lib_sub = device_lib_parser.add_subparsers(title='设备库操作', dest='lib_action', help='设备库操作')
+    device_export_parser = device_lib_sub.add_parser('export', help='导出设备库为可移植 JSON/zip')
+    device_export_parser.add_argument('output', help='目标路径（.json 或 .zip）')
+    device_import_parser = device_lib_sub.add_parser('import', help='导入设备库包（合并/去重/冲突提示）')
+    device_import_parser.add_argument('package', help='设备库包路径（.json 或 .zip）')
+    device_import_parser.add_argument('--target', default=None, help='目标 JSON（缺省写回内置 device_library.json）')
+
     # 渲染命令
     render_parser = subparsers.add_parser('render', help='配置渲染操作')
     render_subparsers = render_parser.add_subparsers(title='渲染操作', dest='subcommand', help='渲染子命令')
@@ -381,6 +392,8 @@ def main():
             handle_proofread_command(processor, args)
         elif args.command == 'template':
             handle_template_command(processor, args)
+        elif args.command == 'device':
+            handle_device_command(args)
         else:
             print_error(f'未知命令: {args.command}')
             sys.exit(1)
@@ -924,6 +937,25 @@ def handle_validate_command(processor, args):
         processor.validate_template(target_str)
     elif args.subcommand == 'excel':
         processor.validate_excel(target_str)
+
+def handle_device_command(args):
+    """设备库导入/导出（4.8.0 F8-3 跨端资产互灌）。"""
+    from intent.device_library import export_device_library, import_device_library
+    if args.device_action == 'library' and args.lib_action == 'export':
+        bundle = export_device_library(args.output)
+        summary = {'status': 'success', 'message': f'设备库已导出: {args.output}',
+                   'data': {'path': args.output, 'schema': bundle['schema'],
+                            'count': bundle['count']}}
+        print(json.dumps(summary, ensure_ascii=False))
+    elif args.device_action == 'library' and args.lib_action == 'import':
+        result = import_device_library(args.package, target_path=args.target)
+        print(json.dumps({'status': 'success',
+                          'message': f"导入完成：新增 {len(result['added'])} / 更新 {len(result['updated'])} / 跳过 {len(result['skipped'])}",
+                          'data': result}, ensure_ascii=False))
+    else:
+        print_error(f'未知设备库操作: {args.device_action}/{getattr(args, "lib_action", "")}')
+        sys.exit(1)
+
 
 def handle_diff_command(processor, args):
     """对比 dry-run 输出与已有输出文件"""

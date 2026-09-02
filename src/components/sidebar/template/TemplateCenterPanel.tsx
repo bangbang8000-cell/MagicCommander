@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { Download, Upload } from 'lucide-react'
 import { useProjectStore } from '@/stores/project.store'
 import { useUIStore } from '@/stores/ui.store'
 import { usePlatformStore } from '@/stores/platform.store'
@@ -133,6 +134,30 @@ export function TemplateCenterPanel({ onCreateProjectName }: TemplateCenterPanel
     }
   }
 
+  // 4.8.0（F8-3 / 48-c）：模板包导出/导入（文件级互灌）
+  const handleExportTemplatePackage = async (template: TemplateInfo) => {
+    try {
+      const r = await window.electron.project.exportTemplatePackage(template.id)
+      const data = r.data
+      showSuccess(data ? `模板包已导出: ${data.path}` : '模板包已导出')
+    } catch (err) {
+      showError((err as Error).message)
+    }
+  }
+
+  const handleImportTemplatePackage = async () => {
+    try {
+      const r = await window.electron.project.importTemplatePackage()
+      const data = r.data
+      if (data) {
+        showSuccess(`模板 "${data.name}" 导入成功`)
+        fetchTemplates()
+      }
+    } catch (err) {
+      showError((err as Error).message)
+    }
+  }
+
   return (
     <div className="h-full flex flex-col overflow-hidden">
       {/* Tab switcher */}
@@ -168,6 +193,24 @@ export function TemplateCenterPanel({ onCreateProjectName }: TemplateCenterPanel
             onSortChange={setSortBy}
             onCategoryChange={setCategory}
           />
+          <div className="flex items-center gap-1.5 px-2 py-1 border-b border-gray-200 dark:border-gray-700">
+            <button
+              onClick={() => {
+                const selected = visibleTemplates.find((x) => x.id === selectedTemplateId)
+                if (selected) void handleExportTemplatePackage(selected)
+              }}
+              disabled={!selectedTemplateId}
+              className="flex items-center gap-1 px-2 py-1 text-xs rounded hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-40 text-blue-600 dark:text-blue-400"
+            >
+              <Download size={12} /> 导出模板包
+            </button>
+            <button
+              onClick={() => void handleImportTemplatePackage()}
+              className="flex items-center gap-1 px-2 py-1 text-xs rounded hover:bg-gray-100 dark:hover:bg-gray-700 text-blue-600 dark:text-blue-400"
+            >
+              <Upload size={12} /> 导入模板包
+            </button>
+          </div>
           <div className="flex-1 overflow-auto p-2 space-y-1.5">
             {visibleTemplates.length === 0 ? (
               <div className="text-xs text-gray-500 dark:text-gray-400 p-2 text-center">

@@ -102,6 +102,7 @@ export interface PlanIpcApi {
 
 export interface ElectronAPI {
   project: ProjectIpcApi
+  asset: AssetIpcApi
   plan: PlanIpcApi
   render: RenderIpcApi
   delete: DeleteIpcApi
@@ -198,6 +199,38 @@ export interface ProjectIpcApi {
   exportSnapshot: (projectName: string, scope?: 'history' | 'backup') => Promise<{ path: string; itemCount: number }>
   /** 4.8.0（F8-2 / 48-b）：从文件导入项目历史快照（合并去重） */
   importSnapshot: (projectName: string) => Promise<{ ok: boolean; total: number; added: number }>
+  /** 4.8.0（F8-3 / 48-c）：模板包导出为文件 */
+  exportTemplatePackage: (templateId: string) => Promise<{ status: string; data?: { path: string; name: string; file_count: number } }>
+  /** 4.8.0（F8-3 / 48-c）：从文件导入模板包 */
+  importTemplatePackage: () => Promise<{ status: string; data?: { name: string; path: string } }>
+}
+
+/** 4.8.0（F8-3 / 48-c）：跨端资产互灌（设备库可移植导入/导出） */
+export interface AssetIpcApi {
+  deviceLibraryExport: () => Promise<{ status: string; data?: { path: string; schema: string; count: number } }>
+  deviceLibraryImport: () => Promise<{
+    status: string
+    data?: {
+      ok: boolean
+      total: number
+      added: string[]
+      updated: string[]
+      skipped: string[]
+      conflicts: string[]
+    }
+  }>
+}
+
+/** 4.8.0（F8-3 / 48-c）：技能库文件级导入/导出结果 */
+export interface SkillsTransferResult {
+  ok?: boolean
+  schema?: string
+  count?: number
+  total?: number
+  added?: string[]
+  updated?: string[]
+  skipped?: string[]
+  target?: string
 }
 
 /** 4.8.0（F8-1 / 48-a）：项目包导出结果 */
@@ -508,6 +541,10 @@ export interface AIHubIpcApi {
     defaultProvider: string,
   ) => Promise<string>
   saveSkill: (name: string, content: string) => Promise<{ status: string; name: string }>
+  /** 4.8.0（F8-3 / 48-c）：技能库导出为文件 */
+  exportSkills: () => Promise<SkillsTransferResult>
+  /** 4.8.0（F8-3 / 48-c）：技能库从文件导入 */
+  importSkills: () => Promise<SkillsTransferResult>
   onStream: (callback: (data: AIHubStreamData) => void) => () => void
 }
 

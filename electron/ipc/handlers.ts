@@ -1,5 +1,6 @@
 import { ipcMain, BrowserWindow, shell, safeStorage, app, dialog } from 'electron'
 import { spawn } from 'child_process'
+import { createHash } from 'crypto'
 import { RenderHandler } from './render.handler'
 import * as fs from 'fs'
 import * as path from 'path'
@@ -51,6 +52,29 @@ import { getLocalCommitSha, collectProjectFiles, installRemoteProject } from '..
 
 function errorMessage(err: unknown): string {
   return err instanceof Error ? err.message : String(err)
+}
+
+/** 4.8.0（F8-3 / 48-c）：内联执行一段 Python（ai_hub 技能库导入/导出用），返回 stdout/stderr/退出码 */
+function runPythonInlineScript(script: string): Promise<{ stdout: string; stderr: string; code: number }> {
+  const backendDir = getBackendDir()
+  const repoRoot = process.env.NODE_ENV === 'development' ? process.cwd() : path.dirname(backendDir)
+  return new Promise((resolve) => {
+    const proc = spawn(
+      getPythonPath(),
+      ['-c', script],
+      {
+        cwd: repoRoot,
+        env: { ...process.env, PYTHONUNBUFFERED: '1', PYTHONIOENCODING: 'utf-8' },
+        stdio: ['ignore', 'pipe', 'pipe'],
+      },
+    )
+    let stdout = ''
+    let stderr = ''
+    proc.stdout.on('data', (d: Buffer) => (stdout += d.toString()))
+    proc.stderr.on('data', (d: Buffer) => (stderr += d.toString()))
+    proc.on('close', (code) => resolve({ stdout, stderr, code: code ?? -1 }))
+    proc.on('error', (err) => resolve({ stdout, stderr: err.message, code: -1 }))
+  })
 }
 
 function readExcelByPath(filePath: string): { name: string; headers: string[]; rows: Record<string, unknown>[] }[] {
@@ -620,6 +644,147 @@ export function setupIpcHandlers(window: BrowserWindow): void {
     audit('project.importSnapshot', projectName)
     logger.info(`[project:importSnapshot] ${projectName} ← ${srcPath}（共 ${capped.length} 条）`)
     return { ok: true, total: capped.length, added: capped.length - existing.length }
+  })
+
+  // 4.8.0（F8-3 / 48-c）：设备库导出/导入（可移植 JSON/zip，schema+版本+条目清单）
+  ipcMain.handle('asset:deviceLibraryExport', async (e): Promise<unknown> => {
+    if (!isTrustedSender(e)) throw new Error('无权执行该操作')
+    const win = BrowserWindow.fromWebContents(e.sender)
+    const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19)
+    const dst = await dialog.showSaveDialog(win!, {
+      title: '导出设备库 (JSON/ZIP)',
+      defaultPath: path.join(app.getPath('downloads'), `device-library-${stamp}.zip`),
+      filters: [
+        { name: 'ZIP', extensions: ['zip'] },
+        { name: 'JSON', extensions: ['json'] },
+      ],
+    })
+    if (dst.canceled || !dst.filePath) throw new Error('已取消导出')
+    const result = await renderHandler.runPythonCommand(['device', 'library', 'export', dst.filePath], true)
+    audit('asset.deviceLibraryExport', dst.filePath)
+    logger.info('[asset:deviceLibraryExport]', result)
+    return result
+  })
+
+  ipcMain.handle('asset:deviceLibraryImport', async (e): Promise<unknown> => {
+    if (!isTrustedSender(e)) throw new Error('无权执行该操作')
+    const win = BrowserWindow.fromWebContents(e.sender)
+    const picked = await dialog.showOpenDialog(win!, {
+      title: '导入设备库包',
+      properties: ['openFile'],
+      filters: [
+        { name: 'ZIP/JSON', extensions: ['zip', 'json'] },
+      ],
+    })
+    if (picked.canceled || !picked.filePaths.length) throw new Error('已取消导入')
+    const result = await renderHandler.runPythonCommand(['device', 'library', 'import', picked.filePaths[0]], true)
+    audit('asset.deviceLibraryImport', picked.filePaths[0])
+    logger.info('[asset:deviceLibraryImport]', result)
+    return result
+  })
+
+  // 4.8.0（F8-3 / 48-c）：模板包导出/导入（文件级互灌，zip + manifest）
+  ipcMain.handle('project:exportTemplatePackage', async (e, templateId: string): Promise<unknown> => {
+    if (!isTrustedSender(e)) throw new Error('无权执行该操作')
+    const templateDir = resolveTemplateDir(templateId)
+    if (!templateDir || !fs.existsSync(templateDir)) throw new Error(`模板不存在: ${templateId}`)
+    const win = BrowserWindow.fromWebContents(e.sender)
+    const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19)
+    const dst = await dialog.showSaveDialog(win!, {
+      title: '导出模板包 (ZIP)',
+      defaultPath: path.join(app.getPath('downloads'), `${templateId}-template-${stamp}.zip`),
+      filters: [{ name: 'ZIP Archive', extensions: ['zip'] }],
+    })
+    if (dst.canceled || !dst.filePath) throw new Error('已取消导出')
+    const AdmZip = (await import('adm-zip')).default
+    const zip = new AdmZip()
+    const files: Array<{ path: string; sha256: string }> = []
+    const runtimeDirs = new Set(['output', 'yaml', 'output-label', 'output-label-md', 'output-label-pdf', '.output_backups'])
+    const collect = (dir: string, rel: string) => {
+      for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+        if (entry.name.startsWith('.') || entry.name === '__pycache__' || runtimeDirs.has(entry.name)) continue
+        const full = path.join(dir, entry.name)
+        const relPath = rel ? `${rel}/${entry.name}` : entry.name
+        if (entry.isDirectory()) collect(full, relPath)
+        else {
+          const data = fs.readFileSync(full)
+          zip.addFile(relPath, data)
+          files.push({ path: relPath, sha256: createHash('sha256').update(data).digest('hex') })
+        }
+      }
+    }
+    collect(templateDir, '')
+    const manifest = {
+      schema: 'mc.template-package/1',
+      version: 1,
+      kind: 'template-package',
+      name: templateId,
+      exportedAt: new Date().toISOString(),
+      files,
+      summary: { file_count: files.length },
+    }
+    zip.addFile('manifest.json', Buffer.from(JSON.stringify(manifest, null, 2), 'utf-8'))
+    zip.writeZip(dst.filePath)
+    audit('template.exportPackage', templateId)
+    logger.info(`[project:exportTemplatePackage] ${templateId} → ${dst.filePath}`)
+    return { status: 'success', data: { path: dst.filePath, name: templateId, file_count: files.length } }
+  })
+
+  ipcMain.handle('project:importTemplatePackage', async (e): Promise<unknown> => {
+    if (!isTrustedSender(e)) throw new Error('无权执行该操作')
+    const win = BrowserWindow.fromWebContents(e.sender)
+    const picked = await dialog.showOpenDialog(win!, {
+      title: '导入模板包',
+      properties: ['openFile'],
+      filters: [{ name: 'ZIP Archive', extensions: ['zip'] }],
+    })
+    if (picked.canceled || !picked.filePaths.length) throw new Error('已取消导入')
+    const AdmZip = (await import('adm-zip')).default
+    const zip = new AdmZip(picked.filePaths[0])
+    const entries = zip.getEntries()
+    const manifestEntry = entries.find((x) => x.entryName.replace(/\\/g, '/') === 'manifest.json')
+    let name = ''
+    if (manifestEntry) {
+      try {
+        const manifest = JSON.parse(manifestEntry.getData().toString('utf-8'))
+        name = String(manifest.name || '')
+      } catch {
+        throw new Error('模板包 manifest 无效')
+      }
+    }
+    if (!name) {
+      // 无 manifest：从首个顶层目录推断模板名
+      const top = entries
+        .map((x) => x.entryName.replace(/\\/g, '/').split('/')[0])
+        .find((x) => x && x !== 'manifest.json')
+      name = top || ''
+    }
+    const templateDir = resolveTemplateDir(name)
+    if (!templateDir) throw new Error('模板名称无效')
+    if (fs.existsSync(templateDir)) throw new Error(`模板已存在: ${name}`)
+    for (const entry of entries) {
+      const entryName = entry.entryName.replace(/\\/g, '/')
+      if (entryName === 'manifest.json') continue
+      const segments = entryName.split('/').filter((seg) => seg.length > 0)
+      if (segments.includes('..') || path.isAbsolute(entryName)) {
+        fs.rmSync(templateDir, { recursive: true, force: true })
+        throw new Error('压缩包包含不安全的文件路径，已取消安装')
+      }
+      const destPath = path.join(templateDir, entryName)
+      if (!isPathSafe(destPath, templateDir)) {
+        fs.rmSync(templateDir, { recursive: true, force: true })
+        throw new Error('压缩包包含不安全的文件路径，已取消安装')
+      }
+      if (entry.isDirectory) fs.mkdirSync(destPath, { recursive: true })
+      else {
+        fs.mkdirSync(path.dirname(destPath), { recursive: true })
+        fs.writeFileSync(destPath, entry.getData())
+      }
+    }
+    refreshWorkspace()
+    audit('template.importPackage', name)
+    logger.info(`[project:importTemplatePackage] ${name} ← ${picked.filePaths[0]}`)
+    return { status: 'success', data: { name, path: templateDir } }
   })
 
   ipcMain.handle('project:saveAsExample', async (e, projectName: string, exampleName: string): Promise<void> => {
@@ -1630,6 +1795,71 @@ export function setupIpcHandlers(window: BrowserWindow): void {
       return await aiHubService.saveSkill(name, content)
     },
   )
+
+  // 4.8.0（F8-3 / 48-c）：技能库文件级导出（skills/*.md 打包 zip）
+  ipcMain.handle('aihub:exportSkills', async (e): Promise<unknown> => {
+    if (!isTrustedSender(e)) throw new Error('无权执行该操作')
+    const win = BrowserWindow.fromWebContents(e.sender)
+    const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19)
+    const dst = await dialog.showSaveDialog(win!, {
+      title: '导出技能库 (ZIP)',
+      defaultPath: path.join(app.getPath('downloads'), `mc-skills-${stamp}.zip`),
+      filters: [{ name: 'ZIP Archive', extensions: ['zip'] }],
+    })
+    if (dst.canceled || !dst.filePath) throw new Error('已取消导出')
+    const backendDir = getBackendDir()
+    const repoRoot = process.env.NODE_ENV === 'development' ? process.cwd() : path.dirname(backendDir)
+    const script = [
+      'import sys, json',
+      `sys.path.insert(0, ${JSON.stringify(repoRoot)})`,
+      'from ai_hub.skills.transfer import export_skills_package',
+      `m = export_skills_package(${JSON.stringify(dst.filePath)})`,
+      'print(json.dumps(m, ensure_ascii=False))',
+    ].join('; ')
+    const { stdout, stderr, code } = await runPythonInlineScript(script)
+    if (code !== 0) throw new Error(`技能库导出失败: ${stderr.trim()}`)
+    let result: unknown
+    try {
+      result = JSON.parse(stdout.trim().split('\n').pop() || '{}')
+    } catch {
+      throw new Error('技能库导出失败（输出解析错误）')
+    }
+    audit('aihub.exportSkills', dst.filePath)
+    logger.info('[aihub:exportSkills]', result)
+    return result
+  })
+
+  // 4.8.0（F8-3 / 48-c）：技能库文件级导入（安装到 ai_hub/skills/skills/）
+  ipcMain.handle('aihub:importSkills', async (e): Promise<unknown> => {
+    if (!isTrustedSender(e)) throw new Error('无权执行该操作')
+    const win = BrowserWindow.fromWebContents(e.sender)
+    const picked = await dialog.showOpenDialog(win!, {
+      title: '导入技能库包',
+      properties: ['openFile'],
+      filters: [{ name: 'ZIP Archive', extensions: ['zip'] }],
+    })
+    if (picked.canceled || !picked.filePaths.length) throw new Error('已取消导入')
+    const backendDir = getBackendDir()
+    const repoRoot = process.env.NODE_ENV === 'development' ? process.cwd() : path.dirname(backendDir)
+    const script = [
+      'import sys, json',
+      `sys.path.insert(0, ${JSON.stringify(repoRoot)})`,
+      'from ai_hub.skills.transfer import import_skills_package',
+      `m = import_skills_package(${JSON.stringify(picked.filePaths[0])})`,
+      'print(json.dumps(m, ensure_ascii=False))',
+    ].join('; ')
+    const { stdout, stderr, code } = await runPythonInlineScript(script)
+    if (code !== 0) throw new Error(`技能库导入失败: ${stderr.trim()}`)
+    let result: unknown
+    try {
+      result = JSON.parse(stdout.trim().split('\n').pop() || '{}')
+    } catch {
+      throw new Error('技能库导入失败（输出解析错误）')
+    }
+    audit('aihub.importSkills', picked.filePaths[0])
+    logger.info('[aihub:importSkills]', result)
+    return result
+  })
 
   // ===== AI 配置备份/恢复 =====
   const aiConfigBackupFile = path.join(getUserDataDir(), 'ai-config-backup.json')

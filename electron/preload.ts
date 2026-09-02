@@ -69,6 +69,12 @@ const api = {
     exportSnapshot: (projectName: string, scope?: 'history' | 'backup') =>
       ipcRenderer.invoke('project:exportSnapshot', projectName, scope),
     importSnapshot: (projectName: string) => ipcRenderer.invoke('project:importSnapshot', projectName),
+    exportTemplatePackage: (templateId: string) => ipcRenderer.invoke('project:exportTemplatePackage', templateId),
+    importTemplatePackage: () => ipcRenderer.invoke('project:importTemplatePackage'),
+  },
+  asset: {
+    deviceLibraryExport: () => ipcRenderer.invoke('asset:deviceLibraryExport'),
+    deviceLibraryImport: () => ipcRenderer.invoke('asset:deviceLibraryImport'),
   },
   plan: {
     import: (planJson: string, projectDir?: string) => ipcRenderer.invoke('plan:import', planJson, projectDir),
@@ -194,6 +200,8 @@ const api = {
       defaultProvider: string,
     ) => ipcRenderer.invoke('aihub:resolveProvider', message, routingRules, defaultProvider),
     saveSkill: (name: string, content: string) => ipcRenderer.invoke('aihub:saveSkill', name, content),
+    exportSkills: () => ipcRenderer.invoke('aihub:exportSkills'),
+    importSkills: () => ipcRenderer.invoke('aihub:importSkills'),
     onStream: (callback: (data: { sessionId: string; chunk: string }) => void) => {
       const handler = (_e: unknown, data: { sessionId: string; chunk: string }) => callback(data)
       ipcRenderer.on('aihub:stream', handler)

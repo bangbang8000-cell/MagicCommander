@@ -21,11 +21,13 @@ import {
   FolderOpen,
   Wrench,
   Info,
+  Download,
+  Upload,
 } from 'lucide-react'
 import clsx from 'clsx'
 import { LOCALE_NAMES, LANGUAGE_ICON_CHARS } from '@/i18n/resources'
 import { useBuildInfo } from '@/hooks/useAppVersion'
-import { showSuccess } from '../ui/Toast'
+import { showSuccess, showError } from '../ui/Toast'
 
 // Provider 目录
 const PROVIDER_CATALOG: Record<string, { name: string; baseUrl: string; models: string[]; defaultModel: string }> = {
@@ -516,6 +518,54 @@ export function SettingsPanel() {
     }
   }, [])
 
+  // 4.8.0（F8-3 / 48-c）：跨端资产互灌（设备库/技能库）
+  const [assetBusy, setAssetBusy] = useState(false)
+  const handleDeviceLibraryExport = useCallback(async () => {
+    setAssetBusy(true)
+    try {
+      const r = await window.electron.asset.deviceLibraryExport()
+      showSuccess(r.data ? `设备库已导出：${r.data.path}（${r.data.count} 项）` : '设备库已导出')
+    } catch (err) {
+      showError(err instanceof Error ? err.message : String(err))
+    } finally {
+      setAssetBusy(false)
+    }
+  }, [])
+  const handleDeviceLibraryImport = useCallback(async () => {
+    setAssetBusy(true)
+    try {
+      const r = await window.electron.asset.deviceLibraryImport()
+      const d = r.data
+      showSuccess(d ? `设备库导入完成：新增 ${d.added.length} / 更新 ${d.updated.length} / 跳过 ${d.skipped.length}` : '设备库导入完成')
+    } catch (err) {
+      showError(err instanceof Error ? err.message : String(err))
+    } finally {
+      setAssetBusy(false)
+    }
+  }, [])
+  const handleSkillsExport = useCallback(async () => {
+    setAssetBusy(true)
+    try {
+      const r = await window.electron.aihub.exportSkills()
+      showSuccess(`技能库已导出（${typeof r.count === 'number' ? r.count : '?'} 个技能）`)
+    } catch (err) {
+      showError(err instanceof Error ? err.message : String(err))
+    } finally {
+      setAssetBusy(false)
+    }
+  }, [])
+  const handleSkillsImport = useCallback(async () => {
+    setAssetBusy(true)
+    try {
+      const r = await window.electron.aihub.importSkills()
+      showSuccess(`技能库导入完成：新增 ${(r.added ?? []).length} / 更新 ${(r.updated ?? []).length} / 跳过 ${(r.skipped ?? []).length}`)
+    } catch (err) {
+      showError(err instanceof Error ? err.message : String(err))
+    } finally {
+      setAssetBusy(false)
+    }
+  }, [])
+
   const handleTestPlatformConnection = useCallback(async () => {
     if (!platformUrl.trim()) return
     setTestingPlatform(true)
@@ -557,6 +607,55 @@ export function SettingsPanel() {
 
   const renderGeneralTab = () => (
     <div className="space-y-3">
+      {/* 4.8.0（F8-3 / 48-c）：跨端资产互灌（设备库/技能库） */}
+      <div
+        className={clsx(
+          'rounded-lg border p-3',
+          isDark ? 'border-gray-700 bg-gray-800/50' : 'border-gray-200 bg-gray-50',
+        )}
+      >
+        <div className="flex items-start gap-3">
+          <div className={clsx('mt-0.5', isDark ? 'text-gray-400' : 'text-gray-500')}>
+            <Cpu size={16} />
+          </div>
+          <div className="flex-1 min-w-0">
+            <h4 className={clsx('text-sm font-medium', isDark ? 'text-gray-200' : 'text-gray-700')}>
+              资产互灌（设备库 / 技能库）
+            </h4>
+            <div className="flex flex-wrap gap-1.5 mt-2">
+              <button
+                onClick={() => void handleDeviceLibraryExport()}
+                disabled={assetBusy}
+                className="flex items-center gap-1 px-2.5 py-1.5 rounded text-xs transition-colors bg-gray-200 text-gray-700 hover:bg-gray-300 disabled:opacity-40"
+              >
+                <Download size={12} /> 导出设备库
+              </button>
+              <button
+                onClick={() => void handleDeviceLibraryImport()}
+                disabled={assetBusy}
+                className="flex items-center gap-1 px-2.5 py-1.5 rounded text-xs transition-colors bg-gray-200 text-gray-700 hover:bg-gray-300 disabled:opacity-40"
+              >
+                <Upload size={12} /> 导入设备库
+              </button>
+              <button
+                onClick={() => void handleSkillsExport()}
+                disabled={assetBusy}
+                className="flex items-center gap-1 px-2.5 py-1.5 rounded text-xs transition-colors bg-gray-200 text-gray-700 hover:bg-gray-300 disabled:opacity-40"
+              >
+                <Download size={12} /> 导出技能库
+              </button>
+              <button
+                onClick={() => void handleSkillsImport()}
+                disabled={assetBusy}
+                className="flex items-center gap-1 px-2.5 py-1.5 rounded text-xs transition-colors bg-gray-200 text-gray-700 hover:bg-gray-300 disabled:opacity-40"
+              >
+                <Upload size={12} /> 导入技能库
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* 外观 */}
       <div
         className={clsx(
