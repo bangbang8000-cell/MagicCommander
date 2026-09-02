@@ -118,6 +118,7 @@ export interface ElectronAPI {
   aihub: AIHubIpcApi
   window: WindowIpcApi
   platform: PlatformIpcApi
+  diag: DiagIpcApi
   onMenuNewProject: (callback: () => void) => () => void
   versions: {
     node: string
@@ -356,11 +357,11 @@ export interface DialogIpcApi {
 
 export type UpdateStatus =
   | { status: 'checking' }
-  | { status: 'available'; version?: string; releaseNotes?: string | string[] }
+  | { status: 'available'; version?: string; releaseNotes?: string | string[]; channel?: 'auto' | 'fallback' }
   | { status: 'not-available' }
-  | { status: 'downloading'; progress?: number; transferred?: number; total?: number }
-  | { status: 'downloaded' }
-  | { status: 'error'; error?: string }
+  | { status: 'downloading'; progress?: number; transferred?: number; total?: number; channel?: 'auto' | 'fallback' }
+  | { status: 'downloaded'; channel?: 'auto' | 'fallback'; verified?: boolean }
+  | { status: 'error'; error?: string; channel?: 'auto' | 'fallback' }
 
 export interface AppIpcApi {
   getVersion: () => Promise<string>
@@ -369,6 +370,7 @@ export interface AppIpcApi {
   checkUpdate: () => Promise<void>
   downloadUpdate: () => Promise<void>
   quitAndInstall: () => Promise<void>
+  setCheckUpdateOnStart: (enabled: boolean) => Promise<void>
   onUpdateStatus: (callback: (status: UpdateStatus) => void) => () => void
   getLanguage: () => Promise<string>
   setLanguage: (lang: string) => Promise<void>
@@ -486,4 +488,61 @@ export interface PlatformIpcApi {
   saveToken: (token: string) => Promise<void>
   loadToken: () => Promise<string | null>
   clearToken: () => Promise<void>
+}
+
+// ============================================================
+// Diagnostics API (47-b/47-c/47-d：诊断中心 / 健康检查 / 本地遥测)
+// ============================================================
+
+/** 渲染层性能快照（对齐 src/utils/perf.ts 数据结构） */
+export interface PerfSnapshotDto {
+  ops: Array<{ id: string; category: string; label: string; durationMs: number; startedAt: number }>
+  renderLongTasks: Array<{ startTime: number; durationMs: number; name?: string }>
+  memory?: {
+    available: boolean
+    usedJsHeapMB: number | null
+    totalJsHeapMB: number | null
+    jsHeapLimitMB: number | null
+    jsHeapUsedPct: number | null
+    deviceMemoryGB: number | null
+  } | null
+}
+
+export interface DiagnosticsReport {
+  generatedAt: string
+  app: { name: string; version: string; build: string; platform: string; arch: string; release: string }
+  versions: { electron: string; node: string; chrome: string }
+  paths: Record<string, string>
+  disk: { path: string; freeBytes: number | null; freeGB: string | null }
+  mainLog: string
+  crash: { errorCount: number; lastLines: string[]; crashDumpsDir: string; errorsLog: string }
+  audit: Array<{ ts: string; action: string; detail?: string; durationMs?: number }>
+  telemetry: { enabled: boolean; events: Array<Record<string, unknown>> }
+  perf: PerfSnapshotDto | null
+}
+
+export interface HealthCheckItem {
+  name: string
+  ok: boolean
+  detail: string
+}
+
+export interface HealthReport {
+  generatedAt: string
+  environment: HealthCheckItem[]
+  engine: HealthCheckItem[]
+  network: HealthCheckItem[]
+  dependencies: HealthCheckItem[]
+  summary: { total: number; ok: number; failed: number }
+}
+
+export interface DiagIpcApi {
+  collect: (perfSnapshot?: PerfSnapshotDto) => Promise<DiagnosticsReport>
+  reportPerf: (perfSnapshot: PerfSnapshotDto) => Promise<boolean>
+  export: () => Promise<{ ok: boolean; path?: string; error?: string }>
+  health: (platformUrl?: string) => Promise<HealthReport>
+  telemetryRead: () => Promise<string>
+  telemetrySetEnabled: (enabled: boolean) => Promise<boolean>
+  telemetryClear: () => Promise<boolean>
+  telemetryExport: () => Promise<{ ok: boolean; path?: string; error?: string }>
 }

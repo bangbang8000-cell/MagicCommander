@@ -4,7 +4,8 @@ import { persist, subscribeWithSelector } from 'zustand/middleware'
 export type ActivityType = 'search' | 'chat' | 'explorer' | 'output' | 'workbench' | 'settings' | 'cloud'
 // 4.5.0（F5-5）：校验面板（与日志/终端/问题/性能并列）
 // 4.6.0-46-d：质量仪表盘（与日志/终端/性能/校验并列）
-export type PanelType = 'log' | 'terminal' | 'problems' | 'perf' | 'validation' | 'quality'
+// 4.7.0-47-b：诊断中心（日志/审计/崩溃/性能/健康一处可查 + 导出支持包）
+export type PanelType = 'log' | 'terminal' | 'problems' | 'perf' | 'validation' | 'quality' | 'diagnostics'
 
 /** 主题模式（4.1 F1-1/F1-2）：light/dark/system + 高对比主题（WCAG AA） */
 export type ThemeMode = 'light' | 'dark' | 'system' | 'high-contrast'
@@ -136,6 +137,8 @@ export interface GeneralSettings {
   fontSize: 'small' | 'medium' | 'large'
   /** 打磨轮（v1.2 / M2）：云平台总体开关（默认关；关时隐藏云入口） */
   cloudEnabled: boolean
+  /** 4.7.0-47-d：本地遥测开关（默认关；仅本地采集、脱敏、不联网） */
+  telemetryEnabled: boolean
 }
 
 export interface AdvancedSettings {
@@ -268,6 +271,7 @@ export const useUIStore = create<UIState>()(
           checkUpdateOnStart: true,
           fontSize: 'medium',
           cloudEnabled: false,
+          telemetryEnabled: false,
         },
         setGeneralSettings: (settings) => set((s) => ({ generalSettings: { ...s.generalSettings, ...settings } })),
 
@@ -321,6 +325,11 @@ export const useUIStore = create<UIState>()(
               // MC-LOOP1：旧持久化数据缺少 maxToolLoopRounds 时迁移为默认 5
               if (state.aiConfig && typeof state.aiConfig.maxToolLoopRounds !== 'number') {
                 state.aiConfig.maxToolLoopRounds = 5
+              }
+
+              // 47-d：旧持久化数据缺少 telemetryEnabled 时迁移为默认 false（默认关闭）
+              if (state.generalSettings && typeof state.generalSettings.telemetryEnabled !== 'boolean') {
+                state.generalSettings.telemetryEnabled = false
               }
 
               // AI 配置恢复：如果 providers 为空，尝试从文件备份恢复

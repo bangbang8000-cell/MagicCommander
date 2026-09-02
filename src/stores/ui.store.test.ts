@@ -36,4 +36,16 @@ describe('ui.store', () => {
     expect(useUIStore.getState().explorerProjectListHeight).toBeGreaterThanOrEqual(160)
     expect(useUIStore.getState().templateListHeight).toBeGreaterThanOrEqual(160)
   })
+
+  it('4.7.0-47-b：支持 diagnostics 面板类型', () => {
+    useUIStore.getState().setActivePanel('diagnostics')
+    expect(useUIStore.getState().activePanel).toBe('diagnostics')
+    expect(useUIStore.getState().panelVisible).toBe(true)
+  })
+
+  it('4.7.0-47-d：telemetryEnabled 默认关闭且可切换', () => {
+    expect(useUIStore.getState().generalSettings.telemetryEnabled).toBe(false)
+    useUIStore.getState().setGeneralSettings({ telemetryEnabled: true })
+    expect(useUIStore.getState().generalSettings.telemetryEnabled).toBe(true)
+  })
 })

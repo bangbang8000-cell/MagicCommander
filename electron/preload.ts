@@ -127,6 +127,7 @@ const api = {
     checkUpdate: () => ipcRenderer.invoke('app:check-update'),
     downloadUpdate: () => ipcRenderer.invoke('app:download-update'),
     quitAndInstall: () => ipcRenderer.invoke('app:quit-and-install'),
+    setCheckUpdateOnStart: (enabled: boolean) => ipcRenderer.invoke('app:set-auto-update-check', enabled),
     onUpdateStatus: (callback: (status: unknown) => void) => {
       const handler = (_e: unknown, data: unknown) => callback(data)
       ipcRenderer.on('update-status', handler)
@@ -209,6 +210,16 @@ const api = {
     saveToken: (token: string) => ipcRenderer.invoke('platform:saveToken', token),
     loadToken: () => ipcRenderer.invoke('platform:loadToken'),
     clearToken: () => ipcRenderer.invoke('platform:clearToken'),
+  },
+  diag: {
+    collect: (perfSnapshot?: unknown) => ipcRenderer.invoke('diag:collect', perfSnapshot),
+    reportPerf: (perfSnapshot: unknown) => ipcRenderer.invoke('diag:reportPerf', perfSnapshot),
+    export: () => ipcRenderer.invoke('diag:export'),
+    health: (platformUrl?: string) => ipcRenderer.invoke('diag:health', platformUrl),
+    telemetryRead: () => ipcRenderer.invoke('diag:telemetry:read'),
+    telemetrySetEnabled: (enabled: boolean) => ipcRenderer.invoke('diag:telemetry:setEnabled', enabled),
+    telemetryClear: () => ipcRenderer.invoke('diag:telemetry:clear'),
+    telemetryExport: () => ipcRenderer.invoke('diag:telemetry:export'),
   },
   onMenuNewProject: (cb: () => void) => {
     const handler = () => cb()

@@ -117,6 +117,36 @@ export default function App() {
     client.version().catch(() => {})
   }, [isInitialized])
 
+  // 47-a：把 ui.store 持久化的 checkUpdateOnStart 同步到主进程（控制启动自动检查更新）
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.electron?.app?.setCheckUpdateOnStart) return
+    window.electron.app.setCheckUpdateOnStart(useUIStore.getState().generalSettings.checkUpdateOnStart).catch(() => {})
+    const unsub = useUIStore.subscribe(
+      (s) => s.generalSettings.checkUpdateOnStart,
+      (enabled) => {
+        window.electron.app.setCheckUpdateOnStart(enabled).catch(() => {})
+      },
+    )
+    return () => {
+      unsub()
+    }
+  }, [])
+
+  // 47-d：把 ui.store 持久化的 telemetryEnabled 同步到主进程遥测服务（默认关，仅本地）
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.electron?.diag?.telemetrySetEnabled) return
+    window.electron.diag.telemetrySetEnabled(useUIStore.getState().generalSettings.telemetryEnabled).catch(() => {})
+    const unsub = useUIStore.subscribe(
+      (s) => s.generalSettings.telemetryEnabled,
+      (enabled) => {
+        window.electron.diag.telemetrySetEnabled(enabled).catch(() => {})
+      },
+    )
+    return () => {
+      unsub()
+    }
+  }, [])
+
   const restoreTabs = useCallback((metas: EditorTabMeta[]) => {
     metas.forEach((meta) => {
       const tab: EditorTab = {

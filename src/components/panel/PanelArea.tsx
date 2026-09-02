@@ -1,11 +1,12 @@
 import { useTranslation } from 'react-i18next'
 import { useUIStore } from '@/stores/ui.store'
 import { useLogStore } from '@/stores/log.store'
-import { ChevronUp, Terminal, ScrollText, Gauge, ShieldCheck, BadgeCheck } from 'lucide-react'
+import { ChevronUp, Terminal, ScrollText, Gauge, ShieldCheck, BadgeCheck, Stethoscope } from 'lucide-react'
 import { TerminalPanel } from '../terminal/TerminalPanel'
 import { PerformancePanel } from './PerformancePanel'
 import { ValidationPanel } from './ValidationPanel'
 import { QualityPanel } from './QualityPanel'
+import { DiagnosticsPanel } from './DiagnosticsPanel'
 import clsx from 'clsx'
 import { useState, useEffect, useRef } from 'react'
 import { showSuccess, showError } from '../ui/Toast'
@@ -104,6 +105,22 @@ export function PanelArea() {
           >
             <BadgeCheck size={12} /> 质量
           </button>
+          {/* 4.7.0-47-b：诊断中心（日志/审计/崩溃/性能/健康一处可查 + 导出支持包） */}
+          <button
+            onClick={() => setActivePanel('diagnostics')}
+            className={clsx(
+              'flex items-center gap-1 px-2 py-1 text-[11px] rounded',
+              activePanel === 'diagnostics'
+                ? isDark
+                  ? 'bg-gray-900 text-gray-100'
+                  : 'bg-white text-gray-900'
+                : isDark
+                  ? 'text-gray-400 hover:text-gray-200 hover:bg-gray-700'
+                  : 'text-gray-500 hover:text-gray-700',
+            )}
+          >
+            <Stethoscope size={12} /> 诊断
+          </button>
         </div>
         <div className="flex items-center gap-1">
           <button
@@ -126,6 +143,7 @@ export function PanelArea() {
           {activePanel === 'perf' && <PerformancePanel />}
           {activePanel === 'validation' && <ValidationPanel />}
           {activePanel === 'quality' && <QualityPanel />}
+          {activePanel === 'diagnostics' && <DiagnosticsPanel />}
           {activePanel === 'problems' && (
             <div
               className={`flex items-center justify-center h-full text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}

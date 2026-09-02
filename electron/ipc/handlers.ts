@@ -36,6 +36,10 @@ import {
 } from '../services/template.service'
 import { readWorkspaceIndex, refreshWorkspaceIndex } from '../services/workspace-index.service'
 import { aiHubService, type AIHubStatus } from '../services/aiHub.service'
+import { diagnosticsService } from '../services/diagnostics.service'
+import { healthService } from '../services/health.service'
+import { telemetryService } from '../services/telemetry.service'
+import { audit } from '../utils/audit'
 import { getLocalCommitSha, collectProjectFiles, installRemoteProject } from '../utils/git'
 
 function errorMessage(err: unknown): string {
@@ -400,6 +404,7 @@ export function setupIpcHandlers(window: BrowserWindow): void {
         ensureTemplateForPython(template)
         await renderHandler.runPythonCommand(['project', 'create', name, '--template', template])
       }
+      audit('project.create', name)
       refreshWorkspace()
     },
   )
@@ -524,6 +529,7 @@ export function setupIpcHandlers(window: BrowserWindow): void {
   ipcMain.handle('project:delete', async (e, ids: string[]): Promise<void> => {
     if (!isTrustedSender(e)) throw new Error('无权执行该操作')
     await renderHandler.deleteProject(ids)
+    audit('project.delete', ids.join(','))
     refreshWorkspace()
   })
 
@@ -533,6 +539,7 @@ export function setupIpcHandlers(window: BrowserWindow): void {
     if (!projectPath || !fs.existsSync(projectPath)) {
       return []
     }
+    audit('project.open', name)
 
     async function buildFileTree(dirPath: string, basePath: string): Promise<FileTreeNode[]> {
       const entries = await fs.promises.readdir(dirPath, { withFileTypes: true })
@@ -652,6 +659,7 @@ export function setupIpcHandlers(window: BrowserWindow): void {
       const dir = path.dirname(fullPath)
       if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
       fs.writeFileSync(fullPath, content, 'utf-8')
+      audit('project.save', filePath)
     },
   )
 
@@ -761,6 +769,7 @@ export function setupIpcHandlers(window: BrowserWindow): void {
       }
       XLSX.writeFile(wb, fullPath)
       logger.info('[project:writeExcel] 保存成功')
+      audit('project.save', filePath)
     },
   )
 
@@ -880,18 +889,22 @@ export function setupIpcHandlers(window: BrowserWindow): void {
   })
 
   ipcMain.handle('render:project', async (_e, ids: string[]): Promise<void> => {
+    audit('project.render', ids.join(','))
     return await renderHandler.renderProject(ids)
   })
 
   ipcMain.handle('render:yaml', async (_e, ids: string[]): Promise<void> => {
+    audit('project.render', ids.join(','))
     return await renderHandler.renderYaml(ids)
   })
 
   ipcMain.handle('render:project-sn', async (_e, ids: string[]): Promise<void> => {
+    audit('project.render', ids.join(','))
     return await renderHandler.renderProjectSn(ids)
   })
 
   ipcMain.handle('render:yaml-sn', async (_e, ids: string[]): Promise<void> => {
+    audit('project.render', ids.join(','))
     return await renderHandler.renderYamlSn(ids)
   })
 
@@ -1356,6 +1369,7 @@ export function setupIpcHandlers(window: BrowserWindow): void {
       const zip = new AdmZip()
       zip.addLocalFolder(outputDir, projectName)
       zip.writeZip(dst.filePath)
+      audit('project.export', projectName)
       return dst.filePath
     }
     // dir：目标由用户在目录选择器中指定，子目录以项目名命名
@@ -1367,6 +1381,7 @@ export function setupIpcHandlers(window: BrowserWindow): void {
     if (pick.canceled || !pick.filePaths.length) throw new Error('已取消导出')
     const dest = path.join(pick.filePaths[0], `${baseName}`)
     fs.cpSync(outputDir, dest, { recursive: true })
+    audit('project.export', projectName)
     return dest
   })
 
@@ -1617,6 +1632,51 @@ export function setupIpcHandlers(window: BrowserWindow): void {
       if (fs.existsSync(jsonFile)) fs.unlinkSync(jsonFile)
     } catch (err) {
       logger.error('清除平台 Token 失败', err)
+    }
+  })
+
+  // ===== 47-b/47-c/47-d：诊断中心 / 健康检查 / 本地遥测 =====
+  ipcMain.handle('diag:collect', async (_e, perfSnapshot?: unknown) => {
+    if (perfSnapshot) diagnosticsService.reportPerf(perfSnapshot as never)
+    return diagnosticsService.collect()
+  })
+
+  ipcMain.handle('diag:reportPerf', (_e, perfSnapshot: unknown) => {
+    diagnosticsService.reportPerf(perfSnapshot as never)
+    return true
+  })
+
+  ipcMain.handle('diag:export', async (e): Promise<{ ok: boolean; path?: string; error?: string }> => {
+    if (!isTrustedSender(e)) throw new Error('无权执行该操作')
+    return await diagnosticsService.exportSupportPackage(window)
+  })
+
+  ipcMain.handle('diag:health', async (_e, platformUrl?: string) => {
+    return await healthService.run(platformUrl)
+  })
+
+  ipcMain.handle('diag:telemetry:read', () => telemetryService.read())
+  ipcMain.handle('diag:telemetry:setEnabled', (_e, enabled: boolean) => {
+    telemetryService.setEnabled(enabled)
+    return telemetryService.isEnabled()
+  })
+  ipcMain.handle('diag:telemetry:clear', () => {
+    telemetryService.clear()
+    return true
+  })
+  ipcMain.handle('diag:telemetry:export', async (e): Promise<{ ok: boolean; path?: string; error?: string }> => {
+    if (!isTrustedSender(e)) throw new Error('无权执行该操作')
+    try {
+      const result = await dialog.showSaveDialog(window, {
+        title: '导出遥测数据',
+        defaultPath: path.join(app.getPath('downloads'), `magiccommander-telemetry-${Date.now()}.jsonl`),
+        filters: [{ name: 'JSONL', extensions: ['jsonl'] }],
+      })
+      if (result.canceled || !result.filePath) return { ok: false, error: 'canceled' }
+      telemetryService.exportTo(result.filePath)
+      return { ok: true, path: result.filePath }
+    } catch (err) {
+      return { ok: false, error: err instanceof Error ? err.message : String(err) }
     }
   })
 }
