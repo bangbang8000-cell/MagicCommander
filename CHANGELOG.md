@@ -2,6 +2,19 @@
 
 本文件为发布说明的单一事实来源（`npm run sync-version -- --release-notes` 自动抽取当前版本段）。
 
+## [4.6.0] - 2026-09-02
+
+### 新增
+
+- 4.6 质量与测试体系。
+- 测试覆盖率门禁：后端 pytest-cov（≥55%，实测 60.67%）+ 前端 vitest coverage；CI 覆盖率 job + 阈值常量单源 + 基线棘轮（只升不降）。
+- 测试数据资产：样例项目/参数表/模板/渲染基线（清单 manifest + README，pytest/vitest 双端消费）。
+
+### 改进
+
+- 测试报告：聚合 pytest/vitest/golden/性能/校验门禁 → `reports/quality_report.json` + HTML。
+- 质量仪表盘：「质量」标签（覆盖率/门禁/测试通过率/校验通过率/性能基准，本地聚合）。
+
 ## [4.5.0] - 2026-09-02
 
 ### 新增
