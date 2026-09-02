@@ -6,6 +6,7 @@ import { updateService } from './services/update.service'
 import { logger } from './utils/logger'
 import { aiHubService } from './services/aiHub.service'
 import { initCrashReporting, registerProcessGuards, watchRendererCrashes, getCrashInfo } from './utils/crash'
+import { telemetryService } from './services/telemetry.service'
 
 import electronI18n from './electron-i18n'
 
@@ -30,8 +31,17 @@ registerProcessGuards()
 class MagicCommanderApp {
   private mainWindow: BrowserWindow | null = null
 
+  // 47-d：应用启动时间戳（退出遥测计算 uptime）
+  private appStartTime = Date.now()
+
+  // 47-a：启动自动检查更新开关（默认开启；渲染进程持久化的 ui.store generalSettings.checkUpdateOnStart 经 IPC 同步）
+  private checkUpdateOnStart = true
+
   async initialize(): Promise<void> {
     await app.whenReady()
+
+    // 47-d：应用启动遥测（本地仅落盘，启用时记录版本/平台）
+    telemetryService.record('app.start', { version: app.getVersion(), platform: process.platform, arch: process.arch })
 
     // 单实例锁：避免多开实例共享工作区、抢占 AI Hub 端口
     const gotLock = app.requestSingleInstanceLock()
@@ -72,6 +82,11 @@ class MagicCommanderApp {
 
     ipcMain.handle('app:quit-and-install', () => {
       updateService.quitAndInstall()
+    })
+
+    // 47-a：渲染进程同步 ui.store 的 checkUpdateOnStart（Zustand localStorage 持久化，主进程经 IPC 读取）
+    ipcMain.handle('app:set-auto-update-check', (_event, enabled: boolean) => {
+      this.checkUpdateOnStart = enabled !== false
     })
 
     // 窗口控制 IPC
@@ -120,8 +135,12 @@ class MagicCommanderApp {
   }
 
   private startupUpdateCheck(): void {
-    // 启动后延迟 3 秒自动静默检查更新
+    // 启动后延迟 3 秒自动静默检查更新（47-a：受 ui.store 的 checkUpdateOnStart 设置控制）
     setTimeout(() => {
+      if (!this.checkUpdateOnStart) {
+        logger.debug('Auto update check disabled by setting')
+        return
+      }
       updateService.checkForUpdates().catch((err) => {
         logger.debug('Startup update check failed:', err.message)
       })
@@ -246,6 +265,8 @@ class MagicCommanderApp {
 
     // 应用退出时清理 AI Hub 子进程
     app.on('before-quit', () => {
+      // 47-d：应用退出遥测（本地仅落盘）
+      telemetryService.record('app.quit', { uptimeMs: Date.now() - this.appStartTime })
       aiHubService.stop().catch(() => {})
     })
   }

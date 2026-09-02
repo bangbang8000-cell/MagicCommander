@@ -46,6 +46,13 @@ export const dialog = {
 export const shell = {
   openPath: async () => '',
   showItemInFolder: () => {},
+  openExternal: async () => {},
+}
+
+export const net = {
+  request: () => {
+    throw new Error('net.request not mocked')
+  },
 }
 
 export const Menu = {
