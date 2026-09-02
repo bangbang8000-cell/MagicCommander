@@ -34,8 +34,11 @@ def _read_output(output_dir):
     """读取输出目录下的全部渲染文本。"""
     texts = []
     for time_dir in os.listdir(output_dir):
-        for role in os.listdir(os.path.join(output_dir, time_dir)):
-            role_dir = os.path.join(output_dir, time_dir, role)
+        batch = os.path.join(output_dir, time_dir)
+        for entry in os.listdir(batch):
+            role_dir = os.path.join(batch, entry)
+            if not os.path.isdir(role_dir):
+                continue  # 跳过 manifest.json 等批次内文件
             for f in os.listdir(role_dir):
                 if f.endswith('.txt'):
                     with open(os.path.join(role_dir, f), encoding='utf-8') as fh:

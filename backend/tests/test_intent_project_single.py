@@ -105,11 +105,15 @@ class TestH2TableStructure:
             assert len(time_dirs) >= 1
             total_txt = 0
             joined = ''
-            for role_dir in os.listdir(os.path.join(out, time_dirs[0])):
-                for f in os.listdir(os.path.join(out, time_dirs[0], role_dir)):
+            batch = os.path.join(out, time_dirs[0])
+            for entry in os.listdir(batch):
+                role_dir = os.path.join(batch, entry)
+                if not os.path.isdir(role_dir):
+                    continue  # 跳过 manifest.json 等批次内文件
+                for f in os.listdir(role_dir):
                     if f.endswith('.txt'):
                         total_txt += 1
-                        with open(os.path.join(out, time_dirs[0], role_dir, f), encoding='utf-8') as fh:
+                        with open(os.path.join(role_dir, f), encoding='utf-8') as fh:
                             joined += fh.read()
             assert total_txt == 22
             # 抽查：EBGP/MLAG/PFC

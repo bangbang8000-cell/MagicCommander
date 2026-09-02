@@ -351,8 +351,11 @@ def render_pilot64_projects(workspace_dir: str, ctx: IntentContext | None = None
         out = os.path.join(project_dir, 'output')
         texts = {}
         for time_dir in os.listdir(out):
-            for role_dir in os.listdir(os.path.join(out, time_dir)):
-                role_path = os.path.join(out, time_dir, role_dir)
+            batch = os.path.join(out, time_dir)
+            for entry in os.listdir(batch):
+                role_path = os.path.join(batch, entry)
+                if not os.path.isdir(role_path):
+                    continue  # 跳过 manifest.json 等批次内文件
                 for f in os.listdir(role_path):
                     if f.endswith('.txt'):
                         with open(os.path.join(role_path, f), encoding='utf-8') as fh:

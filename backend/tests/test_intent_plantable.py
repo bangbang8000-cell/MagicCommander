@@ -85,9 +85,11 @@ class TestPlantable:
             pp.execute_render('1', 'device_name')
             out = os.path.join(tmp, 'aidc_pilot64', 'output')
             td = os.listdir(out)[0]
+            batch = os.path.join(out, td)
             total = sum(
-                len([f for f in os.listdir(os.path.join(out, td, r)) if f.endswith('.txt')])
-                for r in os.listdir(os.path.join(out, td)))
+                len([f for f in os.listdir(os.path.join(batch, r)) if f.endswith('.txt')])
+                for r in os.listdir(batch)
+                if os.path.isdir(os.path.join(batch, r)))
             assert total == 22
 
 
