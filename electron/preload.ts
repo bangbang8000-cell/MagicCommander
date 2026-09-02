@@ -71,6 +71,9 @@ const api = {
     importSnapshot: (projectName: string) => ipcRenderer.invoke('project:importSnapshot', projectName),
     exportTemplatePackage: (templateId: string) => ipcRenderer.invoke('project:exportTemplatePackage', templateId),
     importTemplatePackage: () => ipcRenderer.invoke('project:importTemplatePackage'),
+    verifyManifest: (projectName: string) => ipcRenderer.invoke('project:verifyManifest', projectName),
+    exportReviewPackage: (projectName: string) => ipcRenderer.invoke('project:exportReviewPackage', projectName),
+    exportReviewPdf: (projectName: string) => ipcRenderer.invoke('project:exportReviewPdf', projectName),
   },
   asset: {
     deviceLibraryExport: () => ipcRenderer.invoke('asset:deviceLibraryExport'),

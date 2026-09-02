@@ -7,10 +7,12 @@
  * - 校验通过后可阻止后续操作（门禁提示：校验未通过时提示先修复再渲染/导出）
  */
 import { useState } from 'react'
-import { ShieldCheck, Play, Trash2, Download, AlertTriangle, CheckCircle2, Info, XCircle } from 'lucide-react'
+import { ShieldCheck, Play, Trash2, Download, AlertTriangle, CheckCircle2, Info, XCircle, PackageCheck, FileText, FileCheck2 } from 'lucide-react'
 import clsx from 'clsx'
 import { useValidationStore } from '@/stores/validation.store'
 import { useUIStore } from '@/stores/ui.store'
+import { useProjectStore } from '@/stores/project.store'
+import { showError, showSuccess } from '@/components/ui/Toast'
 import {
   reportToJson,
   CATEGORY_LABELS,
@@ -41,7 +43,11 @@ export function ValidationPanel() {
   const { report, running, error, lastRunAt, gateBlocked, runValidation, clear } = useValidationStore()
   const activeProjectId = useUIStore((s) => s.activeProjectId)
   const isDark = useUIStore((s) => s.isDark)
+  const projects = useProjectStore((s) => s.projects)
   const [scope, setScope] = useState<'all' | 'consistency' | 'output' | 'ip'>('all')
+
+  const activeProject = projects.find((p) => p.id === activeProjectId)
+  const activeProjectName = activeProject?.name ?? report?.project ?? ''
 
   const handleRun = () => {
     runValidation(activeProjectId, scope)
@@ -57,6 +63,44 @@ export function ValidationPanel() {
     a.download = `校验报告_${report.project}_${new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-')}.json`
     a.click()
     URL.revokeObjectURL(url)
+  }
+
+  // 4.8.0（F8-5 / 48-e）：交付物清单校验（批次 manifest 缺失/漂移/哈希不符）
+  const handleVerifyManifest = async () => {
+    if (!activeProjectName) return
+    try {
+      const r = await window.electron.project.verifyManifest(activeProjectName)
+      if (!r.ok) {
+        showError(r.error || '交付物清单校验未通过')
+        return
+      }
+      showSuccess(`交付物清单校验通过（${r.rendered_at ?? ''}）`)
+    } catch (err) {
+      showError(err instanceof Error ? err.message : String(err))
+    }
+  }
+
+  // 4.8.0（F8-4 / 48-d）：评审包 / 评审 PDF 导出
+  const handleExportReviewPackage = async () => {
+    if (!activeProjectName) return
+    try {
+      const r = await window.electron.project.exportReviewPackage(activeProjectName)
+      const data = r.data
+      showSuccess(data ? `评审包已导出: ${data.path}` : '评审包已导出')
+    } catch (err) {
+      showError(err instanceof Error ? err.message : String(err))
+    }
+  }
+
+  const handleExportReviewPdf = async () => {
+    if (!activeProjectName) return
+    try {
+      const r = await window.electron.project.exportReviewPdf(activeProjectName)
+      const data = r.data
+      showSuccess(data ? `评审 PDF 已导出: ${data.path}` : '评审 PDF 已导出')
+    } catch (err) {
+      showError(err instanceof Error ? err.message : String(err))
+    }
   }
 
   return (
@@ -93,6 +137,46 @@ export function ValidationPanel() {
             <Trash2 size={12} className="text-gray-400" />
           </button>
         </div>
+      </div>
+
+      {/* 4.8.0（F8-4/F8-5）：评审导出 / 交付物清单校验 */}
+      <div className="flex items-center gap-1 flex-wrap">
+        <button
+          onClick={() => void handleVerifyManifest()}
+          disabled={!activeProjectName}
+          className={clsx(
+            'inline-flex items-center gap-1 px-2 py-1 text-[11px] rounded border',
+            !activeProjectName ? 'opacity-40 cursor-not-allowed' : 'hover:bg-gray-100 dark:hover:bg-gray-700',
+            'border-gray-200 dark:border-gray-600 text-teal-600 dark:text-teal-400',
+          )}
+          title="校验渲染批次交付物清单（缺失/漂移/哈希不符）"
+        >
+          <FileCheck2 size={10} /> 校验交付清单
+        </button>
+        <button
+          onClick={() => void handleExportReviewPackage()}
+          disabled={!activeProjectName}
+          className={clsx(
+            'inline-flex items-center gap-1 px-2 py-1 text-[11px] rounded border',
+            !activeProjectName ? 'opacity-40 cursor-not-allowed' : 'hover:bg-gray-100 dark:hover:bg-gray-700',
+            'border-gray-200 dark:border-gray-600 text-blue-600 dark:text-blue-400',
+          )}
+          title="导出项目评审包（校验报告+核对矩阵+项目摘要+交付清单）"
+        >
+          <PackageCheck size={10} /> 导出评审包
+        </button>
+        <button
+          onClick={() => void handleExportReviewPdf()}
+          disabled={!activeProjectName}
+          className={clsx(
+            'inline-flex items-center gap-1 px-2 py-1 text-[11px] rounded border',
+            !activeProjectName ? 'opacity-40 cursor-not-allowed' : 'hover:bg-gray-100 dark:hover:bg-gray-700',
+            'border-gray-200 dark:border-gray-600 text-blue-600 dark:text-blue-400',
+          )}
+          title="导出项目评审 PDF"
+        >
+          <FileText size={10} /> 导出评审 PDF
+        </button>
       </div>
 
       {/* 校验范围选择 */}

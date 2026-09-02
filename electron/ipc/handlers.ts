@@ -4,6 +4,7 @@ import { createHash } from 'crypto'
 import { RenderHandler } from './render.handler'
 import * as fs from 'fs'
 import * as path from 'path'
+import * as os from 'os'
 import * as XLSX from 'xlsx'
 import iconv from 'iconv-lite'
 import mammoth from 'mammoth'
@@ -785,6 +786,61 @@ export function setupIpcHandlers(window: BrowserWindow): void {
     audit('template.importPackage', name)
     logger.info(`[project:importTemplatePackage] ${name} ← ${picked.filePaths[0]}`)
     return { status: 'success', data: { name, path: templateDir } }
+  })
+
+  // 4.8.0（F8-5 / 48-e）：交付物清单校验（批次 manifest 缺失/漂移/哈希不符）
+  ipcMain.handle('project:verifyManifest', async (e, projectName: string): Promise<unknown> => {
+    if (!isTrustedSender(e)) throw new Error('无权执行该操作')
+    validateProjectName(projectName)
+    const result = await renderHandler.verifyManifest(projectName)
+    audit('project.verifyManifest', projectName)
+    return result
+  })
+
+  // 4.8.0（F8-4 / 48-d）：项目评审包导出（zip：校验报告 + 核对矩阵 + 项目摘要 + 交付清单）
+  ipcMain.handle('project:exportReviewPackage', async (e, projectName: string): Promise<unknown> => {
+    if (!isTrustedSender(e)) throw new Error('无权执行该操作')
+    validateProjectName(projectName)
+    const win = BrowserWindow.fromWebContents(e.sender)
+    const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19)
+    const dst = await dialog.showSaveDialog(win!, {
+      title: '导出项目评审包 (ZIP)',
+      defaultPath: path.join(app.getPath('downloads'), `${projectName}-review-${stamp}.zip`),
+      filters: [{ name: 'ZIP Archive', extensions: ['zip'] }],
+    })
+    if (dst.canceled || !dst.filePath) throw new Error('已取消导出')
+    const result = await renderHandler.exportReviewPackage(projectName, dst.filePath)
+    audit('project.exportReviewPackage', projectName)
+    logger.info(`[project:exportReviewPackage] ${projectName} → ${dst.filePath}`)
+    return result
+  })
+
+  // 4.8.0（F8-4 / 48-d）：项目评审 PDF 导出（复用 markdownToPrintableHtml + exportMarkdownFileToPdf）
+  ipcMain.handle('project:exportReviewPdf', async (e, projectName: string): Promise<unknown> => {
+    if (!isTrustedSender(e)) throw new Error('无权执行该操作')
+    validateProjectName(projectName)
+    const win = BrowserWindow.fromWebContents(e.sender)
+    const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19)
+    const dst = await dialog.showSaveDialog(win!, {
+      title: '导出项目评审 PDF',
+      defaultPath: path.join(app.getPath('downloads'), `${projectName}-review-${stamp}.pdf`),
+      filters: [{ name: 'PDF', extensions: ['pdf'] }],
+    })
+    if (dst.canceled || !dst.filePath) throw new Error('已取消导出')
+    const tmpMd = path.join(os.tmpdir(), `mc-review-${Date.now()}.md`)
+    try {
+      await renderHandler.writeReviewMarkdown(projectName, tmpMd)
+      await exportMarkdownFileToPdf(tmpMd, dst.filePath)
+    } finally {
+      try {
+        fs.unlinkSync(tmpMd)
+      } catch {
+        /* ignore */
+      }
+    }
+    audit('project.exportReviewPdf', projectName)
+    logger.info(`[project:exportReviewPdf] ${projectName} → ${dst.filePath}`)
+    return { status: 'success', data: { path: dst.filePath, project: projectName } }
   })
 
   ipcMain.handle('project:saveAsExample', async (e, projectName: string, exampleName: string): Promise<void> => {

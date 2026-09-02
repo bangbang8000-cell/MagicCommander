@@ -9,6 +9,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { render, screen, fireEvent, act, cleanup } from '@testing-library/react'
 import { ValidationPanel } from '@/components/panel/ValidationPanel'
+import { ToastContainer } from '@/components/ui/Toast'
 import { useValidationStore } from '@/stores/validation.store'
 import { useUIStore } from '@/stores/ui.store'
 import { runProjectValidation, type ProjectData } from '@/utils/validation'
@@ -179,5 +180,103 @@ describe('ValidationPanel（D5-4 导出 / D5-5 门禁）', () => {
     expect(clickSpy).toHaveBeenCalled()
     createElement.mockRestore()
     vi.unstubAllGlobals()
+  })
+})
+
+describe('ValidationPanel（4.8.0 F8-4/F8-5 评审导出与交付清单校验）', () => {
+  function mockReviewElectron() {
+    mockHealthyElectron()
+    const electron = globalThis.window.electron as unknown as {
+      project: Record<string, unknown>
+    }
+    electron.project.verifyManifest = vi.fn(async () => ({
+      ok: true,
+      rendered_at: '2026_09_02_10_00_00',
+      missing: [],
+      hash_mismatch: [],
+      drifted: [],
+      summary: { file_count: 1 },
+    }))
+    electron.project.exportReviewPackage = vi.fn(async () => ({
+      status: 'success',
+      data: { path: '/tmp/review.zip', project: 'demo' },
+    }))
+    electron.project.exportReviewPdf = vi.fn(async () => ({
+      status: 'success',
+      data: { path: '/tmp/review.pdf', project: 'demo' },
+    }))
+  }
+
+  it('渲染评审导出与交付清单校验入口', () => {
+    mockReviewElectron()
+    useValidationStore.getState().setReport(runProjectValidation(healthyData(), 'all'))
+    render(<ValidationPanel />)
+    expect(screen.getByText('校验交付清单')).toBeTruthy()
+    expect(screen.getByText('导出评审包')).toBeTruthy()
+    expect(screen.getByText('导出评审 PDF')).toBeTruthy()
+  })
+
+  it('点击校验交付清单 → 调用 verifyManifest 并提示通过', async () => {
+    mockReviewElectron()
+    useValidationStore.getState().setReport(runProjectValidation(healthyData(), 'all'))
+    render(
+      <>
+        <ToastContainer />
+        <ValidationPanel />
+      </>,
+    )
+    await act(async () => {
+      fireEvent.click(screen.getByText('校验交付清单'))
+      await Promise.resolve()
+    })
+    const verify = (globalThis.window.electron as unknown as { project: { verifyManifest: ReturnType<typeof vi.fn> } })
+      .project.verifyManifest
+    expect(verify).toHaveBeenCalledWith('demo')
+    expect(screen.getByText(/交付物清单校验通过/)).toBeTruthy()
+  })
+
+  it('点击导出评审包 / 评审 PDF → 调用对应 IPC', async () => {
+    mockReviewElectron()
+    useValidationStore.getState().setReport(runProjectValidation(healthyData(), 'all'))
+    render(<ValidationPanel />)
+    await act(async () => {
+      fireEvent.click(screen.getByText('导出评审包'))
+      await Promise.resolve()
+    })
+    const pkg = (globalThis.window.electron as unknown as { project: { exportReviewPackage: ReturnType<typeof vi.fn> } })
+      .project.exportReviewPackage
+    expect(pkg).toHaveBeenCalledWith('demo')
+    await act(async () => {
+      fireEvent.click(screen.getByText('导出评审 PDF'))
+      await Promise.resolve()
+    })
+    const pdf = (globalThis.window.electron as unknown as { project: { exportReviewPdf: ReturnType<typeof vi.fn> } })
+      .project.exportReviewPdf
+    expect(pdf).toHaveBeenCalledWith('demo')
+  })
+
+  it('交付清单校验失败 → 提示错误', async () => {
+    mockReviewElectron()
+    const electron = globalThis.window.electron as unknown as { project: Record<string, unknown> }
+    electron.project.verifyManifest = vi.fn(async () => ({
+      ok: false,
+      error: '批次缺少 manifest.json',
+      missing: ['ASW/SW-01.txt'],
+      hash_mismatch: [],
+      drifted: [],
+      summary: {},
+    }))
+    useValidationStore.getState().setReport(runProjectValidation(healthyData(), 'all'))
+    render(
+      <>
+        <ToastContainer />
+        <ValidationPanel />
+      </>,
+    )
+    await act(async () => {
+      fireEvent.click(screen.getByText('校验交付清单'))
+      await Promise.resolve()
+    })
+    expect(screen.getByText(/批次缺少 manifest/)).toBeTruthy()
   })
 })

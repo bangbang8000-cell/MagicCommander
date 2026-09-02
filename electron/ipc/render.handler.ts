@@ -191,6 +191,26 @@ export class RenderHandler {
     return await this.runPythonCommand(args, true)
   }
 
+  // 4.8.0（F8-5 / 48-e）：交付物清单校验（批次 manifest 缺失/漂移/哈希不符）
+  async verifyManifest(projectName: string): Promise<unknown> {
+    const safeName = sanitizePathArg(projectName)
+    if (!safeName) throw new Error('无效的项目名称')
+    return await this.runPythonCommand(['validate', 'manifest', safeName], true)
+  }
+
+  // 4.8.0（F8-4 / 48-d）：评审包导出 / 评审 Markdown 生成（PDF 前置）
+  async exportReviewPackage(projectName: string, outPath: string): Promise<unknown> {
+    const safeName = sanitizePathArg(projectName)
+    if (!safeName) throw new Error('无效的项目名称')
+    return await this.runPythonCommand(['review', 'package', safeName, outPath], true)
+  }
+
+  async writeReviewMarkdown(projectName: string, outMd: string): Promise<unknown> {
+    const safeName = sanitizePathArg(projectName)
+    if (!safeName) throw new Error('无效的项目名称')
+    return await this.runPythonCommand(['review', 'md', safeName, outMd], true)
+  }
+
   /** 校验 projectDir 属于 workspace 内且为安全路径；不合法返回 null */
   private assertWorkspaceDir(projectDir: string): string | null {
     const safe = sanitizePathArg(projectDir)

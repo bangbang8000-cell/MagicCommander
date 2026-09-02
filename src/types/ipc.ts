@@ -203,6 +203,20 @@ export interface ProjectIpcApi {
   exportTemplatePackage: (templateId: string) => Promise<{ status: string; data?: { path: string; name: string; file_count: number } }>
   /** 4.8.0（F8-3 / 48-c）：从文件导入模板包 */
   importTemplatePackage: () => Promise<{ status: string; data?: { name: string; path: string } }>
+  /** 4.8.0（F8-5 / 48-e）：交付物清单校验（批次 manifest 缺失/漂移/哈希不符） */
+  verifyManifest: (projectName: string) => Promise<{
+    ok: boolean
+    error?: string
+    rendered_at?: string
+    missing: string[]
+    hash_mismatch: string[]
+    drifted: string[]
+    summary: Record<string, unknown>
+  }>
+  /** 4.8.0（F8-4 / 48-d）：导出项目评审包（zip） */
+  exportReviewPackage: (projectName: string) => Promise<{ status: string; data?: { path: string; project: string } }>
+  /** 4.8.0（F8-4 / 48-d）：导出项目评审 PDF */
+  exportReviewPdf: (projectName: string) => Promise<{ status: string; data?: { path: string; project: string } }>
 }
 
 /** 4.8.0（F8-3 / 48-c）：跨端资产互灌（设备库可移植导入/导出） */

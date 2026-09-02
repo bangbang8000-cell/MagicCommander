@@ -251,6 +251,21 @@ def main():
     # 4.5.0（F5-1~F5-3）：全量校验（一致性+导出核对+IP）
     validate_all_parser = validate_subparsers.add_parser('all', help='全量校验（一致性+导出核对+IP）')
     validate_all_parser.add_argument('ids', help='项目ID (使用,分隔多个ID)')
+    # 4.8.0（F8-5 / 48-e）：交付物清单校验（缺失/漂移/哈希不符）
+    validate_manifest_parser = validate_subparsers.add_parser('manifest', help='交付物清单校验（批次 manifest 缺失/漂移/哈希不符）')
+    validate_manifest_parser.add_argument('ids', help='项目ID (使用,分隔多个ID)')
+
+    # 4.8.0（F8-4 / 48-d）：项目评审报告/评审包（聚合校验报告 + 核对矩阵 + 项目摘要 + 交付清单）
+    review_parser = subparsers.add_parser('review', help='项目评审报告/评审包（4.8.0 F8-4）')
+    review_subparsers = review_parser.add_subparsers(title='评审操作', dest='review_action', help='评审子命令')
+    review_report_parser = review_subparsers.add_parser('report', help='输出评审报告 JSON')
+    review_report_parser.add_argument('project', help='项目名称')
+    review_package_parser = review_subparsers.add_parser('package', help='导出评审包 zip（report.json + review.md + manifest）')
+    review_package_parser.add_argument('project', help='项目名称')
+    review_package_parser.add_argument('output', help='目标 zip 路径')
+    review_md_parser = review_subparsers.add_parser('md', help='评审报告 → Markdown 文件（PDF 导出前置）')
+    review_md_parser.add_argument('project', help='项目名称')
+    review_md_parser.add_argument('output', help='目标 md 路径')
 
     # Diff 对比
     diff_parser = subparsers.add_parser('diff', help='对比渲染输出')
@@ -394,6 +409,8 @@ def main():
             handle_template_command(processor, args)
         elif args.command == 'device':
             handle_device_command(args)
+        elif args.command == 'review':
+            handle_review_command(args)
         else:
             print_error(f'未知命令: {args.command}')
             sys.exit(1)
@@ -933,6 +950,15 @@ def handle_validate_command(processor, args):
             print(report.to_json())
         return
 
+    # 4.8.0（F8-5 / 48-e）：交付物清单校验（批次 manifest 缺失/漂移/哈希不符）
+    if args.subcommand == 'manifest':
+        from intent.delivery import verify_batch_manifest
+        for idx in target_ids:
+            name = processor.project_name[idx]
+            project_dir = os.path.join(WORKSPACE_DIR, name)
+            print(json.dumps(verify_batch_manifest(project_dir), ensure_ascii=False))
+        return
+
     if args.subcommand == 'template':
         processor.validate_template(target_str)
     elif args.subcommand == 'excel':
@@ -954,6 +980,31 @@ def handle_device_command(args):
                           'data': result}, ensure_ascii=False))
     else:
         print_error(f'未知设备库操作: {args.device_action}/{getattr(args, "lib_action", "")}')
+        sys.exit(1)
+
+
+def handle_review_command(args):
+    """项目评审报告/评审包（4.8.0 F8-4）。"""
+    from intent.review import build_review_package, build_review_report, write_review_markdown_file
+    proj = os.path.join(WORKSPACE_DIR, args.project)
+    if not os.path.isdir(proj):
+        print_error(f'项目不存在: {args.project}')
+        sys.exit(1)
+    if args.review_action == 'report':
+        report = build_review_report(proj)
+        print(json.dumps(report, ensure_ascii=False))
+    elif args.review_action == 'package':
+        result = build_review_package(proj, args.output)
+        print(json.dumps({'status': 'success', 'message': f'评审包已导出: {args.output}',
+                          'data': {'path': result['path'], 'project': result['project']}},
+                         ensure_ascii=False))
+    elif args.review_action == 'md':
+        result = write_review_markdown_file(proj, args.output)
+        print(json.dumps({'status': 'success', 'message': f'评审 Markdown 已生成: {args.output}',
+                          'data': {'path': result['path'], 'project': result['project']}},
+                         ensure_ascii=False))
+    else:
+        print_error(f'未知评审操作: {getattr(args, "review_action", "")}')
         sys.exit(1)
 
 
