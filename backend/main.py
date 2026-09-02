@@ -217,6 +217,19 @@ def main():
     validate_excel_parser = validate_subparsers.add_parser('excel', help='校验 Excel 数据完整性')
     validate_excel_parser.add_argument('ids', help='项目ID (使用,分隔多个ID)')
 
+    # 4.5.0（F5-1）：一致性校验引擎（参数表/模板/产物）
+    validate_consistency_parser = validate_subparsers.add_parser('consistency', help='一致性校验（参数表完整性/模板映射/配置字段）')
+    validate_consistency_parser.add_argument('ids', help='项目ID (使用,分隔多个ID)')
+    # 4.5.0（F5-2）：导出数据核对（渲染批次 ↔ 参数/模板状态）
+    validate_output_parser = validate_subparsers.add_parser('output', help='导出数据核对（数量/命名/引用/漂移）')
+    validate_output_parser.add_argument('ids', help='项目ID (使用,分隔多个ID)')
+    # 4.5.0（F5-3）：IP 规划校验（子网/网关/掩码/分配）
+    validate_ip_parser = validate_subparsers.add_parser('ip', help='IP 规划校验（子网重叠/网关冲突/越界/重复/掩码）')
+    validate_ip_parser.add_argument('ids', help='项目ID (使用,分隔多个ID)')
+    # 4.5.0（F5-1~F5-3）：全量校验（一致性+导出核对+IP）
+    validate_all_parser = validate_subparsers.add_parser('all', help='全量校验（一致性+导出核对+IP）')
+    validate_all_parser.add_argument('ids', help='项目ID (使用,分隔多个ID)')
+
     # Diff 对比
     diff_parser = subparsers.add_parser('diff', help='对比渲染输出')
     diff_parser.add_argument('project', help='项目名称')
@@ -839,6 +852,16 @@ def handle_validate_command(processor, args):
     """处理校验命令"""
     target_ids = process_project_ids(args.ids, processor.project_name)
     target_str = convert_to_project_string(target_ids)
+
+    # 4.5.0（F5-1~F5-3）：校验引擎子命令 → 结构化报告（GUI/CI/测试复用）
+    if args.subcommand in ('consistency', 'output', 'ip', 'all'):
+        from validation import validate_project
+        for idx in target_ids:
+            name = processor.project_name[idx]
+            project_dir = os.path.join(WORKSPACE_DIR, name)
+            report = validate_project(project_dir, args.subcommand)
+            print(report.to_json())
+        return
 
     if args.subcommand == 'template':
         processor.validate_template(target_str)
