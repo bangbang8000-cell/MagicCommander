@@ -426,6 +426,15 @@ class PreProcessing:
 
             self._save_project_cache(project_dir, cache_key)
 
+        # 4.8.0（F8-5 / 48-e）：渲染批次交付清单 manifest.json（逐文件 name/size/sha256 + 统计 + render_hash）
+        output_name = 'output' if out_name_type == 'device_name' else 'output-sn'
+        for _name in self.target_project_name:
+            try:
+                from intent.delivery import write_batch_manifest
+                write_batch_manifest(os.path.join(self.workspace, _name), output_name, time_str)
+            except Exception as _e:
+                logger.warning(f'生成渲染批次清单失败: {_name}: {_e}')
+
         print(json.dumps({
             'status': 'complete',
             'message': '程序运行结束，请在目标项目的output文件夹内查看输出结果！',

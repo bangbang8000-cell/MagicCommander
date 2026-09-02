@@ -280,3 +280,32 @@ class TestRenderIntegration:
 
             restored = pp._restore_backup(os.path.join(tmpdir, project_name))
             assert restored is True
+
+    def test_render_creates_batch_manifest(self, monkeypatch):
+        """4.8.0（F8-5 / 48-e）：渲染后 output/{timestamp}/manifest.json 交付清单生成。"""
+        import json as _json
+        with tempfile.TemporaryDirectory() as tmpdir:
+            monkeypatch.setattr(config, 'WORKSPACE_DIR', tmpdir)
+
+            project_name = 'manifest_test'
+            _build_minimal_project(tmpdir, project_name)
+
+            pp = PreProcessing()
+            pp.workspace = tmpdir
+            pp.read_MC_para('MC_Para.xlsx')
+            pp.execute_render('1', 'device_name')
+
+            output_dir = os.path.join(tmpdir, project_name, 'output')
+            ts = sorted(os.listdir(output_dir))[-1]
+            manifest_path = os.path.join(output_dir, ts, 'manifest.json')
+            assert os.path.exists(manifest_path)
+            with open(manifest_path, encoding='utf-8') as f:
+                manifest = _json.load(f)
+            assert manifest['schema'] == 'mc.render-manifest/1'
+            assert manifest['batch']['rendered_at'] == ts
+            assert manifest['summary']['file_count'] >= 1
+            assert all(f['sha256'] and f['size'] > 0 for f in manifest['files'])
+            # 校验通过
+            from intent.delivery import verify_batch_manifest
+            result = verify_batch_manifest(os.path.join(tmpdir, project_name), 'output', ts)
+            assert result['ok'] is True
