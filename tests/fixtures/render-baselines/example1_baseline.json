@@ -1,0 +1,14 @@
+{
+  "asset": "example1_baseline",
+  "schema": "mc.quality.fixture/1",
+  "category": "render-baseline",
+  "scenario": "渲染基线样例（对齐 tests/golden 结构：批次清单 + 强哈希），供 pytest/vitest 复用比对",
+  "consumedBy": ["pytest", "vitest"],
+  "source": "example/example1",
+  "device_count": 2,
+  "render_hash": "2b4c5212d6bd8eb1",
+  "batch_manifest": [
+    { "device": "SW-ACCESS-01", "role": "ASW", "filename": "SW-ACCESS-01.txt", "sha256": "sample-sha-01" },
+    { "device": "SW-ACCESS-02", "role": "ASW", "filename": "SW-ACCESS-02.txt", "sha256": "sample-sha-02" }
+  ]
+}

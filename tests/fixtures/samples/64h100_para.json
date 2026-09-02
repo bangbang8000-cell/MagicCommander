@@ -1,0 +1,43 @@
+{
+  "asset": "64h100_para",
+  "schema": "mc.quality.fixture/1",
+  "category": "sample-project",
+  "scenario": "64台H100参数表（超节点/AIDC 单机房，多机柜 + 融合网 + 存储开启）",
+  "consumedBy": ["pytest", "vitest"],
+  "meta": {
+    "project": "H3C-64台-BJ01",
+    "site": "BJ01",
+    "projectType": "aidc",
+    "gpuCount": 64,
+    "gpuModel": "H100",
+    "racks": 4,
+    "rails": 8,
+    "storage": "enabled",
+    "fabric": "converged",
+    "bgpMaxPaths": 16,
+    "convergence": 1.0
+  },
+  "parameters": [
+    { "key": "site_name", "value": "BJ01" },
+    { "key": "gpu_model", "value": "H100" },
+    { "key": "gpu_count", "value": "64" },
+    { "key": "rack_count", "value": "4" },
+    { "key": "rail_count", "value": "8" },
+    { "key": "spine_count", "value": "8" },
+    { "key": "leaf_count", "value": "32" },
+    { "key": "storage_spine_count", "value": "4" },
+    { "key": "storage_leaf_count", "value": "8" },
+    { "key": "storage_enabled", "value": "true" },
+    { "key": "fabric_mode", "value": "converged" },
+    { "key": "pfc_queue", "value": "3" },
+    { "key": "cnp_queue", "value": "6" },
+    { "key": "bgp_max_paths", "value": "16" },
+    { "key": "loopback_segment", "value": "10.1.0.0/20" },
+    { "key": "compute_segment", "value": "10.1.16.0/20" },
+    { "key": "storage_segment", "value": "10.1.32.0/20" },
+    { "key": "oob_segment", "value": "10.1.48.0/20" },
+    { "key": "vlan_vxlan_mode", "value": "vxlan" },
+    { "key": "naming_format", "value": "{site}-R{rack:02d}-AIDC-{vendor}-{abbr}-{seq:02d}" },
+    { "key": "version", "value": "1.2" }
+  ]
+}

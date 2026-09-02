@@ -1,0 +1,50 @@
+{
+  "schema": "mc.quality.fixture-manifest/1",
+  "description": "MC 4.6.0-F6-2（46-b）测试数据资产清单：样例项目/参数表/模板/渲染基线，可被 pytest 与 vitest 复用（Q-2 断言）。",
+  "createdAt": "2026-09-02",
+  "version": "4.6.0",
+  "assets": [
+    {
+      "id": "64h100_para",
+      "category": "sample-project",
+      "path": "samples/64h100_para.json",
+      "scenario": "64台H100参数表（超节点/AIDC 单机房，多机柜 + 融合网 + 存储开启）",
+      "consumedBy": ["pytest", "vitest"]
+    },
+    {
+      "id": "multi_rack",
+      "category": "sample-project",
+      "path": "samples/multi_rack.json",
+      "scenario": "多机柜布局（2 机柜 x 8 服务器，机柜间直连拓扑）",
+      "consumedBy": ["pytest", "vitest"]
+    },
+    {
+      "id": "fabric_converged",
+      "category": "sample-project",
+      "path": "samples/fabric_converged.json",
+      "scenario": "融合网（计算 + 存储共用交换平面，RoCE）",
+      "consumedBy": ["pytest", "vitest"]
+    },
+    {
+      "id": "storage_off",
+      "category": "sample-project",
+      "path": "samples/storage_off.json",
+      "scenario": "存储关闭（纯计算网，无存储 SPINE/LEAF）",
+      "consumedBy": ["pytest", "vitest"]
+    },
+    {
+      "id": "asw_sample_template",
+      "category": "template",
+      "path": "templates/ASW.sample.j2",
+      "scenario": "接入交换机 Jinja2 模板样例（含条件块）",
+      "consumedBy": ["pytest"]
+    },
+    {
+      "id": "example1_baseline",
+      "category": "render-baseline",
+      "path": "render-baselines/example1_baseline.json",
+      "scenario": "渲染基线样例（对齐 tests/golden 结构：批次清单 + 强哈希）",
+      "consumedBy": ["pytest", "vitest"]
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "asset": "storage_off",
+  "schema": "mc.quality.fixture/1",
+  "category": "sample-project",
+  "scenario": "存储关闭（纯计算网，无存储平面，无存储 SPINE/LEAF）",
+  "consumedBy": ["pytest", "vitest"],
+  "meta": {
+    "project": "STORAGE-OFF",
+    "site": "BJ04",
+    "storageEnabled": false,
+    "storageSpineCount": 0,
+    "storageLeafCount": 0,
+    "gpuCount": 32
+  },
+  "parameters": [
+    { "key": "storage_enabled", "value": "false" },
+    { "key": "storage_spine_count", "value": "0" },
+    { "key": "storage_leaf_count", "value": "0" },
+    { "key": "gpu_count", "value": "32" },
+    { "key": "fabric_mode", "value": "compute-only" },
+    { "key": "compute_segment", "value": "10.2.16.0/20" },
+    { "key": "loopback_segment", "value": "10.2.0.0/20" }
+  ]
+}

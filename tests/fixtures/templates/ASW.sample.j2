@@ -1,0 +1,13 @@
+hostname {{ info["设备名"] }}
+!
+interface Loopback0
+ description mgmt-loopback
+ ip address {{ info["管理IP"] }} 255.255.255.255
+!
+interface {{ info["上行口"] }}
+ description to-{{ info["上联设备"] }}
+ switchport mode trunk
+{% if info["VLAN列表"] %}
+ switchport trunk allowed vlan {{ info["VLAN列表"] }}
+{% endif %}
+!

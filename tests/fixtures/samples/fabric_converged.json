@@ -1,0 +1,28 @@
+{
+  "asset": "fabric_converged",
+  "schema": "mc.quality.fixture/1",
+  "category": "sample-project",
+  "scenario": "融合网（计算 + 存储共用交换平面，RoCE + 存储关闭场景对照）",
+  "consumedBy": ["pytest", "vitest"],
+  "meta": {
+    "project": "FABRIC-CONV",
+    "site": "BJ03",
+    "fabricMode": "converged",
+    "computeNet": "compute",
+    "storageNet": "storage",
+    "roce": "enabled",
+    "pfcQueue": 3,
+    "cnpQueue": 6
+  },
+  "parameters": [
+    { "key": "fabric_mode", "value": "converged" },
+    { "key": "compute_plane", "value": "compute" },
+    { "key": "storage_plane", "value": "storage" },
+    { "key": "roce_enabled", "value": "true" },
+    { "key": "pfc_queue", "value": "3" },
+    { "key": "cnp_queue", "value": "6" },
+    { "key": "vlan_roce", "value": "100" },
+    { "key": "vlan_storage", "value": "200" },
+    { "key": "mtu", "value": "9000" }
+  ]
+}

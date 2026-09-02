@@ -1,0 +1,25 @@
+{
+  "asset": "multi_rack",
+  "schema": "mc.quality.fixture/1",
+  "category": "sample-project",
+  "scenario": "多机柜布局（2 机柜 x 8 服务器，机柜间直连拓扑）",
+  "consumedBy": ["pytest", "vitest"],
+  "meta": {
+    "project": "RACK-DEMO",
+    "site": "BJ02",
+    "rackCount": 2,
+    "serversPerRack": 8,
+    "gpuCount": 16,
+    "topology": "rack-to-rack"
+  },
+  "parameters": [
+    { "key": "site_name", "value": "BJ02" },
+    { "key": "rack_count", "value": "2" },
+    { "key": "servers_per_rack", "value": "8" },
+    { "key": "topology", "value": "rack-to-rack" },
+    { "key": "inter_rack_links", "value": "4" },
+    { "key": "spine_count", "value": "2" },
+    { "key": "leaf_count", "value": "4" },
+    { "key": "storage_enabled", "value": "false" }
+  ]
+}
