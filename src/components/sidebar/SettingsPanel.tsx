@@ -536,7 +536,11 @@ export function SettingsPanel() {
     try {
       const r = await window.electron.asset.deviceLibraryImport()
       const d = r.data
-      showSuccess(d ? `设备库导入完成：新增 ${d.added.length} / 更新 ${d.updated.length} / 跳过 ${d.skipped.length}` : '设备库导入完成')
+      showSuccess(
+        d
+          ? `设备库导入完成：新增 ${d.added.length} / 更新 ${d.updated.length} / 跳过 ${d.skipped.length}`
+          : '设备库导入完成',
+      )
     } catch (err) {
       showError(err instanceof Error ? err.message : String(err))
     } finally {
@@ -558,7 +562,9 @@ export function SettingsPanel() {
     setAssetBusy(true)
     try {
       const r = await window.electron.aihub.importSkills()
-      showSuccess(`技能库导入完成：新增 ${(r.added ?? []).length} / 更新 ${(r.updated ?? []).length} / 跳过 ${(r.skipped ?? []).length}`)
+      showSuccess(
+        `技能库导入完成：新增 ${(r.added ?? []).length} / 更新 ${(r.updated ?? []).length} / 跳过 ${(r.skipped ?? []).length}`,
+      )
     } catch (err) {
       showError(err instanceof Error ? err.message : String(err))
     } finally {

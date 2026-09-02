@@ -7,7 +7,19 @@
  * - 校验通过后可阻止后续操作（门禁提示：校验未通过时提示先修复再渲染/导出）
  */
 import { useState } from 'react'
-import { ShieldCheck, Play, Trash2, Download, AlertTriangle, CheckCircle2, Info, XCircle, PackageCheck, FileText, FileCheck2 } from 'lucide-react'
+import {
+  ShieldCheck,
+  Play,
+  Trash2,
+  Download,
+  AlertTriangle,
+  CheckCircle2,
+  Info,
+  XCircle,
+  PackageCheck,
+  FileText,
+  FileCheck2,
+} from 'lucide-react'
 import clsx from 'clsx'
 import { useValidationStore } from '@/stores/validation.store'
 import { useUIStore } from '@/stores/ui.store'

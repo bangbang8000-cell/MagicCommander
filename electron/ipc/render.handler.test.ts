@@ -29,10 +29,7 @@ describe('RenderHandler 4.8.0（48-a）项目包命令', () => {
   it('exportProjectPackage 构造 project package export 命令', async () => {
     const { handler, run } = makeHandler()
     await handler.exportProjectPackage('site-a', '/tmp/out/pkg.zip')
-    expect(run).toHaveBeenCalledWith(
-      ['project', 'package', 'export', 'site-a', '/tmp/out/pkg.zip'],
-      true,
-    )
+    expect(run).toHaveBeenCalledWith(['project', 'package', 'export', 'site-a', '/tmp/out/pkg.zip'], true)
   })
 
   it('importProjectPackage 构造 project package import 命令（缺省目标目录）', async () => {

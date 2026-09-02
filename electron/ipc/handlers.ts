@@ -60,15 +60,11 @@ function runPythonInlineScript(script: string): Promise<{ stdout: string; stderr
   const backendDir = getBackendDir()
   const repoRoot = process.env.NODE_ENV === 'development' ? process.cwd() : path.dirname(backendDir)
   return new Promise((resolve) => {
-    const proc = spawn(
-      getPythonPath(),
-      ['-c', script],
-      {
-        cwd: repoRoot,
-        env: { ...process.env, PYTHONUNBUFFERED: '1', PYTHONIOENCODING: 'utf-8' },
-        stdio: ['ignore', 'pipe', 'pipe'],
-      },
-    )
+    const proc = spawn(getPythonPath(), ['-c', script], {
+      cwd: repoRoot,
+      env: { ...process.env, PYTHONUNBUFFERED: '1', PYTHONIOENCODING: 'utf-8' },
+      stdio: ['ignore', 'pipe', 'pipe'],
+    })
     let stdout = ''
     let stderr = ''
     proc.stdout.on('data', (d: Buffer) => (stdout += d.toString()))
@@ -582,29 +578,32 @@ export function setupIpcHandlers(window: BrowserWindow): void {
   })
 
   // 4.8.0（F8-2 / 48-b）：项目历史快照「导出为文件 / 导入合并」（.mc_history/snapshots.json 或 .mc_backups）
-  ipcMain.handle('project:exportSnapshot', async (e, projectName: string, scope?: 'history' | 'backup'): Promise<unknown> => {
-    if (!isTrustedSender(e)) throw new Error('无权执行该操作')
-    validateProjectName(projectName)
-    const workspace = getWorkspaceDir()
-    const projectDir = path.join(workspace, projectName)
-    if (!isPathSafe(projectDir, workspace)) throw new Error('项目路径不在工作区内')
-    const scopeName = scope === 'backup' ? 'backup' : 'history'
-    const snapPath = path.join(projectDir, scopeName === 'backup' ? '.mc_backups' : '.mc_history', 'snapshots.json')
-    if (!fs.existsSync(snapPath)) throw new Error('该项目暂无快照可导出')
-    const raw = JSON.parse(fs.readFileSync(snapPath, 'utf-8'))
-    const bundle = buildSnapshotExport(raw)
-    const win = BrowserWindow.fromWebContents(e.sender)
-    const dst = await dialog.showSaveDialog(win!, {
-      title: '导出项目快照 (JSON)',
-      defaultPath: path.join(app.getPath('downloads'), `${projectName}-snapshot-${scopeName}.json`),
-      filters: [{ name: 'JSON', extensions: ['json'] }],
-    })
-    if (dst.canceled || !dst.filePath) throw new Error('已取消导出')
-    fs.writeFileSync(dst.filePath, JSON.stringify(bundle, null, 2), 'utf-8')
-    audit('project.exportSnapshot', `${projectName}:${scopeName}`)
-    logger.info(`[project:exportSnapshot] ${projectName} → ${dst.filePath}`)
-    return { path: dst.filePath, itemCount: Array.isArray(raw?.items) ? raw.items.length : 0 }
-  })
+  ipcMain.handle(
+    'project:exportSnapshot',
+    async (e, projectName: string, scope?: 'history' | 'backup'): Promise<unknown> => {
+      if (!isTrustedSender(e)) throw new Error('无权执行该操作')
+      validateProjectName(projectName)
+      const workspace = getWorkspaceDir()
+      const projectDir = path.join(workspace, projectName)
+      if (!isPathSafe(projectDir, workspace)) throw new Error('项目路径不在工作区内')
+      const scopeName = scope === 'backup' ? 'backup' : 'history'
+      const snapPath = path.join(projectDir, scopeName === 'backup' ? '.mc_backups' : '.mc_history', 'snapshots.json')
+      if (!fs.existsSync(snapPath)) throw new Error('该项目暂无快照可导出')
+      const raw = JSON.parse(fs.readFileSync(snapPath, 'utf-8'))
+      const bundle = buildSnapshotExport(raw)
+      const win = BrowserWindow.fromWebContents(e.sender)
+      const dst = await dialog.showSaveDialog(win!, {
+        title: '导出项目快照 (JSON)',
+        defaultPath: path.join(app.getPath('downloads'), `${projectName}-snapshot-${scopeName}.json`),
+        filters: [{ name: 'JSON', extensions: ['json'] }],
+      })
+      if (dst.canceled || !dst.filePath) throw new Error('已取消导出')
+      fs.writeFileSync(dst.filePath, JSON.stringify(bundle, null, 2), 'utf-8')
+      audit('project.exportSnapshot', `${projectName}:${scopeName}`)
+      logger.info(`[project:exportSnapshot] ${projectName} → ${dst.filePath}`)
+      return { path: dst.filePath, itemCount: Array.isArray(raw?.items) ? raw.items.length : 0 }
+    },
+  )
 
   ipcMain.handle('project:importSnapshot', async (e, projectName: string): Promise<unknown> => {
     if (!isTrustedSender(e)) throw new Error('无权执行该操作')
@@ -673,9 +672,7 @@ export function setupIpcHandlers(window: BrowserWindow): void {
     const picked = await dialog.showOpenDialog(win!, {
       title: '导入设备库包',
       properties: ['openFile'],
-      filters: [
-        { name: 'ZIP/JSON', extensions: ['zip', 'json'] },
-      ],
+      filters: [{ name: 'ZIP/JSON', extensions: ['zip', 'json'] }],
     })
     if (picked.canceled || !picked.filePaths.length) throw new Error('已取消导入')
     const result = await renderHandler.runPythonCommand(['device', 'library', 'import', picked.filePaths[0]], true)
@@ -700,7 +697,14 @@ export function setupIpcHandlers(window: BrowserWindow): void {
     const AdmZip = (await import('adm-zip')).default
     const zip = new AdmZip()
     const files: Array<{ path: string; sha256: string }> = []
-    const runtimeDirs = new Set(['output', 'yaml', 'output-label', 'output-label-md', 'output-label-pdf', '.output_backups'])
+    const runtimeDirs = new Set([
+      'output',
+      'yaml',
+      'output-label',
+      'output-label-md',
+      'output-label-pdf',
+      '.output_backups',
+    ])
     const collect = (dir: string, rel: string) => {
       for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
         if (entry.name.startsWith('.') || entry.name === '__pycache__' || runtimeDirs.has(entry.name)) continue

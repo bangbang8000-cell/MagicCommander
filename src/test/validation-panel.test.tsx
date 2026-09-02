@@ -243,8 +243,9 @@ describe('ValidationPanel（4.8.0 F8-4/F8-5 评审导出与交付清单校验）
       fireEvent.click(screen.getByText('导出评审包'))
       await Promise.resolve()
     })
-    const pkg = (globalThis.window.electron as unknown as { project: { exportReviewPackage: ReturnType<typeof vi.fn> } })
-      .project.exportReviewPackage
+    const pkg = (
+      globalThis.window.electron as unknown as { project: { exportReviewPackage: ReturnType<typeof vi.fn> } }
+    ).project.exportReviewPackage
     expect(pkg).toHaveBeenCalledWith('demo')
     await act(async () => {
       fireEvent.click(screen.getByText('导出评审 PDF'))

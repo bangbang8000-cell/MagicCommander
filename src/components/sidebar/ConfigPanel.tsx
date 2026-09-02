@@ -14,7 +14,18 @@ import {
 } from '@/stores/projectHistory.store'
 import { Button } from '@/components/ui/Button'
 import type { ProjectInfoDetail } from '@/types/ipc'
-import { Play, RefreshCw, FolderOpen, FileCheck, FileCode, FileOutput, History, Archive, Download, Upload } from 'lucide-react'
+import {
+  Play,
+  RefreshCw,
+  FolderOpen,
+  FileCheck,
+  FileCode,
+  FileOutput,
+  History,
+  Archive,
+  Download,
+  Upload,
+} from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useState, useEffect, useCallback, useMemo } from 'react'
 

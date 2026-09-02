@@ -33,8 +33,12 @@ describe('snapshot-transfer.service (48-b)', () => {
     expect(parseSnapshotImport(null).ok).toBe(false)
     expect(parseSnapshotImport({}).ok).toBe(false)
     expect(parseSnapshotImport({ schema: 'x' }).ok).toBe(false)
-    expect(parseSnapshotImport(buildSnapshotExport({ schema_version: 2, scope: 'history' as const, items: [] })).ok).toBe(false)
-    expect(parseSnapshotImport(buildSnapshotExport({ schema_version: 1, scope: 'other' as const, items: [] })).ok).toBe(false)
+    expect(
+      parseSnapshotImport(buildSnapshotExport({ schema_version: 2, scope: 'history' as const, items: [] })).ok,
+    ).toBe(false)
+    expect(parseSnapshotImport(buildSnapshotExport({ schema_version: 1, scope: 'other' as const, items: [] })).ok).toBe(
+      false,
+    )
   })
 
   it('mergeSnapshotStores 按 id 去重合并', () => {

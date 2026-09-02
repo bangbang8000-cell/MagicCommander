@@ -200,7 +200,9 @@ export interface ProjectIpcApi {
   /** 4.8.0（F8-2 / 48-b）：从文件导入项目历史快照（合并去重） */
   importSnapshot: (projectName: string) => Promise<{ ok: boolean; total: number; added: number }>
   /** 4.8.0（F8-3 / 48-c）：模板包导出为文件 */
-  exportTemplatePackage: (templateId: string) => Promise<{ status: string; data?: { path: string; name: string; file_count: number } }>
+  exportTemplatePackage: (
+    templateId: string,
+  ) => Promise<{ status: string; data?: { path: string; name: string; file_count: number } }>
   /** 4.8.0（F8-3 / 48-c）：从文件导入模板包 */
   importTemplatePackage: () => Promise<{ status: string; data?: { name: string; path: string } }>
   /** 4.8.0（F8-5 / 48-e）：交付物清单校验（批次 manifest 缺失/漂移/哈希不符） */

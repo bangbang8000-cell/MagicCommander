@@ -184,7 +184,10 @@ export function ExplorerPanel() {
     if (!selectedProject) return
     try {
       const result = await window.electron.project.exportPackage(selectedProject.name)
-      const data = result && typeof result === 'object' && 'data' in result ? (result as { data?: { path?: string } }).data : undefined
+      const data =
+        result && typeof result === 'object' && 'data' in result
+          ? (result as { data?: { path?: string } }).data
+          : undefined
       showSuccess(t('explorer.packageExported', { path: data?.path ?? '' }))
       await fetchProjects()
     } catch (err) {
@@ -200,7 +203,11 @@ export function ExplorerPanel() {
         return
       }
       const verb =
-        result.matched === 'skip' ? t('explorer.packageSkip') : result.matched === 'update' ? t('explorer.packageUpdated') : t('explorer.packageCreated')
+        result.matched === 'skip'
+          ? t('explorer.packageSkip')
+          : result.matched === 'update'
+            ? t('explorer.packageUpdated')
+            : t('explorer.packageCreated')
       showSuccess(t('explorer.packageImported', { verb, name: result.name }))
       await fetchProjects()
     } catch (err) {
