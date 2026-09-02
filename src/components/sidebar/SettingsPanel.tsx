@@ -25,6 +25,7 @@ import {
 import clsx from 'clsx'
 import { LOCALE_NAMES, LANGUAGE_ICON_CHARS } from '@/i18n/resources'
 import { useBuildInfo } from '@/hooks/useAppVersion'
+import { showSuccess } from '../ui/Toast'
 
 // Provider 目录
 const PROVIDER_CATALOG: Record<string, { name: string; baseUrl: string; models: string[]; defaultModel: string }> = {
@@ -92,6 +93,22 @@ export const MAX_TOOL_LOOP_ROUNDS_DEFAULT = 5
 export function clampToolLoopRounds(value: number): number {
   if (!Number.isFinite(value)) return MAX_TOOL_LOOP_ROUNDS_DEFAULT
   return Math.max(MAX_TOOL_LOOP_ROUNDS_MIN, Math.min(MAX_TOOL_LOOP_ROUNDS_MAX, Math.round(value)))
+}
+
+/** 4.7.0-47-a/47-e：更新状态展示文案（含离线/直连 fallback 提示） */
+export function updateStatusText(status: string): string {
+  switch (status) {
+    case 'newVersion':
+      return '发现新版本'
+    case 'newVersionFallback':
+      return '发现新版本（直连下载通道）'
+    case 'error':
+      return '检查失败：请检查网络，或前往 GitHub Releases 页手动下载'
+    case 'latest':
+      return '已是最新版本'
+    default:
+      return ''
+  }
 }
 
 export interface AutoFetchModelsCondition {
@@ -454,13 +471,48 @@ export function SettingsPanel() {
     try {
       await window.electron.app.checkUpdate()
       const unsub = window.electron.app.onUpdateStatus((status) => {
-        setUpdateStatus(status.status === 'available' ? 'newVersion' : 'latest')
+        if (status.status === 'available') {
+          setUpdateStatus(status.channel === 'fallback' ? 'newVersionFallback' : 'newVersion')
+        } else if (status.status === 'error') {
+          setUpdateStatus('error')
+        } else {
+          setUpdateStatus('latest')
+        }
         setCheckingUpdate(false)
         unsub()
       })
     } catch {
-      setUpdateStatus('latest')
+      setUpdateStatus('error')
       setCheckingUpdate(false)
+    }
+  }, [])
+
+  // 4.7.0-47-d：本地遥测开关（同步主进程 telemetry 服务）
+  const handleToggleTelemetry = useCallback(async () => {
+    const next = !generalSettings.telemetryEnabled
+    setGeneralSettings({ telemetryEnabled: next })
+    if (window.electron?.diag?.telemetrySetEnabled) {
+      await window.electron.diag.telemetrySetEnabled(next).catch(() => {})
+    }
+  }, [generalSettings.telemetryEnabled, setGeneralSettings])
+
+  const handleExportTelemetry = useCallback(async () => {
+    try {
+      if (!window.electron?.diag?.telemetryExport) return
+      const res = await window.electron.diag.telemetryExport()
+      if (res.ok && res.path) showSuccess(`遥测已导出：${res.path}`)
+    } catch {
+      /* ignore */
+    }
+  }, [])
+
+  const handleClearTelemetry = useCallback(async () => {
+    try {
+      if (!window.electron?.diag?.telemetryClear) return
+      await window.electron.diag.telemetryClear()
+      showSuccess('遥测数据已清空')
+    } catch {
+      /* ignore */
     }
   }, [])
 
@@ -676,6 +728,61 @@ export function SettingsPanel() {
                     isDark ? 'border-gray-600 bg-gray-700 text-gray-200' : 'border-gray-300 bg-white text-gray-700',
                   )}
                 />
+              </div>
+            )}
+
+            {/* 本地遥测（4.7.0-47-d）：默认关闭，本地采集脱敏不上传 */}
+            <div className="flex items-center justify-between">
+              <div>
+                <span className={clsx('text-xs', isDark ? 'text-gray-400' : 'text-gray-600')}>本地遥测</span>
+                <p className={clsx('text-[11px]', isDark ? 'text-gray-600' : 'text-gray-400')}>
+                  本地采集启动/崩溃/关键操作耗时，脱敏且不上传
+                </p>
+              </div>
+              <button
+                onClick={handleToggleTelemetry}
+                className={clsx(
+                  'w-9 h-5 rounded-full transition-colors relative',
+                  generalSettings.telemetryEnabled ? 'bg-blue-500' : isDark ? 'bg-gray-600' : 'bg-gray-300',
+                )}
+              >
+                <div
+                  className={clsx(
+                    'w-3.5 h-3.5 rounded-full bg-white absolute top-0.5 transition-transform',
+                    generalSettings.telemetryEnabled ? 'translate-x-4' : 'translate-x-0.5',
+                  )}
+                />
+              </button>
+            </div>
+            {generalSettings.telemetryEnabled && (
+              <div className="flex items-center justify-between">
+                <span className={clsx('text-[11px]', isDark ? 'text-gray-500' : 'text-gray-400')}>
+                  遥测数据（仅本地文件）
+                </span>
+                <div className="flex gap-1">
+                  <button
+                    onClick={handleExportTelemetry}
+                    className={clsx(
+                      'px-1.5 py-0.5 rounded text-[10px]',
+                      isDark
+                        ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                        : 'bg-gray-200 text-gray-600 hover:bg-gray-300',
+                    )}
+                  >
+                    导出
+                  </button>
+                  <button
+                    onClick={handleClearTelemetry}
+                    className={clsx(
+                      'px-1.5 py-0.5 rounded text-[10px]',
+                      isDark
+                        ? 'bg-gray-700 text-gray-400 hover:text-red-400'
+                        : 'bg-gray-200 text-gray-500 hover:text-red-500',
+                    )}
+                  >
+                    清空
+                  </button>
+                </div>
               </div>
             )}
 
@@ -1444,12 +1551,13 @@ export function SettingsPanel() {
                   <span className={clsx('text-xs', isDark ? 'text-gray-400' : 'text-gray-600')}>
                     {t('common:settings.updates.title')}
                   </span>
-                  <p className={clsx('text-[11px]', isDark ? 'text-gray-600' : 'text-gray-400')}>
-                    {updateStatus === 'newVersion'
-                      ? t('common:settings.general.newVersionAvailable')
-                      : updateStatus === 'latest'
-                        ? t('common:settings.general.latestVersion')
-                        : ''}
+                  <p
+                    className={clsx(
+                      'text-[11px]',
+                      updateStatus === 'error' ? 'text-red-500' : isDark ? 'text-gray-600' : 'text-gray-400',
+                    )}
+                  >
+                    {updateStatusText(updateStatus)}
                   </p>
                 </div>
                 <button
@@ -1527,12 +1635,16 @@ export function SettingsPanel() {
                 <p
                   className={clsx(
                     'text-[11px] mt-1.5',
-                    updateStatus === 'newVersion' ? 'text-green-400' : isDark ? 'text-gray-500' : 'text-gray-400',
+                    updateStatus === 'error'
+                      ? 'text-red-400'
+                      : updateStatus === 'newVersion' || updateStatus === 'newVersionFallback'
+                        ? 'text-green-400'
+                        : isDark
+                          ? 'text-gray-500'
+                          : 'text-gray-400',
                   )}
                 >
-                  {updateStatus === 'newVersion'
-                    ? t('common:settings.general.newVersionAvailable')
-                    : t('common:settings.general.latestVersion')}
+                  {updateStatusText(updateStatus)}
                 </p>
               )}
             </div>

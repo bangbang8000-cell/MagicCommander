@@ -5,6 +5,7 @@ import * as os from 'os'
 import { spawn } from 'child_process'
 import { sanitizePathArg, validateProjectName, isPathSafe } from '../utils/security'
 import { getPythonPath, getWorkspaceDir, getPythonSitePackages } from '../config'
+import { telemetryService } from '../services/telemetry.service'
 
 const THROTTLE_MS = 100
 
@@ -282,7 +283,9 @@ export class RenderHandler {
   }
 
   async runPythonCommand<T = unknown>(args: string[], returnData: boolean = false): Promise<T> {
-    return new Promise((resolve, reject) => {
+    const startedAt = Date.now()
+    const actionKey = Array.isArray(args) && args.length > 0 ? String(args[0]) : 'python'
+    const promise = new Promise<T>((resolve, reject) => {
       const devPath = path.join(process.cwd(), 'backend')
       const backendPath = fs.existsSync(devPath) ? devPath : path.join(process.resourcesPath, 'backend')
 
@@ -378,6 +381,18 @@ export class RenderHandler {
         reject(err)
       }
     })
+    // 47-d：关键动作耗时遥测（本地仅落盘，启用时记录）
+    promise.then(
+      () =>
+        telemetryService.record('action.duration', { action: actionKey, durationMs: Date.now() - startedAt, ok: true }),
+      () =>
+        telemetryService.record('action.duration', {
+          action: actionKey,
+          durationMs: Date.now() - startedAt,
+          ok: false,
+        }),
+    )
+    return promise
   }
 }
 
