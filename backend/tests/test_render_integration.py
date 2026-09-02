@@ -246,6 +246,10 @@ class TestRenderIntegration:
 
             pp.execute_render('1', 'device_name')
 
+            # 修改输入（模板）以触发真实重渲染（缓存应失效），避免同秒/跨秒时序导致缓存命中
+            tpl_path = os.path.join(tmpdir, project_name, 'templates', 'ASW.j2')
+            with open(tpl_path, 'a', encoding='utf-8') as f:
+                f.write('\n# 变更')
             pp.execute_render('1', 'device_name')
 
             backup_dir = os.path.join(tmpdir, project_name, '.output_backups')
