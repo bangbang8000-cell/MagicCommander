@@ -11,7 +11,7 @@ import * as os from 'os'
 import * as path from 'path'
 import { app, net, shell } from 'electron'
 import { autoUpdater } from 'electron-updater'
-import { UpdateService } from './update.service'
+import { UpdateService, getPlatformYmlName } from './update.service'
 
 vi.mock('electron-updater', () => {
   const autoUpdater = {
@@ -89,7 +89,7 @@ function makeNetRequestMock(
   return impl
 }
 
-const YML_URL = 'https://github.com/bangbang8000-cell/MagicCommander/releases/latest/download/latest.yml'
+const YML_URL = `https://github.com/bangbang8000-cell/MagicCommander/releases/latest/download/${getPlatformYmlName()}`
 
 function makeWindow() {
   const sends: Array<Record<string, unknown>> = []
@@ -200,7 +200,7 @@ describe('downloadUpdate：fallback 模式直接下载安装包', () => {
       },
     })
     const netMock = vi.fn((url: string) => {
-      return url.includes('latest.yml') ? ymlMock(url) : downloadMock(url)
+      return url === YML_URL ? ymlMock(url) : downloadMock(url)
     })
     vi.spyOn(net, 'request').mockImplementation(netMock)
 
@@ -230,7 +230,7 @@ describe('downloadUpdate：fallback 模式直接下载安装包', () => {
       },
     })
     const netMock = vi.fn((url: string) => {
-      const target = url.includes('latest.yml') ? ymlMock : downloadMock
+      const target = url === YML_URL ? ymlMock : downloadMock
       return target(url)
     })
     vi.spyOn(net, 'request').mockImplementation(netMock)

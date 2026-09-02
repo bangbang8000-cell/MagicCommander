@@ -20,7 +20,7 @@ const PUBLISH_REPO = 'MagicCommander'
 const RELEASES_PAGE_URL = `https://github.com/${PUBLISH_OWNER}/${PUBLISH_REPO}/releases/latest`
 
 /** 当前平台对应的 latest yml 文件名 */
-function getPlatformYmlName(): string {
+export function getPlatformYmlName(): string {
   switch (process.platform) {
     case 'darwin':
       return 'latest-mac.yml'
