@@ -3,7 +3,8 @@ import { persist, subscribeWithSelector } from 'zustand/middleware'
 
 export type ActivityType = 'search' | 'chat' | 'explorer' | 'output' | 'workbench' | 'settings' | 'cloud'
 // 4.5.0（F5-5）：校验面板（与日志/终端/问题/性能并列）
-export type PanelType = 'log' | 'terminal' | 'problems' | 'perf' | 'validation'
+// 4.6.0-46-d：质量仪表盘（与日志/终端/性能/校验并列）
+export type PanelType = 'log' | 'terminal' | 'problems' | 'perf' | 'validation' | 'quality'
 
 /** 主题模式（4.1 F1-1/F1-2）：light/dark/system + 高对比主题（WCAG AA） */
 export type ThemeMode = 'light' | 'dark' | 'system' | 'high-contrast'
