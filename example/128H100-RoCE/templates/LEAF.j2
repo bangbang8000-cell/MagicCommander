@@ -1,0 +1,111 @@
+# LEAF（参数网）
+sysname {{ info['设备名'] }}
+#
+ip vpn-instance Mgnt
+#
+priority-flow-control poolid 0 headroom {{ info['PFCHeadroom'] }}
+#
+ip ttl-expires enable
+#
+lldp global enable
+#
+buffer egress cell queue {{ info['CNP队列'] }} shared ratio 100
+buffer egress cell queue {{ info['PFC队列'] }} shared ratio 100
+buffer apply
+#
+priority-flow-control deadlock cos {{ info['PFC队列'] }} interval 10
+priority-flow-control deadlock precision high
+priority-flow-control deadlock auto-recover cos {{ info['PFC队列'] }} delay 10
+password-recovery enable
+#
+vlan 1
+#
+qos map-table dot1p-lp
+ import 0 export 0
+ import 1 export 1
+ import 2 export 2
+ import 3 export 3
+ import 4 export 4
+ import 5 export 5
+ import 6 export 6
+ import 7 export 7
+#
+interface LoopBack0
+ ip address {{ info['环回IP'] }} 255.255.255.255
+#
+interface M-GigabitEthernet0/0/0
+ ip binding vpn-instance Mgnt
+ ip address {{ info['管理IP'] }} 255.255.255.0
+#
+{# 上联互联（IP规划地址表，对称表，按 己端接口 嵌套，/31 EBGP 邻居） #}
+{%- for key, val in info.get('IP规划地址表-参数网 己端接口', {}).items() %}
+interface {{ key }}
+ port link-mode route
+ link-delay up 2
+ priority-flow-control enable
+ priority-flow-control no-drop dot1p {{ info['PFC队列'] }}
+ priority-flow-control deadlock enable
+ ip address {{ val['己端IP地址'] }} 255.255.255.254
+ qos trust dscp
+ qos wfq byte-count
+ qos wfq cs{{ info['CNP队列'] }} group sp
+ qos wfq cs7 group sp
+ qos wred apply 400G-WRED-Template
+#
+{%- endfor %}
+{# GPU/存储下联口（终端连接表，赋值表+列表值单元格，带 description） #}
+{%- set gpu_ports = info['己端接口'][1:] %}
+{%- set gpu_vlans = info['己端VLAN'][1:] %}
+{%- set gpu_descs = info.get('己端描述', ['list'])[1:] %}
+{%- for p in gpu_ports %}
+interface {{ p }}
+ port link-mode bridge
+ description {{ gpu_descs[loop.index0] if gpu_descs else '' }}
+ port access vlan {{ gpu_vlans[loop.index0] }}
+ link-delay up 2
+ priority-flow-control enable
+ priority-flow-control no-drop dot1p {{ info['PFC队列'] }}
+ priority-flow-control deadlock enable
+ stp edged-port
+ qos trust dscp
+ qos wfq byte-count
+ qos wfq cs{{ info['CNP队列'] }} group sp
+ qos wfq cs7 group sp
+ qos wred apply 200G-WRED-Template
+ qos gts queue {{ info['CNP队列'] }} cir 200000000 cbs 16000000
+#
+{%- endfor %}
+{# VLAN 网关（VLAN网关表） #}
+{%- set gw_vlans = info['网关VLAN'][1:] %}
+{%- set gw_ips = info['网关IP'][1:] %}
+{%- for v in gw_vlans %}
+interface Vlan-interface{{ v }}
+ ip address {{ gw_ips[loop.index0] }} 255.255.255.0
+#
+{%- endfor %}
+{# EBGP + ECMP #}
+router bgp {{ info['BGP AS'] }}
+ bgp router-id {{ info['环回IP'] }}
+ bgp log-neighbor-changes
+ bgp graceful-restart
+ bgp bestpath as-path multipath-relax
+ bgp always-compare-med
+ maximum-paths ebgp {{ info['BGP多路径'] }}
+{%- for key, val in info.get('IP规划地址表-参数网 己端接口', {}).items() %}
+ neighbor {{ val['对端IP地址'] }} as-number {{ val['对端AS'] }}
+{%- endfor %}
+ address-family ipv4
+  network {{ info['环回IP'] }} mask 255.255.255.255
+{%- for key, val in info.get('IP规划地址表-参数网 己端接口', {}).items() %}
+  neighbor {{ val['对端IP地址'] }} activate
+  neighbor {{ val['对端IP地址'] }} send-community both
+{%- endfor %}
+{%- set gw_vlans = info.get('网关VLAN', []) %}
+{%- set gw_ips = info.get('网关IP', []) %}
+{%- if gw_vlans and gw_vlans[0] == 'list' %}
+{%- for v in gw_vlans[1:] %}
+  network {{ gw_ips[loop.index0 + 1] }} mask 255.255.255.0
+{%- endfor %}
+{%- endif %}
+  exit-address-family
+#

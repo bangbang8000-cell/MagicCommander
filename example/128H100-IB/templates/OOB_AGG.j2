@@ -1,0 +1,18 @@
+# OOB_AGG（带外汇聚，自研简版）
+sysname {{ info['设备名'] }}
+#
+ip vpn-instance mgt_vrf
+ route-distinguisher 2:1
+#
+interface M-GigabitEthernet0/0/0
+ ip binding vpn-instance mgt_vrf
+ ip address {{ info['管理IP'] }} 255.255.255.0
+#
+{%- for item in info['NTP地址'][1:] %}
+ntp-service unicast-server {{ item }}
+{%- endfor %}
+#
+snmp-agent
+snmp-agent community read {{ info['SNMP团体名'] }}
+#
+ssh server enable

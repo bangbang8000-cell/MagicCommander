@@ -1,0 +1,53 @@
+# BIZ_AGG（业务汇聚，承载带内管理；下联 EBGP+ECMP）
+sysname {{ info['设备名'] }}
+#
+ip vpn-instance mgt_vrf
+ route-distinguisher 2:1
+#
+lldp global enable
+#
+{%- for key, val in info.get('IP规划地址表-业务网 己端接口', {}).items() %}
+interface {{ key }}
+ port link-mode route
+ link-delay up 2
+ ip address {{ val['己端IP地址'] }} 255.255.255.254
+#
+{%- endfor %}
+router bgp {{ info['BGP AS'] }}
+ bgp router-id {{ info['环回IP'] }}
+ bgp log-neighbor-changes
+ maximum-paths ebgp {{ info['BGP多路径'] }}
+{%- for key, val in info.get('IP规划地址表-业务网 己端接口', {}).items() %}
+ neighbor {{ val['对端IP地址'] }} as-number {{ val['对端AS'] }}
+{%- endfor %}
+ address-family ipv4
+  network {{ info['环回IP'] }} mask 255.255.255.255
+{%- for key, val in info.get('IP规划地址表-业务网 己端接口', {}).items() %}
+  neighbor {{ val['对端IP地址'] }} activate
+{%- endfor %}
+  exit-address-family
+#
+interface M-GigabitEthernet0/0/0
+ ip binding vpn-instance mgt_vrf
+ ip address {{ info['管理IP'] }} 255.255.255.0
+#
+hwtacacs scheme {{ info['AAA名称'] }}
+ primary authentication {{ info['AAA地址'][1] if info['AAA地址'][0] == 'list' else info['AAA地址'] }}
+ key authentication simple {{ info['AAA认证密钥'] }}
+ user-name-format without-domain
+#
+local-user {{ info['本地用户名'] }} class manage
+ password simple {{ info['本地用户密钥'] }}
+ service-type ssh terminal
+#
+{%- for item in info['NTP地址'][1:] %}
+ntp-service unicast-server {{ item }}
+{%- endfor %}
+#
+snmp-agent
+snmp-agent community read {{ info['SNMP团体名'] }}
+#
+info-center enable
+info-center loghost {{ info['LOGHOST地址'] }}
+#
+ssh server enable

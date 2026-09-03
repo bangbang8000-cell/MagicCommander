@@ -1,0 +1,61 @@
+{
+  "name": "64H100-RoCE",
+  "source": "autolink",
+  "license": "private",
+  "planes": [
+    "业务&管理网",
+    "参数网",
+    "存储网",
+    "带外网"
+  ],
+  "roles": [
+    "BIZ_ACCESS",
+    "BIZ_AGG",
+    "LEAF",
+    "OOB_ACCESS",
+    "OOB_AGG",
+    "SPINE",
+    "STO_LEAF",
+    "STO_SPINE"
+  ],
+  "tunables": [
+    "PFC队列",
+    "CNP队列"
+  ],
+  "generator": "intent.project_single.SingleProjectGenerator",
+  "version": "0.3",
+  "validation": {
+    "ok": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  "projectType": "aidc",
+  "bridgeVersion": "1.0",
+  "originPlan": "aidc_64",
+  "originProjectId": "b3a1c0d1-0000-4000-8000-64h100roce001",
+  "originProjectName": "64H100-RoCE",
+  "originSite": "BJ02",
+  "originPlanVersion": 1,
+  "planHash": "4c4c18be5e9d4c91ef5169cdafe84a998a94e523e547d0fa587fc315065e5508",
+  "mcPlanVersion": 1,
+  "changelog": [
+    {
+      "at": "2026-09-03T00:00:00+00:00",
+      "planVersion": 1,
+      "mcPlanVersion": 1,
+      "planHash": "4c4c18be5e9d4c91ef5169cdafe84a998a94e523e547d0fa587fc315065e5508",
+      "changed": [],
+      "summary": "无字段级变化"
+    }
+  ],
+  "updatedAt": "2026-09-03T00:00:00.000Z",
+  "inputRequirements": [
+    "excel/hostname.xlsx - 设备名、角色、型号、环回/管理IP、BGP AS、MLAG 等基础信息",
+    "excel/connection.xlsx - 终端连接表（每接口一行）+ VLAN 网关表（每 VLAN 一行）",
+    "excel/ipaddress.xlsx - IP 规划地址表（对称表）+ 环回地址表 + 网段规划表",
+    "excel/parameter.xlsx - 全局参数（PFC/CNP 队列、AAA、NTP、SNMP 等）"
+  ],
+  "outputDescription": "生成设备的 CLI 配置文件（sysname、VLAN、接口、EBGP/ECMP、PFC/CNP 无损参数、MLAG 等）。",
+  "description": "64 台 H100 集群 · RoCEv2（RDMA over Converged Ethernet）示例项目：H3C S9827 组网，收敛比 3:1，四网合一。",
+  "scenario": "AIDC/64 台/RoCE"
+}

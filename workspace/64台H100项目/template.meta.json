@@ -1,0 +1,51 @@
+{
+  "name": "64台H100项目",
+  "source": "autolink",
+  "license": "private",
+  "planes": [
+    "业务&管理网",
+    "参数网",
+    "存储网",
+    "带外网"
+  ],
+  "roles": [
+    "BIZ_ACCESS",
+    "BIZ_AGG",
+    "LEAF",
+    "OOB_ACCESS",
+    "OOB_AGG",
+    "SPINE",
+    "STO_LEAF",
+    "STO_SPINE"
+  ],
+  "tunables": [
+    "PFC队列",
+    "CNP队列"
+  ],
+  "generator": "intent.project_single.SingleProjectGenerator",
+  "version": "0.3",
+  "validation": {
+    "ok": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  "projectType": "aidc",
+  "bridgeVersion": "1.0",
+  "originPlan": "aidc_64",
+  "originProjectId": "d9728a87-0af9-4674-acb9-533116e20269",
+  "originProjectName": "64台H100项目",
+  "originSite": "BJ01",
+  "originPlanVersion": 1,
+  "planHash": "0eb9a8ef2dc50099c41e48b78f3d9363d6ecee29a9cba8e0c014f26ac9a15d59",
+  "mcPlanVersion": 1,
+  "changelog": [
+    {
+      "at": "2026-08-27T02:13:28+00:00",
+      "planVersion": 1,
+      "mcPlanVersion": 1,
+      "planHash": "0eb9a8ef2dc50099c41e48b78f3d9363d6ecee29a9cba8e0c014f26ac9a15d59",
+      "changed": [],
+      "summary": "无字段级变化"
+    }
+  ]
+}
