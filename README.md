@@ -2,7 +2,7 @@
 
 **批量生成网络设备配置 | Network Device Configuration Automation**
 
-[![Version](https://img.shields.io/badge/version-4.9.0-blue)](https://github.com/bangbang8000-cell/MagicCommander/releases)
+[![Version](https://img.shields.io/badge/version-5.0.1-blue)](https://github.com/bangbang8000-cell/MagicCommander/releases)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![Windows](https://img.shields.io/badge/Windows-NSIS-blue)](https://github.com/bangbang8000-cell/MagicCommander/releases)
 [![macOS](https://img.shields.io/badge/macOS-DMG-silver)](https://github.com/bangbang8000-cell/MagicCommander/releases)
@@ -245,6 +245,7 @@ MagicCommander/
 
 | 版本 | 日期 | 更新内容 |
 |------|------|---------|
+| **5.0.1 Build 26090302** | 2026-09-03 | **5.0 系列第 1 版 · 内容与渲染准确性攻坚**：四示例复核修正（IB 型号对齐 NVIDIA Quantum QM9700）+ 模板参数/协议兼容性门禁 + 设备库扩充（NVIDIA IB 型号 + fabric 感知 + 对账校验）+ 渲染核对矩阵扩展（设备数/命名/IP/连接/收敛比） |
 | **4.9.0 Build 26090301** | 2026-09-03 | **4.9 示例资产与收官（4.0 系列收官）**：AIDC 四示例项目（64H100-IB/64H100-RoCE/128H100-IB/128H100-RoCE，机房矩阵定稿 + 机柜设备参数全配 + IB/RoCE 协议正确收敛比合理，可打开/可渲染/可导出/可导入项目包，基于 AutoLink 规划导入闭环）+ 模板中心注册可基于示例创建 + 示例自动化验收（打开/渲染/导出/回灌/golden 门禁）+ 用户指南/About 收官 |
 | **4.8.0 Build 26090204** | 2026-09-02 | **4.8 互操作与交付强化**：项目包往返强化（可移植项目包导出 + 按身份导入 skip/update/new）；导入导出格式增强（快照/版本历史导出回导、各格式往返）；跨端资产互灌（设备库/技能库/模板可移植导入导出）；交付物清单与校验（渲染批次 manifest 逐文件 sha256 + 完整性校验）；报告/评审强化（评审包 zip/Markdown/PDF） |
 | **4.7.0 Build 26090203** | 2026-09-02 | **4.7 部署运维与可观测**：更新兜底链（latest.yml 直查 + 安装包直接下载 + Content-Length 完整性校验 + Releases 页兜底 + 启动自动检查开关）；诊断中心（日志/审计/崩溃/性能/系统信息一处可查 + 一键导出支持包 zip）；健康检查/自检（环境/引擎/网络/依赖 + 导出 JSON）；本地遥测（本地化/脱敏/默认关闭/可配置/可导出）；审计日志（关键操作 audit.jsonl 脱敏）；安装升级体验（构建配置校验 + 离线友好提示） |
