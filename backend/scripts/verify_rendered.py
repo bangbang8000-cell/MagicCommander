@@ -10,6 +10,8 @@
 
 图例：✅ 命中 · ❌ 未命中 · — 该设备类型不适用
 """
+import ipaddress
+import json
 import os
 import re
 import sys
@@ -97,6 +99,191 @@ def verify_project_data(project_dir: str) -> dict:
         devices.append({'name': name, 'role': role, 'plane': plane, 'results': results})
     return {'ok': True, 'rendered_at': ts, 'checks': all_checks,
             'devices': devices, 'summary': summary}
+
+
+# ---------------------------------------------------------------------------
+# 5.0.1（501-d）：结构核对（设备数 / 命名规范 / IP 连通 / 连接表 / 收敛比）
+# ---------------------------------------------------------------------------
+
+# 接口名 → 速率（Gbps）
+_PORT_RATES = (
+    ('FourHundredGigE', 400), ('TwoHundredGigE', 200), ('HundredGigE', 100),
+    ('Twenty-FiveGigE', 25), ('Ten-GigabitEthernet', 10), ('GigabitEthernet', 1),
+)
+
+
+def _port_rate(ifname):
+    for prefix, rate in _PORT_RATES:
+        if str(ifname).startswith(prefix):
+            return rate
+    return None
+
+
+def _read_plan(project_dir):
+    path = os.path.join(project_dir, 'plan.json')
+    if not os.path.exists(path):
+        return None
+    try:
+        with open(path, encoding='utf-8') as f:
+            return json.load(f)
+    except (OSError, ValueError):
+        return None
+
+
+def _naming_abbr_map(plan):
+    return (plan.get('macro', {}).get('naming') or {}).get('abbr') or {}
+
+
+def _naming_pattern(plan, site):
+    """由命名 format 构建结构正则：{site}-R{rack:02d}-AIDC-{vendor}-{abbr}-{seq:02d}。"""
+    fmt = (plan.get('macro', {}).get('naming') or {}).get('format', '')
+    pattern = fmt.replace('{site}', re.escape(str(site))).replace('{rack:02d}', r'\d{2}')
+    pattern = pattern.replace('{vendor}', r'[\w-]+').replace('{abbr}', r'[\w-]+').replace('{seq:02d}', r'\d{2}')
+    return pattern
+
+
+def _verify_naming(records, plan, issues):
+    site = plan.get('macro', {}).get('site', '')
+    abbr_map = _naming_abbr_map(plan)
+    pattern = _naming_pattern(plan, site)
+    names = {n for n, _, _ in records}
+    for d in plan.get('deviceList', []):
+        name = d.get('name', '')
+        if name not in names:
+            issues.append(f'plan 设备 {name} 未渲染')
+            continue
+        abbr = abbr_map.get(d.get('scenario', ''), '')
+        if pattern and not re.fullmatch(pattern, name):
+            issues.append(f'设备名 {name} 不符合命名规范 {pattern}')
+        elif abbr and abbr not in name:
+            issues.append(f'设备名 {name} 缺角色 abbr {abbr}')
+
+
+def _ip_in(net, ip):
+    try:
+        return ipaddress.ip_address(ip) in ipaddress.ip_network(net)
+    except ValueError:
+        return False
+
+
+def _verify_ip_connectivity(records, plan, issues):
+    seg = plan.get('macro', {}).get('ipSegments') or {}
+    loop_seg = seg.get('loopback', '10.1.0.0/20')
+    oob_seg = seg.get('oob', '10.1.64.0/21')
+    inter_seg = seg.get('interconnect', '10.1.72.0/21')
+    for name, role, text in records:
+        m = re.search(r'interface LoopBack0\s+ip address (\S+) 255\.255\.255\.255', text)
+        if m and not _ip_in(loop_seg, m.group(1)):
+            issues.append(f'{name} 环回 IP {m.group(1)} 不在环回段 {loop_seg}')
+        m = re.search(r'interface M-GigabitEthernet0/0/0.*?ip address (\S+) 255\.255\.255\.0', text, re.S)
+        if m and not _ip_in(oob_seg, m.group(1)):
+            issues.append(f'{name} 管理 IP {m.group(1)} 不在带外/管理段 {oob_seg}')
+        for m in re.finditer(r'ip address (\S+) 255\.255\.255\.254', text):
+            if not _ip_in(inter_seg, m.group(1)):
+                issues.append(f'{name} 互联 IP {m.group(1)} 不在互联段 {inter_seg}')
+
+
+def _rate_gbps(rate):
+    m = re.match(r'^(\d+(?:\.\d+)?)\s*[Gg]$', str(rate or '').strip())
+    return float(m.group(1)) if m else None
+
+
+def _verify_connection_table(records, plan, issues, metrics):
+    """连接表：plan connections 的 己端端口/速率 在渲染文本中对端引用齐全。
+
+    对端引用 = 渲染配置含 `interface <己端端口>`（L3 上联 /31、L2 trunk/access 均覆盖）；
+    速率 = 接口名速率前缀与连接表 rate 声明一致。
+    """
+    by_src = {}
+    for c in plan.get('connections', []):
+        by_src.setdefault(c.get('src', ''), []).append(c)
+    records_by_name = {n: (n, r, t) for n, r, t in records}
+    uplink_totals = []
+    for name, conns in by_src.items():
+        rec = records_by_name.get(name)
+        if rec is None:
+            issues.append(f'连接对端 {name} 未渲染')
+            continue
+        text = rec[2]
+        plan_ports = [c.get('src_port') for c in conns]
+        missing = [p for p in plan_ports
+                   if not re.search(rf'^interface\s+{re.escape(str(p))}$', text, re.M)]
+        if missing:
+            issues.append(f'{name} 连接表缺对端接口 {missing[:5]}（{len(plan_ports) - len(missing)}/{len(plan_ports)}）')
+        # 速率：接口名前缀 vs 连接表 rate
+        for c in conns:
+            named = _port_rate(c.get('src_port'))
+            declared = _rate_gbps(c.get('rate'))
+            if named and declared and abs(named - declared) > 1e-9:
+                issues.append(f'{name} {c.get("src_port")} 接口速率({named}G) 与连接表 rate({c.get("rate")}) 不符')
+        uplink_totals.append(sum(_port_rate(p) or 0 for p in plan_ports))
+    metrics['uplink_bandwidth_g'] = sum(uplink_totals)
+
+
+def _verify_convergence(plan, issues, metrics):
+    """收敛比：参数网 LEAF 下联带宽 / 上联带宽 vs plan macro.convergence 目标。"""
+    conns = plan.get('connections', [])
+    terms = plan.get('terminals', [])
+    leaf_names = {d['name'] for d in plan.get('deviceList', []) if d.get('role') == 'LEAF'}
+    leaf_conns = [c for c in conns if c.get('src') in leaf_names]
+    leaf_terms = [t for t in terms if t.get('src') in leaf_names]
+    down = sum(_port_rate(t.get('src_port')) or 0 for t in leaf_terms)
+    up = sum(_port_rate(c.get('src_port')) or 0 for c in leaf_conns)
+    target = plan.get('macro', {}).get('convergence')
+    ratio = (down / up) if up else None
+    metrics['convergence_actual'] = ratio
+    metrics['convergence_target'] = target
+    if target is None or up == 0:
+        return
+    target = float(target)
+    # 允许下联/上联带宽比不超过目标（不超售）；IB（目标=1）要求精确 1:1
+    if ratio is not None and ratio > target + 0.01:
+        issues.append(f'参数网收敛比 {ratio:.2f}:1 超过目标 {target:g}:1')
+    if ratio is not None and abs(target - 1.0) < 1e-9 and abs(ratio - 1.0) > 0.01:
+        issues.append(f'IB 参数网收敛比须 1:1，实际 {ratio:.2f}:1')
+
+
+def verify_structural(records, plan):
+    """501-d：结构核对（设备数/命名/IP 连通/连接表/收敛比）。返回 (issues, metrics)。"""
+    issues = []
+    metrics = {'device_count': len(records), 'plan_device_count': len(plan.get('deviceList', []))}
+
+    # 1) 设备数
+    if len(records) != len(plan.get('deviceList', [])):
+        issues.append(f'渲染设备数 {len(records)} ≠ plan deviceList {len(plan.get("deviceList", []))}')
+
+    # 2) 命名规范
+    _verify_naming(records, plan, issues)
+
+    # 3) IP 连通（环回/管理/互联段）
+    _verify_ip_connectivity(records, plan, issues)
+
+    # 4) 连接表（对端引用 / 速率）
+    _verify_connection_table(records, plan, issues, metrics)
+
+    # 5) 收敛比（上联/下联 vs 目标）
+    _verify_convergence(plan, issues, metrics)
+
+    return issues, metrics
+
+
+def verify_project_full(project_dir: str) -> dict:
+    """501-d：渲染产物全量核对 = 命令核对矩阵 + 结构核对（设备数/命名/IP/连接表/收敛比）。"""
+    cmd = verify_project_data(project_dir)
+    out = dict(cmd)
+    plan = _read_plan(project_dir)
+    if cmd.get('ok') and plan:
+        records = [(d['name'], d['role'], '') for d in cmd.get('devices', [])]
+        # 重新读取文本（verify_project_data 未保留原文）
+        base = os.path.join(project_dir, 'output', cmd.get('rendered_at', ''))
+        texts = {}
+        for p in glob_txt(base):
+            texts[os.path.splitext(os.path.basename(p))[0]] = open(p, encoding='utf-8').read()
+        records = [(n, r, texts.get(n, '')) for n, r, _ in records]
+        issues, metrics = verify_structural(records, plan)
+        out['structural'] = {'ok': not issues, 'issues': issues, 'metrics': metrics}
+        out['ok'] = out['ok'] and not issues
+    return out
 
 
 def main(project_dir: str = DEFAULT_PROJECT):

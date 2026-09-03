@@ -107,6 +107,9 @@ def render_all(names):
         logging.getLogger().setLevel(logging.ERROR)
 
         p = PreProcessing()
+        # 5.0.1（501-d）：显式指定 workspace（pytest 全量套件中 config.WORKSPACE_DIR 已缓存，
+        # 仅靠 env MC_WORKSPACE 不再生效），确保渲染落到本次临时 workspace。
+        p.workspace = tmpdir
         p.read_MC_para('MC_Para.xlsx')
         buf = io.StringIO()
         with contextlib.redirect_stdout(buf):
