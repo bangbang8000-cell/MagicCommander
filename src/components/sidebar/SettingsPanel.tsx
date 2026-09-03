@@ -209,6 +209,100 @@ export function SettingsPanel() {
     available: Record<string, boolean>
   } | null>(null)
 
+  // 5.0.3-503-c：MCP server 管理
+  const [mcpServers, setMCPServers] = useState<
+    Array<{ name: string; command: string; args: string[]; status: string; tool_count: number; tools: string[] }>
+  >([])
+  const [mcpName, setMcpName] = useState('')
+  const [mcpCommand, setMcpCommand] = useState('')
+  const [mcpArgs, setMcpArgs] = useState('')
+  const [mcpBusy, setMcpBusy] = useState(false)
+  const [mcpError, setMcpError] = useState<string | null>(null)
+
+  const refreshMCP = useCallback(async () => {
+    try {
+      const res = await window.electron.aihub.mcpList()
+      if (res && Array.isArray(res.servers)) setMCPServers(res.servers as never)
+    } catch {
+      /* 后端不可用时静默 */
+    }
+  }, [])
+
+  useEffect(() => {
+    void refreshMCP()
+  }, [refreshMCP])
+
+  const handleMCPAdd = useCallback(async () => {
+    if (!mcpName.trim() || !mcpCommand.trim()) return
+    setMcpBusy(true)
+    setMcpError(null)
+    try {
+      const args = mcpArgs.split(/\s+/).filter(Boolean)
+      const res = await window.electron.aihub.mcpAdd(mcpName.trim(), mcpCommand.trim(), args)
+      if (res.status === 'ok') {
+        setMcpName('')
+        setMcpCommand('')
+        setMcpArgs('')
+        await refreshMCP()
+      } else {
+        setMcpError(res.error || 'MCP 新增失败')
+      }
+    } catch (e) {
+      setMcpError(e instanceof Error ? e.message : String(e))
+    } finally {
+      setMcpBusy(false)
+    }
+  }, [mcpName, mcpCommand, mcpArgs, refreshMCP])
+
+  const handleMCPStart = useCallback(
+    async (name: string) => {
+      setMcpBusy(true)
+      setMcpError(null)
+      try {
+        const res = await window.electron.aihub.mcpStart(name)
+        if (res.status !== 'ok') setMcpError(res.error || 'MCP 启动失败')
+        await refreshMCP()
+      } catch (e) {
+        setMcpError(e instanceof Error ? e.message : String(e))
+      } finally {
+        setMcpBusy(false)
+      }
+    },
+    [refreshMCP],
+  )
+
+  const handleMCPStop = useCallback(
+    async (name: string) => {
+      setMcpBusy(true)
+      setMcpError(null)
+      try {
+        await window.electron.aihub.mcpStop(name)
+        await refreshMCP()
+      } catch (e) {
+        setMcpError(e instanceof Error ? e.message : String(e))
+      } finally {
+        setMcpBusy(false)
+      }
+    },
+    [refreshMCP],
+  )
+
+  const handleMCPRemove = useCallback(
+    async (name: string) => {
+      setMcpBusy(true)
+      setMcpError(null)
+      try {
+        await window.electron.aihub.mcpRemove(name)
+        await refreshMCP()
+      } catch (e) {
+        setMcpError(e instanceof Error ? e.message : String(e))
+      } finally {
+        setMcpBusy(false)
+      }
+    },
+    [refreshMCP],
+  )
+
   // General state
   const [langDropdownOpen, setLangDropdownOpen] = useState(false)
   const [workspacePath, setWorkspacePath] = useState('')
@@ -1463,6 +1557,242 @@ export function SettingsPanel() {
               <option value="semi_auto">{t('chat:autonomy.semiAuto')}</option>
               <option value="full_auto">{t('chat:autonomy.fullAuto')}</option>
             </select>
+          </div>
+        </div>
+      </div>
+
+      {/* 5.0.3-503-a：多步任务编排（workflow）开关 */}
+      <div
+        className={clsx(
+          'rounded-lg border p-3',
+          isDark ? 'border-gray-700 bg-gray-800/50' : 'border-gray-200 bg-gray-50',
+        )}
+      >
+        <div className="flex items-start gap-3">
+          <div className={clsx('mt-0.5', isDark ? 'text-gray-400' : 'text-gray-500')}>
+            <Cpu size={16} />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center justify-between">
+              <div>
+                <h4 className={clsx('text-sm font-medium', isDark ? 'text-gray-200' : 'text-gray-700')}>
+                  多步任务编排（Plan→Execute→Verify）
+                </h4>
+                <p className={clsx('text-xs mt-0.5', isDark ? 'text-gray-500' : 'text-gray-400')}>
+                  开启后 AI 将计划拆解为多步骤执行并在每步后校验结果；顾问/半自动模式提供计划级与步骤级审批
+                </p>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer ml-2 shrink-0">
+                <input
+                  type="checkbox"
+                  checked={aiConfig.workflowEnabled || false}
+                  onChange={(e) => setAIConfig({ workflowEnabled: e.target.checked })}
+                  className="sr-only peer"
+                />
+                <div
+                  className={clsx(
+                    'w-8 h-4 rounded-full peer transition-colors',
+                    aiConfig.workflowEnabled ? 'bg-blue-500' : isDark ? 'bg-gray-600' : 'bg-gray-300',
+                  )}
+                >
+                  <div
+                    className={clsx(
+                      'w-3 h-3 rounded-full bg-white transition-transform mt-0.5',
+                      aiConfig.workflowEnabled ? 'translate-x-4 ml-0.5' : 'translate-x-0.5',
+                    )}
+                  />
+                </div>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 5.0.3-503-c：MCP 工具接入管理 */}
+      <div
+        className={clsx(
+          'rounded-lg border p-3',
+          isDark ? 'border-gray-700 bg-gray-800/50' : 'border-gray-200 bg-gray-50',
+        )}
+      >
+        <div className="flex items-start gap-3">
+          <div className={clsx('mt-0.5', isDark ? 'text-gray-400' : 'text-gray-500')}>
+            <Wrench size={16} />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center justify-between">
+              <div>
+                <h4 className={clsx('text-sm font-medium', isDark ? 'text-gray-200' : 'text-gray-700')}>
+                  MCP 工具接入
+                </h4>
+                <p className={clsx('text-xs mt-0.5', isDark ? 'text-gray-500' : 'text-gray-400')}>
+                  注册 MCP server（stdio）后，其工具将以 mcp:&lt;server&gt;:&lt;tool&gt; 名称供 AI 调用
+                </p>
+              </div>
+              <button
+                onClick={() => void refreshMCP()}
+                className={clsx(
+                  'flex items-center gap-1 px-2 py-1 rounded text-xs shrink-0',
+                  isDark
+                    ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                    : 'bg-gray-200 text-gray-600 hover:bg-gray-300',
+                )}
+              >
+                <RefreshCw size={10} />
+                刷新
+              </button>
+            </div>
+
+            {/* server 列表 */}
+            {mcpServers.length > 0 && (
+              <div className="mt-2 space-y-1.5">
+                {mcpServers.map((s) => (
+                  <div
+                    key={s.name}
+                    className={clsx(
+                      'flex items-center gap-2 px-2 py-1.5 rounded text-xs border',
+                      isDark ? 'border-gray-700 bg-gray-900/40' : 'border-gray-200 bg-white',
+                    )}
+                  >
+                    <span className={clsx('font-medium', isDark ? 'text-gray-200' : 'text-gray-700')}>{s.name}</span>
+                    <span
+                      className={clsx(
+                        'px-1 py-0.5 rounded-full text-[10px]',
+                        s.status === 'running'
+                          ? isDark
+                            ? 'bg-green-900/40 text-green-300'
+                            : 'bg-green-100 text-green-700'
+                          : isDark
+                            ? 'bg-gray-700 text-gray-400'
+                            : 'bg-gray-200 text-gray-500',
+                      )}
+                    >
+                      {s.status}
+                    </span>
+                    <span className={clsx('text-[11px]', isDark ? 'text-gray-500' : 'text-gray-400')}>
+                      {s.tool_count > 0 ? `${s.tool_count} 工具` : ''}
+                    </span>
+                    <code className={clsx('flex-1 truncate text-[11px]', isDark ? 'text-gray-500' : 'text-gray-400')}>
+                      {s.command}
+                    </code>
+                    <div className="flex items-center gap-1 shrink-0">
+                      {s.status === 'running' ? (
+                        <button
+                          onClick={() => void handleMCPStop(s.name)}
+                          disabled={mcpBusy}
+                          className={clsx(
+                            'px-1.5 py-0.5 rounded text-[11px]',
+                            isDark
+                              ? 'bg-amber-900/40 text-amber-300 hover:bg-amber-900/60'
+                              : 'bg-amber-100 text-amber-700 hover:bg-amber-200',
+                          )}
+                        >
+                          停止
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => void handleMCPStart(s.name)}
+                          disabled={mcpBusy}
+                          className={clsx(
+                            'flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[11px]',
+                            isDark
+                              ? 'bg-green-900/40 text-green-300 hover:bg-green-900/60'
+                              : 'bg-green-100 text-green-700 hover:bg-green-200',
+                          )}
+                        >
+                          <Play size={10} />
+                          启动
+                        </button>
+                      )}
+                      <button
+                        onClick={() => void handleMCPRemove(s.name)}
+                        disabled={mcpBusy}
+                        className={clsx(
+                          'px-1.5 py-0.5 rounded text-[11px]',
+                          isDark
+                            ? 'bg-red-900/40 text-red-300 hover:bg-red-900/60'
+                            : 'bg-red-100 text-red-600 hover:bg-red-200',
+                        )}
+                      >
+                        移除
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+            {mcpServers.length === 0 && (
+              <p className={clsx('mt-2 text-[11px]', isDark ? 'text-gray-600' : 'text-gray-400')}>
+                尚未配置 MCP server
+              </p>
+            )}
+
+            {/* 新增表单 */}
+            <div className="mt-2 space-y-1.5">
+              <div className="flex gap-1.5">
+                <input
+                  type="text"
+                  value={mcpName}
+                  onChange={(e) => setMcpName(e.target.value)}
+                  placeholder="名称（如 filesystem）"
+                  className={clsx(
+                    'flex-1 px-2 py-1 rounded text-xs outline-none',
+                    isDark
+                      ? 'bg-gray-900 text-gray-100 placeholder-gray-600 focus:ring-1 focus:ring-blue-500'
+                      : 'bg-white text-gray-900 placeholder-gray-400 focus:ring-1 focus:ring-blue-400 border border-gray-300',
+                  )}
+                />
+                <input
+                  type="text"
+                  value={mcpCommand}
+                  onChange={(e) => setMcpCommand(e.target.value)}
+                  placeholder="命令（如 npx / python）"
+                  className={clsx(
+                    'flex-1 px-2 py-1 rounded text-xs outline-none',
+                    isDark
+                      ? 'bg-gray-900 text-gray-100 placeholder-gray-600 focus:ring-1 focus:ring-blue-500'
+                      : 'bg-white text-gray-900 placeholder-gray-400 focus:ring-1 focus:ring-blue-400 border border-gray-300',
+                  )}
+                />
+              </div>
+              <input
+                type="text"
+                value={mcpArgs}
+                onChange={(e) => setMcpArgs(e.target.value)}
+                placeholder="参数（空格分隔，如 -y @modelcontextprotocol/server-filesystem /tmp）"
+                className={clsx(
+                  'w-full px-2 py-1 rounded text-xs outline-none',
+                  isDark
+                    ? 'bg-gray-900 text-gray-100 placeholder-gray-600 focus:ring-1 focus:ring-blue-500'
+                    : 'bg-white text-gray-900 placeholder-gray-400 focus:ring-1 focus:ring-blue-400 border border-gray-300',
+                )}
+              />
+              <button
+                onClick={() => void handleMCPAdd()}
+                disabled={mcpBusy || !mcpName.trim() || !mcpCommand.trim()}
+                className={clsx(
+                  'flex items-center gap-1 px-2.5 py-1 rounded text-xs',
+                  mcpBusy || !mcpName.trim() || !mcpCommand.trim()
+                    ? 'bg-blue-400 text-white cursor-not-allowed'
+                    : 'bg-blue-500 text-white hover:bg-blue-600',
+                )}
+              >
+                <Check size={10} />
+                新增/更新 Server
+              </button>
+            </div>
+
+            {mcpError && (
+              <div
+                className={clsx(
+                  'flex items-start gap-1.5 text-[11px] p-2 rounded mt-2',
+                  isDark ? 'bg-red-900/30 text-red-300' : 'bg-red-50 text-red-700',
+                )}
+              >
+                <XCircle size={12} />
+                <span>{mcpError}</span>
+              </div>
+            )}
           </div>
         </div>
       </div>

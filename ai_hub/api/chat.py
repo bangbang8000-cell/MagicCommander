@@ -39,6 +39,8 @@ class ChatRequest(BaseModel):
     project_name: Optional[str] = None
     # 5.0.2-F502-2：AI 引擎（own/hermes/auto），缺省用配置 ai_engine
     engine: Optional[str] = None
+    # 5.0.3-503-a：多步任务编排 workflow 模式（on/off，缺省 off；仅自有引擎生效）
+    workflow: str = "off"
 
 
 class ProviderInfo(BaseModel):
@@ -139,6 +141,11 @@ async def send_message(req: ChatRequest):
                 detail=f"Provider '{req.provider or settings.default_provider}' 不可用，请先配置 API Key",
             )
 
+    # 5.0.3-503-a：workflow 模式开启时在会话上标记（引擎维度命名空间，任务上下文随会话保留）。
+    # 仅自有引擎生效（Hermes 路径零改动；多步编排只对自有引擎驱动）。
+    if req.workflow == "on" and engine.engine_name == ENGINE_OWN:
+        get_or_create_session(session_id, engine=engine.engine_name).workflow = "on"
+
     async def event_generator():
         try:
             async for chunk in engine.stream_chat(
@@ -167,9 +174,19 @@ async def send_message(req: ChatRequest):
                 "data": json.dumps({"error": str(e)}, ensure_ascii=False),
             }
         finally:
+            # 5.0.3-503-a：done 事件透传工作流任务状态快照（前端展示 plan→step→verify 徽标）
+            done_payload = {"status": "completed"}
+            try:
+                if engine.engine_name == ENGINE_OWN:
+                    sess = get_or_create_session(session_id, engine=engine.engine_name)
+                    wf = getattr(sess, "workflow_state", None)
+                    if wf is not None and hasattr(wf, "snapshot"):
+                        done_payload["workflow"] = wf.snapshot()
+            except Exception:
+                pass
             yield {
                 "event": "done",
-                "data": json.dumps({"status": "completed"}, ensure_ascii=False),
+                "data": json.dumps(done_payload, ensure_ascii=False),
             }
 
     return EventSourceResponse(event_generator())
@@ -460,6 +477,57 @@ class TestConnectionRequest(BaseModel):
 class FetchModelsRequest(BaseModel):
     base_url: str
     api_key: str
+
+
+# ===== 5.0.3-503-c：MCP server 管理端点 =====
+
+class MCPAddServerRequest(BaseModel):
+    name: str
+    command: str
+    args: Optional[list[str]] = None
+    env: Optional[dict] = None
+
+
+@router.get("/mcp/servers")
+async def mcp_list_servers():
+    """列出全部 MCP server（含运行状态与已发现工具数）"""
+    from ai_hub.mcp.manager import get_mcp_manager
+    return {"status": "ok", "servers": get_mcp_manager().list_servers()}
+
+
+@router.post("/mcp/servers")
+async def mcp_add_server(req: MCPAddServerRequest):
+    """新增/更新 MCP server 配置（持久化 <workspace>/.mc_mcp_config.json）"""
+    from ai_hub.mcp.manager import get_mcp_manager
+    return get_mcp_manager().add_server(req.name, req.command, req.args, req.env)
+
+
+@router.delete("/mcp/servers/{name}")
+async def mcp_remove_server(name: str):
+    """移除 MCP server 配置（在运行则先停止并注销工具）"""
+    from ai_hub.mcp.manager import get_mcp_manager
+    return get_mcp_manager().remove_server(name)
+
+
+@router.get("/mcp/servers/{name}/tools")
+async def mcp_server_tools(name: str):
+    """获取指定 MCP server 已发现工具清单"""
+    from ai_hub.mcp.manager import get_mcp_manager
+    return {"status": "ok", "server": name, "tools": get_mcp_manager().get_tools(name)}
+
+
+@router.post("/mcp/servers/{name}/start")
+async def mcp_start_server(name: str):
+    """启动 MCP server：拉起 stdio 子进程 → 发现工具 → 注册进 Agent 工具表（own/hermes 共享）"""
+    from ai_hub.mcp.manager import get_mcp_manager
+    return await get_mcp_manager().start_server(name)
+
+
+@router.post("/mcp/servers/{name}/stop")
+async def mcp_stop_server(name: str):
+    """停止 MCP server：关闭子进程并注销其注册工具"""
+    from ai_hub.mcp.manager import get_mcp_manager
+    return await get_mcp_manager().stop_server(name)
 
 
 @router.post("/test")

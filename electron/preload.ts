@@ -185,6 +185,7 @@ const api = {
       autonomyMode?: string,
       projectName?: string,
       engine?: string,
+      workflow?: string,
     ) =>
       ipcRenderer.invoke(
         'aihub:chat',
@@ -196,6 +197,7 @@ const api = {
         autonomyMode,
         projectName,
         engine,
+        workflow,
       ),
     clearSession: (sessionId: string) => ipcRenderer.invoke('aihub:clearSession', sessionId),
     getEngine: () => ipcRenderer.invoke('aihub:getEngine'),
@@ -217,6 +219,14 @@ const api = {
       defaultProvider: string,
     ) => ipcRenderer.invoke('aihub:resolveProvider', message, routingRules, defaultProvider),
     saveSkill: (name: string, content: string) => ipcRenderer.invoke('aihub:saveSkill', name, content),
+    // 5.0.3-503-c：MCP server 管理
+    mcpList: () => ipcRenderer.invoke('aihub:mcpList'),
+    mcpAdd: (name: string, command: string, args?: string[], env?: Record<string, string>) =>
+      ipcRenderer.invoke('aihub:mcpAdd', name, command, args, env),
+    mcpRemove: (name: string) => ipcRenderer.invoke('aihub:mcpRemove', name),
+    mcpStart: (name: string) => ipcRenderer.invoke('aihub:mcpStart', name),
+    mcpStop: (name: string) => ipcRenderer.invoke('aihub:mcpStop', name),
+    mcpTools: (name: string) => ipcRenderer.invoke('aihub:mcpTools', name),
     exportSkills: () => ipcRenderer.invoke('aihub:exportSkills'),
     importSkills: () => ipcRenderer.invoke('aihub:importSkills'),
     onStream: (callback: (data: { sessionId: string; chunk: string }) => void) => {

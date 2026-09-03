@@ -464,6 +464,7 @@ export class AIHubService extends EventEmitter {
     autonomyMode: string = 'semi_auto',
     projectName?: string,
     engine?: string,
+    workflow?: string,
     onChunk?: (text: string) => void,
   ): Promise<string> {
     // M2 修复：调用前确保运行（未运行先启动），401/连接失败重启重试一次
@@ -482,6 +483,8 @@ export class AIHubService extends EventEmitter {
           project_name: projectName,
           // 5.0.2-F502-2：AI 引擎（own/hermes/auto），缺省用后端配置 ai_engine
           engine,
+          // 5.0.3-503-a：多步任务编排 workflow 模式（on/off）
+          workflow,
         }),
       })
 
@@ -746,6 +749,82 @@ export class AIHubService extends EventEmitter {
         headers: { 'Content-Type': 'application/json', ...this.authHeaders() },
         body: JSON.stringify({ base_url: baseUrl, api_key: apiKey }),
       })
+      return await response.json()
+    })
+  }
+
+  // ===== 5.0.3-503-c：MCP server 管理 =====
+
+  async mcpList(): Promise<{ status: string; servers: Array<Record<string, unknown>> }> {
+    await this.ensureRunning()
+    return this.withRetry(async () => {
+      const response = await fetch(`${this.baseUrl}/api/chat/mcp/servers`, { headers: this.authHeaders() })
+      if (!response.ok) throw new Error(`MCP 列表失败: HTTP ${response.status}`)
+      return await response.json()
+    })
+  }
+
+  async mcpAdd(
+    name: string,
+    command: string,
+    args?: string[],
+    env?: Record<string, string>,
+  ): Promise<{ status: string; name?: string; error?: string }> {
+    await this.ensureRunning()
+    return this.withRetry(async () => {
+      const response = await fetch(`${this.baseUrl}/api/chat/mcp/servers`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...this.authHeaders() },
+        body: JSON.stringify({ name, command, args, env }),
+      })
+      if (!response.ok) throw new Error(`MCP 新增失败: HTTP ${response.status}`)
+      return await response.json()
+    })
+  }
+
+  async mcpRemove(name: string): Promise<{ status: string; error?: string }> {
+    await this.ensureRunning()
+    return this.withRetry(async () => {
+      const response = await fetch(`${this.baseUrl}/api/chat/mcp/servers/${encodeURIComponent(name)}`, {
+        method: 'DELETE',
+        headers: this.authHeaders(),
+      })
+      if (!response.ok) throw new Error(`MCP 移除失败: HTTP ${response.status}`)
+      return await response.json()
+    })
+  }
+
+  async mcpStart(name: string): Promise<{ status: string; server?: Record<string, unknown>; error?: string }> {
+    await this.ensureRunning()
+    return this.withRetry(async () => {
+      const response = await fetch(`${this.baseUrl}/api/chat/mcp/servers/${encodeURIComponent(name)}/start`, {
+        method: 'POST',
+        headers: this.authHeaders(),
+      })
+      if (!response.ok) throw new Error(`MCP 启动失败: HTTP ${response.status}`)
+      return await response.json()
+    })
+  }
+
+  async mcpStop(name: string): Promise<{ status: string; name?: string; error?: string }> {
+    await this.ensureRunning()
+    return this.withRetry(async () => {
+      const response = await fetch(`${this.baseUrl}/api/chat/mcp/servers/${encodeURIComponent(name)}/stop`, {
+        method: 'POST',
+        headers: this.authHeaders(),
+      })
+      if (!response.ok) throw new Error(`MCP 停止失败: HTTP ${response.status}`)
+      return await response.json()
+    })
+  }
+
+  async mcpTools(name: string): Promise<{ status: string; server: string; tools: Array<Record<string, unknown>> }> {
+    await this.ensureRunning()
+    return this.withRetry(async () => {
+      const response = await fetch(`${this.baseUrl}/api/chat/mcp/servers/${encodeURIComponent(name)}/tools`, {
+        headers: this.authHeaders(),
+      })
+      if (!response.ok) throw new Error(`MCP 工具列表失败: HTTP ${response.status}`)
       return await response.json()
     })
   }

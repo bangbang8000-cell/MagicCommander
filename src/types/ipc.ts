@@ -540,6 +540,8 @@ export interface AIHubIpcApi {
     autonomyMode?: 'advisor' | 'semi_auto' | 'full_auto',
     projectName?: string,
     engine?: string,
+    // 5.0.3-503-a：多步任务编排 workflow 模式（on/off，缺省 off；仅自有引擎生效）
+    workflow?: string,
   ) => Promise<string>
   clearSession: (sessionId: string) => Promise<void>
   getEngine: () => Promise<AIEngineInfo>
@@ -574,7 +576,38 @@ export interface AIHubIpcApi {
   exportSkills: () => Promise<SkillsTransferResult>
   /** 4.8.0（F8-3 / 48-c）：技能库从文件导入 */
   importSkills: () => Promise<SkillsTransferResult>
+  /** 5.0.3-503-c：MCP server 管理（列表/新增/移除/启动/停止/工具清单） */
+  mcpList: () => Promise<{ status: string; servers: MCPServerInfo[] }>
+  mcpAdd: (
+    name: string,
+    command: string,
+    args?: string[],
+    env?: Record<string, string>,
+  ) => Promise<{ status: string; name?: string; error?: string }>
+  mcpRemove: (name: string) => Promise<{ status: string; error?: string }>
+  mcpStart: (name: string) => Promise<{ status: string; server?: MCPServerInfo; error?: string }>
+  mcpStop: (name: string) => Promise<{ status: string; name?: string; error?: string }>
+  mcpTools: (name: string) => Promise<{ status: string; server: string; tools: MCPToolInfo[] }>
   onStream: (callback: (data: AIHubStreamData) => void) => () => void
+}
+
+/** 5.0.3-503-c：MCP server 配置与状态 */
+export interface MCPServerInfo {
+  name: string
+  command: string
+  args: string[]
+  env: Record<string, string>
+  status: string
+  tool_count: number
+  tools: string[]
+}
+
+/** 5.0.3-503-c：MCP 工具定义（命名空间 mcp:<server>:<tool>） */
+export interface MCPToolInfo {
+  name: string
+  description: string
+  server: string
+  inputSchema?: Record<string, unknown>
 }
 
 // ============================================================

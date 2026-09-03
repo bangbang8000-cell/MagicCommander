@@ -25,6 +25,9 @@ FORBIDDEN_DEPS = {
     "openai-agents", "agents-sdk", "semantic-kernel", "haystack", "llamaindex",
 }
 
+# 5.0.3-503-c：MCP 为协议/工具接入层（非 Agent 框架），登记为允许依赖
+ALLOWED_PROTOCOL_DEPS = {"mcp"}
+
 FORBIDDEN_IMPORT_PATTERNS = [
     r"^\s*(from|import)\s+harness",
     r"^\s*(from|import)\s+langchain",
@@ -60,6 +63,25 @@ def test_requirements_has_no_forbidden_agent_platform():
         for dep in FORBIDDEN_DEPS:
             assert dep not in text, f"依赖清单含被禁平台: {dep} in {req.name}"
         assert "hermes" not in text, f"依赖清单不应硬依赖 hermes（可选适配）：{req.name}"
+
+
+def test_mcp_is_allowed_protocol_layer_dependency():
+    """5.0.3-503-c：MCP 是协议/工具接入层（非 Agent 框架），登记为允许依赖。
+
+    - ALLOWED_PROTOCOL_DEPS 中声明允许（与 FORBIDDEN_DEPS 不冲突）
+    - requirements.txt 声明 mcp（官方 modelcontextprotocol python-sdk）
+    - ai_hub/mcp 模块存在且不 import 任何被禁 Agent 框架
+    """
+    req = AI_HUB_DIR / "requirements.txt"
+    text = req.read_text(encoding="utf-8").lower()
+    assert "mcp" in text, "requirements.txt 应声明 mcp（协议层工具接入）"
+    for dep in ALLOWED_PROTOCOL_DEPS:
+        assert dep not in FORBIDDEN_DEPS, f"允许依赖不应同时在被禁清单: {dep}"
+    mcp_mod = AI_HUB_DIR / "mcp" / "manager.py"
+    assert mcp_mod.exists(), "ai_hub/mcp/manager.py 应存在"
+    mcp_text = mcp_mod.read_text(encoding="utf-8")
+    for pat in FORBIDDEN_IMPORT_PATTERNS:
+        assert not re.search(pat, mcp_text), f"MCP 模块不应 import 被禁框架: {pat}"
 
 
 def test_top_level_package_json_has_no_agent_platform():

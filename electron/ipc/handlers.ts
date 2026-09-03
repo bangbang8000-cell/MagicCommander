@@ -1756,6 +1756,7 @@ export function setupIpcHandlers(window: BrowserWindow): void {
       autonomyMode?: string,
       projectName?: string,
       engine?: string,
+      workflow?: string,
     ): Promise<string> => {
       let fullContent = ''
       await aiHubService.sendChatMessage(
@@ -1767,6 +1768,7 @@ export function setupIpcHandlers(window: BrowserWindow): void {
         autonomyMode,
         projectName,
         engine,
+        workflow,
         (chunk: string) => {
           fullContent += chunk
           if (!window.isDestroyed()) {
@@ -1873,6 +1875,34 @@ export function setupIpcHandlers(window: BrowserWindow): void {
       return await aiHubService.saveSkill(name, content)
     },
   )
+
+  // ===== 5.0.3-503-c：MCP server 管理通道 =====
+  ipcMain.handle('aihub:mcpList', async (): Promise<unknown> => {
+    return await aiHubService.mcpList()
+  })
+  ipcMain.handle(
+    'aihub:mcpAdd',
+    async (_e, name: string, command: string, args?: string[], env?: Record<string, string>): Promise<unknown> => {
+      if (!isTrustedSender(_e)) throw new Error('无权执行该操作')
+      return await aiHubService.mcpAdd(name, command, args, env)
+    },
+  )
+  ipcMain.handle('aihub:mcpRemove', async (_e, name: string): Promise<unknown> => {
+    if (!isTrustedSender(_e)) throw new Error('无权执行该操作')
+    return await aiHubService.mcpRemove(name)
+  })
+  ipcMain.handle('aihub:mcpStart', async (_e, name: string): Promise<unknown> => {
+    if (!isTrustedSender(_e)) throw new Error('无权执行该操作')
+    return await aiHubService.mcpStart(name)
+  })
+  ipcMain.handle('aihub:mcpStop', async (_e, name: string): Promise<unknown> => {
+    if (!isTrustedSender(_e)) throw new Error('无权执行该操作')
+    return await aiHubService.mcpStop(name)
+  })
+  ipcMain.handle('aihub:mcpTools', async (_e, name: string): Promise<unknown> => {
+    if (!isTrustedSender(_e)) throw new Error('无权执行该操作')
+    return await aiHubService.mcpTools(name)
+  })
 
   // 4.8.0（F8-3 / 48-c）：技能库文件级导出（skills/*.md 打包 zip）
   ipcMain.handle('aihub:exportSkills', async (e): Promise<unknown> => {
