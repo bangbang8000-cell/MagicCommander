@@ -15,6 +15,8 @@ import tempfile
 
 import pytest
 
+from openpyxl import load_workbook
+
 REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 SCRIPTS = os.path.join(REPO, 'scripts')
 EXAMPLE_DIR = os.path.join(REPO, 'example')
@@ -211,6 +213,7 @@ class TestRegister:
                 assert r['ok']
                 proj = r['project_dir']
                 # 数据文件快照（排除 template.meta/README：示例为富化版）
+                # xlsx 以逻辑内容（逐 sheet 单元格）比对，避免内嵌时间戳/压缩字节跨环境差异
                 def data_snap(d):
                     out = {}
                     for root, dirs, files in os.walk(d):
@@ -218,8 +221,23 @@ class TestRegister:
                         for fname in files:
                             rel = os.path.relpath(os.path.join(root, fname), d).replace(os.sep, '/')
                             if fname in ('para.xlsx', 'plan.json') or rel.startswith(('excel/', 'templates/')):
-                                with open(os.path.join(root, fname), 'rb') as fh:
-                                    out[rel] = fh.read()
+                                p = os.path.join(root, fname)
+                                if fname.endswith('.xlsx'):
+                                    wb = load_workbook(p, read_only=True, data_only=False)
+                                    sheets = {}
+                                    for ws in wb.worksheets:
+                                        rows = []
+                                        for row in ws.iter_rows(values_only=True):
+                                            rows.append([('' if v is None else v) for v in row])
+                                        sheets[ws.title] = rows
+                                    wb.close()
+                                    out[rel] = sheets
+                                elif fname == 'plan.json':
+                                    with open(p, encoding='utf-8') as fh:
+                                        out[rel] = json.load(fh)
+                                else:
+                                    with open(p, 'rb') as fh:
+                                        out[rel] = fh.read()
                     return out
                 assert data_snap(proj) == data_snap(os.path.join(EXAMPLE_DIR, key))
 
