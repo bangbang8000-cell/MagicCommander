@@ -403,10 +403,12 @@ class AidcProjectGenerator:
         return ROLE_SCENARIO[role][0]
 
     def _model_of(self, role):
-        # H1（D-4）：型号从 MC 设备库解析，fallback 到 ROLE_SCENARIO 字符串
+        # H1（D-4 / 501-c）：型号从 MC 设备库按 fabric 解析（IB→NVIDIA Quantum / RoCE→H3C），
+        # fallback 到 ROLE_SCENARIO 字符串
         try:
             from .device_library import role_model_str
-            return role_model_str(role) or ROLE_SCENARIO[role][1]
+            fabric = getattr(self.ctx, 'globals', {}).get('fabric', 'roce')
+            return role_model_str(role, fabric) or ROLE_SCENARIO[role][1]
         except Exception:  # noqa: BLE001
             return ROLE_SCENARIO[role][1]
 

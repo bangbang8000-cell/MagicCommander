@@ -1,87 +1,17 @@
 [
   {
-    "id": "h3c_s9827",
+    "id": "h3c_s5120v3_52p_ei",
     "vendor": "H3C",
-    "model": "S9827",
-    "port_count": 128,
-    "port_speed": "400G",
-    "port_type": "OSFP",
-    "description": "H3C S9827 128×400G 智算参数网交换机（Spine/Leaf，2 层 CLOS 覆盖 1024 档）",
-    "applicable_networks": [
-      "param"
-    ]
-  },
-  {
-    "id": "h3c_s9825_128b",
-    "vendor": "H3C",
-    "model": "S9825-128B",
-    "port_count": 128,
-    "port_speed": "200G",
-    "port_type": "QSFP56",
-    "description": "H3C S9825-128B 128×200G 存储网交换机（存储 Spine/Leaf，独立 fabric）",
-    "applicable_networks": [
-      "storage"
-    ]
-  },
-  {
-    "id": "h3c_s9850_32h",
-    "vendor": "H3C",
-    "model": "S9850-32H",
-    "port_count": 32,
-    "port_speed": "100G",
-    "port_type": "QSFP28",
-    "description": "H3C S9850-32H 32×100GE QSFP28（H=100G），业务汇聚/带内管理汇聚",
-    "applicable_networks": [
-      "biz"
-    ]
-  },
-  {
-    "id": "h3c_s6850_56hf",
-    "vendor": "H3C",
-    "model": "S6850-56HF",
+    "model": "S5120V3-52P-EI",
     "port_count": 48,
-    "port_speed": "25G",
-    "port_type": "SFP28",
-    "description": "H3C S6850-56HF 数据中心25G接入交换机，48x25G SFP28 + 8x100G QSFP28，适用于业务网络接入/汇聚",
-    "applicable_networks": [
-      "biz"
-    ]
-  },
-  {
-    "id": "h3c_s6805_56hf_g",
-    "vendor": "H3C",
-    "model": "S6805-56HF-G",
-    "port_count": 56,
-    "port_speed": "10G",
-    "port_type": "SFP28",
-    "description": "H3C S6805-56HF-G 48×1/10GE SFP+ + 8×40/100GE QSFP28（OOB 汇聚）",
-    "applicable_networks": [
-      "oob"
-    ]
-  },
-  {
-    "id": "h3c_s5560x_54c_ei",
-    "vendor": "H3C",
-    "model": "S5560X-54C-EI",
-    "port_count": 52,
     "port_speed": "1G",
     "port_type": "RJ45",
-    "description": "H3C S5560X-54C-EI 48×GE RJ45 电口 + 4×10GE SFP+（OOB 接入，BMC/ILO）",
+    "description": "H3C S5120V3-52P-EI 48端口1G RJ45 + 4端口10G SFP+上行，带外管理汇聚交换机",
     "applicable_networks": [
       "oob"
-    ]
-  },
-  {
-    "id": "h3c_s9825_64d",
-    "vendor": "H3C",
-    "model": "S9825-64D",
-    "port_count": 64,
-    "port_speed": "400G",
-    "port_type": "QSFP-DD",
-    "description": "H3C S9825-64D 64×400G 参数网交换机（命令级参考基准，P1 核对源）",
-    "applicable_networks": [
-      "param"
-    ]
+    ],
+    "protocol": "roce",
+    "port_speed_max": "10G"
   },
   {
     "id": "h3c_s5130s_52p_ei",
@@ -93,18 +23,153 @@
     "description": "H3C S5130S-52P-EI 48端口1G带外管理交换机，适用于带外管理网络接入",
     "applicable_networks": [
       "oob"
+    ],
+    "protocol": "roce"
+  },
+  {
+    "id": "h3c_s5560x_54c_ei",
+    "vendor": "H3C",
+    "model": "S5560X-54C-EI",
+    "port_count": 52,
+    "port_speed": "1G",
+    "port_type": "RJ45",
+    "description": "H3C S5560X-54C-EI 48×GE RJ45 电口 + 4×10GE SFP+（OOB 接入，BMC/ILO）",
+    "applicable_networks": [
+      "oob"
+    ],
+    "protocol": "roce",
+    "port_speed_max": "10G"
+  },
+  {
+    "id": "h3c_s6805_56hf_g",
+    "vendor": "H3C",
+    "model": "S6805-56HF-G",
+    "port_count": 56,
+    "port_speed": "10G",
+    "port_type": "SFP28",
+    "description": "H3C S6805-56HF-G 48×1/10GE SFP+ + 8×40/100GE QSFP28（OOB 汇聚）",
+    "applicable_networks": [
+      "oob"
+    ],
+    "protocol": "roce",
+    "port_speed_max": "100G"
+  },
+  {
+    "id": "h3c_s6850_56hf",
+    "vendor": "H3C",
+    "model": "S6850-56HF",
+    "port_count": 48,
+    "port_speed": "25G",
+    "port_type": "SFP28",
+    "description": "H3C S6850-56HF 数据中心25G接入交换机，48x25G SFP28 + 8x100G QSFP28，适用于业务网络接入/汇聚",
+    "applicable_networks": [
+      "biz"
+    ],
+    "protocol": "roce",
+    "port_speed_max": "100G"
+  },
+  {
+    "id": "h3c_s9825_128b",
+    "vendor": "H3C",
+    "model": "S9825-128B",
+    "port_count": 128,
+    "port_speed": "200G",
+    "port_type": "QSFP56",
+    "description": "H3C S9825-128B 128×200G 存储网交换机（存储 Spine/Leaf，独立 fabric）",
+    "applicable_networks": [
+      "storage"
+    ],
+    "protocol": "roce"
+  },
+  {
+    "id": "h3c_s9825_64d",
+    "vendor": "H3C",
+    "model": "S9825-64D",
+    "port_count": 64,
+    "port_speed": "400G",
+    "port_type": "OSFP",
+    "protocol": "roce",
+    "description": "H3C S9825-64D 64×400G 参数网交换机（命令级参考基准，P1 核对源）",
+    "applicable_networks": [
+      "param"
     ]
   },
   {
-    "id": "h3c_s5120v3_52p_ei",
+    "id": "h3c_s9827",
     "vendor": "H3C",
-    "model": "S5120V3-52P-EI",
-    "port_count": 48,
-    "port_speed": "1G",
-    "port_type": "RJ45",
-    "description": "H3C S5120V3-52P-EI 48端口1G RJ45 + 4端口10G SFP+上行，带外管理汇聚交换机",
+    "model": "S9827",
+    "port_count": 128,
+    "port_speed": "400G",
+    "port_type": "OSFP",
+    "description": "H3C S9827 128×400G 智算参数网交换机（Spine/Leaf，2 层 CLOS 覆盖 1024 档）",
     "applicable_networks": [
-      "oob"
+      "param"
+    ],
+    "protocol": "roce"
+  },
+  {
+    "id": "h3c_s9850_32h",
+    "vendor": "H3C",
+    "model": "S9850-32H",
+    "port_count": 32,
+    "port_speed": "100G",
+    "port_type": "QSFP28",
+    "description": "H3C S9850-32H 32×100GE QSFP28（H=100G），业务汇聚/带内管理汇聚",
+    "applicable_networks": [
+      "biz"
+    ],
+    "protocol": "roce"
+  },
+  {
+    "id": "nvidia_mqm8700_40_200g_ib",
+    "vendor": "NVIDIA",
+    "model": "Quantum QM8700",
+    "port_count": 40,
+    "port_speed": "200G",
+    "port_type": "QSFP56",
+    "protocol": "ib",
+    "description": "NVIDIA Quantum HDR MQM8700 40×200G HDR InfiniBand 智能交换机（带管理口，中小规模 IB 集群 Spine/Leaf）",
+    "applicable_networks": [
+      "param"
+    ]
+  },
+  {
+    "id": "nvidia_mqm8790_40_200g_ib",
+    "vendor": "NVIDIA",
+    "model": "Quantum QM8790",
+    "port_count": 40,
+    "port_speed": "200G",
+    "port_type": "QSFP56",
+    "protocol": "ib",
+    "description": "NVIDIA Quantum HDR MQM8790 40×200G HDR InfiniBand 非管理交换机（中小规模 IB 集群 Spine/Leaf）",
+    "applicable_networks": [
+      "param"
+    ]
+  },
+  {
+    "id": "nvidia_mqm9700_64_400g_ib",
+    "vendor": "NVIDIA",
+    "model": "Quantum QM9700",
+    "port_count": 64,
+    "port_speed": "400G",
+    "port_type": "QSFP-DD",
+    "protocol": "ib",
+    "description": "NVIDIA Quantum-2 MQM9700-NS2F 64×NDR 400G InfiniBand 智能交换机（带管理口，AI 训练集群 IB 参数网 Spine/Leaf）",
+    "applicable_networks": [
+      "param"
+    ]
+  },
+  {
+    "id": "nvidia_mqm9790_64_400g_ib",
+    "vendor": "NVIDIA",
+    "model": "Quantum QM9790",
+    "port_count": 64,
+    "port_speed": "400G",
+    "port_type": "QSFP-DD",
+    "protocol": "ib",
+    "description": "NVIDIA Quantum-2 MQM9790-NS2F 64×NDR 400G InfiniBand 非管理交换机（AI 训练集群 IB 参数网 Spine/Leaf）",
+    "applicable_networks": [
+      "param"
     ]
   }
 ]

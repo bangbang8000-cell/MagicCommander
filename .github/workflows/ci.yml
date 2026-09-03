@@ -44,6 +44,8 @@ jobs:
       - run: npm run build
       # 4.0.0-F0-1（40-b）：模板校验门禁 —— 模板库损坏时构建失败
       - run: python scripts/validate_templates.py
+      # 5.0.1（501-c）：设备库校验门禁 —— id 唯一/字段完整/protocol/角色映射/AL 对账
+      - run: python scripts/validate_device_library.py
       # 4.9.0（49-d）：AIDC 示例自动化验收 —— 打开/渲染/导出/回灌幂等/golden 确定性
       - run: python scripts/validate_samples.py
       # 4.0.0-F0-1（40-b）：golden 基线比对 —— 渲染文本/批次清单结构变化时 CI 失败

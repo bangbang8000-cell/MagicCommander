@@ -14,7 +14,7 @@ _DEVICE_LIBRARY_PATH = os.path.join(os.path.dirname(__file__), 'device_library.j
 DEVICE_LIBRARY_SCHEMA = 'mc.device-library/1'
 DEVICE_LIBRARY_VERSION = 1
 
-# 角色 → 设备 id（D-1~D-3 定稿）
+# 角色 → 设备 id（D-1~D-3 定稿，RoCE/以太默认）
 ROLE_DEVICE_ID = {
     'SPINE': 'h3c_s9827',
     'LEAF': 'h3c_s9827',
@@ -25,6 +25,23 @@ ROLE_DEVICE_ID = {
     'OOB_AGG': 'h3c_s6805_56hf_g',
     'OOB_ACCESS': 'h3c_s5560x_54c_ei',
 }
+
+# 5.0.1（501-c）：IB（NVIDIA Quantum）角色 → 设备 id（fabric 感知解析）。
+# 业务/带外四角色两 fabric 共用 H3C（IB 仅参数/存储网换 NVIDIA 交换机）。
+IB_ROLE_DEVICE_ID = {
+    'SPINE': 'nvidia_mqm9700_64_400g_ib',
+    'LEAF': 'nvidia_mqm9700_64_400g_ib',
+    'STO_SPINE': 'nvidia_mqm9700_64_400g_ib',
+    'STO_LEAF': 'nvidia_mqm9700_64_400g_ib',
+    'BIZ_AGG': 'h3c_s9850_32h',
+    'BIZ_ACCESS': 'h3c_s6850_56hf',
+    'OOB_AGG': 'h3c_s6805_56hf_g',
+    'OOB_ACCESS': 'h3c_s5560x_54c_ei',
+}
+
+# 协议族 → 角色映射（roce=以太 RoCEv2 默认；ib=InfiniBand）
+FABRIC_ROLE_DEVICE_ID = {'roce': ROLE_DEVICE_ID, 'ib': IB_ROLE_DEVICE_ID}
+FABRICS = ('roce', 'ib')
 
 
 def _load():
@@ -164,7 +181,48 @@ def model_str(device_id):
     return device_id
 
 
-def role_model_str(role):
-    """角色 → 型号字符串（从设备库解析，无则空串）。"""
-    did = ROLE_DEVICE_ID.get(role)
+def role_device_id(role, fabric='roce'):
+    """角色 → 设备 id（fabric 感知：roce 默认 / ib）。无映射返回 None。"""
+    return FABRIC_ROLE_DEVICE_ID.get(fabric, ROLE_DEVICE_ID).get(role)
+
+
+def role_model_str(role, fabric='roce'):
+    """角色 → 型号字符串（按 fabric 从设备库解析，无则空串）。"""
+    did = role_device_id(role, fabric)
     return model_str(did) if did else ''
+
+
+def device_protocol(device_id):
+    """设备协议族：'ib' / 'roce' / None（按条目 protocol 字段，缺省按厂商推断）。"""
+    d = get_device(device_id)
+    if not d:
+        return None
+    protocol = d.get('protocol')
+    if protocol:
+        return protocol
+    return 'ib' if str(d.get('vendor', '')).upper() == 'NVIDIA' else 'roce'
+
+
+def lookup_device_by_model(model):
+    """按 'Vendor Model' 型号字符串查找设备 id（用于 plan deviceModels → 设备库解析）。
+
+    先精确匹配 'vendor model'，再退化为 model 模糊匹配（归一化空白/大小写）。
+    """
+    target = ' '.join(str(model or '').split()).lower()
+    for d in all_devices():
+        exact = f"{d.get('vendor', '')} {d.get('model', '')}".strip()
+        if ' '.join(exact.split()).lower() == target:
+            return d['id']
+    for d in all_devices():
+        if target.endswith(' '.join(str(d.get('model', '')).split()).lower()):
+            return d['id']
+    return None
+
+
+def resolve_models_fabric(models: dict) -> str:
+    """由角色→型号 dict（如 plan macro.deviceModels）推断协议族：参数网含 NVIDIA → 'ib'，否则 'roce'。"""
+    for role in ('SPINE', 'LEAF', 'STO_SPINE', 'STO_LEAF'):
+        m = str((models or {}).get(role, '') or '')
+        if m.upper().startswith('NVIDIA'):
+            return 'ib'
+    return 'roce'

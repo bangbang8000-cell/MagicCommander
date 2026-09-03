@@ -289,6 +289,10 @@ class PlanContextBuilder:
             'para_para_C_COMMUNITY': 'mc-aidc',
             'para_para_C_NMS-TGW-VIP': '10.10.10.100',
         })
+        # 501-c：由 plan deviceModels 推断协议族（IB → NVIDIA Quantum；RoCE → H3C），
+        # 供生成器型号解析与渲染核对使用；缺省 roce（与设备库默认一致）。
+        from ..device_library import resolve_models_fabric
+        self.ctx.globals['fabric'] = resolve_models_fabric(m.get('deviceModels') or {})
         self.ctx.keys = set(self.ctx.globals)
         for scn, by_id in self.ctx.device_params.items():
             for _id, params in by_id.items():

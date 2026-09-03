@@ -126,9 +126,14 @@ def _mask(prefix):
     return filters.to_mask(f'0.0.0.0/{prefix}')
 
 
-def _model_of(scn):
+def _model_of(scn, fabric='roce'):
     role = _SCN_TO_ROLE[scn]
-    return ROLE_SCENARIO[role][1]
+    # H1（D-4 / 501-c）：型号从 MC 设备库按 fabric 解析（IB→NVIDIA Quantum / RoCE→H3C）
+    try:
+        from .device_library import role_model_str
+        return role_model_str(role, fabric) or ROLE_SCENARIO[role][1]
+    except Exception:  # noqa: BLE001
+        return ROLE_SCENARIO[role][1]
 
 
 class SingleProjectGenerator:
@@ -160,9 +165,10 @@ class SingleProjectGenerator:
                 lpre = str(loopback).split('/')[1] if loopback and '/' in str(loopback) else '32'
                 mpre = str(milo).split('/')[1] if milo and '/' in str(milo) else '24'
                 role = _SCN_TO_ROLE[scn]
+                fabric = self.ctx.globals.get('fabric', 'roce')
                 rows.append({
                     '设备名': self._dev(scn, local, 'hostname_hostname_B_'),
-                    '型号': _model_of(scn),
+                    '型号': _model_of(scn, fabric),
                     '角色': role,
                     '环回接口': 'LoopBack0',
                     '环回IP': _strip(loopback),
