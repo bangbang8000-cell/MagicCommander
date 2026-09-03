@@ -2,7 +2,7 @@
 
 **批量生成网络设备配置 | Network Device Configuration Automation**
 
-[![Version](https://img.shields.io/badge/version-4.8.0-blue)](https://github.com/bangbang8000-cell/MagicCommander/releases)
+[![Version](https://img.shields.io/badge/version-4.9.0-blue)](https://github.com/bangbang8000-cell/MagicCommander/releases)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![Windows](https://img.shields.io/badge/Windows-NSIS-blue)](https://github.com/bangbang8000-cell/MagicCommander/releases)
 [![macOS](https://img.shields.io/badge/macOS-DMG-silver)](https://github.com/bangbang8000-cell/MagicCommander/releases)
@@ -245,6 +245,8 @@ MagicCommander/
 
 | 版本 | 日期 | 更新内容 |
 |------|------|---------|
+| **4.9.0 Build 26090301** | 2026-09-03 | **4.9 示例资产与收官（4.0 系列收官）**：AIDC 四示例项目（64H100-IB/64H100-RoCE/128H100-IB/128H100-RoCE，机房矩阵定稿 + 机柜设备参数全配 + IB/RoCE 协议正确收敛比合理，可打开/可渲染/可导出/可导入项目包，基于 AutoLink 规划导入闭环）+ 模板中心注册可基于示例创建 + 示例自动化验收（打开/渲染/导出/回灌/golden 门禁）+ 用户指南/About 收官 |
+| **4.8.0 Build 26090204** | 2026-09-02 | **4.8 互操作与交付强化**：项目包往返强化（可移植项目包导出 + 按身份导入 skip/update/new）；导入导出格式增强（快照/版本历史导出回导、各格式往返）；跨端资产互灌（设备库/技能库/模板可移植导入导出）；交付物清单与校验（渲染批次 manifest 逐文件 sha256 + 完整性校验）；报告/评审强化（评审包 zip/Markdown/PDF） |
 | **4.7.0 Build 26090203** | 2026-09-02 | **4.7 部署运维与可观测**：更新兜底链（latest.yml 直查 + 安装包直接下载 + Content-Length 完整性校验 + Releases 页兜底 + 启动自动检查开关）；诊断中心（日志/审计/崩溃/性能/系统信息一处可查 + 一键导出支持包 zip）；健康检查/自检（环境/引擎/网络/依赖 + 导出 JSON）；本地遥测（本地化/脱敏/默认关闭/可配置/可导出）；审计日志（关键操作 audit.jsonl 脱敏）；安装升级体验（构建配置校验 + 离线友好提示） |
 | **4.6.0 Build 26090202** | 2026-09-02 | **4.6 质量与测试体系**：测试覆盖率门禁（后端 pytest-cov ≥55% + 前端 vitest coverage + CI 覆盖率 job + 阈值单源 + 基线棘轮只升不降）；测试数据资产（样例/基线/清单，pytest/vitest 双端消费）；测试报告聚合（reports/quality_report.json+HTML）；质量仪表盘（覆盖率/门禁/测试通过率/校验/性能基准） |
 | **4.5.0 Build 26090201** | 2026-09-02 | **4.5 数据准确性与校验**：一致性校验引擎（参数表完整性/模板与参数一致性/配置字段校验）+ 导出数据核对（产物一致性+漂移检测）+ IP 规划校验（掩码/子网重叠/网关冲突/越界/重复）+ AI 规划器准确性校验 + 校验面板（一键校验/严重度分组/定位/导出报告 JSON/门禁）+ CI 校验门禁 |
