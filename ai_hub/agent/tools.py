@@ -31,6 +31,11 @@ def register_tool(name: str, description: str, parameters: dict, handler: callab
     }
 
 
+def unregister_tool(name: str) -> bool:
+    """注销一个动态注册的工具（MCP server 停止/移除时调用）；不存在返回 False"""
+    return _tools.pop(name, None) is not None
+
+
 def get_tool_definitions() -> list[dict]:
     """获取所有工具定义（JSON Schema 格式），供 LLM function calling 使用"""
     return [
@@ -938,6 +943,20 @@ async def _update_skill(args: dict) -> str:
     }, ensure_ascii=False)
 
 
+async def _optimize_skill(args: dict) -> str:
+    """5.0.3-503-b：触发技能自学习修订（达阈值时向技能 md 追加改进记录）"""
+    from ai_hub.skills.engine import get_skills_engine
+    result = get_skills_engine().maybe_self_improve(args["skillName"])
+    return json.dumps({
+        "status": "ok" if result["revised"] else "info",
+        "skillName": args["skillName"],
+        "revised": result["revised"],
+        "reason": result["reason"],
+        "revision": result["revision"],
+        "feedback": result["feedback"],
+    }, ensure_ascii=False)
+
+
 def init_tools():
     """初始化所有 Agent Tools"""
     register_tool(
@@ -1474,6 +1493,20 @@ def init_tools():
             "required": ["skillName", "content"],
         },
         _update_skill,
+    )
+
+    # 5.0.3-503-b：技能自学习修订工具（达阈值时向技能 md 追加改进记录）
+    register_tool(
+        "skill_optimize",
+        "触发技能自学习修订：达阈值（失败次数/失败率）时向技能 Markdown 尾部追加结构化改进记录并递增修订版本。反复失败/质量下降时使用",
+        {
+            "type": "object",
+            "properties": {
+                "skillName": {"type": "string", "description": "技能名称"},
+            },
+            "required": ["skillName"],
+        },
+        _optimize_skill,
     )
 
     logger.info(f"Initialized {len(_tools)} Agent tools")

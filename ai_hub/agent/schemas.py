@@ -32,6 +32,8 @@ TOOL_PERMISSIONS: dict[str, ToolPermission] = {
     "list_skills": ToolPermission.AUTO, "get_skill": ToolPermission.AUTO,
     "enable_skill": ToolPermission.NOTIFY, "disable_skill": ToolPermission.NOTIFY,
     "update_skill": ToolPermission.NOTIFY,
+    # 5.0.3-503-b：技能自学习修订（写入技能定义 → notify）
+    "skill_optimize": ToolPermission.NOTIFY,
 }
 
 TOOL_NAME_ALIASES: dict[str, str] = {
