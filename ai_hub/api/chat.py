@@ -13,6 +13,14 @@ from sse_starlette.sse import EventSourceResponse
 from ai_hub.agent.agent import get_or_create_session, clear_session
 from ai_hub.llm.provider import registry
 from ai_hub.config import settings
+from ai_hub.agent.provider import (
+    AgentNotAvailableError,
+    ENGINE_OWN,
+    ENGINE_NA_MARKER,
+    engine_status,
+    get_engine,
+    resolve_engine_mode,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -29,6 +37,8 @@ class ChatRequest(BaseModel):
     attachments: Optional[list[dict]] = None
     autonomy_mode: str = "semi_auto"
     project_name: Optional[str] = None
+    # 5.0.2-F502-2：AI 引擎（own/hermes/auto），缺省用配置 ai_engine
+    engine: Optional[str] = None
 
 
 class ProviderInfo(BaseModel):
@@ -72,39 +82,84 @@ async def list_providers():
     )
 
 
+class SetEngineRequest(BaseModel):
+    engine: str
+
+
+@router.get("/engine")
+async def get_engine_info():
+    """5.0.2-F502-2：获取 AI 引擎配置与可用性（own/hermes/auto）
+
+    返回当前配置 engine、实际解析 resolved（auto 的实际路由）与各引擎可用性 available。
+    """
+    return engine_status()
+
+
+@router.post("/engine")
+async def set_engine(req: SetEngineRequest):
+    """5.0.2-F502-2：设置 AI 引擎模式（三选一，持久化到 secrets 文件并立即生效）"""
+    from ai_hub.config import set_ai_engine
+    set_ai_engine(req.engine)
+    return {"status": "ok", **engine_status()}
+
+
 @router.post("/send")
 async def send_message(req: ChatRequest):
-    """发送消息，SSE 流式响应"""
+    """发送消息，SSE 流式响应
+
+    5.0.2-F502-2：请求可带 engine 字段（own/hermes/auto），缺省用配置 ai_engine；
+    Hermes 未安装时返回携带 ---ENGINE_NA:hermes--- 标记的友好 message 事件（前端渲染提示卡片）。
+    """
+    # 解析当前引擎模式（缺省用配置）
+    engine_mode = resolve_engine_mode(req.engine)
 
     # M-F4（PRD v3.6 F4-1/F4-2）：控制消息优先——前端受限于 electron IPC 通道不可扩展，
     # 经既有 /send 通道转发「摘要上下文 / 截断」请求（truncate 无需 provider，故在 provider 校验前处理）
     ctrl = _parse_control_message(req.message)
     if ctrl:
-        return await _run_control_message(req, ctrl)
+        return await _run_control_message(req, ctrl, engine_mode)
 
-    provider = registry.get(req.provider)
-    if not provider:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Provider '{req.provider or settings.default_provider}' 不可用，请先配置 API Key",
-        )
+    engine = get_engine(engine_mode)
+    # F502-3：Hermes 未安装 → 友好提示（SSE message 事件携带 ENGINE_NA 标记，前端渲染提示卡片）
+    if not engine.is_available():
+        hint = engine.not_available_hint() or f"AI 引擎 {engine_mode} 不可用"
+        return _sse_response([
+            ("message", {"content": _engine_na_message(engine_mode, hint)}),
+            ("done", {"status": "completed"}),
+        ])
 
-    # conversationId（session_id）缺省时回落默认会话（兼容既有单会话）
-    session = get_or_create_session(req.session_id or "default")
-    session.set_provider(req.provider)
-    # 带入客户端当前选中的项目名，让 AI 感知项目上下文（记忆/校验/系统提示词）
-    session.set_mode(req.mode, req.project_name or "")
-    session.autonomy_mode = req.autonomy_mode
+    session_id = req.session_id or "default"
 
-    session.add_user_message(req.message, req.attachments)
+    # 自有引擎沿用既有 provider 校验（未配置 API key 时 400）；Hermes 引擎由自身运行时驱动
+    if engine.engine_name == ENGINE_OWN:
+        provider = registry.get(req.provider)
+        if not provider:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Provider '{req.provider or settings.default_provider}' 不可用，请先配置 API Key",
+            )
 
     async def event_generator():
         try:
-            async for chunk in session.run_stream():
+            async for chunk in engine.stream_chat(
+                session_id=session_id,
+                message=req.message,
+                mode=req.mode,
+                project_name=req.project_name or "",
+                autonomy_mode=req.autonomy_mode,
+                provider=req.provider,
+                attachments=req.attachments,
+            ):
                 yield {
                     "event": "message",
                     "data": json.dumps({"content": chunk}, ensure_ascii=False),
                 }
+        except AgentNotAvailableError as e:
+            logger.error(f"SSE engine unavailable: {e}")
+            yield {
+                "event": "message",
+                "data": json.dumps({"content": _engine_na_message(engine_mode, str(e))}, ensure_ascii=False),
+            }
         except Exception as e:
             logger.error(f"SSE error: {e}")
             yield {
@@ -118,6 +173,11 @@ async def send_message(req: ChatRequest):
             }
 
     return EventSourceResponse(event_generator())
+
+
+def _engine_na_message(engine: str, hint: str) -> str:
+    """组装「引擎未安装」友好提示文本：独立标记行 + 安装指引（前端渲染提示卡片）"""
+    return f"{ENGINE_NA_MARKER.format(engine=engine)}\n\n{hint}"
 
 
 class SaveSkillRequest(BaseModel):
@@ -148,9 +208,10 @@ async def delete_skill(req: DeleteSkillRequest):
 
 
 @router.post("/clear")
-async def clear_chat(session_id: str):
-    """清除会话"""
-    clear_session(session_id)
+async def clear_chat(session_id: str, engine: Optional[str] = None):
+    """清除会话（5.0.2-F502-2：按引擎维度命名空间清除，缺省用配置 ai_engine）"""
+    engine_mode = resolve_engine_mode(engine)
+    clear_session(session_id, engine=engine_mode)
     return {"status": "ok"}
 
 
@@ -235,9 +296,10 @@ def _sse_response(events: list[tuple[str, dict]]) -> EventSourceResponse:
     return EventSourceResponse(generator())
 
 
-async def _run_control_message(req: ChatRequest, ctrl: dict):
+async def _run_control_message(req: ChatRequest, ctrl: dict, engine_mode: str = ENGINE_OWN):
     """处理 /send 控制消息：摘要/截断当前会话（控制消息本身不写入 history）"""
-    session = get_or_create_session(req.session_id or "default")
+    # 会话隔离：控制消息同样落在当前引擎命名空间的会话上（切换引擎后各引擎会话独立保留）
+    session = get_or_create_session(req.session_id or "default", engine=engine_mode)
     if ctrl["kind"] == "summarize":
         provider = registry.get(req.provider)
         if not provider:
@@ -267,7 +329,7 @@ async def _run_control_message(req: ChatRequest, ctrl: dict):
         ])
     # confirm_reply：确认卡片可编辑参数——按新参数执行待确认工具
     if ctrl["kind"] == "confirm_reply":
-        return await _run_confirm_reply(req.session_id or "default", ctrl["encoded"])
+        return await _run_confirm_reply(req.session_id or "default", ctrl["encoded"], engine_mode)
     # truncate：无需 provider
     session.truncate_history(ctrl["keep"])
     return _sse_response([
@@ -276,11 +338,11 @@ async def _run_control_message(req: ChatRequest, ctrl: dict):
     ])
 
 
-async def _run_confirm_reply(session_id: str, encoded: str) -> EventSourceResponse:
+async def _run_confirm_reply(session_id: str, encoded: str, engine_mode: str = ENGINE_OWN) -> EventSourceResponse:
     """4.3 F3-2：确认卡片可编辑参数——按新参数执行待确认工具（控制消息不写入 history）"""
     from ai_hub.agent.tools import execute_tool
 
-    session = get_or_create_session(session_id)
+    session = get_or_create_session(session_id, engine=engine_mode)
     if not getattr(session, "pending_confirmation", None):
         return _sse_response([
             ("error", {"error": "没有待确认的操作，无法确认执行"}),
@@ -311,6 +373,8 @@ class SummarizeRequest(BaseModel):
     message: Optional[str] = None
     provider: Optional[str] = None
     apply: bool = True
+    # 5.0.2-F502-2：AI 引擎（own/hermes/auto），缺省用配置 ai_engine（会话按引擎隔离）
+    engine: Optional[str] = None
 
 
 @router.post("/summarize")
@@ -321,13 +385,14 @@ async def summarize_chat(req: SummarizeRequest):
     - message 缺省时使用会话内 history（否则以请求携带的历史文本为准）
     - 失败返回 4xx/5xx + 明确错误，不破坏会话
     """
+    engine_mode = resolve_engine_mode(req.engine)
     provider = registry.get(req.provider)
     if not provider:
         raise HTTPException(
             status_code=400,
             detail=f"Provider '{req.provider or settings.default_provider}' 不可用，请先配置 API Key",
         )
-    session = get_or_create_session(req.session_id or "default")
+    session = get_or_create_session(req.session_id or "default", engine=engine_mode)
     history_text = (req.message or "").strip() or _session_history_text(session)
     if not history_text.strip():
         raise HTTPException(status_code=400, detail="没有可摘要的对话历史")
@@ -344,12 +409,15 @@ async def summarize_chat(req: SummarizeRequest):
 class TruncateRequest(BaseModel):
     session_id: Optional[str] = "default"
     keep: int = 100
+    # 5.0.2-F502-2：AI 引擎（own/hermes/auto），缺省用配置 ai_engine（会话按引擎隔离）
+    engine: Optional[str] = None
 
 
 @router.post("/truncate")
 async def truncate_chat(req: TruncateRequest):
     """M-F4（F4-2）：按 session_id 截断会话 history，仅保留最近 keep 条（新对话语义）"""
-    session = get_or_create_session(req.session_id or "default")
+    engine_mode = resolve_engine_mode(req.engine)
+    session = get_or_create_session(req.session_id or "default", engine=engine_mode)
     before = len(session.messages)
     session.truncate_history(req.keep)
     return {

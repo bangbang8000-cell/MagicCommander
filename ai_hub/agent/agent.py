@@ -437,6 +437,11 @@ _sessions: dict[str, AgentSession] = {}
 SESSION_IDLE_TTL_SECONDS = 24 * 60 * 60
 
 
+def _session_key(session_id: str, engine: str = "own") -> str:
+    """会话命名空间键：不同引擎（own/hermes）的同一 session_id 独立存储，互不串上下文"""
+    return f"{engine}:{session_id}"
+
+
 def _prune_sessions():
     """清理超过空闲 TTL 的会话。"""
     now = time.time()
@@ -451,21 +456,29 @@ def _prune_sessions():
         logger.info(f"已清理 {len(stale)} 个空闲会话")
 
 
-def get_or_create_session(session_id: str) -> AgentSession:
-    """获取或创建 Agent 会话"""
+def get_or_create_session(session_id: str, engine: str = "own") -> AgentSession:
+    """获取或创建 Agent 会话
+
+    F502-2 会话隔离：会话存储带 engine 维度（_session_key 命名空间），
+    切换引擎后旧会话保留不丢；缺省 engine="own" 兼容既有单会话调用。
+    """
     # 每次访问前做一次轻量清理，限制会话字典大小
     if len(_sessions) > 100:
         _prune_sessions()
-    if session_id not in _sessions:
+    key = _session_key(session_id, engine)
+    if key not in _sessions:
         session = AgentSession()
         session.set_provider()
-        session.session_id = session_id
-        _sessions[session_id] = session
-    _sessions[session_id].last_used = time.time()
-    return _sessions[session_id]
+        # session_id 使用命名空间键：项目上下文（get_project_context）同样按引擎隔离
+        session.session_id = key
+        session.engine = engine
+        _sessions[key] = session
+    _sessions[key].last_used = time.time()
+    return _sessions[key]
 
 
-def clear_session(session_id: str):
-    """清除会话"""
-    _sessions.pop(session_id, None)
-    clear_project_context(session_id)
+def clear_session(session_id: str, engine: str = "own"):
+    """清除会话（引擎维度命名空间内）"""
+    key = _session_key(session_id, engine)
+    _sessions.pop(key, None)
+    clear_project_context(key)

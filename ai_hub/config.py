@@ -27,6 +27,25 @@ def clamp_max_tool_loop_rounds(value) -> int:
 
 
 # ============================================================
+# AI 引擎三选一（5.0.2-F502-2）：own=自有引擎（默认）/ hermes=Hermes / auto=自动
+# 设计：适配器骨架 + 探测降级——不真实安装 hermes-agent（避免打包/CI 硬依赖），
+# Hermes 运行时已安装时自动启用，未安装则降级到自有引擎。
+# ============================================================
+AI_ENGINE_OWN = "own"
+AI_ENGINE_HERMES = "hermes"
+AI_ENGINE_AUTO = "auto"
+AI_ENGINE_MODES = (AI_ENGINE_OWN, AI_ENGINE_HERMES, AI_ENGINE_AUTO)
+AI_ENGINE_DEFAULT = AI_ENGINE_OWN
+
+
+def clamp_ai_engine(value) -> str:
+    """将输入校验为合法 AI 引擎模式；非法/缺失回退默认 own"""
+    if isinstance(value, str) and value in AI_ENGINE_MODES:
+        return value
+    return AI_ENGINE_DEFAULT
+
+
+# ============================================================
 # 模型目录 - 2026年7月最新
 # ============================================================
 
@@ -122,6 +141,9 @@ class AIHubSettings(BaseSettings):
     # MC-LOOP1：多轮工具循环最大轮数（provider 无关，clamp 1-10，默认 5）
     max_tool_loop_rounds: int = MAX_TOOL_LOOP_ROUNDS_DEFAULT
 
+    # 5.0.2-F502-2：AI 引擎三选一（own=自有引擎默认 / hermes=Hermes / auto=自动）
+    ai_engine: str = AI_ENGINE_DEFAULT
+
     model_config = {"env_prefix": "MC_AI_", "extra": "allow"}
 
     def get_provider_config(self, provider: str) -> ProviderConfig:
@@ -208,12 +230,14 @@ def apply_secrets():
     """从文件加载密钥并应用到配置"""
     secrets = load_secrets()
     settings.provider_configs = {
-        k: v for k, v in secrets.items() if k not in ("default_provider", "max_tool_loop_rounds")
+        k: v for k, v in secrets.items() if k not in ("default_provider", "max_tool_loop_rounds", "ai_engine")
     }
     if "default_provider" in secrets:
         settings.default_provider = secrets["default_provider"]
     if "max_tool_loop_rounds" in secrets:
         settings.max_tool_loop_rounds = clamp_max_tool_loop_rounds(secrets["max_tool_loop_rounds"])
+    if "ai_engine" in secrets:
+        settings.ai_engine = clamp_ai_engine(secrets["ai_engine"])
 
 
 def get_max_tool_loop_rounds() -> int:
@@ -238,5 +262,34 @@ def set_max_tool_loop_rounds(value: int) -> int:
     settings.max_tool_loop_rounds = clamped
     secrets = load_secrets()
     secrets["max_tool_loop_rounds"] = clamped
+    save_secrets(secrets)
+    return clamped
+
+
+# ============================================================
+# 5.0.2-F502-2：AI 引擎三选一 配置 get/set
+# ============================================================
+
+def get_ai_engine() -> str:
+    """读取当前生效的 AI 引擎模式（own/hermes/auto）。
+
+    实时读取 secrets 文件（而非仅内存 settings）：无论值是后端接口写入还是
+    前端直接落盘 secrets，调整后均立即生效；文件缺失/损坏回退内存 settings 值。
+    """
+    try:
+        secrets = load_secrets()
+        if "ai_engine" in secrets:
+            return clamp_ai_engine(secrets["ai_engine"])
+    except Exception:
+        pass
+    return clamp_ai_engine(settings.ai_engine)
+
+
+def set_ai_engine(value) -> str:
+    """设置 AI 引擎模式：校验三选一 → 更新内存 settings → 持久化到 secrets 文件"""
+    clamped = clamp_ai_engine(value)
+    settings.ai_engine = clamped
+    secrets = load_secrets()
+    secrets["ai_engine"] = clamped
     save_secrets(secrets)
     return clamped
