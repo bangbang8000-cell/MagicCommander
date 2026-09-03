@@ -516,6 +516,16 @@ export interface AIHubStreamData {
   chunk: string
 }
 
+/** 5.0.2-F502-2：AI 引擎配置与可用性（own/hermes/auto） */
+export interface AIEngineInfo {
+  /** 当前配置的引擎模式（own/hermes/auto） */
+  engine: string
+  /** 实际解析的引擎（auto 的实际路由：hermes 可用则 hermes，否则 own） */
+  resolved: string
+  /** 各引擎可用性（own 恒可用；hermes 需运行时已安装） */
+  available: Record<string, boolean>
+}
+
 export interface AIHubIpcApi {
   start: () => Promise<void>
   stop: () => Promise<void>
@@ -529,8 +539,11 @@ export interface AIHubIpcApi {
     attachments?: AIHubAttachment[],
     autonomyMode?: 'advisor' | 'semi_auto' | 'full_auto',
     projectName?: string,
+    engine?: string,
   ) => Promise<string>
   clearSession: (sessionId: string) => Promise<void>
+  getEngine: () => Promise<AIEngineInfo>
+  setEngine: (engine: string) => Promise<AIEngineInfo>
   getProviders: () => Promise<AIHubProvider[]>
   configureProvider: (
     provider: string,

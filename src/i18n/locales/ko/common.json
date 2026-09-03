@@ -353,7 +353,15 @@
   "settings": {
     "ai": {
       "maxToolLoopRounds": "최대 도구 루프 수",
-      "maxToolLoopRoundsDesc": "AI 대화에서 실행 가능한 최대 도구 라운드 수(1-10, 기본 5). 상한 도달 시 정상 종료"
+      "maxToolLoopRoundsDesc": "AI 대화에서 실행 가능한 최대 도구 라운드 수(1-10, 기본 5). 상한 도달 시 정상 종료",
+      "engine": "AI 엔진",
+      "engineOwn": "내장 엔진",
+      "engineHermes": "Hermes",
+      "engineAuto": "자동",
+      "engineDesc": "AI 대화 엔진 선택: 내장 / Hermes / 자동. 각 엔진 세션은 독립적이며, 전환 후에도 유지됩니다.",
+      "engineSaved": "AI 엔진이 전환되었습니다(세션 유지)",
+      "engineSaveFailed": "AI 엔진 전환 실패",
+      "engineHermesNotInstalled": "Hermes 엔진이 설치되지 않았습니다. pip install hermes-agent 후 앱을 다시 시작하거나 내장 엔진으로 전환하세요."
     }
   },
   "efficiency": {

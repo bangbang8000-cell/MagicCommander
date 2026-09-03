@@ -64,6 +64,9 @@
       "hubFailed": "AI Hub 시작 실패, Python 환경을 확인하세요. 설정 페이지에서 연결 테스트가 가능합니다.",
       "noModel": "AI 모델이 선택되지 않았습니다. 설정 페이지에서 Provider를 설정하세요.",
       "serviceNotRunning": "AI 서비스가 실행되지 않음"
+    },
+    "hint": {
+      "engineNaTitle": "AI 엔진 \"{{engine}}\"을 사용할 수 없음"
     }
   },
   "autonomy": {

@@ -1755,6 +1755,7 @@ export function setupIpcHandlers(window: BrowserWindow): void {
       attachments?: Array<{ id: string; name: string; type: string; path: string; size: number }>,
       autonomyMode?: string,
       projectName?: string,
+      engine?: string,
     ): Promise<string> => {
       let fullContent = ''
       await aiHubService.sendChatMessage(
@@ -1765,6 +1766,7 @@ export function setupIpcHandlers(window: BrowserWindow): void {
         attachments,
         autonomyMode,
         projectName,
+        engine,
         (chunk: string) => {
           fullContent += chunk
           if (!window.isDestroyed()) {
@@ -1780,6 +1782,22 @@ export function setupIpcHandlers(window: BrowserWindow): void {
     if (!isTrustedSender(e)) throw new Error('无权执行该操作')
     await aiHubService.clearSession(sessionId)
   })
+
+  // 5.0.2-F502-2：AI 引擎三选一（own/hermes/auto）获取/设置
+  ipcMain.handle(
+    'aihub:getEngine',
+    async (): Promise<{ engine: string; resolved: string; available: Record<string, boolean> }> => {
+      return await aiHubService.getEngine()
+    },
+  )
+
+  ipcMain.handle(
+    'aihub:setEngine',
+    async (_e, engine: string): Promise<{ engine: string; resolved: string; available: Record<string, boolean> }> => {
+      if (!['own', 'hermes', 'auto'].includes(engine)) throw new Error(`无效的 AI 引擎: ${engine}`)
+      return await aiHubService.setEngine(engine)
+    },
+  )
 
   // AI Hub Provider 管理
   ipcMain.handle(

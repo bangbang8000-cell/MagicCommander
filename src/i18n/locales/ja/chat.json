@@ -64,6 +64,9 @@
       "hubFailed": "AI Hub の起動に失敗しました。Python 環境を確認してください。設定ページで接続テストが可能です。",
       "noModel": "AI モデルが選択されていません。設定ページで Provider を設定してください。",
       "serviceNotRunning": "AI サービスが起動していません"
+    },
+    "hint": {
+      "engineNaTitle": "AI エンジン「{{engine}}」が利用できません"
     }
   },
   "autonomy": {

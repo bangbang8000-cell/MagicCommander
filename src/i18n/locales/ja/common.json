@@ -353,7 +353,15 @@
   "settings": {
     "ai": {
       "maxToolLoopRounds": "最大ツールループ数",
-      "maxToolLoopRoundsDesc": "AI が 1 回の会話で実行できるツールの最大ラウンド数（1〜10、デフォルト 5）。上限到達で正常終了"
+      "maxToolLoopRoundsDesc": "AI が 1 回の会話で実行できるツールの最大ラウンド数（1〜10、デフォルト 5）。上限到達で正常終了",
+      "engine": "AI エンジン",
+      "engineOwn": "内蔵エンジン",
+      "engineHermes": "Hermes",
+      "engineAuto": "自動",
+      "engineDesc": "AI 会話エンジンを選択：内蔵 / Hermes / 自動。各エンジンのセッションは独立し、切替後も保持されます。",
+      "engineSaved": "AI エンジンを切り替えました（セッションは保持）",
+      "engineSaveFailed": "AI エンジンの切替に失敗しました",
+      "engineHermesNotInstalled": "Hermes エンジンがインストールされていません。pip install hermes-agent を実行してアプリを再起動するか、内蔵エンジンに戻してください。"
     }
   },
   "efficiency": {

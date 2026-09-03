@@ -184,8 +184,22 @@ const api = {
       attachments?: Array<{ id: string; name: string; type: string; path: string; size: number }>,
       autonomyMode?: string,
       projectName?: string,
-    ) => ipcRenderer.invoke('aihub:chat', sessionId, message, mode, provider, attachments, autonomyMode, projectName),
+      engine?: string,
+    ) =>
+      ipcRenderer.invoke(
+        'aihub:chat',
+        sessionId,
+        message,
+        mode,
+        provider,
+        attachments,
+        autonomyMode,
+        projectName,
+        engine,
+      ),
     clearSession: (sessionId: string) => ipcRenderer.invoke('aihub:clearSession', sessionId),
+    getEngine: () => ipcRenderer.invoke('aihub:getEngine'),
+    setEngine: (engine: string) => ipcRenderer.invoke('aihub:setEngine', engine),
     getProviders: () => ipcRenderer.invoke('aihub:getProviders'),
     configureProvider: (provider: string, apiKey: string, model?: string, baseUrl?: string, models?: string[]) =>
       ipcRenderer.invoke('aihub:configureProvider', provider, apiKey, model, baseUrl, models),

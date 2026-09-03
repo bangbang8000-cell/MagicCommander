@@ -120,6 +120,8 @@ export interface AIConfig {
   providers: Record<string, ProviderConfig>
   /** MC-LOOP1：AI 多轮工具循环最大轮数（1-10，默认 5，provider 无关） */
   maxToolLoopRounds: number
+  /** 5.0.2-F502-2：AI 引擎三选一（own=自有引擎默认 / hermes=Hermes / auto=自动） */
+  aiEngine: 'own' | 'hermes' | 'auto'
 }
 
 export interface ProviderConfig {
@@ -246,6 +248,7 @@ export const useUIStore = create<UIState>()(
           ],
           providers: {},
           maxToolLoopRounds: 5,
+          aiEngine: 'own',
         },
         setAIConfig: (config) => set((s) => ({ aiConfig: { ...s.aiConfig, ...config } })),
         setProviderConfig: (key, config) =>
@@ -325,6 +328,11 @@ export const useUIStore = create<UIState>()(
               // MC-LOOP1：旧持久化数据缺少 maxToolLoopRounds 时迁移为默认 5
               if (state.aiConfig && typeof state.aiConfig.maxToolLoopRounds !== 'number') {
                 state.aiConfig.maxToolLoopRounds = 5
+              }
+
+              // 5.0.2-F502-2：旧持久化数据缺少 aiEngine 时迁移为默认 own（自有引擎）
+              if (state.aiConfig && !['own', 'hermes', 'auto'].includes(state.aiConfig.aiEngine)) {
+                state.aiConfig.aiEngine = 'own'
               }
 
               // 47-d：旧持久化数据缺少 telemetryEnabled 时迁移为默认 false（默认关闭）

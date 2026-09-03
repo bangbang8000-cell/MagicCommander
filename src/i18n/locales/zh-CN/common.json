@@ -420,7 +420,15 @@
       "testFailed": "测试失败",
       "providerConfig": "{{name}} 配置",
       "maxToolLoopRounds": "最大工具循环轮数",
-      "maxToolLoopRoundsDesc": "AI 单次对话最多执行的工具轮数（1-10，默认 5），达到上限后正常结束"
+      "maxToolLoopRoundsDesc": "AI 单次对话最多执行的工具轮数（1-10，默认 5），达到上限后正常结束",
+      "engine": "AI 引擎",
+      "engineOwn": "自有引擎",
+      "engineHermes": "Hermes",
+      "engineAuto": "自动",
+      "engineDesc": "选择 AI 对话引擎：自有引擎 / Hermes / 自动。各引擎会话独立，切换后保留不丢。",
+      "engineSaved": "AI 引擎已切换（会话保留不丢）",
+      "engineSaveFailed": "AI 引擎切换失败",
+      "engineHermesNotInstalled": "Hermes 引擎未安装。请先执行 pip install hermes-agent 后重启应用，或切换回「自有引擎」。"
     },
     "general": {
       "title": "通用设置",

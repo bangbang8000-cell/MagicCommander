@@ -64,6 +64,9 @@
       "hubFailed": "AI Hub 啟動失敗，請檢查 Python 環境是否就緒。可前往設定頁面測試連線。",
       "noModel": "未選擇 AI 模型。請前往設定頁面設定 Provider。",
       "serviceNotRunning": "AI 服務未啟動"
+    },
+    "hint": {
+      "engineNaTitle": "AI 引擎「{{engine}}」不可用"
     }
   },
   "autonomy": {

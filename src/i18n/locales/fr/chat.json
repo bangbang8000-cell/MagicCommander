@@ -64,6 +64,9 @@
       "hubFailed": "AI Hub failed to start. Please check the Python environment. Go to Settings to test the connection.",
       "noModel": "No AI model selected. Please configure a Provider in Settings.",
       "serviceNotRunning": "AI service not running"
+    },
+    "hint": {
+      "engineNaTitle": "Moteur IA \"{{engine}}\" indisponible"
     }
   },
   "autonomy": {

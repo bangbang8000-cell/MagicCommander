@@ -353,7 +353,15 @@
   "settings": {
     "ai": {
       "maxToolLoopRounds": "最大工具循環輪數",
-      "maxToolLoopRoundsDesc": "AI 單次對話最多執行的工具輪數（1-10，預設 5），達到上限後正常結束"
+      "maxToolLoopRoundsDesc": "AI 單次對話最多執行的工具輪數（1-10，預設 5），達到上限後正常結束",
+      "engine": "AI 引擎",
+      "engineOwn": "自有引擎",
+      "engineHermes": "Hermes",
+      "engineAuto": "自動",
+      "engineDesc": "選擇 AI 對話引擎：自有引擎 / Hermes / 自動。各引擎會話獨立，切換後保留不丟。",
+      "engineSaved": "AI 引擎已切換（會話保留不丟）",
+      "engineSaveFailed": "AI 引擎切換失敗",
+      "engineHermesNotInstalled": "Hermes 引擎未安裝。請先執行 pip install hermes-agent 後重啟應用，或切換回「自有引擎」。"
     }
   },
   "efficiency": {

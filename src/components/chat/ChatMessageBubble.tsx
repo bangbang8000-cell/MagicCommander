@@ -8,7 +8,13 @@ import type { ChatMessage } from '@/types/chat'
 import { AttachmentPreview } from './AttachmentPreview'
 import { PlanDisplay } from './PlanDisplay'
 import type { PlanStep } from './PlanDisplay'
-import { useChatStore, parseConfirmationMarker, isWaitingFirstChunk, sendConfirmationReply } from '@/stores/chat.store'
+import {
+  useChatStore,
+  parseConfirmationMarker,
+  parseEngineNaMarker,
+  isWaitingFirstChunk,
+  sendConfirmationReply,
+} from '@/stores/chat.store'
 import { useProjectStore } from '@/stores/project.store'
 
 interface ChatMessageBubbleProps {
@@ -114,7 +120,16 @@ export const ChatMessageBubble = memo(function ChatMessageBubble({
     () => (isUser || isSystem ? null : parseConfirmationMarker(message.content)),
     [message.content, isUser, isSystem],
   )
-  const displayContent = confirmation ? confirmation.displayContent : message.content
+  // 5.0.2-F502-2：解析「AI 引擎不可用」标记（Hermes 未安装等），渲染提示卡片时剥离标记行
+  const engineNa = useMemo(
+    () => (isUser || isSystem ? null : parseEngineNaMarker(message.content)),
+    [message.content, isUser, isSystem],
+  )
+  const displayContent = confirmation
+    ? confirmation.displayContent
+    : engineNa
+      ? engineNa.displayContent
+      : message.content
 
   // PRD v3.3 AI-2：订阅「等待首 chunk」流式状态，判定本消息是否在思考期
   const waitingFirstChunk = useChatStore((s) => s.waitingFirstChunk)
@@ -214,7 +229,7 @@ export const ChatMessageBubble = memo(function ChatMessageBubble({
           </div>
         )}
 
-        {/* Markdown 内容（确认标记行已剥离，不进显示区） */}
+        {/* Markdown 内容（确认标记行已剥离，不进显示区；引擎不可用提示由下方卡片展示） */}
         <div
           className={clsx(
             'prose max-w-none',
@@ -227,9 +242,27 @@ export const ChatMessageBubble = memo(function ChatMessageBubble({
           )}
         >
           <ReactMarkdown remarkPlugins={[remarkGfm]}>
-            {steps.length > 0 ? cleanedContent : displayContent}
+            {steps.length > 0 ? cleanedContent : engineNa ? '' : displayContent}
           </ReactMarkdown>
         </div>
+
+        {/* 5.0.2-F502-2：AI 引擎不可用提示卡片（如 Hermes 未安装；标记行已剥离，卡片为唯一展示） */}
+        {engineNa && (
+          <div
+            className={clsx(
+              'mt-2 w-full px-3 py-2.5 rounded-lg border text-xs',
+              isDark ? 'border-fuchsia-800 bg-fuchsia-900/20' : 'border-fuchsia-200 bg-fuchsia-50',
+            )}
+          >
+            <div className="flex items-center gap-1.5 font-medium text-fuchsia-800 dark:text-fuchsia-200">
+              <Bot size={12} />
+              {t('chat:aihub.engineNaTitle', { engine: engineNa.engine })}
+            </div>
+            <div className="mt-1.5 whitespace-pre-wrap text-fuchsia-700 dark:text-fuchsia-300">
+              {engineNa.displayContent}
+            </div>
+          </div>
+        )}
 
         {/* PRD v3.3 AI-1：工具确认卡片（点确认/取消以用户消息回灌，发送后卡片消失） */}
         {confirmation && !confirmationResolved && (

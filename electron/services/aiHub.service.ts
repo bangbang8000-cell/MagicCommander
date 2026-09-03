@@ -463,6 +463,7 @@ export class AIHubService extends EventEmitter {
     attachments?: Array<{ id: string; name: string; type: string; path: string; size: number }>,
     autonomyMode: string = 'semi_auto',
     projectName?: string,
+    engine?: string,
     onChunk?: (text: string) => void,
   ): Promise<string> {
     // M2 修复：调用前确保运行（未运行先启动），401/连接失败重启重试一次
@@ -479,6 +480,8 @@ export class AIHubService extends EventEmitter {
           attachments,
           autonomy_mode: autonomyMode,
           project_name: projectName,
+          // 5.0.2-F502-2：AI 引擎（own/hermes/auto），缺省用后端配置 ai_engine
+          engine,
         }),
       })
 
@@ -545,6 +548,40 @@ export class AIHubService extends EventEmitter {
       const response = await fetch(`${this.baseUrl}/api/chat/providers`, { headers: this.authHeaders() })
       const data = await response.json()
       return data.providers || []
+    })
+  }
+
+  /**
+   * 获取 AI 引擎配置与可用性（5.0.2-F502-2：own/hermes/auto + resolved + available）
+   */
+  async getEngine(): Promise<{ engine: string; resolved: string; available: Record<string, boolean> }> {
+    await this.ensureRunning()
+    return this.withRetry(async () => {
+      const response = await fetch(`${this.baseUrl}/api/chat/engine`, { headers: this.authHeaders() })
+      if (!response.ok) {
+        const errBody = await response.text()
+        throw new Error(`获取 AI 引擎失败: HTTP ${response.status} ${errBody}`)
+      }
+      return await response.json()
+    })
+  }
+
+  /**
+   * 设置 AI 引擎模式（5.0.2-F502-2：持久化到 secrets 文件并立即生效）
+   */
+  async setEngine(engine: string): Promise<{ engine: string; resolved: string; available: Record<string, boolean> }> {
+    await this.ensureRunning()
+    return this.withRetry(async () => {
+      const response = await fetch(`${this.baseUrl}/api/chat/engine`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...this.authHeaders() },
+        body: JSON.stringify({ engine }),
+      })
+      if (!response.ok) {
+        const errBody = await response.text()
+        throw new Error(`设置 AI 引擎失败: HTTP ${response.status} ${errBody}`)
+      }
+      return await response.json()
     })
   }
 

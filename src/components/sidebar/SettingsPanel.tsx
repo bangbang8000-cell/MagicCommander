@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { useUIStore } from '@/stores/ui.store'
+import { useUIStore, type AIConfig } from '@/stores/ui.store'
 import { usePlatformStore } from '@/stores/platform.store'
 import {
   Settings,
@@ -202,6 +202,13 @@ export function SettingsPanel() {
   const [fetchingModels, setFetchingModels] = useState(false)
   const [fetchedModels, setFetchedModels] = useState<string[]>([])
 
+  // 5.0.2-F502-2：AI 引擎配置与可用性（挂载时从后端水合；hermes 未安装展示安装指引）
+  const [engineInfo, setEngineInfo] = useState<{
+    engine: string
+    resolved: string
+    available: Record<string, boolean>
+  } | null>(null)
+
   // General state
   const [langDropdownOpen, setLangDropdownOpen] = useState(false)
   const [workspacePath, setWorkspacePath] = useState('')
@@ -231,6 +238,29 @@ export function SettingsPanel() {
     }
     fetchWorkspacePath()
   }, [])
+
+  // 5.0.2-F502-2：挂载时从后端水合 AI 引擎配置与可用性（hermes 未安装时展示安装指引）
+  useEffect(() => {
+    let cancelled = false
+    const aiHub = window.electron?.aihub
+    if (!aiHub?.getEngine) return
+    aiHub
+      .getEngine()
+      .then((res) => {
+        if (cancelled) return
+        setEngineInfo(res)
+        const engine = (['own', 'hermes', 'auto'] as const).includes(res.engine as AIConfig['aiEngine'])
+          ? (res.engine as AIConfig['aiEngine'])
+          : 'own'
+        setAIConfig({ aiEngine: engine })
+      })
+      .catch(() => {
+        /* 水合失败静默，回退本地默认 */
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [setAIConfig])
 
   const ensureAIHubReady = useCallback(async (): Promise<string | null> => {
     try {
@@ -457,6 +487,21 @@ export function SettingsPanel() {
       void persistMaxToolLoopRounds(rounds)
     },
     [setAIConfig, persistMaxToolLoopRounds],
+  )
+
+  // 5.0.2-F502-2：AI 引擎切换（own/hermes/auto）——立即保存到后端；会话按引擎隔离，切换保留旧会话
+  const handleEngineChange = useCallback(
+    async (engine: AIConfig['aiEngine']) => {
+      if (engine === aiConfig.aiEngine) return
+      setAIConfig({ aiEngine: engine })
+      try {
+        await window.electron?.aihub?.setEngine(engine)
+        showSuccess(t('common:settings.ai.engineSaved'))
+      } catch {
+        showError(t('common:settings.ai.engineSaveFailed'))
+      }
+    },
+    [aiConfig.aiEngine, setAIConfig, t],
   )
 
   const handleLanguageChange = useCallback(
@@ -1194,6 +1239,47 @@ export function SettingsPanel() {
                   {saving ? '...' : t('common:settings.ai.save')}
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 5.0.2-F502-2：AI 引擎三选一（自有引擎=默认 / Hermes / 自动）；Hermes 未安装展示安装指引 */}
+      <div
+        className={clsx(
+          'rounded-lg border p-3',
+          isDark ? 'border-gray-700 bg-gray-800/50' : 'border-gray-200 bg-gray-50',
+        )}
+      >
+        <div className="flex items-start gap-3">
+          <div className={clsx('mt-0.5', isDark ? 'text-gray-400' : 'text-gray-500')}>
+            <Cpu size={16} />
+          </div>
+          <div className="flex-1 min-w-0">
+            <h4 className={clsx('text-sm font-medium', isDark ? 'text-gray-200' : 'text-gray-700')}>
+              {t('common:settings.ai.engine')}
+            </h4>
+            <p className={clsx('text-xs mt-0.5', isDark ? 'text-gray-500' : 'text-gray-400')}>
+              {t('common:settings.ai.engineDesc')}
+            </p>
+            <div className="flex flex-col gap-1 mt-2">
+              <select
+                value={aiConfig.aiEngine || 'own'}
+                onChange={(e) => handleEngineChange(e.target.value as AIConfig['aiEngine'])}
+                className={clsx(
+                  'w-full px-2 py-1 rounded text-xs border',
+                  isDark ? 'border-gray-600 bg-gray-700 text-gray-200' : 'border-gray-300 bg-white text-gray-700',
+                )}
+              >
+                <option value="own">{t('common:settings.ai.engineOwn')}</option>
+                <option value="hermes">{t('common:settings.ai.engineHermes')}</option>
+                <option value="auto">{t('common:settings.ai.engineAuto')}</option>
+              </select>
+              {aiConfig.aiEngine === 'hermes' && engineInfo && engineInfo.available?.hermes === false && (
+                <span className={clsx('text-[11px] whitespace-pre-wrap', isDark ? 'text-amber-400' : 'text-amber-600')}>
+                  {t('common:settings.ai.engineHermesNotInstalled')}
+                </span>
+              )}
             </div>
           </div>
         </div>

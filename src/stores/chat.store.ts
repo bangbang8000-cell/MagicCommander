@@ -666,6 +666,8 @@ export async function sendMessage(
       })),
       useUIStore.getState().autonomyMode,
       projectName,
+      // 5.0.2-F502-2：AI 引擎（own/hermes/auto），缺省后端用配置 ai_engine
+      aiConfig.aiEngine,
     )
 
     const timeoutPromise = new Promise<string>((_, reject) => {
@@ -804,6 +806,18 @@ export function parseConfirmationMarker(content: string): {
   }
   const displayContent = content.replace(rx, '\n').trim()
   return { tool, args, displayContent }
+}
+
+/**
+ * 5.0.2-F502-2：从 assistant 消息解析「AI 引擎不可用」标记（后端 /send 在引擎不可用时
+ * yield 的独立行 `---ENGINE_NA:<engine>---`，如 Hermes 未安装）。返回引擎标识与剥离
+ * 标记后的展示内容（安装指引正文）；无标记返回 null。渲染时按行剥离，不进显示区。
+ */
+export function parseEngineNaMarker(content: string): { engine: string; displayContent: string } | null {
+  const rx = /(^|\n)---ENGINE_NA:([a-zA-Z_]+)---(\n|$)/
+  const m = content.match(rx)
+  if (!m) return null
+  return { engine: m[2], displayContent: content.replace(rx, '\n').trim() }
 }
 
 /**
