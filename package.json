@@ -36,6 +36,8 @@
     "golden": "python scripts/gen_golden.py",
     "golden:check": "python scripts/gen_golden.py --check",
     "validate-templates": "python scripts/validate_templates.py",
+    "validate-samples": "python scripts/validate_samples.py",
+    "gen-aidc-samples": "python scripts/gen_aidc_samples.py",
     "bench-perf": "python scripts/bench_perf.py"
   },
   "dependencies": {

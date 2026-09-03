@@ -1,0 +1,151 @@
+{
+  "batch_manifest": [
+    {
+      "device": "GZ01-R01-AIDC-H3C-P-Spine-01",
+      "filename": "GZ01-R01-AIDC-H3C-P-Spine-01.txt",
+      "role": "SPINE",
+      "sha256": "07e5a8196f7c6174"
+    },
+    {
+      "device": "GZ01-R02-AIDC-H3C-P-Spine-02",
+      "filename": "GZ01-R02-AIDC-H3C-P-Spine-02.txt",
+      "role": "SPINE",
+      "sha256": "c8eb9c0670b3203e"
+    },
+    {
+      "device": "GZ01-R03-AIDC-H3C-P-Spine-03",
+      "filename": "GZ01-R03-AIDC-H3C-P-Spine-03.txt",
+      "role": "SPINE",
+      "sha256": "d8281d7bb64864ef"
+    },
+    {
+      "device": "GZ01-R04-AIDC-H3C-P-Spine-04",
+      "filename": "GZ01-R04-AIDC-H3C-P-Spine-04.txt",
+      "role": "SPINE",
+      "sha256": "8e583882f3a84998"
+    },
+    {
+      "device": "GZ01-R05-AIDC-H3C-P-Leaf-01",
+      "filename": "GZ01-R05-AIDC-H3C-P-Leaf-01.txt",
+      "role": "LEAF",
+      "sha256": "a4dac746ae350c77"
+    },
+    {
+      "device": "GZ01-R06-AIDC-H3C-P-Leaf-02",
+      "filename": "GZ01-R06-AIDC-H3C-P-Leaf-02.txt",
+      "role": "LEAF",
+      "sha256": "b3b6f5f7830a228a"
+    },
+    {
+      "device": "GZ01-R07-AIDC-H3C-P-Leaf-03",
+      "filename": "GZ01-R07-AIDC-H3C-P-Leaf-03.txt",
+      "role": "LEAF",
+      "sha256": "44f11877db55f3cd"
+    },
+    {
+      "device": "GZ01-R08-AIDC-H3C-P-Leaf-04",
+      "filename": "GZ01-R08-AIDC-H3C-P-Leaf-04.txt",
+      "role": "LEAF",
+      "sha256": "14fbc07d08122dbd"
+    },
+    {
+      "device": "GZ01-R09-AIDC-H3C-P-Leaf-05",
+      "filename": "GZ01-R09-AIDC-H3C-P-Leaf-05.txt",
+      "role": "LEAF",
+      "sha256": "95554fe2891e242c"
+    },
+    {
+      "device": "GZ01-R10-AIDC-H3C-P-Leaf-06",
+      "filename": "GZ01-R10-AIDC-H3C-P-Leaf-06.txt",
+      "role": "LEAF",
+      "sha256": "a63802ce87639aa5"
+    },
+    {
+      "device": "GZ01-R11-AIDC-H3C-P-Leaf-07",
+      "filename": "GZ01-R11-AIDC-H3C-P-Leaf-07.txt",
+      "role": "LEAF",
+      "sha256": "9bf5583beadb991d"
+    },
+    {
+      "device": "GZ01-R12-AIDC-H3C-P-Leaf-08",
+      "filename": "GZ01-R12-AIDC-H3C-P-Leaf-08.txt",
+      "role": "LEAF",
+      "sha256": "8b9d2177a68aae2e"
+    },
+    {
+      "device": "GZ01-R13-AIDC-H3C-S-Spine-01",
+      "filename": "GZ01-R13-AIDC-H3C-S-Spine-01.txt",
+      "role": "STO_SPINE",
+      "sha256": "dfead19a02d616e2"
+    },
+    {
+      "device": "GZ01-R14-AIDC-H3C-S-Leaf-01",
+      "filename": "GZ01-R14-AIDC-H3C-S-Leaf-01.txt",
+      "role": "STO_LEAF",
+      "sha256": "763978ff3a4c7af5"
+    },
+    {
+      "device": "GZ01-R15-AIDC-H3C-S-Leaf-02",
+      "filename": "GZ01-R15-AIDC-H3C-S-Leaf-02.txt",
+      "role": "STO_LEAF",
+      "sha256": "28ab5043e88c571b"
+    },
+    {
+      "device": "GZ01-R16-AIDC-H3C-BIZ-AGG-01",
+      "filename": "GZ01-R16-AIDC-H3C-BIZ-AGG-01.txt",
+      "role": "BIZ_AGG",
+      "sha256": "ce463e1f4dd27b5a"
+    },
+    {
+      "device": "GZ01-R17-AIDC-H3C-BIZ-AGG-02",
+      "filename": "GZ01-R17-AIDC-H3C-BIZ-AGG-02.txt",
+      "role": "BIZ_AGG",
+      "sha256": "47ef11533fe1fada"
+    },
+    {
+      "device": "GZ01-R18-AIDC-H3C-BIZ-ACC-01",
+      "filename": "GZ01-R18-AIDC-H3C-BIZ-ACC-01.txt",
+      "role": "BIZ_ACCESS",
+      "sha256": "7011fb608528ab03"
+    },
+    {
+      "device": "GZ01-R19-AIDC-H3C-BIZ-ACC-02",
+      "filename": "GZ01-R19-AIDC-H3C-BIZ-ACC-02.txt",
+      "role": "BIZ_ACCESS",
+      "sha256": "9eaa4f29fdf7e254"
+    },
+    {
+      "device": "GZ01-R20-AIDC-H3C-BIZ-ACC-03",
+      "filename": "GZ01-R20-AIDC-H3C-BIZ-ACC-03.txt",
+      "role": "BIZ_ACCESS",
+      "sha256": "cd453c36bebf362e"
+    },
+    {
+      "device": "GZ01-R21-AIDC-H3C-BIZ-ACC-04",
+      "filename": "GZ01-R21-AIDC-H3C-BIZ-ACC-04.txt",
+      "role": "BIZ_ACCESS",
+      "sha256": "c343c30c8a557fb3"
+    },
+    {
+      "device": "GZ01-R22-AIDC-H3C-OOB-AGG-01",
+      "filename": "GZ01-R22-AIDC-H3C-OOB-AGG-01.txt",
+      "role": "OOB_AGG",
+      "sha256": "968cef8074e1a5ab"
+    },
+    {
+      "device": "GZ01-R23-AIDC-H3C-OOB-ACC-01",
+      "filename": "GZ01-R23-AIDC-H3C-OOB-ACC-01.txt",
+      "role": "OOB_ACCESS",
+      "sha256": "df059460d7554515"
+    },
+    {
+      "device": "GZ01-R24-AIDC-H3C-OOB-ACC-02",
+      "filename": "GZ01-R24-AIDC-H3C-OOB-ACC-02.txt",
+      "role": "OOB_ACCESS",
+      "sha256": "5cb3fcb257428e5a"
+    }
+  ],
+  "device_count": 24,
+  "render_hash": "cf0bf774e0f7eb06",
+  "source": "example/128H100-RoCE"
+}

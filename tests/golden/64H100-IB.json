@@ -1,0 +1,139 @@
+{
+  "batch_manifest": [
+    {
+      "device": "BJ01-R01-AIDC-NVDA-P-Spine-01",
+      "filename": "BJ01-R01-AIDC-NVDA-P-Spine-01.txt",
+      "role": "SPINE",
+      "sha256": "4e60f254f9679c11"
+    },
+    {
+      "device": "BJ01-R02-AIDC-NVDA-P-Spine-02",
+      "filename": "BJ01-R02-AIDC-NVDA-P-Spine-02.txt",
+      "role": "SPINE",
+      "sha256": "bc2bcf55f31299fc"
+    },
+    {
+      "device": "BJ01-R03-AIDC-NVDA-P-Leaf-01",
+      "filename": "BJ01-R03-AIDC-NVDA-P-Leaf-01.txt",
+      "role": "LEAF",
+      "sha256": "349daec2da0e174a"
+    },
+    {
+      "device": "BJ01-R04-AIDC-NVDA-P-Leaf-02",
+      "filename": "BJ01-R04-AIDC-NVDA-P-Leaf-02.txt",
+      "role": "LEAF",
+      "sha256": "71fb6703b3c7a038"
+    },
+    {
+      "device": "BJ01-R05-AIDC-NVDA-P-Leaf-03",
+      "filename": "BJ01-R05-AIDC-NVDA-P-Leaf-03.txt",
+      "role": "LEAF",
+      "sha256": "5973c0ef04debec9"
+    },
+    {
+      "device": "BJ01-R06-AIDC-NVDA-P-Leaf-04",
+      "filename": "BJ01-R06-AIDC-NVDA-P-Leaf-04.txt",
+      "role": "LEAF",
+      "sha256": "75ea41f407ea426a"
+    },
+    {
+      "device": "BJ01-R07-AIDC-NVDA-P-Leaf-05",
+      "filename": "BJ01-R07-AIDC-NVDA-P-Leaf-05.txt",
+      "role": "LEAF",
+      "sha256": "9395a053a35f81bf"
+    },
+    {
+      "device": "BJ01-R08-AIDC-NVDA-P-Leaf-06",
+      "filename": "BJ01-R08-AIDC-NVDA-P-Leaf-06.txt",
+      "role": "LEAF",
+      "sha256": "6ebad1d0601d6787"
+    },
+    {
+      "device": "BJ01-R09-AIDC-NVDA-P-Leaf-07",
+      "filename": "BJ01-R09-AIDC-NVDA-P-Leaf-07.txt",
+      "role": "LEAF",
+      "sha256": "7017deccda16aa9c"
+    },
+    {
+      "device": "BJ01-R10-AIDC-NVDA-P-Leaf-08",
+      "filename": "BJ01-R10-AIDC-NVDA-P-Leaf-08.txt",
+      "role": "LEAF",
+      "sha256": "d496d273e30af49f"
+    },
+    {
+      "device": "BJ01-R11-AIDC-NVDA-S-Spine-01",
+      "filename": "BJ01-R11-AIDC-NVDA-S-Spine-01.txt",
+      "role": "STO_SPINE",
+      "sha256": "e7c68c5a0e714fd2"
+    },
+    {
+      "device": "BJ01-R12-AIDC-NVDA-S-Leaf-01",
+      "filename": "BJ01-R12-AIDC-NVDA-S-Leaf-01.txt",
+      "role": "STO_LEAF",
+      "sha256": "32ef090bda058545"
+    },
+    {
+      "device": "BJ01-R13-AIDC-NVDA-S-Leaf-02",
+      "filename": "BJ01-R13-AIDC-NVDA-S-Leaf-02.txt",
+      "role": "STO_LEAF",
+      "sha256": "c193c01b5b514faa"
+    },
+    {
+      "device": "BJ01-R14-AIDC-NVDA-BIZ-AGG-01",
+      "filename": "BJ01-R14-AIDC-NVDA-BIZ-AGG-01.txt",
+      "role": "BIZ_AGG",
+      "sha256": "300fa52202e810bf"
+    },
+    {
+      "device": "BJ01-R15-AIDC-NVDA-BIZ-AGG-02",
+      "filename": "BJ01-R15-AIDC-NVDA-BIZ-AGG-02.txt",
+      "role": "BIZ_AGG",
+      "sha256": "3f55044d417dee11"
+    },
+    {
+      "device": "BJ01-R16-AIDC-NVDA-BIZ-ACC-01",
+      "filename": "BJ01-R16-AIDC-NVDA-BIZ-ACC-01.txt",
+      "role": "BIZ_ACCESS",
+      "sha256": "7aa48b4c82f200df"
+    },
+    {
+      "device": "BJ01-R17-AIDC-NVDA-BIZ-ACC-02",
+      "filename": "BJ01-R17-AIDC-NVDA-BIZ-ACC-02.txt",
+      "role": "BIZ_ACCESS",
+      "sha256": "25782ed2e49d1a82"
+    },
+    {
+      "device": "BJ01-R18-AIDC-NVDA-BIZ-ACC-03",
+      "filename": "BJ01-R18-AIDC-NVDA-BIZ-ACC-03.txt",
+      "role": "BIZ_ACCESS",
+      "sha256": "24c54d12c8540f80"
+    },
+    {
+      "device": "BJ01-R19-AIDC-NVDA-BIZ-ACC-04",
+      "filename": "BJ01-R19-AIDC-NVDA-BIZ-ACC-04.txt",
+      "role": "BIZ_ACCESS",
+      "sha256": "079c1df6b710fcc8"
+    },
+    {
+      "device": "BJ01-R20-AIDC-NVDA-OOB-AGG-01",
+      "filename": "BJ01-R20-AIDC-NVDA-OOB-AGG-01.txt",
+      "role": "OOB_AGG",
+      "sha256": "044d86d64c77cdf0"
+    },
+    {
+      "device": "BJ01-R21-AIDC-NVDA-OOB-ACC-01",
+      "filename": "BJ01-R21-AIDC-NVDA-OOB-ACC-01.txt",
+      "role": "OOB_ACCESS",
+      "sha256": "f578a8db183b9eec"
+    },
+    {
+      "device": "BJ01-R22-AIDC-NVDA-OOB-ACC-02",
+      "filename": "BJ01-R22-AIDC-NVDA-OOB-ACC-02.txt",
+      "role": "OOB_ACCESS",
+      "sha256": "bd7193881c9b5c57"
+    }
+  ],
+  "device_count": 22,
+  "render_hash": "680c307a7a8f99e9",
+  "source": "example/64H100-IB"
+}

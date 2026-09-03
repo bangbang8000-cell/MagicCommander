@@ -1,0 +1,151 @@
+{
+  "batch_manifest": [
+    {
+      "device": "SH01-R01-AIDC-NVDA-P-Spine-01",
+      "filename": "SH01-R01-AIDC-NVDA-P-Spine-01.txt",
+      "role": "SPINE",
+      "sha256": "312ab66894aaef53"
+    },
+    {
+      "device": "SH01-R02-AIDC-NVDA-P-Spine-02",
+      "filename": "SH01-R02-AIDC-NVDA-P-Spine-02.txt",
+      "role": "SPINE",
+      "sha256": "85d40c05141faa8c"
+    },
+    {
+      "device": "SH01-R03-AIDC-NVDA-P-Spine-03",
+      "filename": "SH01-R03-AIDC-NVDA-P-Spine-03.txt",
+      "role": "SPINE",
+      "sha256": "2d5c316297fce612"
+    },
+    {
+      "device": "SH01-R04-AIDC-NVDA-P-Spine-04",
+      "filename": "SH01-R04-AIDC-NVDA-P-Spine-04.txt",
+      "role": "SPINE",
+      "sha256": "26bef9d84bf515e8"
+    },
+    {
+      "device": "SH01-R05-AIDC-NVDA-P-Leaf-01",
+      "filename": "SH01-R05-AIDC-NVDA-P-Leaf-01.txt",
+      "role": "LEAF",
+      "sha256": "0136c8e4f1290e26"
+    },
+    {
+      "device": "SH01-R06-AIDC-NVDA-P-Leaf-02",
+      "filename": "SH01-R06-AIDC-NVDA-P-Leaf-02.txt",
+      "role": "LEAF",
+      "sha256": "0d6271be5bb0f16f"
+    },
+    {
+      "device": "SH01-R07-AIDC-NVDA-P-Leaf-03",
+      "filename": "SH01-R07-AIDC-NVDA-P-Leaf-03.txt",
+      "role": "LEAF",
+      "sha256": "75b3dbf8063d36fe"
+    },
+    {
+      "device": "SH01-R08-AIDC-NVDA-P-Leaf-04",
+      "filename": "SH01-R08-AIDC-NVDA-P-Leaf-04.txt",
+      "role": "LEAF",
+      "sha256": "e6ea28504ac9ad2d"
+    },
+    {
+      "device": "SH01-R09-AIDC-NVDA-P-Leaf-05",
+      "filename": "SH01-R09-AIDC-NVDA-P-Leaf-05.txt",
+      "role": "LEAF",
+      "sha256": "13029ec2257bde3b"
+    },
+    {
+      "device": "SH01-R10-AIDC-NVDA-P-Leaf-06",
+      "filename": "SH01-R10-AIDC-NVDA-P-Leaf-06.txt",
+      "role": "LEAF",
+      "sha256": "78d15738f8e0e160"
+    },
+    {
+      "device": "SH01-R11-AIDC-NVDA-P-Leaf-07",
+      "filename": "SH01-R11-AIDC-NVDA-P-Leaf-07.txt",
+      "role": "LEAF",
+      "sha256": "3e51d0b378f1ef2d"
+    },
+    {
+      "device": "SH01-R12-AIDC-NVDA-P-Leaf-08",
+      "filename": "SH01-R12-AIDC-NVDA-P-Leaf-08.txt",
+      "role": "LEAF",
+      "sha256": "2dbf134832915e7c"
+    },
+    {
+      "device": "SH01-R13-AIDC-NVDA-S-Spine-01",
+      "filename": "SH01-R13-AIDC-NVDA-S-Spine-01.txt",
+      "role": "STO_SPINE",
+      "sha256": "6508f99843351924"
+    },
+    {
+      "device": "SH01-R14-AIDC-NVDA-S-Leaf-01",
+      "filename": "SH01-R14-AIDC-NVDA-S-Leaf-01.txt",
+      "role": "STO_LEAF",
+      "sha256": "0bbf6a1a58da15c8"
+    },
+    {
+      "device": "SH01-R15-AIDC-NVDA-S-Leaf-02",
+      "filename": "SH01-R15-AIDC-NVDA-S-Leaf-02.txt",
+      "role": "STO_LEAF",
+      "sha256": "f293982e87b20521"
+    },
+    {
+      "device": "SH01-R16-AIDC-NVDA-BIZ-AGG-01",
+      "filename": "SH01-R16-AIDC-NVDA-BIZ-AGG-01.txt",
+      "role": "BIZ_AGG",
+      "sha256": "57d3c48afe68e222"
+    },
+    {
+      "device": "SH01-R17-AIDC-NVDA-BIZ-AGG-02",
+      "filename": "SH01-R17-AIDC-NVDA-BIZ-AGG-02.txt",
+      "role": "BIZ_AGG",
+      "sha256": "12eaf19ad8c8ffee"
+    },
+    {
+      "device": "SH01-R18-AIDC-NVDA-BIZ-ACC-01",
+      "filename": "SH01-R18-AIDC-NVDA-BIZ-ACC-01.txt",
+      "role": "BIZ_ACCESS",
+      "sha256": "182adb10441d878f"
+    },
+    {
+      "device": "SH01-R19-AIDC-NVDA-BIZ-ACC-02",
+      "filename": "SH01-R19-AIDC-NVDA-BIZ-ACC-02.txt",
+      "role": "BIZ_ACCESS",
+      "sha256": "5b79b66cfda8a791"
+    },
+    {
+      "device": "SH01-R20-AIDC-NVDA-BIZ-ACC-03",
+      "filename": "SH01-R20-AIDC-NVDA-BIZ-ACC-03.txt",
+      "role": "BIZ_ACCESS",
+      "sha256": "ad5e061ce1ac5ddf"
+    },
+    {
+      "device": "SH01-R21-AIDC-NVDA-BIZ-ACC-04",
+      "filename": "SH01-R21-AIDC-NVDA-BIZ-ACC-04.txt",
+      "role": "BIZ_ACCESS",
+      "sha256": "9e3b8c854ac82edb"
+    },
+    {
+      "device": "SH01-R22-AIDC-NVDA-OOB-AGG-01",
+      "filename": "SH01-R22-AIDC-NVDA-OOB-AGG-01.txt",
+      "role": "OOB_AGG",
+      "sha256": "618bd1cc2efeb193"
+    },
+    {
+      "device": "SH01-R23-AIDC-NVDA-OOB-ACC-01",
+      "filename": "SH01-R23-AIDC-NVDA-OOB-ACC-01.txt",
+      "role": "OOB_ACCESS",
+      "sha256": "be7e84d627d4d3ed"
+    },
+    {
+      "device": "SH01-R24-AIDC-NVDA-OOB-ACC-02",
+      "filename": "SH01-R24-AIDC-NVDA-OOB-ACC-02.txt",
+      "role": "OOB_ACCESS",
+      "sha256": "39b70021445d037b"
+    }
+  ],
+  "device_count": 24,
+  "render_hash": "bda3438ded8df4a1",
+  "source": "example/128H100-IB"
+}

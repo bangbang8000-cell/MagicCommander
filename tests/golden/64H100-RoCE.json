@@ -1,0 +1,139 @@
+{
+  "batch_manifest": [
+    {
+      "device": "BJ02-R01-AIDC-H3C-P-Spine-01",
+      "filename": "BJ02-R01-AIDC-H3C-P-Spine-01.txt",
+      "role": "SPINE",
+      "sha256": "77842a5993afeb40"
+    },
+    {
+      "device": "BJ02-R02-AIDC-H3C-P-Spine-02",
+      "filename": "BJ02-R02-AIDC-H3C-P-Spine-02.txt",
+      "role": "SPINE",
+      "sha256": "2ca5cd0b2954651d"
+    },
+    {
+      "device": "BJ02-R03-AIDC-H3C-P-Leaf-01",
+      "filename": "BJ02-R03-AIDC-H3C-P-Leaf-01.txt",
+      "role": "LEAF",
+      "sha256": "3f7793689265417e"
+    },
+    {
+      "device": "BJ02-R04-AIDC-H3C-P-Leaf-02",
+      "filename": "BJ02-R04-AIDC-H3C-P-Leaf-02.txt",
+      "role": "LEAF",
+      "sha256": "c36228d3792ed7a2"
+    },
+    {
+      "device": "BJ02-R05-AIDC-H3C-P-Leaf-03",
+      "filename": "BJ02-R05-AIDC-H3C-P-Leaf-03.txt",
+      "role": "LEAF",
+      "sha256": "7e73db39cbdc0fa9"
+    },
+    {
+      "device": "BJ02-R06-AIDC-H3C-P-Leaf-04",
+      "filename": "BJ02-R06-AIDC-H3C-P-Leaf-04.txt",
+      "role": "LEAF",
+      "sha256": "7a2c3b43348104e1"
+    },
+    {
+      "device": "BJ02-R07-AIDC-H3C-P-Leaf-05",
+      "filename": "BJ02-R07-AIDC-H3C-P-Leaf-05.txt",
+      "role": "LEAF",
+      "sha256": "34a70afc913dfbad"
+    },
+    {
+      "device": "BJ02-R08-AIDC-H3C-P-Leaf-06",
+      "filename": "BJ02-R08-AIDC-H3C-P-Leaf-06.txt",
+      "role": "LEAF",
+      "sha256": "1e4c3979d66dc8a0"
+    },
+    {
+      "device": "BJ02-R09-AIDC-H3C-P-Leaf-07",
+      "filename": "BJ02-R09-AIDC-H3C-P-Leaf-07.txt",
+      "role": "LEAF",
+      "sha256": "aeb67994e22e5c02"
+    },
+    {
+      "device": "BJ02-R10-AIDC-H3C-P-Leaf-08",
+      "filename": "BJ02-R10-AIDC-H3C-P-Leaf-08.txt",
+      "role": "LEAF",
+      "sha256": "2e5afffedcc924fa"
+    },
+    {
+      "device": "BJ02-R11-AIDC-H3C-S-Spine-01",
+      "filename": "BJ02-R11-AIDC-H3C-S-Spine-01.txt",
+      "role": "STO_SPINE",
+      "sha256": "a4506852a1b41602"
+    },
+    {
+      "device": "BJ02-R12-AIDC-H3C-S-Leaf-01",
+      "filename": "BJ02-R12-AIDC-H3C-S-Leaf-01.txt",
+      "role": "STO_LEAF",
+      "sha256": "91e0ee685329e218"
+    },
+    {
+      "device": "BJ02-R13-AIDC-H3C-S-Leaf-02",
+      "filename": "BJ02-R13-AIDC-H3C-S-Leaf-02.txt",
+      "role": "STO_LEAF",
+      "sha256": "fbfb6b4f13328b6c"
+    },
+    {
+      "device": "BJ02-R14-AIDC-H3C-BIZ-AGG-01",
+      "filename": "BJ02-R14-AIDC-H3C-BIZ-AGG-01.txt",
+      "role": "BIZ_AGG",
+      "sha256": "8b2837639502164f"
+    },
+    {
+      "device": "BJ02-R15-AIDC-H3C-BIZ-AGG-02",
+      "filename": "BJ02-R15-AIDC-H3C-BIZ-AGG-02.txt",
+      "role": "BIZ_AGG",
+      "sha256": "61883be57833cfa0"
+    },
+    {
+      "device": "BJ02-R16-AIDC-H3C-BIZ-ACC-01",
+      "filename": "BJ02-R16-AIDC-H3C-BIZ-ACC-01.txt",
+      "role": "BIZ_ACCESS",
+      "sha256": "468fe5303b95413b"
+    },
+    {
+      "device": "BJ02-R17-AIDC-H3C-BIZ-ACC-02",
+      "filename": "BJ02-R17-AIDC-H3C-BIZ-ACC-02.txt",
+      "role": "BIZ_ACCESS",
+      "sha256": "337e6df4761c7bac"
+    },
+    {
+      "device": "BJ02-R18-AIDC-H3C-BIZ-ACC-03",
+      "filename": "BJ02-R18-AIDC-H3C-BIZ-ACC-03.txt",
+      "role": "BIZ_ACCESS",
+      "sha256": "68d078f09be3eda0"
+    },
+    {
+      "device": "BJ02-R19-AIDC-H3C-BIZ-ACC-04",
+      "filename": "BJ02-R19-AIDC-H3C-BIZ-ACC-04.txt",
+      "role": "BIZ_ACCESS",
+      "sha256": "9b901b9c8b1ff0d7"
+    },
+    {
+      "device": "BJ02-R20-AIDC-H3C-OOB-AGG-01",
+      "filename": "BJ02-R20-AIDC-H3C-OOB-AGG-01.txt",
+      "role": "OOB_AGG",
+      "sha256": "b5def0a4529bf9cf"
+    },
+    {
+      "device": "BJ02-R21-AIDC-H3C-OOB-ACC-01",
+      "filename": "BJ02-R21-AIDC-H3C-OOB-ACC-01.txt",
+      "role": "OOB_ACCESS",
+      "sha256": "91b7e7b14d89cc6d"
+    },
+    {
+      "device": "BJ02-R22-AIDC-H3C-OOB-ACC-02",
+      "filename": "BJ02-R22-AIDC-H3C-OOB-ACC-02.txt",
+      "role": "OOB_ACCESS",
+      "sha256": "2404226620b3596b"
+    }
+  ],
+  "device_count": 22,
+  "render_hash": "dcc673501c588552",
+  "source": "example/64H100-RoCE"
+}
