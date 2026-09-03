@@ -122,6 +122,8 @@ export interface AIConfig {
   maxToolLoopRounds: number
   /** 5.0.2-F502-2：AI 引擎三选一（own=自有引擎默认 / hermes=Hermes / auto=自动） */
   aiEngine: 'own' | 'hermes' | 'auto'
+  /** 5.0.3-503-a：多步任务编排 workflow（Plan→Execute→Verify，默认关；仅自有引擎生效） */
+  workflowEnabled: boolean
 }
 
 export interface ProviderConfig {
@@ -249,6 +251,7 @@ export const useUIStore = create<UIState>()(
           providers: {},
           maxToolLoopRounds: 5,
           aiEngine: 'own',
+          workflowEnabled: false,
         },
         setAIConfig: (config) => set((s) => ({ aiConfig: { ...s.aiConfig, ...config } })),
         setProviderConfig: (key, config) =>
@@ -333,6 +336,11 @@ export const useUIStore = create<UIState>()(
               // 5.0.2-F502-2：旧持久化数据缺少 aiEngine 时迁移为默认 own（自有引擎）
               if (state.aiConfig && !['own', 'hermes', 'auto'].includes(state.aiConfig.aiEngine)) {
                 state.aiConfig.aiEngine = 'own'
+              }
+
+              // 5.0.3-503-a：旧持久化数据缺少 workflowEnabled 时迁移为默认关
+              if (state.aiConfig && typeof state.aiConfig.workflowEnabled !== 'boolean') {
+                state.aiConfig.workflowEnabled = false
               }
 
               // 47-d：旧持久化数据缺少 telemetryEnabled 时迁移为默认 false（默认关闭）

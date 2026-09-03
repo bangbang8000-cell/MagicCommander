@@ -38,6 +38,14 @@ class AgentSession:
         self.pending_confirmation: dict | None = None
         # M7d: system prompt 缓存版本（记忆变更时刷新）
         self._prompt_version: int = -1
+        # 5.0.3-503-a：多步任务编排（workflow）会话上下文
+        self.workflow: str = "off"            # 请求级 workflow 模式（on/off）
+        self.workflow_state: object | None = None  # TaskWorkflow 实例（任务上下文随会话保留）
+        # run_stream 最近一次成功执行的工具调用/结果（workflow verify 接线用）
+        self.last_tool_call: dict | None = None
+        self.last_tool_result: dict | None = None
+        # 5.0.3-503-a：workflow 步骤级审批已通过标记（避免 run_stream 对 CONFIRM 工具重复确认）
+        self.workflow_step_approved: bool = False
 
     def _refresh_prompt_if_needed(self):
         """M7d: 记忆/技能等动态上下文变更时刷新本会话 system prompt（避免陈旧记忆）"""
@@ -195,7 +203,12 @@ class AgentSession:
             tool_args = validation.args
 
             # === Agent v2: 权限分级检查 ===
-            if validation.permission == ToolPermission.CONFIRM and self.autonomy_mode != "full_auto":
+            # 5.0.3-503-a：workflow 步骤级审批已通过（workflow_step_approved）时跳过重复确认
+            if (
+                validation.permission == ToolPermission.CONFIRM
+                and self.autonomy_mode != "full_auto"
+                and not getattr(self, "workflow_step_approved", False)
+            ):
                 # 记录待确认工具，等待用户下一条回复确认/取消
                 self.pending_confirmation = {"name": tool_name, "args": tool_args}
                 # M1（PRD v3.3 AI-1）：结构化确认标记，独立一行 `---CONFIRM:<tool>---`，
@@ -247,6 +260,13 @@ class AgentSession:
             if result is None:
                 yield "\n> 工具执行失败，未获取到结果。\n\n"
                 return
+
+            # 5.0.3-503-a：记录最近一次成功执行的工具调用/结果（workflow verify 接线）
+            self.last_tool_call = {"name": tool_name, "args": tool_args}
+            self.last_tool_result = result
+
+            # 5.0.3-503-b：工具执行后接线技能自学习闭环（record_usage + 反馈采集）
+            _collect_tool_feedback(tool_name, tool_args, result)
 
             # === Agent v2: 更新上下文和记忆 ===
             if self.current_project:
@@ -428,6 +448,43 @@ def _get_reasoning(provider) -> str:
     """获取 Provider 的 reasoning_content（DeepSeek thinking mode）"""
     reason = getattr(provider, 'last_reasoning_content', '')
     return reason.strip() if reason else ''
+
+
+# ============================================================
+# 5.0.3-503-b：技能自学习闭环——run_stream 工具执行后反馈采集接线
+# ============================================================
+
+# 技能类工具：执行即技能使用（按参数 skillName 回填技能名）
+_SKILL_TOOLS = {"get_skill", "update_skill", "enable_skill", "disable_skill"}
+
+
+def _collect_tool_feedback(tool_name: str, args: dict, result: dict) -> None:
+    """工具执行后接线技能自学习闭环（record_usage + record_feedback）。
+
+    - 技能工具（get_skill/update_skill/...）→ record_usage + record_feedback（按技能名）；
+      失败时触发 maybe_self_improve（保守：达阈值才修订技能定义）。
+    - 其他工具 → record_feedback（工具域反馈样本，供自学习参考）。
+    - 成功/失败均回填反馈样本；采集失败不阻断主流程。
+    """
+    try:
+        from ai_hub.skills.engine import get_skills_engine
+        engine = get_skills_engine()
+        success = bool(result and result.get("success") is not False)
+        if success:
+            detail = f"{tool_name} 执行成功"
+        else:
+            detail = f"{tool_name} 执行失败: {result.get('error') if isinstance(result, dict) else result}"
+        if tool_name in _SKILL_TOOLS:
+            skill = (args or {}).get("skillName")
+            if skill:
+                engine.record_usage(skill)
+                engine.record_feedback(skill, success, detail)
+                if not success:
+                    engine.maybe_self_improve(skill)
+        else:
+            engine.record_feedback(tool_name, success, detail)
+    except Exception as e:
+        logger.warning(f"Failed to collect tool feedback for {tool_name}: {e}")
 
 
 # 全局会话缓存

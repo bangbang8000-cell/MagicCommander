@@ -73,5 +73,14 @@
     "advisor": "顾问模式",
     "semiAuto": "半自动",
     "fullAuto": "全自动"
+  },
+  "workflow": {
+    "badge": "多步任务",
+    "phasePlan": "计划待确认",
+    "phaseExecute": "执行步骤 {{step}}",
+    "phaseVerify": "校验中",
+    "phaseDone": "任务完成",
+    "approvePlan": "请确认以下执行计划",
+    "approveStep": "确认执行步骤 {{step}}？"
   }
 }

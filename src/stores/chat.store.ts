@@ -668,6 +668,8 @@ export async function sendMessage(
       projectName,
       // 5.0.2-F502-2：AI 引擎（own/hermes/auto），缺省后端用配置 ai_engine
       aiConfig.aiEngine,
+      // 5.0.3-503-a：多步任务编排 workflow（on/off，默认关；仅自有引擎生效）
+      aiConfig.workflowEnabled ? 'on' : 'off',
     )
 
     const timeoutPromise = new Promise<string>((_, reject) => {
@@ -818,6 +820,87 @@ export function parseEngineNaMarker(content: string): { engine: string; displayC
   const m = content.match(rx)
   if (!m) return null
   return { engine: m[2], displayContent: content.replace(rx, '\n').trim() }
+}
+
+/**
+ * 5.0.3-503-a：从 assistant 消息解析多步任务编排工作流标记（后端 workflow_stream yield 的独立行
+ * `---WORKFLOW_PLAN---` / `---WORKFLOW_STEP:<n>---` / `---WORKFLOW_APPROVE_PLAN---` /
+ * `---WORKFLOW_APPROVE_STEP:<n>---` / `---WORKFLOW_VERIFY---` / `---WORKFLOW_DONE---`）。
+ * 返回工作流状态（plan/step/审批/verify/done）+ 剥离标记后的展示内容；无标记返回 null。
+ */
+export interface WorkflowStatus {
+  plan: boolean
+  /** 当前执行步骤（1-based；审批待确认时取待审批步骤） */
+  stepIndex: number | null
+  approvePlan: boolean
+  approveStep: number | null
+  verify: boolean
+  done: boolean
+  displayContent: string
+}
+
+const WORKFLOW_MARKER_RX = /---WORKFLOW_([A-Z_]+)(?::(\d+))?---/g
+
+export function parseWorkflowStatus(content: string): WorkflowStatus | null {
+  if (!content) return null
+  const found = {
+    plan: false,
+    verify: false,
+    done: false,
+    approvePlan: false,
+    steps: [] as number[],
+    approveSteps: [] as number[],
+  }
+  let m: RegExpExecArray | null
+  WORKFLOW_MARKER_RX.lastIndex = 0
+  while ((m = WORKFLOW_MARKER_RX.exec(content))) {
+    const kind = m[1]
+    const n = m[2] ? parseInt(m[2], 10) : null
+    if (kind === 'PLAN') found.plan = true
+    else if (kind === 'STEP' && n) found.steps.push(n)
+    else if (kind === 'APPROVE_PLAN') found.approvePlan = true
+    else if (kind === 'APPROVE_STEP' && n) found.approveSteps.push(n)
+    else if (kind === 'VERIFY') found.verify = true
+    else if (kind === 'DONE') found.done = true
+  }
+  if (
+    !found.plan &&
+    !found.verify &&
+    !found.done &&
+    !found.approvePlan &&
+    found.steps.length === 0 &&
+    found.approveSteps.length === 0
+  ) {
+    return null
+  }
+  const approveStep = found.approveSteps.length ? found.approveSteps[found.approveSteps.length - 1] : null
+  const lastStep = found.steps.length ? found.steps[found.steps.length - 1] : null
+  return {
+    plan: found.plan,
+    // 审批待确认时当前步骤 = 待审批步骤，否则取最后标记的执行步骤
+    stepIndex: approveStep ?? lastStep,
+    approvePlan: found.approvePlan,
+    approveStep,
+    verify: found.verify,
+    done: found.done,
+    displayContent: content.replace(WORKFLOW_MARKER_RX, '\n').trim(),
+  }
+}
+
+/**
+ * 5.0.3-503-a：将工作流状态应用到计划步骤状态（done/running/pending），供 PlanDisplay 展示进度。
+ * 步骤序号小于当前 → done；等于当前 → running（审批待确认亦标 running + 审批卡片）；大于 → pending。
+ */
+export function applyWorkflowStepStatuses<T extends { step: number; status: string }>(
+  steps: T[],
+  status: WorkflowStatus | null,
+): T[] {
+  if (!status || status.stepIndex == null) return steps
+  const current = status.stepIndex
+  return steps.map((s) => ({
+    ...s,
+    status: s.step < current ? ('done' as const) : s.step === current ? ('running' as const) : ('pending' as const),
+  }))
 }
 
 /**

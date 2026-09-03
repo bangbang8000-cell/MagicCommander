@@ -78,6 +78,15 @@
   "plan": {
     "title": "Execution Plan"
   },
+  "workflow": {
+    "badge": "Workflow",
+    "phasePlan": "Plan approval",
+    "phaseExecute": "Step {{step}}",
+    "phaseVerify": "Verifying",
+    "phaseDone": "Task done",
+    "approvePlan": "Approve the execution plan below",
+    "approveStep": "Approve step {{step}}?"
+  },
   "skill": {
     "savePrompt": "Save this workflow as a Skill for future reuse?",
     "save": "Save",

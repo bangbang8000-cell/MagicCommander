@@ -12,6 +12,8 @@ import {
   useChatStore,
   parseConfirmationMarker,
   parseEngineNaMarker,
+  parseWorkflowStatus,
+  applyWorkflowStepStatuses,
   isWaitingFirstChunk,
   sendConfirmationReply,
 } from '@/stores/chat.store'
@@ -107,13 +109,10 @@ export const ChatMessageBubble = memo(function ChatMessageBubble({
   const [skillDismissed, setSkillDismissed] = useState(false)
   // PRD v3.3 AI-1：确认卡片已处理（点击确认/取消后卡片消失）
   const [confirmationResolved, setConfirmationResolved] = useState(false)
+  // 5.0.3-503-a：工作流审批卡片已处理（点击确认/取消后卡片消失）
+  const [workflowResolved, setWorkflowResolved] = useState(false)
   const isUser = message.role === 'user'
   const isSystem = message.role === 'system'
-
-  const { steps, cleanedContent } = useMemo(
-    () => (isUser || isSystem ? { steps: [], cleanedContent: message.content } : parsePlanSteps(message.content)),
-    [message.content, isUser, isSystem],
-  )
 
   // PRD v3.3 AI-1：解析确认标记（assistant 消息），渲染时剥离标记行
   const confirmation = useMemo(
@@ -125,11 +124,31 @@ export const ChatMessageBubble = memo(function ChatMessageBubble({
     () => (isUser || isSystem ? null : parseEngineNaMarker(message.content)),
     [message.content, isUser, isSystem],
   )
+  // 5.0.3-503-a：解析多步任务编排工作流标记（plan/step/审批/verify/done）
+  const workflowStatus = useMemo(
+    () => (isUser || isSystem ? null : parseWorkflowStatus(message.content)),
+    [message.content, isUser, isSystem],
+  )
+  // 计划步骤解析：基于剥离工作流标记后的内容（📋 执行计划文本保留，供 PlanDisplay 解析进度）
+  const planParsed = useMemo(
+    () =>
+      isUser || isSystem
+        ? { steps: [] as PlanStep[], cleanedContent: message.content }
+        : parsePlanSteps(workflowStatus ? workflowStatus.displayContent : message.content),
+    [message.content, isUser, isSystem, workflowStatus],
+  )
+  const steps = useMemo(
+    () => (workflowStatus ? applyWorkflowStepStatuses(planParsed.steps, workflowStatus) : planParsed.steps),
+    [planParsed, workflowStatus],
+  )
+  const cleanedContent = planParsed.cleanedContent
   const displayContent = confirmation
     ? confirmation.displayContent
     : engineNa
       ? engineNa.displayContent
-      : message.content
+      : workflowStatus
+        ? workflowStatus.displayContent
+        : message.content
 
   // PRD v3.3 AI-2：订阅「等待首 chunk」流式状态，判定本消息是否在思考期
   const waitingFirstChunk = useChatStore((s) => s.waitingFirstChunk)
@@ -150,6 +169,17 @@ export const ChatMessageBubble = memo(function ChatMessageBubble({
       sendConfirmationReply(reply, projectName)
     },
     [isSending, confirmationResolved],
+  )
+
+  // 5.0.3-503-a：工作流计划级/步骤级审批回灌（发送「确认」/「取消」，workflow_stream 处理）
+  const handleWorkflowApproval = useCallback(
+    (reply: '确认' | '取消') => {
+      if (isSending || workflowResolved) return
+      setWorkflowResolved(true)
+      const projectName = useProjectStore.getState().selectedProject?.name
+      sendConfirmationReply(reply, projectName)
+    },
+    [isSending, workflowResolved],
   )
 
   const skillSuggestion = useMemo(
@@ -220,6 +250,104 @@ export const ChatMessageBubble = memo(function ChatMessageBubble({
 
         {/* 📋 执行计划展示 */}
         {steps.length > 0 && <PlanDisplay steps={steps} isDark={isDark} />}
+
+        {/* 5.0.3-503-a：多步任务编排工作流徽标（plan→step→verify→done） */}
+        {workflowStatus && !workflowStatus.done && (
+          <div className={clsx('mt-1.5 flex flex-wrap items-center gap-1.5', 'text-[11px]')}>
+            <span
+              className={clsx(
+                'px-1.5 py-0.5 rounded-full font-medium',
+                isDark ? 'bg-blue-900/50 text-blue-300' : 'bg-blue-100 text-blue-700',
+              )}
+            >
+              {t('chat:workflow.badge')}
+            </span>
+            {workflowStatus.approvePlan && (
+              <span
+                className={clsx(
+                  'px-1.5 py-0.5 rounded-full',
+                  isDark ? 'bg-amber-900/40 text-amber-300' : 'bg-amber-100 text-amber-700',
+                )}
+              >
+                {t('chat:workflow.phasePlan')}
+              </span>
+            )}
+            {workflowStatus.stepIndex != null && (
+              <span
+                className={clsx(
+                  'px-1.5 py-0.5 rounded-full',
+                  isDark ? 'bg-gray-700 text-gray-300' : 'bg-gray-200 text-gray-600',
+                )}
+              >
+                {t('chat:workflow.phaseExecute', { step: workflowStatus.stepIndex })}
+              </span>
+            )}
+            {workflowStatus.verify && (
+              <span
+                className={clsx(
+                  'px-1.5 py-0.5 rounded-full',
+                  isDark ? 'bg-green-900/40 text-green-300' : 'bg-green-100 text-green-700',
+                )}
+              >
+                {t('chat:workflow.phaseVerify')}
+              </span>
+            )}
+          </div>
+        )}
+        {workflowStatus?.done && (
+          <div className="mt-1.5">
+            <span
+              className={clsx(
+                'inline-block px-1.5 py-0.5 rounded-full text-[11px] font-medium',
+                isDark ? 'bg-green-900/40 text-green-300' : 'bg-green-100 text-green-700',
+              )}
+            >
+              {t('chat:workflow.phaseDone')}
+            </span>
+          </div>
+        )}
+
+        {/* 5.0.3-503-a：工作流计划级/步骤级审批卡片 */}
+        {workflowStatus && !workflowResolved && (workflowStatus.approvePlan || workflowStatus.approveStep) && (
+          <div
+            className={clsx(
+              'mt-2 flex items-center gap-2 px-3 py-2 rounded-lg border text-xs',
+              isDark ? 'border-amber-700 bg-amber-900/20' : 'border-amber-200 bg-amber-50',
+            )}
+          >
+            <span className={clsx('flex-1', isDark ? 'text-amber-200' : 'text-amber-800')}>
+              {workflowStatus.approveStep != null
+                ? t('chat:workflow.approveStep', { step: workflowStatus.approveStep })
+                : t('chat:workflow.approvePlan')}
+            </span>
+            <button
+              onClick={() => handleWorkflowApproval('确认')}
+              disabled={isSending}
+              className={clsx(
+                'flex items-center gap-0.5 px-2.5 py-1 rounded text-xs font-medium transition-colors',
+                isDark
+                  ? 'bg-amber-600 hover:bg-amber-500 text-white disabled:opacity-50'
+                  : 'bg-amber-500 hover:bg-amber-600 text-white disabled:opacity-50',
+              )}
+            >
+              <Check size={12} />
+              {t('common:app.confirm')}
+            </button>
+            <button
+              onClick={() => handleWorkflowApproval('取消')}
+              disabled={isSending}
+              className={clsx(
+                'flex items-center gap-0.5 px-2.5 py-1 rounded text-xs font-medium transition-colors',
+                isDark
+                  ? 'bg-gray-700 hover:bg-gray-600 text-gray-200 disabled:opacity-50'
+                  : 'bg-gray-200 hover:bg-gray-300 text-gray-700 disabled:opacity-50',
+              )}
+            >
+              <X size={12} />
+              {t('common:app.cancel')}
+            </button>
+          </div>
+        )}
 
         {/* PRD v3.3 AI-2：等待首 chunk 思考指示器（动态指示，收到首 chunk 后消失） */}
         {showThinking && (

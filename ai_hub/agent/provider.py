@@ -193,6 +193,13 @@ class OwnAgentProvider(_MCToolsMixin, AgentProvider):
         session.set_mode(mode, project_name or "")
         session.autonomy_mode = autonomy_mode
         session.add_user_message(message, attachments)
+        # 5.0.3-503-a：多步任务编排——workflow 模式开启时由自有引擎内部驱动
+        # 状态机（Plan→Execute→Verify）；Hermes 路径零改动（workflow 只对自有引擎生效）。
+        if getattr(session, "workflow", "off") == "on":
+            from ai_hub.agent.workflow import workflow_stream
+            async for chunk in workflow_stream(session, message, max_tool_rounds=max_tool_rounds):
+                yield chunk
+            return
         async for chunk in session.run_stream(max_tool_rounds=max_tool_rounds):
             yield chunk
 
