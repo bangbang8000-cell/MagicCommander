@@ -2,6 +2,20 @@
 
 本文件为发布说明的单一事实来源（`npm run sync-version -- --release-notes` 自动抽取当前版本段）。
 
+## [5.0.2] - 2026-09-03
+
+### 新增
+
+- 5.0 系列第 2 版：AI Agent 底座（Hermes 并存）。
+- 统一 AgentProvider 抽象（会话/工具/技能/记忆四域接口）：OwnAgentProvider（自有引擎适配）+ HermesAgentProvider（适配 NousResearch/hermes-agent，探测运行时是否安装）。
+- 「AI 引擎」配置三选一（自有=默认 / Hermes / 自动）：配置持久化、一键切换不丢会话（会话按引擎命名空间隔离）；auto 模式 Hermes 可用则用 Hermes 否则回退自有。
+- Hermes 未安装友好提示：chat 返回安装指引（pip install hermes-agent + 官网），前端渲染提示卡片。
+- 审计修订：hermes 经 AgentProvider 并存（其余未接入平台 harness/langchain 等仍拦截）。
+
+### 改进
+
+- 双端 AI 引擎路由（aihub:getEngine/setEngine + SettingsPanel 引擎下拉）。
+
 ## [5.0.1] - 2026-09-03
 
 ### 新增
