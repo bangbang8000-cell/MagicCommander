@@ -85,6 +85,23 @@ MagicCommander is a professional network device configuration management tool. I
 3. Click **Create Project from Template** to generate a standard project
 4. Save any project as a template for your team
 
+### Sample Projects (AIDC)
+
+MagicCommander ships with 4 AIDC (AI Data Center) sample projects covering 64 / 128-node H100 clusters over two fabric options — **IB (InfiniBand)** and **RoCE (RoCEv2)** — each with an integrated four-network design (business & management / fabric / storage / out-of-band):
+
+| Sample | Scale | Fabric | Convergence | Devices |
+|--------|-------|--------|-------------|---------|
+| 64H100-IB | 64× H100 | InfiniBand (NVIDIA Quantum) | 1:1 | 22 |
+| 64H100-RoCE | 64× H100 | RoCEv2 (H3C S9827) | 3:1 | 22 |
+| 128H100-IB | 128× H100 | InfiniBand (NVIDIA Quantum) | 1:1 | 24 |
+| 128H100-RoCE | 128× H100 | RoCEv2 (H3C S9827) | 3:1 | 24 |
+
+- **IB vs RoCE**: IB uses NVIDIA Quantum lossless switches for a dedicated compute fabric at 1:1 convergence, ideal for low-latency, high-throughput HPC/AI training; RoCE runs over Ethernet (H3C S9827 etc.) with PFC/CNP lossless queues at 3:1 convergence, balancing cost and versatility
+- Each sample ships 8 role templates (SPINE / LEAF / STO_SPINE / STO_LEAF / BIZ_AGG / BIZ_ACCESS / OOB_AGG / OOB_ACCESS), a full excel four-table set, and global parameters (PFC/CNP queues, BGP, IP segments, naming)
+- Pick a sample in the **Template Center** → **Create Project from Template** to spawn an independent copy, then render, dry-run, or export/import it as a project package
+
+> 💡 The sample assets also validate the "AL planning → MC rendering" loop: a plan:table exported from the AL side is imported to produce this project structure, which can be opened, rendered, exported, and re-imported.
+
 ### Parameters (Excel Editor)
 
 Supported formats:

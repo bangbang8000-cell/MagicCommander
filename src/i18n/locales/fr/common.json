@@ -125,11 +125,11 @@
     "info": "Information"
   },
   "about": {
-    "description": "MagicCommander est un outil professionnel de gestion de configuration des équipements réseau, construit avec Electron + React + TypeScript. Il vous aide à gérer efficacement les fichiers de configuration des équipements réseau, avec import de paramètres Excel, rendu de templates Jinja2, et génération par lots de configurations.",
+    "description": "MagicCommander est un outil professionnel de gestion de configuration des équipements réseau, construit avec Electron + React + TypeScript. Il vous aide à gérer efficacement les fichiers de configuration des équipements réseau, avec import de paramètres Excel, rendu de templates Jinja2, et génération par lots de configurations. Il inclut 4 projets d'exemple AIDC H100 (64/128 nœuds, IB/RoCE) créables en un clic depuis le centre de modèles.",
     "keyFeatures": "Fonctionnalités principales",
-    "feature1": "Gestion de projet - Créer, modifier, supprimer des projets de configuration réseau",
+    "feature1": "Gestion de projet - Créer, modifier, supprimer des projets de configuration réseau ; exemples AIDC H100 64/128 nœuds (IB/RoCE) inclus",
     "feature2": "Paramètres - Importer des paramètres d'équipement via Excel",
-    "feature3": "Rendu de templates - Générer des configurations par lots avec Jinja2",
+    "feature3": "Rendu de templates - Générer des configurations par lots avec Jinja2 ; les projets d'exemple s'exportent/s'importent en package",
     "feature4": "Impression d'étiquettes - Impression par lots d'étiquettes d'équipement",
     "feature5": "Sortie YAML - Générer des fichiers de configuration au format YAML"
   },

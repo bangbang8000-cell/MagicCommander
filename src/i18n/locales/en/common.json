@@ -156,11 +156,11 @@
     "info": "Info"
   },
   "about": {
-    "description": "MagicCommander is a professional network device configuration management tool built with Electron + React + TypeScript. It helps you efficiently manage network device configuration files, supporting Excel parameter import, Jinja2 template rendering, batch configuration output, and more.",
+    "description": "MagicCommander is a professional network device configuration management tool built with Electron + React + TypeScript. It helps you efficiently manage network device configuration files, supporting Excel parameter import, Jinja2 template rendering, batch configuration output, and more. It ships with 64/128-node H100 AIDC sample projects (IB/RoCE) that can be created from the Template Center with one click.",
     "keyFeatures": "Key Features",
-    "feature1": "Project Management - Create, edit, and delete network device configuration projects",
+    "feature1": "Project Management - Create, edit, and delete network device configuration projects; built-in 64/128-node H100 AIDC samples (IB/RoCE)",
     "feature2": "Parameter Configuration - Import device parameters via Excel spreadsheets",
-    "feature3": "Template Rendering - Batch generate configuration files using Jinja2 templates",
+    "feature3": "Template Rendering - Batch generate configuration files using Jinja2 templates; sample projects can be exported/imported as project packages",
     "feature4": "Label Printing - Support batch printing of device labels",
     "feature5": "YAML Output - Support generating YAML format configuration files"
   },

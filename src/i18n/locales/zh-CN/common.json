@@ -156,11 +156,11 @@
     "info": "提示"
   },
   "about": {
-    "description": "MagicCommander 是一款专业的网络设备配置管理工具，基于 Electron + React + TypeScript 构建。它可以帮助您高效地管理网络设备配置文件，支持 Excel 参数导入、Jinja2 模板渲染、批量输出配置等功能。",
+    "description": "MagicCommander 是一款专业的网络设备配置管理工具，基于 Electron + React + TypeScript 构建。它可以帮助您高效地管理网络设备配置文件，支持 Excel 参数导入、Jinja2 模板渲染、批量输出配置等功能。内置 64/128 台 H100 AIDC 示例项目（IB/RoCE），可从模板中心一键创建。",
     "keyFeatures": "主要功能",
-    "feature1": "项目管理 - 创建、编辑、删除网络设备配置项目",
+    "feature1": "项目管理 - 创建、编辑、删除网络设备配置项目；内置 64/128 台 H100 AIDC 示例（IB/RoCE）",
     "feature2": "参数配置 - 支持 Excel 表格导入设备参数",
-    "feature3": "模板渲染 - 使用 Jinja2 模板批量生成配置文件",
+    "feature3": "模板渲染 - 使用 Jinja2 模板批量生成配置文件；示例项目可导出/导入项目包",
     "feature4": "标签打印 - 支持设备标签批量打印",
     "feature5": "YAML 输出 - 支持生成 YAML 格式配置文件"
   },
