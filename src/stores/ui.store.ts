@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { persist, subscribeWithSelector } from 'zustand/middleware'
 
-export type ActivityType = 'search' | 'chat' | 'explorer' | 'output' | 'workbench' | 'settings' | 'cloud'
+export type ActivityType = 'search' | 'chat' | 'explorer' | 'output' | 'workbench' | 'settings' | 'cloud' | 'doc'
 // 4.5.0（F5-5）：校验面板（与日志/终端/问题/性能并列）
 // 4.6.0-46-d：质量仪表盘（与日志/终端/性能/校验并列）
 // 4.7.0-47-b：诊断中心（日志/审计/崩溃/性能/健康一处可查 + 导出支持包）
@@ -143,6 +143,8 @@ export interface GeneralSettings {
   cloudEnabled: boolean
   /** 4.7.0-47-d：本地遥测开关（默认关；仅本地采集、脱敏、不联网） */
   telemetryEnabled: boolean
+  /** 5.0.5-505-c：知识库注入开关（默认开；对话时按相关度检索注入上下文，可关） */
+  knowledgeInjection: boolean
 }
 
 export interface AdvancedSettings {
@@ -278,6 +280,7 @@ export const useUIStore = create<UIState>()(
           fontSize: 'medium',
           cloudEnabled: false,
           telemetryEnabled: false,
+          knowledgeInjection: true,
         },
         setGeneralSettings: (settings) => set((s) => ({ generalSettings: { ...s.generalSettings, ...settings } })),
 
@@ -346,6 +349,11 @@ export const useUIStore = create<UIState>()(
               // 47-d：旧持久化数据缺少 telemetryEnabled 时迁移为默认 false（默认关闭）
               if (state.generalSettings && typeof state.generalSettings.telemetryEnabled !== 'boolean') {
                 state.generalSettings.telemetryEnabled = false
+              }
+
+              // 5.0.5-505-c：旧持久化数据缺少 knowledgeInjection 时迁移为默认 true（默认开启）
+              if (state.generalSettings && typeof state.generalSettings.knowledgeInjection !== 'boolean') {
+                state.generalSettings.knowledgeInjection = true
               }
 
               // AI 配置恢复：如果 providers 为空，尝试从文件备份恢复

@@ -18,6 +18,7 @@ import { WorkbenchPanel } from './components/sidebar/WorkbenchPanel'
 import { OutputPanel } from './components/sidebar/OutputPanel'
 import { SettingsPanel } from './components/sidebar/SettingsPanel'
 import { SearchPanel } from './components/sidebar/SearchPanel'
+import { DocPanel } from './components/sidebar/DocPanel'
 import { ChatPanel } from './components/chat'
 import { CloudPanel } from './components/cloud/CloudPanel'
 import { EditorArea } from './components/editor/EditorArea'
@@ -522,6 +523,8 @@ export default function App() {
   useHotkey('ctrl+shift+o', () => setActiveActivity('output'), [setActiveActivity])
   useHotkey('ctrl+shift+w', () => setActiveActivity('workbench'), [setActiveActivity])
   useHotkey('ctrl+shift+h', () => setActiveActivity('chat'), [setActiveActivity])
+  // 5.0.5-505-a：文档工作台
+  useHotkey('ctrl+shift+d', () => setActiveActivity('doc'), [setActiveActivity])
   useHotkey('ctrl+,', () => setActiveActivity('settings'), [setActiveActivity])
   // 4.4 F4-1：共享标准键补充
   useHotkey('ctrl+shift+z', () => document.execCommand('redo'), [])
@@ -572,6 +575,8 @@ export default function App() {
         return <SettingsPanel />
       case 'chat':
         return <ChatPanel />
+      case 'doc':
+        return <DocPanel />
       case 'cloud':
         // 打磨轮（v1.2 / M2）：云开关关闭时回落项目浏览器
         return useUIStore.getState().generalSettings.cloudEnabled ? <CloudPanel /> : null

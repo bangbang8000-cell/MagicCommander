@@ -119,6 +119,12 @@ const api = {
   guide: {
     getContent: (lang: string) => ipcRenderer.invoke('guide:getContent', lang),
   },
+  // 5.0.5-505-a：文档工作台（生成产物列表 / 生成 / 打开目录）
+  doc: {
+    list: () => ipcRenderer.invoke('doc:list'),
+    generate: (projectName: string, kind: 'review' | 'readme') => ipcRenderer.invoke('doc:generate', projectName, kind),
+    openDir: () => ipcRenderer.invoke('doc:openDir'),
+  },
   file: {
     read: (filePath: string) => ipcRenderer.invoke('file:read', filePath),
     write: (filePath: string, content: string) => ipcRenderer.invoke('file:write', filePath, content),
@@ -186,6 +192,9 @@ const api = {
       projectName?: string,
       engine?: string,
       workflow?: string,
+      // 5.0.5-505-c：知识库注入开关 + 指定条目（默认开）
+      knowledge?: boolean,
+      knowledgeIds?: string[],
     ) =>
       ipcRenderer.invoke(
         'aihub:chat',
@@ -198,6 +207,8 @@ const api = {
         projectName,
         engine,
         workflow,
+        knowledge,
+        knowledgeIds,
       ),
     clearSession: (sessionId: string) => ipcRenderer.invoke('aihub:clearSession', sessionId),
     getEngine: () => ipcRenderer.invoke('aihub:getEngine'),
@@ -219,6 +230,24 @@ const api = {
       defaultProvider: string,
     ) => ipcRenderer.invoke('aihub:resolveProvider', message, routingRules, defaultProvider),
     saveSkill: (name: string, content: string) => ipcRenderer.invoke('aihub:saveSkill', name, content),
+    // 5.0.5-505-b：知识库 CRUD / 检索
+    knowledgeList: (category?: string, project?: string) =>
+      ipcRenderer.invoke('aihub:knowledgeList', category, project),
+    knowledgeGet: (key: string) => ipcRenderer.invoke('aihub:knowledgeGet', key),
+    knowledgeSearch: (query: string, category?: string, project?: string, topK?: number) =>
+      ipcRenderer.invoke('aihub:knowledgeSearch', query, category, project, topK),
+    knowledgeAdd: (payload: {
+      title: string
+      content?: string
+      category?: string
+      tags?: string[]
+      project?: string
+    }) => ipcRenderer.invoke('aihub:knowledgeAdd', payload),
+    knowledgeUpdate: (
+      key: string,
+      payload: { title: string; content?: string; category?: string; tags?: string[]; project?: string },
+    ) => ipcRenderer.invoke('aihub:knowledgeUpdate', key, payload),
+    knowledgeDelete: (key: string) => ipcRenderer.invoke('aihub:knowledgeDelete', key),
     // 5.0.3-503-c：MCP server 管理
     mcpList: () => ipcRenderer.invoke('aihub:mcpList'),
     mcpAdd: (name: string, command: string, args?: string[], env?: Record<string, string>) =>

@@ -11,6 +11,7 @@ import {
   PanelLeftClose,
   PanelLeft,
   HardDrive,
+  BookOpen,
 } from 'lucide-react'
 import clsx from 'clsx'
 
@@ -28,6 +29,8 @@ const activities: ActivityItem[] = [
   { id: 'explorer', icon: <FolderOpen size={20} />, labelKey: 'nav:explorer', shortcut: 'Ctrl+Shift+E' },
   { id: 'workbench', icon: <Zap size={20} />, labelKey: 'nav:workbench', shortcut: 'Ctrl+Shift+W' },
   { id: 'output', icon: <FileCheck size={20} />, labelKey: 'nav:output', shortcut: 'Ctrl+Shift+O' },
+  // 5.0.5-505-a：文档工作台（项目文档/评审产物/用户指南/知识库）
+  { id: 'doc', icon: <BookOpen size={20} />, labelKey: 'nav:doc', shortcut: 'Ctrl+Shift+D' },
   { id: 'settings', icon: <Settings size={20} />, labelKey: 'nav:settings', shortcut: 'Ctrl+,' },
 ]
 
@@ -72,6 +75,12 @@ const ACTIVITY_COLORS: Record<string, { text: string; bar: string; glow: string 
     text: 'text-amber-500 dark:text-amber-400',
     bar: 'bg-amber-500 dark:bg-amber-400',
     glow: 'rgba(245,158,11,0.45)',
+  },
+  // 5.0.5-505-a：文档工作台语义色（indigo，区分 workbench 主色）
+  doc: {
+    text: 'text-indigo-500 dark:text-indigo-400',
+    bar: 'bg-indigo-500 dark:bg-indigo-400',
+    glow: 'rgba(99,102,241,0.45)',
   },
   settings: {
     text: 'text-gray-500 dark:text-gray-400',

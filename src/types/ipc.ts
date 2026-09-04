@@ -108,6 +108,7 @@ export interface ElectronAPI {
   delete: DeleteIpcApi
   feature: FeatureIpcApi
   guide: GuideIpcApi
+  doc: DocIpcApi
   file: FileIpcApi
   dialog: DialogIpcApi
   app: AppIpcApi
@@ -407,6 +408,38 @@ export interface GuideIpcApi {
 }
 
 // ============================================================
+// 5.0.5（505-a）：文档工作台 API（生成产物列表 / 生成 / 打开目录）
+// ============================================================
+
+/** 生成产物条目（时间/类型/状态） */
+export interface DocArtifact {
+  name: string
+  path: string
+  type: 'review' | 'readme' | 'package' | 'pdf' | 'other'
+  project: string
+  size: number
+  mtime: string
+  status: 'ready'
+}
+
+export interface DocListResult {
+  status: string
+  docsDir: string
+  artifacts: DocArtifact[]
+}
+
+export interface DocGenerateResult {
+  status: string
+  data?: { kind: 'review' | 'readme'; path: string; project: string }
+}
+
+export interface DocIpcApi {
+  list: () => Promise<DocListResult>
+  generate: (projectName: string, kind: 'review' | 'readme') => Promise<DocGenerateResult>
+  openDir: () => Promise<{ status: string; path: string }>
+}
+
+// ============================================================
 // File API
 // ============================================================
 
@@ -528,6 +561,29 @@ export interface AIEngineInfo {
   available: Record<string, boolean>
 }
 
+/** 5.0.5-505-b：知识库条目类型（元信息 / 全量 / 输入） */
+export interface KnowledgeEntryMeta {
+  key: string
+  title: string
+  category: string
+  tags: string[]
+  project: string
+  created_at: string
+  updated_at: string
+}
+
+export interface KnowledgeEntryFull extends KnowledgeEntryMeta {
+  content: string
+}
+
+export interface KnowledgeEntryInput {
+  title: string
+  content?: string
+  category?: string
+  tags?: string[]
+  project?: string
+}
+
 export interface AIHubIpcApi {
   start: () => Promise<void>
   stop: () => Promise<void>
@@ -544,6 +600,9 @@ export interface AIHubIpcApi {
     engine?: string,
     // 5.0.3-503-a：多步任务编排 workflow 模式（on/off，缺省 off；仅自有引擎生效）
     workflow?: string,
+    // 5.0.5-505-c：知识库注入开关 + 指定条目（默认开）
+    knowledge?: boolean,
+    knowledgeIds?: string[],
   ) => Promise<string>
   clearSession: (sessionId: string) => Promise<void>
   getEngine: () => Promise<AIEngineInfo>
@@ -574,6 +633,24 @@ export interface AIHubIpcApi {
     defaultProvider: string,
   ) => Promise<string>
   saveSkill: (name: string, content: string) => Promise<{ status: string; name: string }>
+  /** 5.0.5-505-b：知识库条目类型 */
+  knowledgeList: (
+    category?: string,
+    project?: string,
+  ) => Promise<{ status: string; entries: KnowledgeEntryMeta[]; total: number }>
+  knowledgeGet: (key: string) => Promise<{ status: string; entry?: KnowledgeEntryFull }>
+  knowledgeSearch: (
+    query: string,
+    category?: string,
+    project?: string,
+    topK?: number,
+  ) => Promise<{ status: string; hits: KnowledgeEntryFull[]; total: number }>
+  knowledgeAdd: (payload: KnowledgeEntryInput) => Promise<{ status: string; entry?: KnowledgeEntryFull }>
+  knowledgeUpdate: (
+    key: string,
+    payload: KnowledgeEntryInput,
+  ) => Promise<{ status: string; entry?: KnowledgeEntryFull }>
+  knowledgeDelete: (key: string) => Promise<{ status: string; deleted?: boolean }>
   /** 4.8.0（F8-3 / 48-c）：技能库导出为文件 */
   exportSkills: () => Promise<SkillsTransferResult>
   /** 4.8.0（F8-3 / 48-c）：技能库从文件导入 */

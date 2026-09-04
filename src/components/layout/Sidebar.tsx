@@ -27,6 +27,7 @@ export function Sidebar({ panels }: SidebarProps) {
     workbench: t('nav:workbench'),
     chat: t('nav:chat'),
     settings: t('nav:settings'),
+    doc: t('nav:doc'),
   }
 
   const activePanel = panels[activeActivity]

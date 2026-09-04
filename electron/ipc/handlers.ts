@@ -855,6 +855,81 @@ export function setupIpcHandlers(window: BrowserWindow): void {
     return { status: 'success', data: { path: dst.filePath, project: projectName } }
   })
 
+  // ===== 5.0.5-505-a：文档工作台（doc:list / doc:generate / doc:openDir） =====
+  // 生成产物统一落在 <workspace>/docs/，前端列表展示（时间/类型/状态）+ 一键生成/导出/打开目录。
+
+  function getDocsDir(): string {
+    const dir = path.join(getWorkspaceDir(), 'docs')
+    fs.mkdirSync(dir, { recursive: true })
+    return dir
+  }
+
+  ipcMain.handle('doc:list', async (): Promise<unknown> => {
+    const docsDir = getDocsDir()
+    const artifacts: Array<{
+      name: string
+      path: string
+      type: 'review' | 'readme' | 'package' | 'pdf' | 'other'
+      project: string
+      size: number
+      mtime: string
+      status: 'ready'
+    }> = []
+    for (const entry of fs.readdirSync(docsDir, { withFileTypes: true })) {
+      if (!entry.isFile()) continue
+      const fullPath = path.join(docsDir, entry.name)
+      let type: 'review' | 'readme' | 'package' | 'pdf' | 'other' = 'other'
+      const lower = entry.name.toLowerCase()
+      if (lower.endsWith('.zip')) type = 'package'
+      else if (lower.endsWith('.pdf')) type = 'pdf'
+      else if (lower.includes('review')) type = 'review'
+      else if (lower.includes('readme')) type = 'readme'
+      else if (lower.endsWith('.md')) type = 'review'
+      const stat = fs.statSync(fullPath)
+      artifacts.push({
+        name: entry.name,
+        path: fullPath,
+        type,
+        project: entry.name.replace(/-(review|README|readme).*$/i, ''),
+        size: stat.size,
+        mtime: stat.mtime.toISOString(),
+        status: 'ready',
+      })
+    }
+    artifacts.sort((a, b) => (a.mtime < b.mtime ? 1 : -1))
+    return { status: 'success', docsDir, artifacts }
+  })
+
+  ipcMain.handle('doc:generate', async (_e, projectName: string, kind: string = 'review'): Promise<unknown> => {
+    if (!isTrustedSender(_e)) throw new Error('无权执行该操作')
+    validateProjectName(projectName)
+    const docsDir = getDocsDir()
+    const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19)
+    if (kind === 'review') {
+      const outMd = path.join(docsDir, `${projectName}-review-${stamp}.md`)
+      await renderHandler.writeReviewMarkdown(projectName, outMd)
+      audit('doc.generate', `${projectName}:review`)
+      logger.info(`[doc:generate] ${projectName} review → ${outMd}`)
+      return { status: 'success', data: { kind, path: outMd, project: projectName } }
+    }
+    if (kind === 'readme') {
+      const src = path.join(getWorkspaceDir(), projectName, 'README.md')
+      if (!fs.existsSync(src)) throw new Error(`项目 ${projectName} 没有 README（新建项目时生成）`)
+      const outReadme = path.join(docsDir, `${projectName}-README.md`)
+      fs.copyFileSync(src, outReadme)
+      audit('doc.generate', `${projectName}:readme`)
+      logger.info(`[doc:generate] ${projectName} readme → ${outReadme}`)
+      return { status: 'success', data: { kind, path: outReadme, project: projectName } }
+    }
+    throw new Error(`未知文档类型: ${kind}`)
+  })
+
+  ipcMain.handle('doc:openDir', async (): Promise<{ status: string; path: string }> => {
+    const docsDir = getDocsDir()
+    await shell.openPath(docsDir)
+    return { status: 'success', path: docsDir }
+  })
+
   ipcMain.handle('project:saveAsExample', async (e, projectName: string, exampleName: string): Promise<void> => {
     if (!isTrustedSender(e)) throw new Error('无权执行该操作')
     const projectPath = path.join(getWorkspaceDir(), projectName)
@@ -1765,6 +1840,9 @@ export function setupIpcHandlers(window: BrowserWindow): void {
       projectName?: string,
       engine?: string,
       workflow?: string,
+      // 5.0.5-505-c：知识库注入开关 + 指定条目（默认开）
+      knowledge?: boolean,
+      knowledgeIds?: string[],
     ): Promise<string> => {
       let fullContent = ''
       await aiHubService.sendChatMessage(
@@ -1777,6 +1855,8 @@ export function setupIpcHandlers(window: BrowserWindow): void {
         projectName,
         engine,
         workflow,
+        knowledge,
+        knowledgeIds,
         (chunk: string) => {
           fullContent += chunk
           if (!window.isDestroyed()) {
@@ -1883,6 +1963,48 @@ export function setupIpcHandlers(window: BrowserWindow): void {
       return await aiHubService.saveSkill(name, content)
     },
   )
+
+  // ===== 5.0.5-505-b：知识库 CRUD / 检索 IPC =====
+  ipcMain.handle('aihub:knowledgeList', async (_e, category?: string, project?: string): Promise<unknown> => {
+    if (!isTrustedSender(_e)) throw new Error('无权执行该操作')
+    return await aiHubService.knowledgeList(category, project)
+  })
+  ipcMain.handle('aihub:knowledgeGet', async (_e, key: string): Promise<unknown> => {
+    if (!isTrustedSender(_e)) throw new Error('无权执行该操作')
+    return await aiHubService.knowledgeGet(key)
+  })
+  ipcMain.handle(
+    'aihub:knowledgeSearch',
+    async (_e, query: string, category?: string, project?: string, topK?: number): Promise<unknown> => {
+      if (!isTrustedSender(_e)) throw new Error('无权执行该操作')
+      return await aiHubService.knowledgeSearch(query, category, project, topK)
+    },
+  )
+  ipcMain.handle(
+    'aihub:knowledgeAdd',
+    async (
+      _e,
+      payload: { title: string; content?: string; category?: string; tags?: string[]; project?: string },
+    ): Promise<unknown> => {
+      if (!isTrustedSender(_e)) throw new Error('无权执行该操作')
+      return await aiHubService.knowledgeAdd(payload)
+    },
+  )
+  ipcMain.handle(
+    'aihub:knowledgeUpdate',
+    async (
+      _e,
+      key: string,
+      payload: { title: string; content?: string; category?: string; tags?: string[]; project?: string },
+    ): Promise<unknown> => {
+      if (!isTrustedSender(_e)) throw new Error('无权执行该操作')
+      return await aiHubService.knowledgeUpdate(key, payload)
+    },
+  )
+  ipcMain.handle('aihub:knowledgeDelete', async (_e, key: string): Promise<unknown> => {
+    if (!isTrustedSender(_e)) throw new Error('无权执行该操作')
+    return await aiHubService.knowledgeDelete(key)
+  })
 
   // ===== 5.0.3-503-c：MCP server 管理通道 =====
   ipcMain.handle('aihub:mcpList', async (): Promise<unknown> => {

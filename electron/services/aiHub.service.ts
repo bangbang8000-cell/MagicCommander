@@ -465,6 +465,9 @@ export class AIHubService extends EventEmitter {
     projectName?: string,
     engine?: string,
     workflow?: string,
+    // 5.0.5-505-c：知识库注入开关 + 指定条目（默认开）
+    knowledge: boolean = true,
+    knowledgeIds?: string[],
     onChunk?: (text: string) => void,
   ): Promise<string> {
     // M2 修复：调用前确保运行（未运行先启动），401/连接失败重启重试一次
@@ -485,6 +488,9 @@ export class AIHubService extends EventEmitter {
           engine,
           // 5.0.3-503-a：多步任务编排 workflow 模式（on/off）
           workflow,
+          // 5.0.5-505-c：知识库注入开关 + 指定条目精确注入
+          knowledge,
+          knowledge_ids: knowledgeIds,
         }),
       })
 
@@ -733,6 +739,121 @@ export class AIHubService extends EventEmitter {
         headers: { 'Content-Type': 'application/json', ...this.authHeaders() },
         body: JSON.stringify({ name, content }),
       })
+      return await response.json()
+    })
+  }
+
+  // ===== 5.0.5-505-b：知识库 CRUD / 检索 =====
+
+  async knowledgeList(
+    category?: string,
+    project?: string,
+  ): Promise<{
+    status: string
+    entries: Array<Record<string, unknown>>
+    total: number
+  }> {
+    await this.ensureRunning()
+    return this.withRetry(async () => {
+      const params = new URLSearchParams()
+      if (category) params.set('category', category)
+      if (project) params.set('project', project)
+      const qs = params.toString()
+      const response = await fetch(`${this.baseUrl}/api/chat/knowledge${qs ? `?${qs}` : ''}`, {
+        headers: this.authHeaders(),
+      })
+      if (!response.ok) throw new Error(`知识库列表失败: HTTP ${response.status}`)
+      return await response.json()
+    })
+  }
+
+  async knowledgeGet(key: string): Promise<{ status: string; entry?: Record<string, unknown>; detail?: string }> {
+    await this.ensureRunning()
+    return this.withRetry(async () => {
+      const response = await fetch(`${this.baseUrl}/api/chat/knowledge/${encodeURIComponent(key)}`, {
+        headers: this.authHeaders(),
+      })
+      if (!response.ok) {
+        const body = await response.json().catch(() => ({}))
+        throw new Error((body as { detail?: string }).detail || `获取知识失败: HTTP ${response.status}`)
+      }
+      return await response.json()
+    })
+  }
+
+  async knowledgeSearch(
+    query: string,
+    category?: string,
+    project?: string,
+    topK?: number,
+  ): Promise<{ status: string; hits: Array<Record<string, unknown>>; total: number }> {
+    await this.ensureRunning()
+    return this.withRetry(async () => {
+      const response = await fetch(`${this.baseUrl}/api/chat/knowledge/search`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...this.authHeaders() },
+        body: JSON.stringify({ query, category, project, top_k: topK }),
+      })
+      if (!response.ok) throw new Error(`知识库检索失败: HTTP ${response.status}`)
+      return await response.json()
+    })
+  }
+
+  async knowledgeAdd(payload: {
+    title: string
+    content?: string
+    category?: string
+    tags?: string[]
+    project?: string
+  }): Promise<{ status: string; entry?: Record<string, unknown>; detail?: string }> {
+    await this.ensureRunning()
+    return this.withRetry(async () => {
+      const response = await fetch(`${this.baseUrl}/api/chat/knowledge`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...this.authHeaders() },
+        body: JSON.stringify(payload),
+      })
+      if (!response.ok) {
+        const body = await response.json().catch(() => ({}))
+        throw new Error((body as { detail?: string }).detail || `新增知识失败: HTTP ${response.status}`)
+      }
+      return await response.json()
+    })
+  }
+
+  async knowledgeUpdate(
+    key: string,
+    payload: {
+      title: string
+      content?: string
+      category?: string
+      tags?: string[]
+      project?: string
+    },
+  ): Promise<{ status: string; entry?: Record<string, unknown>; detail?: string }> {
+    await this.ensureRunning()
+    return this.withRetry(async () => {
+      const response = await fetch(`${this.baseUrl}/api/chat/knowledge/${encodeURIComponent(key)}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', ...this.authHeaders() },
+        body: JSON.stringify(payload),
+      })
+      if (!response.ok) {
+        const body = await response.json().catch(() => ({}))
+        throw new Error((body as { detail?: string }).detail || `更新知识失败: HTTP ${response.status}`)
+      }
+      return await response.json()
+    })
+  }
+
+  async knowledgeDelete(key: string): Promise<{ status: string; deleted?: boolean }> {
+    await this.ensureRunning()
+    return this.withRetry(async () => {
+      const response = await fetch(`${this.baseUrl}/api/chat/knowledge/${encodeURIComponent(key)}`, {
+        method: 'DELETE',
+        headers: this.authHeaders(),
+      })
+      if (!response.ok) throw new Error(`删除知识失败: HTTP ${response.status}`)
       return await response.json()
     })
   }
