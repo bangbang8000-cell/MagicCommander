@@ -957,6 +957,43 @@ async def _optimize_skill(args: dict) -> str:
     }, ensure_ascii=False)
 
 
+# ====== 5.0.5-505-b：知识库工具（知识=领域事实，与技能操作指引解耦） ======
+
+async def _list_knowledge(args: dict) -> str:
+    """列出知识条目元信息（按分类/项目过滤）"""
+    from ai_hub.knowledge.engine import get_knowledge_engine
+    items = get_knowledge_engine().list_entries(
+        category=args.get("category") or "",
+        project=args.get("project") or "",
+    )
+    return json.dumps({"status": "ok", "entries": items, "total": len(items)}, ensure_ascii=False)
+
+
+async def _search_knowledge(args: dict) -> str:
+    """检索知识库：按关键词/分类/项目召回 Top-K"""
+    from ai_hub.knowledge.engine import get_knowledge_engine
+    hits = get_knowledge_engine().search(
+        query=args.get("query") or "",
+        category=args.get("category") or "",
+        project=args.get("project") or "",
+        top_k=args.get("topK"),
+    )
+    return json.dumps({"status": "ok", "hits": hits, "total": len(hits)}, ensure_ascii=False)
+
+
+async def _add_knowledge(args: dict) -> str:
+    """新增知识条目（沉淀领域事实，供后续检索注入上下文）"""
+    from ai_hub.knowledge.engine import get_knowledge_engine
+    entry = get_knowledge_engine().add_entry(
+        title=args["title"],
+        content=args.get("content") or "",
+        category=args.get("category") or "general",
+        tags=args.get("tags") or [],
+        project=args.get("project") or "",
+    )
+    return json.dumps({"status": "ok", "entry": entry}, ensure_ascii=False)
+
+
 def init_tools():
     """初始化所有 Agent Tools"""
     register_tool(
@@ -1507,6 +1544,55 @@ def init_tools():
             "required": ["skillName"],
         },
         _optimize_skill,
+    )
+
+    # ====== 5.0.5-505-b：知识库工具（检索查询/沉淀事实） ======
+
+    register_tool(
+        "list_knowledge",
+        "列出知识库全部条目（标题/分类/标签/关联项目），可按分类或项目过滤",
+        {
+            "type": "object",
+            "properties": {
+                "category": {"type": "string", "description": "分类过滤（可选）"},
+                "project": {"type": "string", "description": "关联项目过滤（可选）"},
+            },
+            "required": [],
+        },
+        _list_knowledge,
+    )
+
+    register_tool(
+        "search_knowledge",
+        "检索知识库：按关键词/分类/项目召回 Top-K 条目（含内容），供回答领域事实问题时引用",
+        {
+            "type": "object",
+            "properties": {
+                "query": {"type": "string", "description": "检索关键词（中文按词组切分）"},
+                "category": {"type": "string", "description": "分类过滤（可选）"},
+                "project": {"type": "string", "description": "关联项目过滤（可选）"},
+                "topK": {"type": "integer", "description": "返回条数上限（默认 5）"},
+            },
+            "required": ["query"],
+        },
+        _search_knowledge,
+    )
+
+    register_tool(
+        "add_knowledge",
+        "新增知识库条目（领域事实沉淀），后续对话会按相关度检索注入上下文。知识是事实，技能是操作指引",
+        {
+            "type": "object",
+            "properties": {
+                "title": {"type": "string", "description": "知识标题"},
+                "content": {"type": "string", "description": "知识正文（Markdown）"},
+                "category": {"type": "string", "description": "分类（默认 general）"},
+                "tags": {"type": "array", "items": {"type": "string"}, "description": "标签列表"},
+                "project": {"type": "string", "description": "关联项目（可选）"},
+            },
+            "required": ["title", "content"],
+        },
+        _add_knowledge,
     )
 
     logger.info(f"Initialized {len(_tools)} Agent tools")

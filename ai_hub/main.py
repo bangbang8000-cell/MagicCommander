@@ -48,6 +48,11 @@ def main():
         from ai_hub.memory.engine import get_memory_engine
         get_memory_engine().init_dir(args.workspace)
 
+    # 初始化 Knowledge 目录（5.0.5-505-b：<workspace>/knowledge/ 持久化 + 加载条目）
+    if args.workspace:
+        from ai_hub.knowledge.engine import get_knowledge_engine
+        get_knowledge_engine().init_dir(args.workspace)
+
     # 初始化 LLM Providers
     from ai_hub.llm.provider import init_providers
     init_providers()

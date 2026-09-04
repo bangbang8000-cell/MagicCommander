@@ -34,6 +34,10 @@ TOOL_PERMISSIONS: dict[str, ToolPermission] = {
     "update_skill": ToolPermission.NOTIFY,
     # 5.0.3-503-b：技能自学习修订（写入技能定义 → notify）
     "skill_optimize": ToolPermission.NOTIFY,
+    # 5.0.5-505-b：知识库工具（只读 auto / 沉淀 notify）
+    "list_knowledge": ToolPermission.AUTO,
+    "search_knowledge": ToolPermission.AUTO,
+    "add_knowledge": ToolPermission.NOTIFY,
 }
 
 TOOL_NAME_ALIASES: dict[str, str] = {
@@ -75,6 +79,9 @@ PARAM_ALIASES: dict[str, str] = {
     "template_path": "templatePath", "tpl_path": "templatePath",
     # 4.3 F3-3：技能工具参数别名
     "skill": "skillName", "skill_name": "skillName",
+    # 5.0.5-505-b：知识库工具参数别名
+    "tag": "tags", "tag_list": "tags", "top_k": "topK",
+    "keyword": "query", "keywords": "query", "question": "query",
 }
 
 def get_tool_permission(tool_name: str) -> ToolPermission:

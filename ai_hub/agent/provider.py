@@ -100,8 +100,13 @@ class AgentProvider(ABC):
         provider: Optional[str] = None,
         attachments: Optional[list[dict]] = None,
         max_tool_rounds: Optional[int] = None,
+        knowledge: bool = True,
+        knowledge_ids: Optional[list[str]] = None,
     ) -> AsyncIterator[str]:
-        """流式对话：逐块 yield 文本；引擎不可用抛 AgentNotAvailableError"""
+        """流式对话：逐块 yield 文本；引擎不可用抛 AgentNotAvailableError
+
+        5.0.5-505-c：knowledge 知识库注入开关（默认开）；knowledge_ids 指定条目精确注入。
+        """
         ...
 
     @abstractmethod
@@ -184,6 +189,8 @@ class OwnAgentProvider(_MCToolsMixin, AgentProvider):
         provider: Optional[str] = None,
         attachments: Optional[list[dict]] = None,
         max_tool_rounds: Optional[int] = None,
+        knowledge: bool = True,
+        knowledge_ids: Optional[list[str]] = None,
     ) -> AsyncIterator[str]:
         from ai_hub.agent.agent import get_or_create_session
         # 会话隔离：engine 维度命名空间（不同引擎的同一 session_id 互不串上下文）
@@ -192,6 +199,9 @@ class OwnAgentProvider(_MCToolsMixin, AgentProvider):
             session.set_provider(provider)
         session.set_mode(mode, project_name or "")
         session.autonomy_mode = autonomy_mode
+        # 5.0.5-505-c：知识库注入开关 + 指定条目透传到会话（run_stream 动态注入）
+        session.knowledge_enabled = knowledge
+        session.knowledge_ids = knowledge_ids
         session.add_user_message(message, attachments)
         # 5.0.3-503-a：多步任务编排——workflow 模式开启时由自有引擎内部驱动
         # 状态机（Plan→Execute→Verify）；Hermes 路径零改动（workflow 只对自有引擎生效）。
@@ -245,6 +255,8 @@ class HermesAgentProvider(_MCToolsMixin, AgentProvider):
         provider: Optional[str] = None,
         attachments: Optional[list[dict]] = None,
         max_tool_rounds: Optional[int] = None,
+        knowledge: bool = True,
+        knowledge_ids: Optional[list[str]] = None,
     ) -> AsyncIterator[str]:
         mod = self._import_hermes()
         if mod is None:
@@ -252,6 +264,7 @@ class HermesAgentProvider(_MCToolsMixin, AgentProvider):
         # 会话：engine 维度命名空间（不同 session_id 独立 hermes 会话，切换引擎旧会话保留）
         hermes_key = f"hermes:{session_id}"
         # 工具映射与技能同步：把 MC 工具定义/技能/记忆同步进 hermes 会话上下文
+        # （5.0.5-505-c：知识库注入为自有引擎 run_stream 机制，Hermes 路径经工具检索即可）
         ctx = {
             "memory_prompt": self.get_memory_prompt(project_name),
             "skills": self.list_skills(),

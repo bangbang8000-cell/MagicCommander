@@ -41,6 +41,9 @@ class ChatRequest(BaseModel):
     engine: Optional[str] = None
     # 5.0.3-503-a：多步任务编排 workflow 模式（on/off，缺省 off；仅自有引擎生效）
     workflow: str = "off"
+    # 5.0.5-505-c：知识库注入开关（默认开，可关）+ 指定条目精确注入（knowledge_ids）
+    knowledge: bool = True
+    knowledge_ids: Optional[list[str]] = None
 
 
 class ProviderInfo(BaseModel):
@@ -156,6 +159,9 @@ async def send_message(req: ChatRequest):
                 autonomy_mode=req.autonomy_mode,
                 provider=req.provider,
                 attachments=req.attachments,
+                # 5.0.5-505-c：知识库注入开关 + 指定条目透传
+                knowledge=req.knowledge,
+                knowledge_ids=req.knowledge_ids,
             ):
                 yield {
                     "event": "message",
@@ -221,6 +227,100 @@ async def delete_skill(req: DeleteSkillRequest):
     from ai_hub.skills.engine import get_skills_engine
     engine = get_skills_engine()
     deleted = engine.delete_skill(req.name)
+    return {"status": "ok", "deleted": deleted}
+
+
+# ===== 5.0.5-505-b：知识库 CRUD / 检索端点 =====
+
+class KnowledgeSearchRequest(BaseModel):
+    query: str = ""
+    category: Optional[str] = None
+    project: Optional[str] = None
+    top_k: Optional[int] = None
+
+
+class KnowledgeEntryRequest(BaseModel):
+    title: str
+    content: str = ""
+    category: Optional[str] = None
+    tags: Optional[list[str]] = None
+    project: Optional[str] = None
+
+
+@router.get("/knowledge")
+async def knowledge_list(category: Optional[str] = None, project: Optional[str] = None):
+    """列出知识条目元信息（可按分类/项目过滤）"""
+    from ai_hub.knowledge.engine import get_knowledge_engine
+    items = get_knowledge_engine().list_entries(category or "", project or "")
+    return {"status": "ok", "entries": items, "total": len(items)}
+
+
+@router.get("/knowledge/categories")
+async def knowledge_categories():
+    """知识库全部已用分类"""
+    from ai_hub.knowledge.engine import get_knowledge_engine
+    return {"status": "ok", "categories": get_knowledge_engine().categories()}
+
+
+@router.post("/knowledge/search")
+async def knowledge_search(req: KnowledgeSearchRequest):
+    """检索知识库：按关键词/分类/项目召回 Top-K（含内容）"""
+    from ai_hub.knowledge.engine import get_knowledge_engine
+    hits = get_knowledge_engine().search(
+        query=req.query,
+        category=req.category or "",
+        project=req.project or "",
+        top_k=req.top_k,
+    )
+    return {"status": "ok", "hits": hits, "total": len(hits)}
+
+
+@router.get("/knowledge/{key}")
+async def knowledge_get(key: str):
+    """获取单条知识（含内容）"""
+    from ai_hub.knowledge.engine import get_knowledge_engine
+    entry = get_knowledge_engine().get_entry(key)
+    if entry is None:
+        raise HTTPException(status_code=404, detail=f"知识条目不存在: {key}")
+    return {"status": "ok", "entry": entry}
+
+
+@router.post("/knowledge")
+async def knowledge_add(req: KnowledgeEntryRequest):
+    """新增知识条目"""
+    from ai_hub.knowledge.engine import get_knowledge_engine
+    entry = get_knowledge_engine().add_entry(
+        title=req.title,
+        content=req.content,
+        category=req.category or "general",
+        tags=req.tags or [],
+        project=req.project or "",
+    )
+    return {"status": "ok", "entry": entry}
+
+
+@router.put("/knowledge/{key}")
+async def knowledge_update(key: str, req: KnowledgeEntryRequest):
+    """更新知识条目"""
+    from ai_hub.knowledge.engine import get_knowledge_engine
+    entry = get_knowledge_engine().update_entry(
+        key,
+        title=req.title,
+        content=req.content,
+        category=req.category,
+        tags=req.tags,
+        project=req.project,
+    )
+    if entry is None:
+        raise HTTPException(status_code=404, detail=f"知识条目不存在: {key}")
+    return {"status": "ok", "entry": entry}
+
+
+@router.delete("/knowledge/{key}")
+async def knowledge_delete(key: str):
+    """删除知识条目"""
+    from ai_hub.knowledge.engine import get_knowledge_engine
+    deleted = get_knowledge_engine().delete_entry(key)
     return {"status": "ok", "deleted": deleted}
 
 
