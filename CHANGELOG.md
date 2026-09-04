@@ -2,6 +2,19 @@
 
 本文件为发布说明的单一事实来源（`npm run sync-version -- --release-notes` 自动抽取当前版本段）。
 
+## [5.0.5] - 2026-09-04
+
+### 新增
+
+- 5.0 系列第 5 版：文档与知识。
+- 文档工作台：一级导航 doc 入口 + DocPanel 三页签（文档：评审包/评审 PDF/Markdown 生成导出与产物列表；指南：用户指南查看；知识库）。
+- 知识库（KnowledgeEngine）：knowledge/*.md + 伴生 meta 持久化，中文 2-gram/英文分词加权检索式召回 Top-K（默认 5），分类/项目过滤；工具 list_knowledge/search_knowledge/add_knowledge；/api/chat/knowledge* 端点 + 前端知识库面板；与技能（操作指引）解耦。
+- AI 上下文管理：系统提示词组装新增知识库上下文注入（按项目+会话关键词动态检索 Top-K）；ChatRequest.knowledge/knowledge_ids 全链路透传；知识变更刷新 system prompt 缓存；设置页知识库注入开关。
+
+### 改进
+
+- 一级导航新增 doc（文档工作台）入口（Ctrl+Shift+D）。
+
 ## [5.0.4] - 2026-09-04
 
 ### 新增

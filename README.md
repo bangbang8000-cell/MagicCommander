@@ -2,7 +2,7 @@
 
 **批量生成网络设备配置 | Network Device Configuration Automation**
 
-[![Version](https://img.shields.io/badge/version-5.0.4-blue)](https://github.com/bangbang8000-cell/MagicCommander/releases)
+[![Version](https://img.shields.io/badge/version-5.0.5-blue)](https://github.com/bangbang8000-cell/MagicCommander/releases)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![Windows](https://img.shields.io/badge/Windows-NSIS-blue)](https://github.com/bangbang8000-cell/MagicCommander/releases)
 [![macOS](https://img.shields.io/badge/macOS-DMG-silver)](https://github.com/bangbang8000-cell/MagicCommander/releases)
@@ -245,6 +245,7 @@ MagicCommander/
 
 | 版本 | 日期 | 更新内容 |
 |------|------|---------|
+| **5.0.5 Build 26090306** | 2026-09-04 | **5.0 系列第 5 版 · 文档与知识**：文档工作台（doc 导航 + 评审包/PDF/指南/知识库聚合）+ 知识库（KnowledgeEngine 检索式召回 Top-K + 工具/端点/面板）+ AI 上下文管理（知识库上下文注入 + knowledge 参数 + 开关） |
 | **5.0.4 Build 26090305** | 2026-09-04 | **5.0 系列第 4 版 · 协作与生态**：协作分享（只读快照分享链接 + 平台预览页）+ 模板市场生态（评分/订阅/精选展示与交互）+ 设备库云同步（拉取合并/发布 bundle）+ 平台生态服务化（COLLAB/MARKET 开关） |
 | **5.0.3 Build 26090304** | 2026-09-03 | **5.0 系列第 3 版 · AI Agent 工作流深化**：多步自主任务编排（Plan→Execute→Verify 状态机，full_auto 自主/advisor 每步确认/semi_auto 关键步确认）+ 技能自学习闭环（反馈持久化/成功率/自动修订/传输 v2）+ MCP 工具接入（协议层、mcp: 命名空间动态注册、双引擎共享）+ 前端任务进度/步骤确认/MCP 管理区 |
 | **5.0.2 Build 26090303** | 2026-09-03 | **5.0 系列第 2 版 · AI Agent 底座（Hermes 并存）**：统一 AgentProvider 抽象（会话/工具/技能/记忆）+ AI 引擎三选一配置（自有=默认/Hermes/自动）+ Hermes 适配器（探测运行时、未装友好提示、成熟后无缝启用）+ 会话按引擎隔离切换不丢 + 前端 AI 引擎下拉 |
