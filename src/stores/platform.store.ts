@@ -13,6 +13,12 @@ import {
   type LoginPlatform,
   type UserProfile,
 } from '@/api/platform'
+import type {
+  CloudShareCreateResult,
+  CloudShareItem,
+  DeviceLibrarySyncResult,
+  DeviceLibraryPublishResult,
+} from '@/types/ipc'
 
 interface PlatformState {
   // Config
@@ -69,6 +75,16 @@ interface PlatformState {
   pullProject: (owner: string, repo: string, projectName: string) => Promise<void>
   checkSyncStatus: (projects: { name: string; localSha?: string }[]) => Promise<void>
   deleteRemoteProject: (owner: string, repo: string) => Promise<void>
+  // 5.0.4（504-a）：协作分享
+  createShare: (projectName: string, description?: string, expireDays?: number) => Promise<CloudShareCreateResult>
+  fetchMyShares: () => Promise<CloudShareItem[]>
+  revokeShare: (token: string) => Promise<void>
+  // 5.0.4（504-b）：模板订阅 / 评分
+  subscribeTemplate: (owner: string, repo: string) => Promise<void>
+  rateTemplate: (owner: string, repo: string, score: number) => Promise<void>
+  // 5.0.4（504-c）：设备库云同步
+  syncDeviceLibrary: () => Promise<DeviceLibrarySyncResult>
+  publishDeviceLibrary: () => Promise<DeviceLibraryPublishResult>
 }
 
 export const usePlatformStore = create<PlatformState>()(
@@ -287,6 +303,64 @@ export const usePlatformStore = create<PlatformState>()(
         // Refresh list
         const { remoteProjects } = get()
         set({ remoteProjects: remoteProjects.filter((p) => p.owner !== owner || p.name !== repo) })
+      },
+
+      // --- 5.0.4（504-a）：协作分享 ---
+
+      createShare: async (projectName, description?, expireDays?) => {
+        const baseUrl = get().baseUrl
+        return window.electron.cloud.shareCreate({ projectName, baseUrl, description, expireDays })
+      },
+
+      fetchMyShares: async () => {
+        const baseUrl = get().baseUrl
+        const res = await window.electron.cloud.shareList(baseUrl)
+        return res.shares || []
+      },
+
+      revokeShare: async (token: string) => {
+        const baseUrl = get().baseUrl
+        await window.electron.cloud.shareRevoke(baseUrl, token)
+      },
+
+      // --- 5.0.4（504-b）：模板订阅 / 评分 ---
+
+      subscribeTemplate: async (owner: string, repo: string) => {
+        const { templates: api } = await import('@/api/platform')
+        const res = await api.subscribe(owner, repo)
+        const { remoteTemplates } = get()
+        set({
+          remoteTemplates: remoteTemplates.map((t) =>
+            t.owner === owner && t.name === repo
+              ? { ...t, is_subscribed: res.subscribed, subscribers: res.subscribers ?? t.subscribers }
+              : t,
+          ),
+        })
+      },
+
+      rateTemplate: async (owner: string, repo: string, score: number) => {
+        const { templates: api } = await import('@/api/platform')
+        const res = await api.rating(owner, repo, score)
+        const { remoteTemplates } = get()
+        set({
+          remoteTemplates: remoteTemplates.map((t) =>
+            t.owner === owner && t.name === repo
+              ? { ...t, rating_avg: res.rating_avg, rating_count: res.rating_count }
+              : t,
+          ),
+        })
+      },
+
+      // --- 5.0.4（504-c）：设备库云同步 ---
+
+      syncDeviceLibrary: async () => {
+        const baseUrl = get().baseUrl
+        return window.electron.deviceLibrary.sync(baseUrl)
+      },
+
+      publishDeviceLibrary: async () => {
+        const baseUrl = get().baseUrl
+        return window.electron.deviceLibrary.publish(baseUrl)
       },
     }),
     {

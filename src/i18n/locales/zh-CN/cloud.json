@@ -177,5 +177,15 @@
     "latest": "最近更新",
     "downloads": "下载最多",
     "name": "名称"
+  },
+  "share": {
+    "title": "分享链接",
+    "manage": "管理我的分享",
+    "create": "生成分享链接"
+  },
+  "market": {
+    "featured": "精选",
+    "subscribe": "订阅",
+    "subscribed": "已订阅"
   }
 }

@@ -50,6 +50,14 @@ import {
 } from '../services/snapshot-transfer.service'
 import { audit } from '../utils/audit'
 import { getLocalCommitSha, collectProjectFiles, installRemoteProject } from '../utils/git'
+import {
+  shareCreate as apiShareCreate,
+  shareList as apiShareList,
+  shareRevoke as apiShareRevoke,
+  fetchDeviceLibrary,
+  publishDeviceLibrary,
+  loadStoredToken,
+} from '../services/cloud-sync.service'
 
 function errorMessage(err: unknown): string {
   return err instanceof Error ? err.message : String(err)
@@ -2084,6 +2092,138 @@ export function setupIpcHandlers(window: BrowserWindow): void {
       if (fs.existsSync(jsonFile)) fs.unlinkSync(jsonFile)
     } catch (err) {
       logger.error('清除平台 Token 失败', err)
+    }
+  })
+
+  // ===== 5.0.4（504-a）：协作分享（生成只读快照 → POST /shares → 预览 URL） =====
+  ipcMain.handle(
+    'cloud:shareCreate',
+    async (
+      e,
+      payload: { projectName: string; baseUrl: string; description?: string; expireDays?: number },
+    ): Promise<unknown> => {
+      if (!isTrustedSender(e)) throw new Error('无权执行该操作')
+      const projectName = String(payload?.projectName || '')
+      const validation = validateProjectName(projectName)
+      if (!validation.valid) throw new Error(validation.error || '项目名无效')
+      const baseUrl = String(payload?.baseUrl || '')
+        .trim()
+        .replace(/\/+$/, '')
+      if (!/^https?:\/\//.test(baseUrl)) throw new Error('服务器地址无效')
+      const projectDir = resolveProjectDir(projectName)
+      if (!projectDir || !fs.existsSync(projectDir)) throw new Error(`项目不存在: ${projectName}`)
+      // 1. 生成只读快照（Python 后端）
+      const snapshot = await renderHandler.runPythonCommand<Record<string, unknown>>(
+        ['share', 'snapshot', projectName],
+        true,
+      )
+      if (!snapshot || typeof snapshot !== 'object') throw new Error('生成分享快照失败')
+      // 2. 上传创建分享
+      const token = loadStoredToken()
+      const created = await apiShareCreate(baseUrl, token, {
+        project_name: projectName,
+        description: payload?.description || '',
+        snapshot,
+        expire_days: payload?.expireDays,
+      })
+      const relUrl = created.url && created.url.startsWith('/') ? created.url : `/share/${created.token}`
+      audit('cloud.shareCreate', projectName)
+      logger.info(`[cloud:shareCreate] ${projectName} → ${created.token}`)
+      return { ...created, fullUrl: `${baseUrl}${relUrl}` }
+    },
+  )
+
+  ipcMain.handle('cloud:shareList', async (e, baseUrl: string): Promise<unknown> => {
+    if (!isTrustedSender(e)) throw new Error('无权执行该操作')
+    const normalized = String(baseUrl || '')
+      .trim()
+      .replace(/\/+$/, '')
+    if (!/^https?:\/\//.test(normalized)) throw new Error('服务器地址无效')
+    const token = loadStoredToken()
+    return apiShareList(normalized, token)
+  })
+
+  ipcMain.handle('cloud:shareRevoke', async (e, baseUrl: string, shareToken: string): Promise<unknown> => {
+    if (!isTrustedSender(e)) throw new Error('无权执行该操作')
+    const normalized = String(baseUrl || '')
+      .trim()
+      .replace(/\/+$/, '')
+    if (!/^https?:\/\//.test(normalized)) throw new Error('服务器地址无效')
+    if (!shareToken || typeof shareToken !== 'string') throw new Error('分享标识无效')
+    const token = loadStoredToken()
+    const result = await apiShareRevoke(normalized, token, shareToken)
+    audit('cloud.shareRevoke', shareToken)
+    return result
+  })
+
+  // ===== 5.0.4（504-c）：设备库云同步（拉取合并到本地 / 上传发布） =====
+  ipcMain.handle('deviceLibrary:sync', async (e, baseUrl: string): Promise<unknown> => {
+    if (!isTrustedSender(e)) throw new Error('无权执行该操作')
+    const normalized = String(baseUrl || '')
+      .trim()
+      .replace(/\/+$/, '')
+    if (!/^https?:\/\//.test(normalized)) throw new Error('服务器地址无效')
+    const token = loadStoredToken()
+    const bundle = await fetchDeviceLibrary(normalized, token)
+    const tmpPath = path.join(os.tmpdir(), `mc-device-lib-sync-${Date.now()}.json`)
+    try {
+      fs.writeFileSync(tmpPath, JSON.stringify(bundle, null, 2), 'utf-8')
+      const merged = await renderHandler.runPythonCommand<{
+        ok: boolean
+        total: number
+        added: string[]
+        updated: string[]
+        skipped: string[]
+        conflicts: string[]
+        local_count?: number
+      }>(['device', 'library', 'import', tmpPath], true)
+      audit('deviceLibrary.sync', normalized)
+      return {
+        ok: merged?.ok ?? true,
+        remoteCount: typeof bundle.count === 'number' ? bundle.count : (bundle.devices || []).length,
+        localCount: merged?.local_count ?? (bundle.devices || []).length,
+        added: merged?.added || [],
+        updated: merged?.updated || [],
+        skipped: merged?.skipped || [],
+        lastSync: new Date().toISOString(),
+      }
+    } finally {
+      try {
+        fs.unlinkSync(tmpPath)
+      } catch {
+        /* ignore */
+      }
+    }
+  })
+
+  ipcMain.handle('deviceLibrary:publish', async (e, baseUrl: string): Promise<unknown> => {
+    if (!isTrustedSender(e)) throw new Error('无权执行该操作')
+    const normalized = String(baseUrl || '')
+      .trim()
+      .replace(/\/+$/, '')
+    if (!/^https?:\/\//.test(normalized)) throw new Error('服务器地址无效')
+    const tmpPath = path.join(os.tmpdir(), `mc-device-lib-pub-${Date.now()}.json`)
+    try {
+      await renderHandler.runPythonCommand<{ path: string; schema: string; count: number }>(
+        ['device', 'library', 'export', tmpPath],
+        true,
+      )
+      const raw = JSON.parse(fs.readFileSync(tmpPath, 'utf-8'))
+      const devices: Array<Record<string, unknown>> = Array.isArray(raw)
+        ? raw
+        : Array.isArray(raw?.devices)
+          ? raw.devices
+          : []
+      const token = loadStoredToken()
+      const result = await publishDeviceLibrary(normalized, token, devices)
+      audit('deviceLibrary.publish', normalized)
+      return { uploaded: result.total, localCount: devices.length, lastSync: new Date().toISOString() }
+    } finally {
+      try {
+        fs.unlinkSync(tmpPath)
+      } catch {
+        /* ignore */
+      }
     }
   })
 

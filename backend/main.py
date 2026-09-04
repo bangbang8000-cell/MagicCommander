@@ -267,6 +267,12 @@ def main():
     review_md_parser.add_argument('project', help='项目名称')
     review_md_parser.add_argument('output', help='目标 md 路径')
 
+    # 5.0.4（504-a）：项目分享只读快照（云端分享预览页数据源）
+    share_parser = subparsers.add_parser('share', help='项目分享（5.0.4 504-a）')
+    share_subparsers = share_parser.add_subparsers(title='分享操作', dest='share_action', help='分享子命令')
+    share_snapshot_parser = share_subparsers.add_parser('snapshot', help='生成只读分享快照 JSON')
+    share_snapshot_parser.add_argument('project', help='项目名称')
+
     # Diff 对比
     diff_parser = subparsers.add_parser('diff', help='对比渲染输出')
     diff_parser.add_argument('project', help='项目名称')
@@ -411,6 +417,8 @@ def main():
             handle_device_command(args)
         elif args.command == 'review':
             handle_review_command(args)
+        elif args.command == 'share':
+            handle_share_command(args)
         else:
             print_error(f'未知命令: {args.command}')
             sys.exit(1)
@@ -1005,6 +1013,22 @@ def handle_review_command(args):
                          ensure_ascii=False))
     else:
         print_error(f'未知评审操作: {getattr(args, "review_action", "")}')
+        sys.exit(1)
+
+
+def handle_share_command(args):
+    """项目分享只读快照（5.0.4 504-a）。"""
+    from intent.share import build_share_snapshot
+    proj = os.path.join(WORKSPACE_DIR, args.project)
+    if not os.path.isdir(proj):
+        print_error(f'项目不存在: {args.project}')
+        sys.exit(1)
+    if args.share_action == 'snapshot':
+        snapshot = build_share_snapshot(proj)
+        print(json.dumps({'status': 'success', 'message': '分享快照已生成',
+                          'data': snapshot}, ensure_ascii=False))
+    else:
+        print_error(f'未知分享操作: {getattr(args, "share_action", "")}')
         sys.exit(1)
 
 

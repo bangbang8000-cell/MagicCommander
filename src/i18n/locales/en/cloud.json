@@ -175,5 +175,15 @@
     "latest": "Latest",
     "downloads": "Most Downloaded",
     "name": "Name"
+  },
+  "share": {
+    "title": "Share Link",
+    "manage": "Manage My Shares",
+    "create": "Create Share Link"
+  },
+  "market": {
+    "featured": "Featured",
+    "subscribe": "Subscribe",
+    "subscribed": "Subscribed"
   }
 }

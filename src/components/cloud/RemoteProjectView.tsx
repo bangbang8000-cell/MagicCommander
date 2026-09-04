@@ -1,11 +1,12 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import { RefreshCw, Download, Trash2, Loader2, Cloud, Globe } from 'lucide-react'
+import { RefreshCw, Download, Trash2, Loader2, Cloud, Globe, Share2 } from 'lucide-react'
 import { showError } from '@/components/ui/Toast'
 import { usePlatformStore } from '@/stores/platform.store'
 import type { RemoteProject } from '@/api/platform'
 import { SyncStatusBadge } from './SyncStatusBadge'
 import { PullDialog } from './PullDialog'
+import { ShareDialog } from './ShareDialog'
 
 type RemoteProjectViewProps = {
   onPullSuccess: () => void
@@ -17,6 +18,8 @@ export function RemoteProjectView({ onPullSuccess, searchQuery }: RemoteProjectV
   const [activeTab, setActiveTab] = useState<'mine' | 'public'>('mine')
   const [pullingProject, setPullingProject] = useState<RemoteProject | null>(null)
   const [projectExists, setProjectExists] = useState(false)
+  const [shareOpen, setShareOpen] = useState(false)
+  const [shareProject, setShareProject] = useState<string | undefined>(undefined)
 
   const {
     remoteProjects,
@@ -120,6 +123,16 @@ export function RemoteProjectView({ onPullSuccess, searchQuery }: RemoteProjectV
         </button>
         <div className="flex-1" />
         <button
+          onClick={() => {
+            setShareProject(undefined)
+            setShareOpen(true)
+          }}
+          className="flex items-center gap-1 px-3 py-2 text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+          title={t('cloud:share.manage') || '管理我的分享'}
+        >
+          <Share2 size={12} />
+        </button>
+        <button
           onClick={() => fetchRemoteProjects()}
           disabled={remoteProjectsLoading}
           className="flex items-center gap-1 px-3 py-2 text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
@@ -193,6 +206,18 @@ export function RemoteProjectView({ onPullSuccess, searchQuery }: RemoteProjectV
                   </button>
                   {activeTab === 'mine' && (
                     <button
+                      onClick={() => {
+                        setShareProject(project.name)
+                        setShareOpen(true)
+                      }}
+                      className="p-1.5 rounded hover:bg-primary-50 dark:hover:bg-primary-900/30 text-primary-500 transition-colors"
+                      title={t('cloud:share.create') || '生成分享链接'}
+                    >
+                      <Share2 size={14} />
+                    </button>
+                  )}
+                  {activeTab === 'mine' && (
+                    <button
                       onClick={() => handleDelete(project)}
                       className="p-1.5 rounded hover:bg-red-50 dark:hover:bg-red-900/30 text-red-400 hover:text-red-500 transition-colors"
                       title={t('cloud:projects.delete') || '删除云端项目'}
@@ -220,6 +245,9 @@ export function RemoteProjectView({ onPullSuccess, searchQuery }: RemoteProjectV
           }}
         />
       )}
+
+      {/* 5.0.4（504-a）：分享链接弹窗 */}
+      {shareOpen && <ShareDialog open={shareOpen} projectName={shareProject} onClose={() => setShareOpen(false)} />}
     </div>
   )
 }

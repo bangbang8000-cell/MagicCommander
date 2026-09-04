@@ -251,6 +251,18 @@ const api = {
     loadToken: () => ipcRenderer.invoke('platform:loadToken'),
     clearToken: () => ipcRenderer.invoke('platform:clearToken'),
   },
+  // 5.0.4（504-a）：协作分享（生成快照 → POST /shares → 预览 URL）
+  cloud: {
+    shareCreate: (payload: { projectName: string; baseUrl: string; description?: string; expireDays?: number }) =>
+      ipcRenderer.invoke('cloud:shareCreate', payload),
+    shareList: (baseUrl: string) => ipcRenderer.invoke('cloud:shareList', baseUrl),
+    shareRevoke: (baseUrl: string, token: string) => ipcRenderer.invoke('cloud:shareRevoke', baseUrl, token),
+  },
+  // 5.0.4（504-c）：设备库云同步（拉取合并 / 上传发布）
+  deviceLibrary: {
+    sync: (baseUrl: string) => ipcRenderer.invoke('deviceLibrary:sync', baseUrl),
+    publish: (baseUrl: string) => ipcRenderer.invoke('deviceLibrary:publish', baseUrl),
+  },
   diag: {
     collect: (perfSnapshot?: unknown) => ipcRenderer.invoke('diag:collect', perfSnapshot),
     reportPerf: (perfSnapshot: unknown) => ipcRenderer.invoke('diag:reportPerf', perfSnapshot),

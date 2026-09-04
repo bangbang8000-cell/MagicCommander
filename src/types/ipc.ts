@@ -119,6 +119,8 @@ export interface ElectronAPI {
   aihub: AIHubIpcApi
   window: WindowIpcApi
   platform: PlatformIpcApi
+  cloud: CloudIpcApi
+  deviceLibrary: DeviceLibraryIpcApi
   diag: DiagIpcApi
   onMenuNewProject: (callback: () => void) => () => void
   versions: {
@@ -618,6 +620,64 @@ export interface PlatformIpcApi {
   saveToken: (token: string) => Promise<void>
   loadToken: () => Promise<string | null>
   clearToken: () => Promise<void>
+}
+
+// ============================================================
+// 5.0.4（504-a）：协作分享 IPC（生成快照 → POST /shares → 预览 URL）
+// ============================================================
+
+/** 我的分享条目 */
+export interface CloudShareItem {
+  token: string
+  project_name: string
+  description: string
+  expires_at: string
+  created_at: string
+  url: string
+}
+
+export interface CloudShareCreateResult {
+  token: string
+  project_name: string
+  url: string
+  expires_at: string
+  fullUrl: string
+}
+
+export interface CloudIpcApi {
+  shareCreate: (payload: {
+    projectName: string
+    baseUrl: string
+    description?: string
+    expireDays?: number
+  }) => Promise<CloudShareCreateResult>
+  shareList: (baseUrl: string) => Promise<{ shares: CloudShareItem[] }>
+  shareRevoke: (baseUrl: string, token: string) => Promise<{ deleted: boolean }>
+}
+
+// ============================================================
+// 5.0.4（504-c）：设备库云同步 IPC（拉取合并 / 上传发布）
+// ============================================================
+
+export interface DeviceLibrarySyncResult {
+  ok: boolean
+  remoteCount: number
+  localCount: number
+  added: string[]
+  updated: string[]
+  skipped: string[]
+  lastSync: string
+}
+
+export interface DeviceLibraryPublishResult {
+  uploaded: number
+  localCount: number
+  lastSync: string
+}
+
+export interface DeviceLibraryIpcApi {
+  sync: (baseUrl: string) => Promise<DeviceLibrarySyncResult>
+  publish: (baseUrl: string) => Promise<DeviceLibraryPublishResult>
 }
 
 // ============================================================
