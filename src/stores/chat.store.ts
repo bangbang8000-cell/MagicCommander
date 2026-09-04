@@ -670,6 +670,8 @@ export async function sendMessage(
       aiConfig.aiEngine,
       // 5.0.3-503-a：多步任务编排 workflow（on/off，默认关；仅自有引擎生效）
       aiConfig.workflowEnabled ? 'on' : 'off',
+      // 5.0.5-505-c：知识库注入开关（默认开；设置可关）
+      useUIStore.getState().generalSettings.knowledgeInjection,
     )
 
     const timeoutPromise = new Promise<string>((_, reject) => {

@@ -46,13 +46,18 @@ class AgentSession:
         self.last_tool_result: dict | None = None
         # 5.0.3-503-a：workflow 步骤级审批已通过标记（避免 run_stream 对 CONFIRM 工具重复确认）
         self.workflow_step_approved: bool = False
+        # 5.0.5-505-c：知识库注入开关（默认开，可关）+ 指定条目（knowledge_ids 优先精确注入）
+        self.knowledge_enabled: bool = True
+        self.knowledge_ids: Optional[list[str]] = None
 
     def _refresh_prompt_if_needed(self):
         """M7d: 记忆/技能等动态上下文变更时刷新本会话 system prompt（避免陈旧记忆）"""
         from ai_hub.prompts.loader import get_system_prompt_version
         version = get_system_prompt_version()
         if version != self._prompt_version:
-            self.system_prompt = get_system_prompt(self.mode, self.current_project)
+            # knowledge=False：知识库为按消息动态注入（run_stream 按最近用户消息检索），
+            # 不进静态缓存，避免项目知识重复注入。
+            self.system_prompt = get_system_prompt(self.mode, self.current_project, knowledge=False)
             self._prompt_version = version
 
     def set_provider(self, name: Optional[str] = None):
@@ -62,7 +67,8 @@ class AgentSession:
         """设置对话模式，自动加载对应 prompt"""
         self.mode = mode
         self.current_project = project_name
-        self.system_prompt = get_system_prompt(mode, project_name)
+        # knowledge=False：知识库上下文由 run_stream 按最近用户消息动态注入
+        self.system_prompt = get_system_prompt(mode, project_name, knowledge=False)
 
     def add_message(self, role: str, content: str, extra: dict = None):
         msg = {"role": role, "content": content}
@@ -114,6 +120,18 @@ class AgentSession:
         # M7d: 记忆/动态上下文变更时刷新 system prompt
         self._refresh_prompt_if_needed()
 
+        # 5.0.5-505-c：知识库上下文按最近用户消息动态注入（检索 Top-K；开关默认开）
+        system_prompt = self.system_prompt
+        if self.knowledge_enabled:
+            from ai_hub.prompts.loader import get_knowledge_prompt
+            knowledge_prompt = get_knowledge_prompt(
+                query=_last_user_message_text(self.messages),
+                project_name=self.current_project,
+                ids=self.knowledge_ids,
+            )
+            if knowledge_prompt:
+                system_prompt = system_prompt + "\n\n" + knowledge_prompt
+
         tools = get_tool_definitions()
         self.last_used = time.time()
         current_messages = list(self.messages)
@@ -162,7 +180,7 @@ class AgentSession:
             try:
                 stream = self.provider.chat_stream(
                     messages=current_messages,
-                    system_prompt=self.system_prompt,
+                    system_prompt=system_prompt,
                 )
 
                 async for chunk in stream:
@@ -448,6 +466,19 @@ def _get_reasoning(provider) -> str:
     """获取 Provider 的 reasoning_content（DeepSeek thinking mode）"""
     reason = getattr(provider, 'last_reasoning_content', '')
     return reason.strip() if reason else ''
+
+
+def _last_user_message_text(messages: list[dict]) -> str:
+    """提取最近一条用户消息文本（作为知识库检索查询关键词源）；无则返回空串"""
+    for msg in reversed(messages or []):
+        if msg.get("role") == "user":
+            content = msg.get("content") or ""
+            # 控制消息（摘要/截断/确认）不作为检索查询
+            if isinstance(content, str) and not content.startswith("@@MC_"):
+                return content.strip()
+            if isinstance(content, str):
+                return ""
+    return ""
 
 
 # ============================================================

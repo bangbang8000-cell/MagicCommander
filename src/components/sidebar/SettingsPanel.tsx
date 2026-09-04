@@ -1135,6 +1135,32 @@ export function SettingsPanel() {
               </div>
             )}
 
+            {/* 5.0.5-505-c：知识库注入开关（默认开） */}
+            <div className="flex items-center justify-between">
+              <div>
+                <span className={clsx('text-xs', isDark ? 'text-gray-400' : 'text-gray-600')}>
+                  {t('common:settings.general.knowledgeInjection')}
+                </span>
+                <p className={clsx('text-[11px]', isDark ? 'text-gray-600' : 'text-gray-400')}>
+                  {t('common:settings.general.knowledgeInjectionHint')}
+                </p>
+              </div>
+              <button
+                onClick={() => setGeneralSettings({ knowledgeInjection: !generalSettings.knowledgeInjection })}
+                className={clsx(
+                  'w-9 h-5 rounded-full transition-colors relative',
+                  generalSettings.knowledgeInjection ? 'bg-blue-500' : isDark ? 'bg-gray-600' : 'bg-gray-300',
+                )}
+              >
+                <div
+                  className={clsx(
+                    'w-3.5 h-3.5 rounded-full bg-white absolute top-0.5 transition-transform',
+                    generalSettings.knowledgeInjection ? 'translate-x-4' : 'translate-x-0.5',
+                  )}
+                />
+              </button>
+            </div>
+
             {/* 工作区路径 */}
             <div className="flex items-center justify-between">
               <span className={clsx('text-xs', isDark ? 'text-gray-400' : 'text-gray-600')}>
