@@ -1,6 +1,19 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Package, Download, Loader2, Clock, Tag, User, ChevronLeft, ChevronRight } from 'lucide-react'
+import {
+  Package,
+  Download,
+  Loader2,
+  Clock,
+  Tag,
+  User,
+  ChevronLeft,
+  ChevronRight,
+  Star,
+  Sparkles,
+  UserPlus,
+  UserCheck,
+} from 'lucide-react'
 import { usePlatformStore } from '@/stores/platform.store'
 import { showError } from '@/components/ui/Toast'
 import type { RemoteTemplate } from '@/api/platform'
@@ -19,9 +32,18 @@ export function TemplateMarket({ searchQuery }: TemplateMarketProps) {
   const [page, setPage] = useState(1)
   const [sort, setSort] = useState<SortKey>('updated')
   const [installing, setInstalling] = useState<string | null>(null)
+  const [subscribing, setSubscribing] = useState<string | null>(null)
 
-  const { remoteTemplates, remoteLoading, templateTotal, loggedIn, fetchRemoteTemplates, downloadTemplate } =
-    usePlatformStore()
+  const {
+    remoteTemplates,
+    remoteLoading,
+    templateTotal,
+    loggedIn,
+    fetchRemoteTemplates,
+    downloadTemplate,
+    subscribeTemplate,
+    rateTemplate,
+  } = usePlatformStore()
 
   // Reset page when search or category changes
   useEffect(() => {
@@ -48,6 +70,33 @@ export function TemplateMarket({ searchQuery }: TemplateMarketProps) {
       }
     },
     [downloadTemplate],
+  )
+
+  // 5.0.4（504-b）：订阅 / 评分
+  const handleSubscribe = useCallback(
+    async (template: RemoteTemplate) => {
+      const key = template.full_name || `${template.owner}/${template.name}`
+      setSubscribing(key)
+      try {
+        await subscribeTemplate(template.owner, template.name)
+      } catch (err) {
+        showError((err as Error).message)
+      } finally {
+        setSubscribing(null)
+      }
+    },
+    [subscribeTemplate],
+  )
+
+  const handleRate = useCallback(
+    async (template: RemoteTemplate, score: number) => {
+      try {
+        await rateTemplate(template.owner, template.name, score)
+      } catch (err) {
+        showError((err as Error).message)
+      }
+    },
+    [rateTemplate],
   )
 
   const categories = [
@@ -127,64 +176,145 @@ export function TemplateMarket({ searchQuery }: TemplateMarketProps) {
 
         {loggedIn &&
           !remoteLoading &&
-          remoteTemplates.map((template) => (
-            <div
-              key={template.id}
-              className="px-4 py-3 border-b border-gray-100 dark:border-gray-700/50 hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors"
-            >
-              <div className="flex items-start justify-between">
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <Package size={14} className="text-primary-500 shrink-0" />
-                    <span className="text-sm font-medium text-gray-900 dark:text-white truncate">{template.name}</span>
-                    <span className="text-[10px] px-1 py-0.5 rounded bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400">
-                      {template.category || t('cloud:categories.other') || '其他'}
-                    </span>
+          remoteTemplates.map((template) => {
+            const key = template.full_name || `${template.owner}/${template.name}`
+            const rating = Math.max(0, Math.min(5, Math.round(template.rating_avg ?? 0)))
+            const subscribers = template.subscribers ?? template.rating_count ?? 0
+            return (
+              <div
+                key={template.id}
+                className="px-4 py-3 border-b border-gray-100 dark:border-gray-700/50 hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors"
+              >
+                <div className="flex items-start justify-between">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <Package size={14} className="text-primary-500 shrink-0" />
+                      <span className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                        {template.name}
+                      </span>
+                      <span className="text-[10px] px-1 py-0.5 rounded bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400">
+                        {template.category || t('cloud:categories.other') || '其他'}
+                      </span>
+                      {/* 5.0.4（504-b）：featured 徽标 */}
+                      {template.featured && (
+                        <span className="flex items-center gap-0.5 text-[10px] px-1 py-0.5 rounded bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400">
+                          <Sparkles size={10} />
+                          {t('cloud:market.featured') || '精选'}
+                        </span>
+                      )}
+                    </div>
+                    {template.description && (
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-2">
+                        {template.description}
+                      </p>
+                    )}
+                    <div className="flex items-center gap-3 mt-1.5 flex-wrap">
+                      <span className="text-[10px] text-gray-400 dark:text-gray-500 flex items-center gap-1">
+                        <User size={10} />
+                        {template.owner}
+                      </span>
+                      <span className="text-[10px] text-gray-400 dark:text-gray-500 flex items-center gap-1">
+                        <Clock size={10} />
+                        {new Date(template.updated_at).toLocaleDateString()}
+                      </span>
+                      {(template.downloads ?? 0) > 0 && (
+                        <span className="text-[10px] text-gray-400 dark:text-gray-500 flex items-center gap-1">
+                          <Download size={10} />
+                          {template.downloads}
+                        </span>
+                      )}
+                      {/* 5.0.4（504-b）：评分（星标）+ 订阅数 */}
+                      {(template.rating_count ?? 0) > 0 && (
+                        <span className="text-[10px] text-gray-400 dark:text-gray-500 flex items-center gap-1">
+                          <span className="flex items-center">
+                            {Array.from({ length: 5 }, (_, i) => (
+                              <Star
+                                key={i}
+                                size={10}
+                                className={
+                                  i < rating ? 'text-amber-400 fill-amber-400' : 'text-gray-300 dark:text-gray-600'
+                                }
+                              />
+                            ))}
+                          </span>
+                          {template.rating_avg?.toFixed(1)}({(template.rating_count ?? 0).toLocaleString()})
+                        </span>
+                      )}
+                      {subscribers > 0 && (
+                        <span className="text-[10px] text-gray-400 dark:text-gray-500 flex items-center gap-1">
+                          <UserCheck size={10} />
+                          {subscribers.toLocaleString()} 订阅
+                        </span>
+                      )}
+                      {template.topics && template.topics.length > 0 && (
+                        <span className="text-[10px] text-gray-400 dark:text-gray-500 flex items-center gap-1">
+                          <Tag size={10} />
+                          {template.topics
+                            .filter((t) => t !== 'magiccommander-template' && !t.startsWith('category-'))
+                            .slice(0, 3)
+                            .join(', ')}
+                        </span>
+                      )}
+                    </div>
+                    {/* 5.0.4（504-b）：评分操作 */}
+                    <div className="flex items-center gap-1 mt-1">
+                      <span className="text-[10px] text-gray-400 dark:text-gray-500">评分:</span>
+                      <span className="flex items-center">
+                        {Array.from({ length: 5 }, (_, i) => (
+                          <button
+                            key={i}
+                            onClick={() => void handleRate(template, i + 1)}
+                            title={`${i + 1} 星`}
+                            className="p-0 hover:scale-110 transition-transform"
+                          >
+                            <Star
+                              size={12}
+                              className={
+                                i < rating
+                                  ? 'text-amber-400 fill-amber-400'
+                                  : 'text-gray-300 dark:text-gray-600 hover:text-amber-400'
+                              }
+                            />
+                          </button>
+                        ))}
+                      </span>
+                    </div>
                   </div>
-                  {template.description && (
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-2">{template.description}</p>
-                  )}
-                  <div className="flex items-center gap-3 mt-1.5">
-                    <span className="text-[10px] text-gray-400 dark:text-gray-500 flex items-center gap-1">
-                      <User size={10} />
-                      {template.owner}
-                    </span>
-                    <span className="text-[10px] text-gray-400 dark:text-gray-500 flex items-center gap-1">
-                      <Clock size={10} />
-                      {new Date(template.updated_at).toLocaleDateString()}
-                    </span>
-                    {(template.downloads ?? 0) > 0 && (
-                      <span className="text-[10px] text-gray-400 dark:text-gray-500 flex items-center gap-1">
-                        <Download size={10} />
-                        {template.downloads}
-                      </span>
-                    )}
-                    {template.topics && template.topics.length > 0 && (
-                      <span className="text-[10px] text-gray-400 dark:text-gray-500 flex items-center gap-1">
-                        <Tag size={10} />
-                        {template.topics
-                          .filter((t) => t !== 'magiccommander-template' && !t.startsWith('category-'))
-                          .slice(0, 3)
-                          .join(', ')}
-                      </span>
-                    )}
+                  <div className="flex flex-col items-end gap-1.5 shrink-0 ml-3">
+                    {/* 5.0.4（504-b）：订阅按钮 */}
+                    <button
+                      onClick={() => void handleSubscribe(template)}
+                      disabled={subscribing === key}
+                      className={`px-2.5 py-1 text-[11px] rounded transition-colors disabled:opacity-50 flex items-center gap-1 ${
+                        template.is_subscribed
+                          ? 'bg-gray-200 text-gray-600 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
+                          : 'bg-indigo-100 text-indigo-600 hover:bg-indigo-200 dark:bg-indigo-900/40 dark:text-indigo-300'
+                      }`}
+                    >
+                      {subscribing === key ? (
+                        <Loader2 size={11} className="animate-spin" />
+                      ) : template.is_subscribed ? (
+                        <UserCheck size={11} />
+                      ) : (
+                        <UserPlus size={11} />
+                      )}
+                      {template.is_subscribed
+                        ? t('cloud:market.subscribed') || '已订阅'
+                        : t('cloud:market.subscribe') || '订阅'}
+                    </button>
+                    <button
+                      onClick={() => handleInstall(template)}
+                      disabled={installing === key}
+                      className="px-3 py-1.5 text-xs rounded-md bg-primary-500 hover:bg-primary-600 text-white disabled:opacity-50 transition-colors flex items-center gap-1"
+                    >
+                      {installing === key ? <Loader2 size={12} className="animate-spin" /> : <Download size={12} />}
+                      {t('cloud:dashboard.install')}
+                    </button>
                   </div>
                 </div>
-                <button
-                  onClick={() => handleInstall(template)}
-                  disabled={installing === (template.full_name || `${template.owner}/${template.name}`)}
-                  className="ml-3 px-3 py-1.5 text-xs rounded-md bg-primary-500 hover:bg-primary-600 text-white disabled:opacity-50 transition-colors shrink-0 flex items-center gap-1"
-                >
-                  {installing === (template.full_name || `${template.owner}/${template.name}`) ? (
-                    <Loader2 size={12} className="animate-spin" />
-                  ) : (
-                    <Download size={12} />
-                  )}
-                  {t('cloud:dashboard.install')}
-                </button>
               </div>
-            </div>
-          ))}
+            )
+          })}
       </div>
 
       {/* Pagination */}

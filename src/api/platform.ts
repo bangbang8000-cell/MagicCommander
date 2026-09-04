@@ -126,6 +126,12 @@ export interface RemoteTemplate {
   topics?: string[]
   downloads?: number
   files?: { path: string; size: number }[]
+  // 5.0.4（504-b）：模板市场展示（评分 / 订阅 / featured）
+  rating_avg?: number
+  rating_count?: number
+  is_subscribed?: boolean
+  subscribers?: number
+  featured?: boolean
 }
 
 export interface RemoteProject {
@@ -254,6 +260,18 @@ export const templates = {
     request<{ owner: string; repo: string }>('/api/v1/templates', {
       method: 'POST',
       body: JSON.stringify(data),
+    }),
+
+  // 5.0.4（504-b）：模板市场订阅 / 评分
+  subscribe: (owner: string, repo: string) =>
+    request<{ subscribed: boolean; subscribers?: number }>(`/api/v1/templates/${owner}/${repo}/subscribe`, {
+      method: 'POST',
+    }),
+
+  rating: (owner: string, repo: string, score: number) =>
+    request<{ rating_avg: number; rating_count: number }>(`/api/v1/templates/${owner}/${repo}/rating`, {
+      method: 'POST',
+      body: JSON.stringify({ score }),
     }),
 }
 
