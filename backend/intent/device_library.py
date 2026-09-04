@@ -159,6 +159,7 @@ def import_device_library(package_path: str, target_path: str | None = None) -> 
         'updated': updated,
         'skipped': skipped,
         'conflicts': updated,
+        'local_count': len(merged),
         'target': target,
     }
 

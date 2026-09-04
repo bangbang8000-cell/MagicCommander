@@ -312,9 +312,19 @@ export function SettingsPanel() {
   const setPlatformBaseUrl = usePlatformStore((s) => s.setBaseUrl)
   const platformLoggedIn = usePlatformStore((s) => s.loggedIn)
   const platformUsername = usePlatformStore((s) => s.username)
+  const syncDeviceLibrary = usePlatformStore((s) => s.syncDeviceLibrary)
+  const publishDeviceLibrary = usePlatformStore((s) => s.publishDeviceLibrary)
   const [platformUrl, setPlatformUrl] = useState(platformBaseUrl)
   const [testingPlatform, setTestingPlatform] = useState(false)
   const [platformTestResult, setPlatformTestResult] = useState<{ ok: boolean; msg: string } | null>(null)
+
+  // 5.0.4（504-c）：设备库云同步状态
+  const [deviceCloudSync, setDeviceCloudSync] = useState<{
+    localCount?: number
+    remoteCount?: number
+    lastSync?: string
+  } | null>(null)
+  const [deviceCloudBusy, setDeviceCloudBusy] = useState<'sync' | 'publish' | null>(null)
 
   // Advanced state
   const [updateStatus, setUpdateStatus] = useState<string>('')
@@ -711,6 +721,43 @@ export function SettingsPanel() {
     }
   }, [])
 
+  // 5.0.4（504-c）：设备库云同步（拉取合并到本地 / 上传发布）
+  const handleDeviceLibraryCloudSync = useCallback(async () => {
+    if (!platformLoggedIn) {
+      showError('请先登录云平台，再进行设备库云同步')
+      return
+    }
+    setDeviceCloudBusy('sync')
+    try {
+      const r = await syncDeviceLibrary()
+      setDeviceCloudSync({ localCount: r.localCount, remoteCount: r.remoteCount, lastSync: r.lastSync })
+      showSuccess(
+        `设备库已从云端拉取合并：新增 ${r.added.length} / 更新 ${r.updated.length} / 跳过 ${r.skipped.length}`,
+      )
+    } catch (err) {
+      showError(err instanceof Error ? err.message : String(err))
+    } finally {
+      setDeviceCloudBusy(null)
+    }
+  }, [platformLoggedIn, syncDeviceLibrary])
+
+  const handleDeviceLibraryCloudPublish = useCallback(async () => {
+    if (!platformLoggedIn) {
+      showError('请先登录云平台，再进行设备库云同步')
+      return
+    }
+    setDeviceCloudBusy('publish')
+    try {
+      const r = await publishDeviceLibrary()
+      setDeviceCloudSync((prev) => ({ ...prev, localCount: r.localCount, lastSync: r.lastSync }))
+      showSuccess(`本地设备库已发布到云端（共 ${r.uploaded} 项）`)
+    } catch (err) {
+      showError(err instanceof Error ? err.message : String(err))
+    } finally {
+      setDeviceCloudBusy(null)
+    }
+  }, [platformLoggedIn, publishDeviceLibrary])
+
   const handleTestPlatformConnection = useCallback(async () => {
     if (!platformUrl.trim()) return
     setTestingPlatform(true)
@@ -797,6 +844,64 @@ export function SettingsPanel() {
                 <Upload size={12} /> 导入技能库
               </button>
             </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 5.0.4（504-c）：设备库云同步（拉取合并 / 上传发布） */}
+      <div
+        className={clsx(
+          'rounded-lg border p-3',
+          isDark ? 'border-gray-700 bg-gray-800/50' : 'border-gray-200 bg-gray-50',
+        )}
+      >
+        <div className="flex items-start gap-3">
+          <div className={clsx('mt-0.5', isDark ? 'text-gray-400' : 'text-gray-500')}>
+            <Cpu size={16} />
+          </div>
+          <div className="flex-1 min-w-0">
+            <h4 className={clsx('text-sm font-medium', isDark ? 'text-gray-200' : 'text-gray-700')}>设备库云同步</h4>
+            <div className="flex flex-wrap gap-1.5 mt-2">
+              <button
+                onClick={() => void handleDeviceLibraryCloudSync()}
+                disabled={deviceCloudBusy !== null || !platformLoggedIn}
+                className="flex items-center gap-1 px-2.5 py-1.5 rounded text-xs transition-colors bg-gray-200 text-gray-700 hover:bg-gray-300 disabled:opacity-40"
+              >
+                {deviceCloudBusy === 'sync' ? <RefreshCw size={12} className="animate-spin" /> : <Download size={12} />}
+                拉取云端设备库
+              </button>
+              <button
+                onClick={() => void handleDeviceLibraryCloudPublish()}
+                disabled={deviceCloudBusy !== null || !platformLoggedIn}
+                className="flex items-center gap-1 px-2.5 py-1.5 rounded text-xs transition-colors bg-gray-200 text-gray-700 hover:bg-gray-300 disabled:opacity-40"
+              >
+                {deviceCloudBusy === 'publish' ? (
+                  <RefreshCw size={12} className="animate-spin" />
+                ) : (
+                  <Upload size={12} />
+                )}
+                发布本地设备库
+              </button>
+            </div>
+            {(deviceCloudSync || !platformLoggedIn) && (
+              <div className="text-[11px] mt-1.5 space-y-0.5">
+                {!platformLoggedIn ? (
+                  <div className={isDark ? 'text-gray-500' : 'text-gray-400'}>登录后可同步设备库到云端</div>
+                ) : (
+                  <div className={isDark ? 'text-gray-400' : 'text-gray-500'}>
+                    {typeof deviceCloudSync?.localCount === 'number' && (
+                      <div>本地设备库：{deviceCloudSync.localCount} 项</div>
+                    )}
+                    {typeof deviceCloudSync?.remoteCount === 'number' && (
+                      <div>云端设备库：{deviceCloudSync.remoteCount} 项</div>
+                    )}
+                    {deviceCloudSync?.lastSync && (
+                      <div>上次同步：{new Date(deviceCloudSync.lastSync).toLocaleString()}</div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>
