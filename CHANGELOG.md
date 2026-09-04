@@ -2,6 +2,19 @@
 
 本文件为发布说明的单一事实来源（`npm run sync-version -- --release-notes` 自动抽取当前版本段）。
 
+## [5.0.3] - 2026-09-03
+
+### 新增
+
+- 5.0 系列第 3 版：AI Agent 工作流深化。
+- 多步自主任务编排（Plan→Execute→Verify 状态机）：full_auto 自主全流程 / advisor 计划级+每步确认 / semi_auto 计划级+关键步确认；接线 accuracy.verify_tool_result 一致性校验；会话保留任务上下文（task_id/plan/step/verify）。
+- 技能自学习闭环：反馈持久化（成功/失败/成功率/最近样本）+ 阈值自动修订技能定义（自学习改进记录）+ skill_optimize 工具；run_stream 接线 record_usage/反馈采集；技能传输 manifest v2（技能级元数据，兼容旧包）。
+- MCP 工具接入（协议层，非 Agent 框架）：MCP server 配置/stdio 生命周期/工具发现 → 动态注册（mcp: 命名空间防冲突）/ 执行分发；双引擎（自有/Hermes）共享；前端 MCP 管理区。
+
+### 改进
+
+- 前端 chat 任务进度卡片（plan→step→verify 徽标）+ 步骤级确认。
+
 ## [5.0.2] - 2026-09-03
 
 ### 新增
