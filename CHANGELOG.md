@@ -2,6 +2,20 @@
 
 本文件为发布说明的单一事实来源（`npm run sync-version -- --release-notes` 自动抽取当前版本段）。
 
+## [5.0.6] - 2026-09-05
+
+### 新增
+
+- 5.0 系列第 6 版：3D 可视化。
+- 机房/机柜 3D 只读视图（AIDC 导入）：由 AIDC 计划 deviceList 派生机柜网格与设备 U 位（42U），WebGL(react-three-fiber) 机房全景 + SVG 等距单柜视图，OrbitControls 轨道/缩放/旋转。
+- 热力图：机柜按功率使用率着色（绿→黄→红，powerToHeatColor 与 AutoLink 对齐），带图例。
+- 3D 导出：机房 WebGL PNG 导出 + 机柜 SVG/PNG 导出。
+- 2D↔3D 一致性：点击机房机柜联动展示对应柜的 SVG 等距视图。
+
+### 改进
+
+- AIDC 导入结果新增“3D 视图”页签（tables/verify/topo/changelog 之外）。
+
 ## [5.0.5] - 2026-09-04
 
 ### 新增

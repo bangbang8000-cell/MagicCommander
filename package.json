@@ -1,6 +1,6 @@
 {
   "name": "magiccommander",
-  "version": "5.0.5",
+  "version": "5.0.6",
   "description": "MagicCommander - 网络设备配置管理工具",
   "main": "dist-electron/main.js",
   "author": "Magic Commander Team",
@@ -42,6 +42,8 @@
   },
   "dependencies": {
     "@monaco-editor/react": "^4.7.0",
+    "@react-three/drei": "^9.122.0",
+    "@react-three/fiber": "^8.18.0",
     "@tanstack/react-virtual": "^3.14.10",
     "@types/qrcode": "^1.5.6",
     "adm-zip": "^0.6.0",
@@ -62,6 +64,7 @@
     "react-resizable-panels": "^4.11.2",
     "remark-gfm": "^4.0.1",
     "simple-git": "^3.36.0",
+    "three": "^0.185.1",
     "vscode-oniguruma": "^2.0.1",
     "vscode-textmate": "^9.3.2",
     "xlsx": "^0.18.5",
@@ -74,6 +77,7 @@
     "@types/node": "^20.11.0",
     "@types/react": "^18.2.48",
     "@types/react-dom": "^18.2.18",
+    "@types/three": "^0.185.4",
     "@typescript-eslint/eslint-plugin": "^8.64.0",
     "@typescript-eslint/parser": "^8.64.0",
     "@vitejs/plugin-react": "^4.2.1",
