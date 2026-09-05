@@ -2,6 +2,26 @@
 
 本文件为发布说明的单一事实来源（`npm run sync-version -- --release-notes` 自动抽取当前版本段）。
 
+## [5.0.8] - 2026-09-05
+
+### 新增
+
+- 5.0 系列第 8 版：质量与可靠性深化。
+- 覆盖率棘轮上移：前端 lines ≥36%、后端 ≥64%（scripts/check_coverage_baseline.py 只升不降门禁），并产出覆盖率攻坚报告。
+- 补齐高价值纯逻辑单测：icons / escapeHtml / log.store / render.store / errorService 等，前端覆盖率显著上移。
+
+### 改进
+
+- 设备库联网校对（508-d）：S9827、S9825-64D、RG-S6980-64QC、S9820-8C 等关键 400G 形态对齐（OSFP → QSFP-DD/QSFP112），NVIDIA MQM9700/9790 形态修正为 OSFP；CloudEngine 9860/8860 机架高度与端口数修正；双端校验脚本全部通过。
+
+### 修复
+
+- CI e2e 加固：install-deps / Playwright 依赖 / E2E 步骤增加 `retry-on` + `timeout-minutes`，降低环境性 red。
+
+### 安全
+
+- 平台依赖迁移：`python-jose` → `PyJWT`，消除 ecdsa 漏洞（PYSEC-2026-1325）；pip-audit 高危清零。
+
 ## [5.0.7] - 2026-09-05
 
 ### 新增

@@ -78,3 +78,13 @@ workspace/MC_Para.xlsx
 
 # 地址分配器状态账本（D23：segments/reserved/allocated，项目级派生状态）
 workspace/*/allocator_state.json
+
+# 508: quality / coverage generated reports
+reports/
+.coverage/
+
+# 508: test-driven output snapshots (runtime artifacts)
+workspace/*/output-sn/
+
+# AI Hub generated skill descriptors (derived from .md)
+ai_hub/skills/skills/*.meta.json

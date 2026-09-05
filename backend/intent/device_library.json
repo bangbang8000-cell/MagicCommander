@@ -87,7 +87,7 @@
     "model": "S9825-64D",
     "port_count": 64,
     "port_speed": "400G",
-    "port_type": "OSFP",
+    "port_type": "QSFP-DD",
     "protocol": "roce",
     "description": "H3C S9825-64D 64×400G 参数网交换机（命令级参考基准，P1 核对源）",
     "applicable_networks": [
@@ -100,7 +100,7 @@
     "model": "S9827",
     "port_count": 128,
     "port_speed": "400G",
-    "port_type": "OSFP",
+    "port_type": "QSFP112",
     "description": "H3C S9827 128×400G 智算参数网交换机（Spine/Leaf，2 层 CLOS 覆盖 1024 档）",
     "applicable_networks": [
       "param"
@@ -152,7 +152,7 @@
     "model": "Quantum QM9700",
     "port_count": 64,
     "port_speed": "400G",
-    "port_type": "QSFP-DD",
+    "port_type": "OSFP",
     "protocol": "ib",
     "description": "NVIDIA Quantum-2 MQM9700-NS2F 64×NDR 400G InfiniBand 智能交换机（带管理口，AI 训练集群 IB 参数网 Spine/Leaf）",
     "applicable_networks": [
@@ -165,7 +165,7 @@
     "model": "Quantum QM9790",
     "port_count": 64,
     "port_speed": "400G",
-    "port_type": "QSFP-DD",
+    "port_type": "OSFP",
     "protocol": "ib",
     "description": "NVIDIA Quantum-2 MQM9790-NS2F 64×NDR 400G InfiniBand 非管理交换机（AI 训练集群 IB 参数网 Spine/Leaf）",
     "applicable_networks": [

@@ -127,6 +127,7 @@ jobs:
         run: node -e "require('fs').appendFileSync(process.env.GITHUB_OUTPUT, 'build=' + require('./version.json').build + '\n')"
 
       - name: Package (${{ matrix.platform }})
+        timeout-minutes: 30
         run: npx electron-builder --${{ matrix.platform }} --publish=never
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -135,6 +136,7 @@ jobs:
       - name: Upload artifacts
         if: success()
         uses: actions/upload-artifact@v4
+        timeout-minutes: 10
         with:
           name: MagicCommander-${{ matrix.platform }}
           path: |
