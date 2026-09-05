@@ -99,4 +99,12 @@ module.exports = [
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
     },
   },
+  {
+    // 5.0.6（3D 可视化）: three-fiber JSX 元素属性（position/intensity/args/emissive 等）
+    // 是合法 WebGL 属性，与 DOM 属性不同，需豁免 react/no-unknown-property（对齐 AL Topology3DTab）
+    files: ['src/components/room/**/*.tsx'],
+    rules: {
+      'react/no-unknown-property': 'off',
+    },
+  },
 ]

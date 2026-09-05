@@ -53,7 +53,7 @@ describe('gridDims / gridPosition（方形网格布局）', () => {
     expect(off.offsetX).toBeCloseTo(RACK_SPACING_X / 2)
     expect(off.offsetZ).toBeCloseTo(RACK_SPACING_Z / 2)
     const first = gridPosition(0, 4)
-    const { offsetX, offsetZ } = gridOriginOffset(2, 2)
+    const { offsetX } = gridOriginOffset(2, 2)
     expect(first.x).toBeCloseTo(0 - offsetX) // 居中后首柜 x 为负
   })
 })

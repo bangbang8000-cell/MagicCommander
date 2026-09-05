@@ -558,7 +558,7 @@ export function SettingsPanel() {
     } finally {
       setFetchingModels(false)
     }
-  }, [baseUrl, apiKey, catalog, isOllama, ensureAIHubReady])
+  }, [baseUrl, apiKey, catalog, isOllama, ensureAIHubReady, activeProvider, model, setProviderConfig])
 
   // MC-LOOP1：将「最大工具循环轮数」同步到后端 secrets 文件（agent 每 send 实时读取）
   // 说明：现有 electron IPC 面为固定 configureProvider 参数，无法透传通用设置；
