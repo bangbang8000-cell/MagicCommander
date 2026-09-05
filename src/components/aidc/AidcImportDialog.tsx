@@ -23,6 +23,9 @@ import {
 } from 'lucide-react'
 import clsx from 'clsx'
 import type { PlanImportResult, PlanValidateResult, VerifyResult } from '@/types/ipc'
+import { buildRoomModel } from '@/utils/room3d'
+import { Room3DView } from '@/components/room/Room3DView'
+import { CabinetIsometricView } from '@/components/room/CabinetIsometricView'
 
 interface AidcPlan {
   meta: Record<string, unknown>
@@ -127,7 +130,9 @@ export function AidcImportDialog({ open, onClose }: { open: boolean; onClose: ()
   const [namingFormat, setNamingFormat] = useState('')
   const SEGMENT_KEYS = ['loopback', 'compute', 'storage', 'biz', 'oob', 'interconnect'] as const
   const [step, setStep] = useState(0)
-  const [resultTab, setResultTab] = useState<'tables' | 'verify' | 'topo' | 'changelog'>('tables')
+  const [resultTab, setResultTab] = useState<'tables' | 'verify' | 'topo' | 'changelog' | '3d'>('tables')
+  // 5.0.6（C）：机房 3D 视图选中的机柜编号
+  const [selectedRack, setSelectedRack] = useState<number | null>(null)
   const [busy, setBusy] = useState(false)
   const [msg, setMsg] = useState('')
   // MC-U1: 状态字段驱动样式（i18n 后不能靠 includes('失败') 判断）
@@ -393,6 +398,13 @@ export function AidcImportDialog({ open, onClose }: { open: boolean; onClose: ()
     return { nodes, edges }
   }, [planObj])
 
+  // 5.0.6（C）：机房 3D 模型（由 deviceList 纯推导）
+  const roomModel = useMemo(() => (planObj ? buildRoomModel(planObj.deviceList) : null), [planObj])
+  const rackDevices = useMemo(() => {
+    if (!roomModel || selectedRack == null) return []
+    return roomModel.cabinets.filter((c) => c.rackNumber === selectedRack)
+  }, [roomModel, selectedRack])
+
   const matchedLabel =
     summary?.origin?.matched === 'skip'
       ? t('aidc:import.matched.skip')
@@ -629,6 +641,7 @@ export function AidcImportDialog({ open, onClose }: { open: boolean; onClose: ()
                   ['tables', t('aidc:import.proofTables')],
                   ['verify', t('aidc:import.proofVerify')],
                   ['topo', t('aidc:import.proofTopo')],
+                  ['3d', '3D 视图'],
                   ['changelog', t('aidc:import.proofChangelog')],
                 ] as const
               ).map(([k, l]) => (
@@ -840,6 +853,27 @@ export function AidcImportDialog({ open, onClose }: { open: boolean; onClose: ()
               ) : (
                 <p className="text-2xs text-gray-400">{t('aidc:import.topoHint')}</p>
               ))}
+
+            {resultTab === '3d' && (
+              <div className="space-y-2">
+                <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-2">
+                  <div className="h-[340px] border border-gray-200 dark:border-gray-700 rounded overflow-hidden">
+                    {roomModel ? (
+                      <Room3DView model={roomModel} selectedRack={selectedRack} onCabinetSelect={setSelectedRack} />
+                    ) : (
+                      <p className="text-2xs text-gray-400 p-2">{t('aidc:import.selectPlanFirst')}</p>
+                    )}
+                  </div>
+                  <div className="h-[340px] border border-gray-200 dark:border-gray-700 rounded p-2 overflow-auto">
+                    {selectedRack == null ? (
+                      <p className="text-2xs text-gray-400">点击左侧机柜查看 U 位明细</p>
+                    ) : (
+                      <CabinetIsometricView rackNumber={selectedRack} devices={rackDevices} />
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
 
             {resultTab === 'changelog' && (
               <div className="text-2xs space-y-1 max-h-[320px] overflow-auto">
