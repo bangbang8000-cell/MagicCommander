@@ -81,7 +81,7 @@ workspace/*/allocator_state.json
 
 # 508: quality / coverage generated reports
 reports/
-.coverage/
+.coverage
 
 # 508: test-driven output snapshots (runtime artifacts)
 workspace/*/output-sn/
