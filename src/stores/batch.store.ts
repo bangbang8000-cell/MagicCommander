@@ -44,7 +44,20 @@ export interface BatchRunResult {
   results: Record<string, unknown>
 }
 
-export const BATCH_CONCURRENCY = 2
+export const BATCH_CONCURRENCY = 3
+
+/** 507-b2：内存守卫 —— 按设备可用内存动态收敛并发，避免大项目批量渲染 OOM。
+ * 不可探测（非 Chromium）时回落到常量并发。 */
+export function detectConcurrency(): number {
+  const nav = navigator as Navigator & { deviceMemory?: number }
+  if (typeof navigator === 'undefined' || !nav.deviceMemory) {
+    return BATCH_CONCURRENCY
+  }
+  const gb = nav.deviceMemory
+  if (gb < 4) return 1
+  if (gb < 8) return 2
+  return BATCH_CONCURRENCY
+}
 
 /** 受控并发池执行批量任务；中断信号下跳过未启动任务，已进行中的任务完成后不再计入结果 */
 export async function runBatchJobs<T>(jobs: BatchJob<T>[], options: BatchRunOptions = {}): Promise<BatchRunResult> {
@@ -159,7 +172,7 @@ export interface BatchStoreState {
 const errMsg = (err: unknown) => (err instanceof Error ? err.message : String(err))
 
 export const useBatchStore = create<BatchStoreState>()((set, get) => {
-  const execute = async (mode: BatchMode, jobs: BatchJob[]): Promise<void> => {
+  const execute = async (mode: BatchMode, jobs: BatchJob[], concurrency?: number): Promise<void> => {
     if (jobs.length === 0) return
     const controller = new AbortController()
     const items: BatchItem[] = jobs.map((job) => ({ id: job.id, name: job.name ?? job.id, status: 'pending' }))
@@ -174,6 +187,7 @@ export const useBatchStore = create<BatchStoreState>()((set, get) => {
     })
 
     const result = await runBatchJobs(jobs, {
+      concurrency: concurrency ?? detectConcurrency(),
       signal: controller.signal,
       onItemStart: (id) =>
         set((s) => ({
@@ -246,7 +260,7 @@ export const useBatchStore = create<BatchStoreState>()((set, get) => {
         name: project.name,
         run: (signal?: AbortSignal) => renderOne(project, signal),
       }))
-      await execute('render', jobs)
+      await execute('render', jobs, options?.concurrency)
     },
 
     runBatchExport: async (projects, options) => {
@@ -256,7 +270,7 @@ export const useBatchStore = create<BatchStoreState>()((set, get) => {
         name: project.name,
         run: (signal?: AbortSignal) => exportOne(project, signal),
       }))
-      await execute('export', jobs)
+      await execute('export', jobs, options?.concurrency)
     },
 
     runBatchEdit: async (source, targets, io) => {

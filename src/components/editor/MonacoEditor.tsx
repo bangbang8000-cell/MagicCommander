@@ -132,6 +132,22 @@ export function MonacoEditor({ tab }: MonacoEditorProps) {
   const wrapperRef = useRef<HTMLDivElement>(null)
   const isMountedRef = useRef(true)
   const loadingFilePathRef = useRef<string | null>(null)
+  // 507-c1：懒加载本地打包 Monaco（替代 main.tsx 顶层导入），仅当编辑器打开时才加载大体积 editor bundle
+  const [monacoReady, setMonacoReady] = useState(false)
+
+  useEffect(() => {
+    let cancelled = false
+    import('@/editor/monaco')
+      .then(() => {
+        if (!cancelled) setMonacoReady(true)
+      })
+      .catch(() => {
+        if (!cancelled) setMonacoReady(false)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   useEffect(() => {
     const currentPath = `${tab.projectId}:${tab.filePath}`
@@ -354,7 +370,7 @@ export function MonacoEditor({ tab }: MonacoEditorProps) {
 
   return (
     <div ref={wrapperRef} className={`w-full h-full relative ${isDark ? 'bg-gray-900' : 'bg-white'}`}>
-      {loading && (
+      {(loading || !monacoReady) && (
         <div
           className={`absolute inset-0 flex items-center justify-center text-sm z-10 pointer-events-none ${isDark ? 'text-gray-500' : 'text-gray-400'}`}
         >
@@ -364,7 +380,7 @@ export function MonacoEditor({ tab }: MonacoEditorProps) {
       {!loading && error && (
         <div className="absolute inset-0 flex items-center justify-center text-sm text-red-500 z-10">{error}</div>
       )}
-      {!loading && !error && (
+      {!loading && !error && monacoReady && (
         <Editor
           language={language}
           defaultValue={content || ''}

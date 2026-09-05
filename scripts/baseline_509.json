@@ -1,0 +1,51 @@
+{
+  "tool": "MagicCommander bench_perf",
+  "version": "5.0.7",
+  "env": {
+    "python": "3.13.3",
+    "ts": "2026-09-05T13:51:46",
+    "baseline": "n/a"
+  },
+  "scenarios": [
+    {
+      "name": "batch-dry-run",
+      "label": "批量渲染 100 项目",
+      "threshold_s": 90.0,
+      "avg_s": 31.002,
+      "min_s": 31.002,
+      "max_s": 31.002,
+      "unit": "s",
+      "pass": true
+    },
+    {
+      "name": "single-render",
+      "label": "单项目全量渲染",
+      "threshold_s": 30.0,
+      "avg_s": 0.566,
+      "min_s": 0.566,
+      "max_s": 0.566,
+      "unit": "s",
+      "pass": true
+    },
+    {
+      "name": "large-param",
+      "label": "万行参数表数据准备",
+      "threshold_s": 30.0,
+      "avg_s": 1.141,
+      "min_s": 1.141,
+      "max_s": 1.141,
+      "unit": "s",
+      "pass": true
+    },
+    {
+      "name": "batch-512",
+      "label": "512 项目批量渲染",
+      "threshold_s": 240.0,
+      "avg_s": 174.521,
+      "min_s": 174.521,
+      "max_s": 174.521,
+      "unit": "s",
+      "pass": true
+    }
+  ]
+}
