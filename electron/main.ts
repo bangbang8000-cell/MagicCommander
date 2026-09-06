@@ -84,6 +84,18 @@ class MagicCommanderApp {
       updateService.quitAndInstall()
     })
 
+    // 5.0.9-509-a：回滚基线（保守，仅列出/清除/定位）
+    ipcMain.handle('app:rollback-list', () => updateService.getRollbackEntries())
+    ipcMain.handle('app:rollback-clear', () => updateService.clearRollback())
+    ipcMain.handle('app:rollback-reveal', () => {
+      const entries = updateService.getRollbackEntries()
+      if (entries.length > 0) {
+        shell.showItemInFolder(entries[0].filePath)
+        return entries[0].filePath
+      }
+      return null
+    })
+
     // 47-a：渲染进程同步 ui.store 的 checkUpdateOnStart（Zustand localStorage 持久化，主进程经 IPC 读取）
     ipcMain.handle('app:set-auto-update-check', (_event, enabled: boolean) => {
       this.checkUpdateOnStart = enabled !== false

@@ -147,6 +147,10 @@ const api = {
     checkUpdate: () => ipcRenderer.invoke('app:check-update'),
     downloadUpdate: () => ipcRenderer.invoke('app:download-update'),
     quitAndInstall: () => ipcRenderer.invoke('app:quit-and-install'),
+    // 5.0.9-509-a：回滚基线（保守，仅列出/清除/定位）
+    rollbackList: () => ipcRenderer.invoke('app:rollback-list'),
+    rollbackClear: () => ipcRenderer.invoke('app:rollback-clear'),
+    rollbackReveal: () => ipcRenderer.invoke('app:rollback-reveal'),
     setCheckUpdateOnStart: (enabled: boolean) => ipcRenderer.invoke('app:set-auto-update-check', enabled),
     onUpdateStatus: (callback: (status: unknown) => void) => {
       const handler = (_e: unknown, data: unknown) => callback(data)
