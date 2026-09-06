@@ -8,7 +8,7 @@ import clsx from 'clsx'
 
 type ConnectionState = 'unknown' | 'checking' | 'connected' | 'error'
 
-const CURRENT_BUILD = '26090601'
+const CURRENT_BUILD = '26090602'
 
 export function CloudStatusIndicator() {
   const { t } = useTranslation()
