@@ -2,11 +2,13 @@
 Agent Tool 定义
 将现有 Python CLI 功能包装为标准 Tool 接口，供 LLM 调用
 """
+import asyncio
 import json
 import logging
 import os
 import subprocess
 import sys
+import time
 from pathlib import Path
 from typing import Any
 
@@ -994,6 +996,100 @@ async def _add_knowledge(args: dict) -> str:
     return json.dumps({"status": "ok", "entry": entry}, ensure_ascii=False)
 
 
+# ====== 5.1.4-514-c：异步任务工具（长耗时渲染/导出 → task_id + 进度轮询） ======
+
+async def _task_submit(args: dict) -> str:
+    """提交任意编译态工具为异步后台任务，返回 task_id（用 task_query 轮询进度）。
+
+    后台执行走 AgentConnectManager._execute_wrapped，保留 L2/L3 语义与审计。
+    """
+    tool = args.get("tool")
+    if not tool:
+        return json.dumps({"status": "error", "error": "缺少必需参数: tool"}, ensure_ascii=False)
+    tool_args = args.get("arguments") or {}
+    if not isinstance(tool_args, dict):
+        return json.dumps({"status": "error", "error": "参数 arguments 应为对象"}, ensure_ascii=False)
+    from ai_hub.mcp_server.capabilities import filter_tools_for_mode
+    from ai_hub.mcp_server.manager import get_agent_connect_manager
+    from ai_hub.mcp_server.tasks import get_task_manager
+
+    manager = get_agent_connect_manager()
+    allowed = {d["name"] for d in filter_tools_for_mode(manager.agent_mode, get_tool_definitions())}
+    if tool not in allowed:
+        return json.dumps({"status": "error", "error": f"工具 {tool} 在当前模式不可用"}, ensure_ascii=False)
+    task_id = get_task_manager().submit(
+        tool,
+        lambda: manager._execute_wrapped(tool, tool_args),
+    )
+    return json.dumps({
+        "status": "ok", "task_id": task_id, "tool": tool,
+        "message": "任务已提交，用 task_query 查询进度",
+    }, ensure_ascii=False)
+
+
+async def _task_query(args: dict) -> str:
+    """查询异步任务状态（pending/running/done/error + 进度 + 结果/错误）。"""
+    task_id = args.get("taskId") or args.get("task_id")
+    if not task_id:
+        return json.dumps({"status": "error", "error": "缺少必需参数: taskId"}, ensure_ascii=False)
+    from ai_hub.mcp_server.tasks import get_task_manager
+
+    st = get_task_manager().query(task_id)
+    if st is None:
+        return json.dumps({"status": "error", "error": f"任务不存在: {task_id}"}, ensure_ascii=False)
+    return json.dumps({"status": "ok", "task": st}, ensure_ascii=False)
+
+
+async def _task_list(args: dict) -> str:
+    """列出全部异步任务（含状态与进度）。"""
+    from ai_hub.mcp_server.tasks import get_task_manager
+
+    tasks = get_task_manager().list_tasks()
+    return json.dumps({"status": "ok", "tasks": tasks, "total": len(tasks)}, ensure_ascii=False)
+
+
+async def _task_wait(args: dict) -> str:
+    """阻塞等待任务完成（最多 timeout 秒），返回最终状态与结果。"""
+    task_id = args.get("taskId") or args.get("task_id")
+    if not task_id:
+        return json.dumps({"status": "error", "error": "缺少必需参数: taskId"}, ensure_ascii=False)
+    timeout = float(args.get("timeout", 60) or 60)
+    from ai_hub.mcp_server.tasks import get_task_manager
+
+    task_mgr = get_task_manager()
+    st = task_mgr.query(task_id)
+    if st is None:
+        return json.dumps({"status": "error", "error": f"任务不存在: {task_id}"}, ensure_ascii=False)
+    deadline = time.time() + max(0.0, timeout)
+    while st["status"] not in ("done", "error") and time.time() < deadline:
+        await asyncio.sleep(0.05)
+        st = task_mgr.query(task_id)
+        if st is None:
+            break
+    return json.dumps({"status": "ok", "task": st}, ensure_ascii=False)
+
+
+async def _task_cancel(args: dict) -> str:
+    """取消运行中的异步任务（pending/running → 取消）。"""
+    task_id = args.get("taskId") or args.get("task_id")
+    if not task_id:
+        return json.dumps({"status": "error", "error": "缺少必需参数: taskId"}, ensure_ascii=False)
+    from ai_hub.mcp_server.tasks import get_task_manager
+
+    task_mgr = get_task_manager()
+    st = task_mgr.query(task_id)
+    if st is None:
+        return json.dumps({"status": "error", "error": f"任务不存在: {task_id}"}, ensure_ascii=False)
+    ok = task_mgr.cancel(task_id)
+    st = task_mgr.query(task_id)
+    return json.dumps({
+        "status": "ok" if ok else "info",
+        "task_id": task_id,
+        "task": st,
+        "message": "任务已取消" if ok else "任务不可取消（已完成或不存在）",
+    }, ensure_ascii=False)
+
+
 def init_tools():
     """初始化所有 Agent Tools"""
     register_tool(
@@ -1593,6 +1689,73 @@ def init_tools():
             "required": ["title", "content"],
         },
         _add_knowledge,
+    )
+
+    # ====== 5.1.4-514-c：异步任务工具（长耗时渲染/导出 → task_id + 进度轮询） ======
+
+    register_tool(
+        "task_submit",
+        "提交任意编译态工具为异步后台任务，立即返回 task_id，用 task_query 轮询进度。渲染/导出等长耗时工具在 MCP 层已自动异步，无需再调本工具",
+        {
+            "type": "object",
+            "properties": {
+                "tool": {"type": "string", "description": "要异步执行的工具名（如 render_config/export_project）"},
+                "arguments": {"type": "object", "description": "工具入参"},
+            },
+            "required": ["tool"],
+        },
+        _task_submit,
+    )
+
+    register_tool(
+        "task_query",
+        "查询异步任务状态：pending/running/done/error + 进度（percent/message）+ 结果或错误",
+        {
+            "type": "object",
+            "properties": {
+                "taskId": {"type": "string", "description": "任务 ID"},
+            },
+            "required": ["taskId"],
+        },
+        _task_query,
+    )
+
+    register_tool(
+        "task_list",
+        "列出全部异步任务（含状态与进度）",
+        {
+            "type": "object",
+            "properties": {},
+            "required": [],
+        },
+        _task_list,
+    )
+
+    register_tool(
+        "task_wait",
+        "等待异步任务完成（最多 timeout 秒），返回最终状态与结果；适合需要结果后再继续的场景",
+        {
+            "type": "object",
+            "properties": {
+                "taskId": {"type": "string", "description": "任务 ID"},
+                "timeout": {"type": "number", "description": "最大等待秒数（默认 60）"},
+            },
+            "required": ["taskId"],
+        },
+        _task_wait,
+    )
+
+    register_tool(
+        "task_cancel",
+        "取消运行中的异步任务（pending/running → 取消为 error）",
+        {
+            "type": "object",
+            "properties": {
+                "taskId": {"type": "string", "description": "任务 ID"},
+            },
+            "required": ["taskId"],
+        },
+        _task_cancel,
     )
 
     logger.info(f"Initialized {len(_tools)} Agent tools")
