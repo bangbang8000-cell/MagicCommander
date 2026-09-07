@@ -55,14 +55,17 @@ def get_tool_definitions() -> list[dict]:
 
 
 async def execute_tool(name: str, arguments: dict) -> dict:
-    """执行指定工具（4.3 F3-4：参数校验 + 业务错误可读化，全部失败均返回可读中文错误）"""
+    """执行指定工具（4.3 F3-4：参数校验 + 业务错误可读化，全部失败均返回可读中文错误）。
+
+    5.1.6-516-d：失败响应携带结构化 error_code（机器可读）与可读中文 error（人类可排）。
+    """
     tool = _tools.get(name)
     if not tool:
-        return {"success": False, "error": f"未知工具: {name}"}
+        return {"success": False, "error": f"未知工具: {name}", "error_code": "AC_ERR_UNKNOWN_TOOL"}
     # 参数校验（必需字段缺失/类型错误/enum 越界 → 可读中文错误，不抛异常）
     errors = _validate_tool_args(name, arguments, tool.get("parameters", {}))
     if errors:
-        return {"success": False, "error": "；".join(errors)}
+        return {"success": False, "error": "；".join(errors), "error_code": "AC_ERR_INVALID_ARGS"}
     try:
         result = await tool["handler"](arguments)
         # 业务错误可读化：handler 返回 {"status":"error", "error":...} JSON 时转为失败
@@ -71,13 +74,13 @@ async def execute_tool(name: str, arguments: dict) -> dict:
                 parsed = json.loads(result)
                 if isinstance(parsed, dict) and parsed.get("status") == "error":
                     err = parsed.get("error") or parsed.get("message") or "操作失败"
-                    return {"success": False, "error": err}
+                    return {"success": False, "error": err, "error_code": "AC_ERR_BUSINESS"}
             except Exception:
                 pass
         return {"success": True, "result": result}
     except Exception as e:
         logger.error(f"Tool '{name}' execution failed: {e}")
-        return {"success": False, "error": str(e)}
+        return {"success": False, "error": str(e), "error_code": "AC_ERR_EXEC_FAILED"}
 
 
 def _validate_tool_args(name: str, args: dict, schema: dict) -> list[str]:

@@ -1,0 +1,17 @@
+{
+  "servers": {
+    "magiccommander": {
+      "type": "stdio",
+      "command": "python",
+      "args": [
+        "-m",
+        "ai_hub.mcp_server.run",
+        "--mode",
+        "compiled",
+        "--workspace",
+        "<工作区目录>"
+      ],
+      "cwd": "<REPO_ROOT>"
+    }
+  }
+}
