@@ -1,6 +1,6 @@
 # MagicCommander User Guide
 
-> Applies to MagicCommander v5.0.10 (5.1 series Agent Connect preview)
+> Applies to MagicCommander v5.0.10 (incl. 5.1 series Agent Connect)
 
 ## Introduction
 
@@ -266,7 +266,22 @@ An intranet deployment mode is available (off by default, hidden):
 
 ## Agent Connect (5.1 series)
 
-The 5.1 series wraps MagicCommander as a standard **MCP Server (Agent Connect)** so external AI agents interact with the product over a standard protocol.
+The 5.1 series (5.1.1–5.1.10) wraps MagicCommander as a standard **MCP Server (Agent Connect)** so external AI agents interact with the product over a standard protocol: query, create, update, and render projects, templates, device libraries, and outputs; development scenarios can add CLI passthrough and direct source reading.
+
+### 5.1 capability map
+
+| Version | Capability |
+|---------|------------|
+| 5.1.1 | Agent Connect framework: switch / dual mode / state machine / audit / stdio |
+| 5.1.2 | Compiled read-only capability domains + input contracts (L1) + golden cases |
+| 5.1.3 | Write semantics: result validation (L2) + idempotent transactions (L3) |
+| 5.1.4 | Async tasks: task_id + progress polling / wait / cancel; render & export run async automatically |
+| 5.1.5 | Idempotent replay + enhanced audit (sanitized / duration / mode) + contract tests |
+| 5.1.6 | Integration samples (Claude/Codex/Trae/VS Code) + self-check + structured error codes |
+| 5.1.7 | Source channel: allow-listed CLI passthrough + sandboxed filesystem |
+| 5.1.8 | Remote mode pilot: platform gateway (TLS / strong auth / per-domain authorization / remote writes off) |
+| 5.1.9 | Feedback self-optimization + repair loop + no code-write constraint |
+| 5.1.10 | Dual-mode golden regression + documentation wrap-up |
 
 ### Dual-mode model
 
@@ -275,11 +290,35 @@ The 5.1 series wraps MagicCommander as a standard **MCP Server (Agent Connect)**
 | **Compiled** (default) | Product use | Standard MCP query / create / update / render projects, templates, device libraries, outputs; **the software itself is never modified** |
 | **Source** | Developers (`npm run dev:all`) | Adds CLI passthrough and direct source reading for unrestricted interaction |
 
+### Compiled toolset
+
+| Domain | Common tools |
+|--------|--------------|
+| Project | `list_projects` `get_project_info` `create_project` `create_project_intelligent` `update_project` `import_project` `export_project` |
+| Template | `template_list` `create_template` `update_template` `preview_template` |
+| Render | `render_config` `render_yaml` `dry_run` `undo_render` `diff_compare` (auto-async) |
+| Output | `generate_labels` `generate_label_md` |
+| Validate | `validate_template` `validate_excel` `analyze_project` |
+| Knowledge / Skills | `list_knowledge` `search_knowledge` `add_knowledge`; `list_skills` `get_skill` `update_skill` `skill_optimize` |
+| Tasks / Audit / Feedback | `task_submit` `task_query` `task_list` `task_wait` `task_cancel`; `audit_query`; `agent_feedback` |
+
+> Destructive / CLI / filesystem tools are not exposed in Compiled mode (available in Source mode).
+
+### Source channel (5.1.7)
+
+Run from source with `npm run dev:all` and start with `--mode source` to unlock the unrestricted channel:
+
+- `run_cli`: allow-listed CLI passthrough (project / template / render / validate / diff / label / analyze / file)
+- `read_file(path)` / `list_dir(path)` / `read_source(path)`: sandboxed filesystem (workspace + repo root); out-of-scope paths are rejected
+- Write permissions relax to NOTIFY-first, but business data validation (L2/L3) still applies
+
 ### Connect an external agent (3 steps)
 
 1. **Enable**: Settings → Agent Connect, turn the switch on (toggle `compiled` / `source`)
-2. **Paste config**: add the config below to your agent client (replace `<workspace_dir>` with your workspace)
+2. **Paste config**: add the config for your agent client below (replace `<workspace_dir>` with your workspace and `<repo_root>` with the MagicCommander-Client absolute path)
 3. **Self-check**: click Self-check in Settings; when every item is green you are connected
+
+#### Claude Desktop (`claude_desktop_config.json`)
 
 ```json
 {
@@ -287,26 +326,47 @@ The 5.1 series wraps MagicCommander as a standard **MCP Server (Agent Connect)**
     "magiccommander": {
       "command": "python",
       "args": ["-m", "ai_hub.mcp_server.run", "--mode", "compiled", "--workspace", "<workspace_dir>"],
-      "cwd": "<MagicCommander-Client repo root>"
+      "cwd": "<repo_root>"
     }
   }
 }
 ```
 
-- **Claude Desktop**: `claude_desktop_config.json`
-- **Codex CLI**: `.codex/config.toml`
-- **Trae Work / VS Code**: `.mcp.json`
-- Full samples: `docs/agent-connect/README.md`
+#### Codex CLI (`.codex/config.toml`)
+
+```toml
+[mcp_servers.magiccommander]
+command = "python"
+args = ["-m", "ai_hub.mcp_server.run", "--mode", "compiled", "--workspace", "<workspace_dir>"]
+cwd = "<repo_root>"
+```
+
+#### Trae Work / VS Code (`.mcp.json`)
+
+```json
+{
+  "servers": {
+    "magiccommander": {
+      "type": "stdio",
+      "command": "python",
+      "args": ["-m", "ai_hub.mcp_server.run", "--mode", "compiled", "--workspace", "<workspace_dir>"],
+      "cwd": "<repo_root>"
+    }
+  }
+}
+```
+
+> Full samples, command options, and troubleshooting: `docs/agent-connect/README.md`.
 
 ### Deterministic semantics
 
-- **Input contracts**: every tool declares a JSON Schema; invalid input returns a structured error
-- **Semantic validation**: write results are structurally validated (L2) before committing
-- **Idempotent transactions**: duplicate submissions (projectId + planHash) return "already exists" with the original result instead of re-writing (L3)
+- **Input contracts (L1)**: every tool declares a JSON Schema; invalid input returns a structured error (`AC_ERR_INVALID_ARGS` and friends, plus a human-readable hint)
+- **Semantic validation (L2)**: write results are structurally validated before committing
+- **Idempotent transactions (L3)**: duplicate submissions (projectId + planHash) return "already exists" with the original result instead of re-writing
 
 ### Async tasks
 
-Long-running tools (render / export) become asynchronous automatically: the call returns a `task_id` immediately; poll progress (percent/message) with `task_query`, and use `task_wait` / `task_cancel`. Long agent calls never time out.
+Long-running tools (render / export) become asynchronous automatically: the call returns a `task_id` immediately; poll progress (percent / message) with `task_query`, and use `task_wait` (blocking wait) or `task_cancel`. Long agent calls never time out.
 
 ### Operation audit
 
@@ -319,6 +379,15 @@ The platform gateway at `POST /api/v1/agent-connect/remote/invoke` provides TLS 
 ### Feedback self-optimization (5.1.9)
 
 `agent_feedback` persists agent interaction feedback to the knowledge base and produces optimization suggestions; the platform aggregates at `POST /api/v1/agent-connect/feedback`, forming a validate → suggest → repair → re-check loop.
+
+### Self-check & troubleshooting
+
+| Symptom | Check | Fix |
+|---------|-------|-----|
+| Connection fails "MCP SDK not installed" | `pip show mcp` | `pip install "mcp>=1.2.0"` then restart the app |
+| Empty tool list | Settings switch | Enable Agent Connect before connecting |
+| Frequent permission prompts | `--mode` | Confirm expected for compiled writes; switch to `--mode source` for development |
+| Missing audit | Audit switch | Enable audit in Settings, or pass `--audit <path>` |
 
 ---
 

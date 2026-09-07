@@ -1,6 +1,6 @@
 # MagicCommander 使用指南
 
-> 适用于 MagicCommander v5.0.10（5.1 系列 Agent Connect 预告）
+> 适用于 MagicCommander v5.0.10（含 5.1 系列 Agent Connect）
 
 ## 简介
 
@@ -268,7 +268,22 @@ AI Hub 内置**技能库**与**知识库**，让 AI 越用越懂你的工作方�
 
 ## Agent Connect：AI Agent 互联（5.1 系列）
 
-5.1 系列将 MagicCommander 封装为标准 **MCP Server（Agent Connect）**，让外部 AI Agent / 编程智能体通过标准协议与产品能力交互。
+5.1 系列（5.1.1–5.1.10）将 MagicCommander 封装为标准 **MCP Server（Agent Connect）**，让外部 AI Agent / 编程智能体通过标准协议与产品能力交互：查询、创建、更新、渲染项目、模板、设备库与输出；开发场景可追加 CLI 与源码直读。
+
+### 5.1 系列能力地图
+
+| 版本 | 能力 |
+|------|------|
+| 5.1.1 | Agent Connect 框架：开关 / 双模式 / 状态机 / 审计 / stdio |
+| 5.1.2 | 编译态只读能力域 + 入参契约（L1）+ 黄金用例 |
+| 5.1.3 | 写入语义层：结果校验（L2）+ 幂等事务（L3） |
+| 5.1.4 | 异步任务：task_id + 进度轮询 / 等待 / 取消，渲染导出自动异步 |
+| 5.1.5 | 语义完善：幂等重放 + 审计增强（脱敏/耗时/模式）+ 契约测试 |
+| 5.1.6 | 接入样板（Claude/Codex/Trae/VS Code）+ 自检 + 结构化错误码 |
+| 5.1.7 | 源码态通道：白名单 CLI 透传 + 沙箱文件系统 |
+| 5.1.8 | 远程模式试点：平台网关（TLS/强鉴权/按域授权/远程写默认关闭） |
+| 5.1.9 | 反馈自优化 + 修复闭环 + 无代码写入约束 |
+| 5.1.10 | 双场景黄金回归 + 文档收官 |
 
 ### 双场景模型
 
@@ -277,11 +292,35 @@ AI Hub 内置**技能库**与**知识库**，让 AI 越用越懂你的工作方�
 | **编译态**（默认） | 产品使用 | 标准 MCP 查询 / 创建 / 更新 / 渲染项目、模板、设备库、输出；**不修改软件本体** |
 | **源码态** | 开发者（`npm run dev:all`） | 追加 CLI 透传与源码直读，无限制交互 |
 
+### 编译态工具集
+
+| 能力域 | 常用工具 |
+|--------|----------|
+| 项目 | `list_projects` `get_project_info` `create_project` `create_project_intelligent` `update_project` `import_project` `export_project` |
+| 模板 | `template_list` `create_template` `update_template` `preview_template` |
+| 渲染 | `render_config` `render_yaml` `dry_run` `undo_render` `diff_compare`（长耗时自动异步） |
+| 输出 | `generate_labels` `generate_label_md` |
+| 校验 | `validate_template` `validate_excel` `analyze_project` |
+| 知识 / 技能 | `list_knowledge` `search_knowledge` `add_knowledge`；`list_skills` `get_skill` `update_skill` `skill_optimize` |
+| 任务 / 审计 / 反馈 | `task_submit` `task_query` `task_list` `task_wait` `task_cancel`；`audit_query`；`agent_feedback` |
+
+> 删除类 / CLI / 文件系统工具在编译态不暴露（源码态可用）。
+
+### 源码态通道（5.1.7）
+
+以 `npm run dev:all` 源码运行、`--mode source` 启动即解锁无限制通道：
+
+- `run_cli`：白名单 CLI 透传（project / template / render / validate / diff / label / analyze / file）
+- `read_file(path)` / `list_dir(path)` / `read_source(path)`：沙箱内文件系统（工作区 + 仓库根），越权拒绝
+- 写入权限放宽为 NOTIFY 为主，但业务数据校验（L2/L3）不豁免
+
 ### 接入外部 Agent（3 步）
 
 1. **开启**：设置 → Agent Connect，打开开关（可切换 `compiled` / `source` 模式）
-2. **复制配置**：将下列配置粘贴到你的 Agent 客户端（`<工作区目录>` 替换为你的 workspace）
+2. **复制配置**：按下方你的 Agent 客户端粘贴对应配置（`<工作区目录>` 替换为你的 workspace，`<仓库根>` 为 MagicCommander-Client 绝对路径）
 3. **自检**：设置页点击「自检」逐项绿灯即接入成功
+
+#### Claude Desktop（`claude_desktop_config.json`）
 
 ```json
 {
@@ -289,26 +328,47 @@ AI Hub 内置**技能库**与**知识库**，让 AI 越用越懂你的工作方�
     "magiccommander": {
       "command": "python",
       "args": ["-m", "ai_hub.mcp_server.run", "--mode", "compiled", "--workspace", "<工作区目录>"],
-      "cwd": "<MagicCommander-Client 仓库根目录>"
+      "cwd": "<仓库根>"
     }
   }
 }
 ```
 
-- **Claude Desktop**：`claude_desktop_config.json`
-- **Codex CLI**：`.codex/config.toml`
-- **Trae Work / VS Code**：`.mcp.json`
-- 详细样板见 `docs/agent-connect/README.md`
+#### Codex CLI（`.codex/config.toml`）
+
+```toml
+[mcp_servers.magiccommander]
+command = "python"
+args = ["-m", "ai_hub.mcp_server.run", "--mode", "compiled", "--workspace", "<工作区目录>"]
+cwd = "<仓库根>"
+```
+
+#### Trae Work / VS Code（`.mcp.json`）
+
+```json
+{
+  "servers": {
+    "magiccommander": {
+      "type": "stdio",
+      "command": "python",
+      "args": ["-m", "ai_hub.mcp_server.run", "--mode", "compiled", "--workspace", "<工作区目录>"],
+      "cwd": "<仓库根>"
+    }
+  }
+}
+```
+
+> 详细样板、命令参数与排错见 `docs/agent-connect/README.md`。
 
 ### 确定性语义层
 
-- **入参契约**：每个工具定义 JSON Schema，入参非法返回结构化错误
-- **语义校验**：写入结果结构校验（L2），不合法不落盘
-- **幂等事务**：相同请求（projectId + planHash）重复提交返回"已存在"与原结果，不重复写入（L3）
+- **入参契约（L1）**：每个工具定义 JSON Schema，入参非法返回结构化错误（`AC_ERR_INVALID_ARGS` 等错误码 + 可读提示）
+- **语义校验（L2）**：写入结果结构校验，不合法不落盘
+- **幂等事务（L3）**：相同请求（projectId + planHash）重复提交返回"已存在"与原结果，不重复写入
 
 ### 异步任务
 
-渲染 / 导出等长耗时工具自动异步化：调用立即返回 `task_id`，用 `task_query` 轮询进度（percent/message），支持 `task_wait` / `task_cancel`。Agent 长任务不再超时。
+渲染 / 导出等长耗时工具自动异步化：调用立即返回 `task_id`，用 `task_query` 轮询进度（percent / message），支持 `task_wait`（同步等待）与 `task_cancel`。Agent 长任务不再超时。
 
 ### 操作审计
 
@@ -321,6 +381,15 @@ Agent 对项目/模板/设备的每次改动均记录（Agent / 工具 / 脱敏�
 ### Agent 反馈自优化（5.1.9）
 
 `agent_feedback` 沉淀 Agent 交互反馈为知识库条目并产出优化建议；平台 `POST /api/v1/agent-connect/feedback` 汇聚分析，形成"校验 → 建议 → 修复 → 复核"闭环。
+
+### 自检与排错
+
+| 现象 | 检查项 | 修复 |
+|------|--------|------|
+| 连接失败「MCP SDK 未安装」 | `pip show mcp` | `pip install "mcp>=1.2.0"` 后重启应用 |
+| 工具列表为空 | 设置开关 | 开启 Agent Connect 后再连接 |
+| 权限提示频繁 | `--mode` | 编译态写入需确认属预期；开发场景切 `--mode source` |
+| 审计缺失 | 审计开关 | 设置中开启审计；`--audit <path>` 指定路径 |
 
 ---
 
