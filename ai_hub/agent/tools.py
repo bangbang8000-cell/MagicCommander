@@ -1107,6 +1107,31 @@ async def _audit_query(args: dict) -> str:
     )
     return json.dumps({"status": "ok", "entries": entries, "total": len(entries)}, ensure_ascii=False)
 
+
+# ====== 5.1.9-519-a：Agent 交互反馈自优化 ======
+
+async def _agent_feedback(args: dict) -> str:
+    """记录 Agent 交互反馈并产出优化建议（沉淀为知识库 agent-feedback 类目）。"""
+    tool = args.get("tool") or ""
+    result = args.get("result") or "ok"
+    notes = args.get("notes") or ""
+    if not tool:
+        return json.dumps({"status": "error", "error": "缺少必需参数: tool"}, ensure_ascii=False)
+    from ai_hub.knowledge.engine import get_knowledge_engine
+
+    entry = get_knowledge_engine().add_entry(
+        title=f"agent-feedback:{tool}",
+        content=f"工具 {tool} 交互反馈（{result}）：{notes}"[:1000],
+        category="agent-feedback",
+        tags=["agent", tool],
+        project="",
+    )
+    suggestion = (
+        f"已记录反馈。建议：若 {tool} 频繁失败，先查审计（audit_query）确认入参，"
+        "再更新相关技能（skill）或沉淀知识（add_knowledge）"
+    )
+    return json.dumps({"status": "ok", "feedback": entry, "suggestion": suggestion}, ensure_ascii=False)
+
 async def _task_submit(args: dict) -> str:
     """提交任意编译态工具为异步后台任务，返回 task_id（用 task_query 轮询进度）。
 
@@ -1926,6 +1951,23 @@ def init_tools():
             "required": [],
         },
         _audit_query,
+    )
+
+    # ====== 5.1.9-519-a：Agent 交互反馈自优化 ======
+
+    register_tool(
+        "agent_feedback",
+        "记录 Agent 交互反馈并产出优化建议：反馈结果（ok/error）+ 备注沉淀为知识库 agent-feedback 类目，返回针对该工具的优化建议",
+        {
+            "type": "object",
+            "properties": {
+                "tool": {"type": "string", "description": "发生交互的工具名"},
+                "result": {"type": "string", "description": "交互结果 ok/error（默认 ok）"},
+                "notes": {"type": "string", "description": "反馈备注/失败原因"},
+            },
+            "required": ["tool"],
+        },
+        _agent_feedback,
     )
 
     logger.info(f"Initialized {len(_tools)} Agent tools")
