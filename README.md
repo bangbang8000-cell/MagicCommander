@@ -318,16 +318,15 @@ MagicCommander/
 
 ---
 
-## V3 路线图
+## 路线图
 
-| 阶段 | 时间 | 状态 | 核心交付 |
-|------|------|------|---------|
-| [Alpha](https://github.com/bangbang8000-cell/MagicCommander/milestone/1) | 2026.07 | ✅ 已完成 | AI Hub + Agent v2 + Cloud Connect 云平台集成 |
-| [Beta](https://github.com/bangbang8000-cell/MagicCommander/milestone/2) | 2026.08-09 | ✅ 已完成 | 智能校对、模板资产中心（版本管理/调试沙盒）、Excel/Jinja2 深度集成（依赖分析/片段复用） |
-| **5.0 系列** | 2026.09 | ✅ 已完成 | 十版收官（AI 底座/工作流/协作/3D/性能/质量/交付/内容资产），双端三位一体 |
-| **5.1 系列（规划）** | 2026.09+ | 🚀 规划中 | **AI Agent 互联**：MCP Server 双场景（编译态受限 / 源码态无限制），让 Claude/Codex/Trae/VS Code/Hermes 等外部 Agent 直接查询、创建、更新、渲染项目/模板/设备库 |
-| [GA](https://github.com/bangbang8000-cell/MagicCommander/milestone/3) | 待定 | 待开始 | 社区分享中心 + 协作审阅 + 项目生命周期 + 权限体系 |
-| [Scale](https://github.com/bangbang8000-cell/MagicCommander/milestone/4) | 待定 | 待开始 | Ansible/Nornir 推送 + CI/CD 流水线 + 多租户 + 监控告警 |
+| 阶段 | 状态 | 核心交付 |
+|------|------|---------|
+| 3.x · Alpha/Beta | ✅ 已完成 | AI Hub + Agent v2 + Cloud Connect 云平台集成；智能校对、模板资产中心、Excel/Jinja2 深度集成 |
+| 4.0 系列 | ✅ 已完成 | 十版收官（基座/视觉/稳定/AI/高效/准确/质量/运维/互操作/示例） |
+| 5.0 系列 | ✅ 已完成 | 十版收官（AI 底座/工作流/协作/3D/性能/质量/交付/内容资产），双端三位一体 |
+| **5.1 系列（规划）** | 🚀 规划中 | **AI Agent 互联**：MCP Server 双场景（编译态受限 / 源码态无限制），让 Claude/Codex/Trae/VS Code/Hermes 等外部 Agent 直接查询、创建、更新、渲染项目/模板/设备库 |
+| 后续方向 | 待定 | 社区分享中心 + 协作审阅 + 权限体系；Ansible/Nornir 推送 + CI/CD 流水线 + 多租户 + 监控告警 |
 
 ---
 
