@@ -6,4 +6,4 @@ openai>=1.30.0
 pydantic>=2.7.0
 pydantic-settings>=2.2.0
 # 5.0.3-503-c：MCP 工具接入（Model Context Protocol 协议层，非 Agent 框架）
-mcp>=1.2.0
+mcp>=1.2.0,<2  # 5.1.1-511-a: Agent Connect 基于 mcp 1.x API，2.x 破坏性重构，锁定 <2 待迁移
