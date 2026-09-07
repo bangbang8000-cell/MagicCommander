@@ -885,6 +885,33 @@ export class AIHubService extends EventEmitter {
     })
   }
 
+  // ===== 5.1.1-511-e：Agent Connect（MCP Server 对外暴露）=====
+
+  async agentConnectStatus(): Promise<{ status: string; data: Record<string, unknown> }> {
+    await this.ensureRunning()
+    return this.withRetry(async () => {
+      const response = await fetch(`${this.baseUrl}/api/chat/agent-connect/status`, { headers: this.authHeaders() })
+      if (!response.ok) throw new Error(`Agent Connect 状态失败: HTTP ${response.status}`)
+      return await response.json()
+    })
+  }
+
+  async agentConnectConfig(config: { enable?: boolean; agent_mode?: string }): Promise<{ status: string; data?: Record<string, unknown>; error?: string }> {
+    await this.ensureRunning()
+    return this.withRetry(async () => {
+      const response = await fetch(`${this.baseUrl}/api/chat/agent-connect/config`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...this.authHeaders() },
+        body: JSON.stringify(config),
+      })
+      const body = await response.json()
+      if (!response.ok || body.status === 'error') {
+        throw new Error(body.error || `Agent Connect 配置失败: HTTP ${response.status}`)
+      }
+      return body
+    })
+  }
+
   async mcpAdd(
     name: string,
     command: string,

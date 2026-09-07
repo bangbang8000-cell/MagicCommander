@@ -667,7 +667,20 @@ export interface AIHubIpcApi {
   mcpStart: (name: string) => Promise<{ status: string; server?: MCPServerInfo; error?: string }>
   mcpStop: (name: string) => Promise<{ status: string; name?: string; error?: string }>
   mcpTools: (name: string) => Promise<{ status: string; server: string; tools: MCPToolInfo[] }>
+  /** 5.1.1-511-e：Agent Connect（MCP Server 对外暴露）状态 */
+  agentConnectStatus: () => Promise<{ status: string; data: AgentConnectStatusInfo }>
+  /** 5.1.1-511-e：Agent Connect 配置（开关/模式） */
+  agentConnectConfig: (config: { enable?: boolean; agent_mode?: string }) => Promise<{ status: string; data?: AgentConnectStatusInfo; error?: string }>
   onStream: (callback: (data: AIHubStreamData) => void) => () => void
+}
+
+/** 5.1.1-511-e：Agent Connect 状态信息 */
+export interface AgentConnectStatusInfo {
+  enabled: boolean
+  agent_mode: string
+  status: string
+  tool_count: number
+  audit_enabled: boolean
 }
 
 /** 5.0.3-503-c：MCP server 配置与状态 */

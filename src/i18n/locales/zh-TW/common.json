@@ -361,7 +361,19 @@
       "engineDesc": "選擇 AI 對話引擎：自有引擎 / Hermes / 自動。各引擎會話獨立，切換後保留不丟。",
       "engineSaved": "AI 引擎已切換（會話保留不丟）",
       "engineSaveFailed": "AI 引擎切換失敗",
-      "engineHermesNotInstalled": "Hermes 引擎未安裝。請先執行 pip install hermes-agent 後重啟應用，或切換回「自有引擎」。"
+      "engineHermesNotInstalled": "Hermes 引擎未安裝。請先執行 pip install hermes-agent 後重啟應用，或切換回「自有引擎」。",
+      "agentConnectTitle": "Agent Connect（外部 AI 接入）",
+      "agentConnectDesc": "將 MagicCommander 能力封裝為標準 MCP Server，供 Claude / Codex / Trae / VS Code 等外部 AI Agent 接入。",
+      "agentConnectRefresh": "重新整理",
+      "agentConnectOn": "已開啟",
+      "agentConnectOff": "已關閉",
+      "agentConnectMode": "執行模式",
+      "agentConnectCompiled": "編譯態（產品使用）",
+      "agentConnectSource": "原始碼態（開發者）",
+      "agentConnectTools": "對外暴露工具",
+      "agentConnectAudit": "操作稽核",
+      "agentConnectAuditOn": "已開啟",
+      "agentConnectAuditOff": "未開啟"
     }
   },
   "efficiency": {

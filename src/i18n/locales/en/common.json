@@ -472,7 +472,19 @@
       "engineDesc": "Choose the AI conversation engine: Built-in / Hermes / Auto. Each engine keeps its own sessions; switching preserves them.",
       "engineSaved": "AI engine switched (sessions preserved)",
       "engineSaveFailed": "Failed to switch AI engine",
-      "engineHermesNotInstalled": "Hermes engine not installed. Run pip install hermes-agent then restart the app, or switch back to Built-in."
+      "engineHermesNotInstalled": "Hermes engine not installed. Run pip install hermes-agent then restart the app, or switch back to Built-in.",
+      "agentConnectTitle": "Agent Connect (External AI)",
+      "agentConnectDesc": "Expose MagicCommander capabilities as a standard MCP Server for external AI agents like Claude / Codex / Trae / VS Code.",
+      "agentConnectRefresh": "Refresh",
+      "agentConnectOn": "Enabled",
+      "agentConnectOff": "Disabled",
+      "agentConnectMode": "Mode",
+      "agentConnectCompiled": "Compiled (Product)",
+      "agentConnectSource": "Source (Developer)",
+      "agentConnectTools": "Exposed Tools",
+      "agentConnectAudit": "Audit",
+      "agentConnectAuditOn": "Enabled",
+      "agentConnectAuditOff": "Disabled"
     },
     "general": {
       "title": "General",

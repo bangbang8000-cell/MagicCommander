@@ -260,6 +260,10 @@ const api = {
     mcpStart: (name: string) => ipcRenderer.invoke('aihub:mcpStart', name),
     mcpStop: (name: string) => ipcRenderer.invoke('aihub:mcpStop', name),
     mcpTools: (name: string) => ipcRenderer.invoke('aihub:mcpTools', name),
+    // 5.1.1-511-e：Agent Connect（MCP Server 对外暴露）
+    agentConnectStatus: () => ipcRenderer.invoke('aihub:agentConnectStatus'),
+    agentConnectConfig: (config: { enable?: boolean; agent_mode?: string }) =>
+      ipcRenderer.invoke('aihub:agentConnectConfig', config),
     exportSkills: () => ipcRenderer.invoke('aihub:exportSkills'),
     importSkills: () => ipcRenderer.invoke('aihub:importSkills'),
     onStream: (callback: (data: { sessionId: string; chunk: string }) => void) => {

@@ -219,6 +219,62 @@ export function SettingsPanel() {
   const [mcpBusy, setMcpBusy] = useState(false)
   const [mcpError, setMcpError] = useState<string | null>(null)
 
+  // 5.1.1-511-e：Agent Connect（MCP Server 对外暴露）
+  const [acStatus, setAcStatus] = useState<{
+    enabled: boolean
+    agent_mode: string
+    status: string
+    tool_count: number
+    audit_enabled: boolean
+  } | null>(null)
+  const [acBusy, setAcBusy] = useState(false)
+  const [acError, setAcError] = useState<string | null>(null)
+
+  const refreshAgentConnect = useCallback(async () => {
+    try {
+      const res = await window.electron.aihub.agentConnectStatus()
+      if (res && res.data) setAcStatus(res.data as never)
+    } catch {
+      /* 后端不可用时静默 */
+    }
+  }, [])
+
+  useEffect(() => {
+    void refreshAgentConnect()
+  }, [refreshAgentConnect])
+
+  const handleAcToggle = useCallback(
+    async (enabled: boolean) => {
+      setAcBusy(true)
+      setAcError(null)
+      try {
+        const res = await window.electron.aihub.agentConnectConfig({ enable: enabled, agent_mode: acStatus?.agent_mode })
+        if (res.data) setAcStatus(res.data as never)
+      } catch (e) {
+        setAcError(e instanceof Error ? e.message : String(e))
+      } finally {
+        setAcBusy(false)
+      }
+    },
+    [acStatus],
+  )
+
+  const handleAcModeChange = useCallback(
+    async (agent_mode: string) => {
+      setAcBusy(true)
+      setAcError(null)
+      try {
+        const res = await window.electron.aihub.agentConnectConfig({ enable: acStatus?.enabled, agent_mode })
+        if (res.data) setAcStatus(res.data as never)
+      } catch (e) {
+        setAcError(e instanceof Error ? e.message : String(e))
+      } finally {
+        setAcBusy(false)
+      }
+    },
+    [acStatus],
+  )
+
   const refreshMCP = useCallback(async () => {
     try {
       const res = await window.electron.aihub.mcpList()
@@ -1922,6 +1978,125 @@ export function SettingsPanel() {
               >
                 <XCircle size={12} />
                 <span>{mcpError}</span>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* 5.1.1-511-e：Agent Connect（MCP Server 对外暴露） */}
+      <div
+        className={clsx(
+          'rounded-lg border p-3',
+          isDark ? 'border-gray-700 bg-gray-800/50' : 'border-gray-200 bg-gray-50',
+        )}
+      >
+        <div className="flex items-start gap-3">
+          <div className={clsx('mt-0.5', isDark ? 'text-gray-400' : 'text-gray-500')}>
+            <Wrench size={16} />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center justify-between">
+              <h4 className={clsx('text-sm font-medium', isDark ? 'text-gray-200' : 'text-gray-700')}>
+                {t('common:settings.ai.agentConnectTitle') || 'Agent Connect（外部 AI 接入）'}
+              </h4>
+              <button
+                type="button"
+                onClick={() => void refreshAgentConnect()}
+                className={clsx(
+                  'text-[11px] px-2 py-1 rounded border',
+                  isDark
+                    ? 'border-gray-600 text-gray-300 hover:bg-gray-700'
+                    : 'border-gray-300 text-gray-600 hover:bg-gray-100',
+                )}
+              >
+                {t('common:settings.ai.agentConnectRefresh') || '刷新'}
+              </button>
+            </div>
+            <p className={clsx('mt-0.5 text-[11px]', isDark ? 'text-gray-400' : 'text-gray-500')}>
+              {t('common:settings.ai.agentConnectDesc') ||
+                '将 MagicCommander 能力封装为标准 MCP Server，供 Claude / Codex / Trae / VS Code 等外部 AI Agent 接入。'}
+            </p>
+
+            <div className="mt-2 flex items-center gap-2">
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={Boolean(acStatus?.enabled)}
+                  onChange={(e) => void handleAcToggle(e.target.checked)}
+                  disabled={acBusy}
+                  className="sr-only peer"
+                />
+                <div
+                  className={clsx(
+                    'w-8 h-4 rounded-full peer transition-colors',
+                    acStatus?.enabled ? 'bg-blue-500' : isDark ? 'bg-gray-600' : 'bg-gray-300',
+                  )}
+                >
+                  <div
+                    className={clsx(
+                      'w-3 h-3 rounded-full bg-white transition-transform mt-0.5',
+                      acStatus?.enabled ? 'translate-x-4 ml-0.5' : 'translate-x-0.5',
+                    )}
+                  />
+                </div>
+              </label>
+              <span className={clsx('text-[11px]', isDark ? 'text-gray-300' : 'text-gray-600')}>
+                {acStatus?.enabled
+                  ? t('common:settings.ai.agentConnectOn') || '已开启'
+                  : t('common:settings.ai.agentConnectOff') || '已关闭'}
+              </span>
+            </div>
+
+            {acStatus?.enabled && (
+              <div className="mt-2 space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <span className={clsx('text-[11px]', isDark ? 'text-gray-400' : 'text-gray-500')}>
+                    {t('common:settings.ai.agentConnectMode') || '运行模式'}
+                  </span>
+                  <select
+                    value={acStatus.agent_mode}
+                    onChange={(e) => void handleAcModeChange(e.target.value)}
+                    disabled={acBusy}
+                    className={clsx(
+                      'w-36 px-2 py-1 rounded text-xs border',
+                      isDark ? 'border-gray-600 bg-gray-700 text-gray-200' : 'border-gray-300 bg-white text-gray-700',
+                    )}
+                  >
+                    <option value="compiled">{t('common:settings.ai.agentConnectCompiled') || '编译态（产品使用）'}</option>
+                    <option value="source">{t('common:settings.ai.agentConnectSource') || '源码态（开发者）'}</option>
+                  </select>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className={clsx('text-[11px]', isDark ? 'text-gray-400' : 'text-gray-500')}>
+                    {t('common:settings.ai.agentConnectTools') || '对外暴露工具'}
+                  </span>
+                  <span className={clsx('text-[11px] font-medium', isDark ? 'text-gray-200' : 'text-gray-700')}>
+                    {acStatus.tool_count ?? 0}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className={clsx('text-[11px]', isDark ? 'text-gray-400' : 'text-gray-500')}>
+                    {t('common:settings.ai.agentConnectAudit') || '操作审计'}
+                  </span>
+                  <span className={clsx('text-[11px] font-medium', isDark ? 'text-gray-200' : 'text-gray-700')}>
+                    {acStatus.audit_enabled
+                      ? t('common:settings.ai.agentConnectAuditOn') || '已开启'
+                      : t('common:settings.ai.agentConnectAuditOff') || '未开启'}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {acError && (
+              <div
+                className={clsx(
+                  'flex items-start gap-1.5 text-[11px] p-2 rounded mt-2',
+                  isDark ? 'bg-red-900/30 text-red-300' : 'bg-red-50 text-red-700',
+                )}
+              >
+                <XCircle size={12} />
+                <span>{acError}</span>
               </div>
             )}
           </div>

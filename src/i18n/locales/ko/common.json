@@ -361,7 +361,19 @@
       "engineDesc": "AI 대화 엔진 선택: 내장 / Hermes / 자동. 각 엔진 세션은 독립적이며, 전환 후에도 유지됩니다.",
       "engineSaved": "AI 엔진이 전환되었습니다(세션 유지)",
       "engineSaveFailed": "AI 엔진 전환 실패",
-      "engineHermesNotInstalled": "Hermes 엔진이 설치되지 않았습니다. pip install hermes-agent 후 앱을 다시 시작하거나 내장 엔진으로 전환하세요."
+      "engineHermesNotInstalled": "Hermes 엔진이 설치되지 않았습니다. pip install hermes-agent 후 앱을 다시 시작하거나 내장 엔진으로 전환하세요.",
+      "agentConnectTitle": "Agent Connect(외부 AI 연결)",
+      "agentConnectDesc": "MagicCommander 기능을 표준 MCP Server로 노출하여 Claude / Codex / Trae / VS Code 등 외부 AI 에이전트가 접속할 수 있게 합니다.",
+      "agentConnectRefresh": "새로고침",
+      "agentConnectOn": "활성화됨",
+      "agentConnectOff": "비활성화됨",
+      "agentConnectMode": "실행 모드",
+      "agentConnectCompiled": "컴파일(제품 사용)",
+      "agentConnectSource": "소스(개발자)",
+      "agentConnectTools": "노출 도구",
+      "agentConnectAudit": "감사",
+      "agentConnectAuditOn": "활성화됨",
+      "agentConnectAuditOff": "비활성화됨"
     }
   },
   "efficiency": {

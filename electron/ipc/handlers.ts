@@ -2034,6 +2034,18 @@ export function setupIpcHandlers(window: BrowserWindow): void {
     return await aiHubService.mcpTools(name)
   })
 
+  // ===== 5.1.1-511-e：Agent Connect（MCP Server 对外暴露）=====
+  ipcMain.handle('aihub:agentConnectStatus', async (): Promise<unknown> => {
+    return await aiHubService.agentConnectStatus()
+  })
+  ipcMain.handle(
+    'aihub:agentConnectConfig',
+    async (_e, config: { enable?: boolean; agent_mode?: string }): Promise<unknown> => {
+      if (!isTrustedSender(_e)) throw new Error('无权执行该操作')
+      return await aiHubService.agentConnectConfig(config)
+    },
+  )
+
   // 4.8.0（F8-3 / 48-c）：技能库文件级导出（skills/*.md 打包 zip）
   ipcMain.handle('aihub:exportSkills', async (e): Promise<unknown> => {
     if (!isTrustedSender(e)) throw new Error('无权执行该操作')
