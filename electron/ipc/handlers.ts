@@ -1624,10 +1624,7 @@ export function setupIpcHandlers(window: BrowserWindow): void {
     lang: string,
   ): { content: string; usedFallback: boolean; requestedLang: string } => {
     // 同时尝试 public/docs（开发环境，Vite 直接服务）和 dist/docs（生产环境，构建产物）
-    const possibleDirs = [
-      path.join(process.cwd(), 'public', 'docs'),
-      path.join(__dirname, '..', '..', 'dist', 'docs'),
-    ]
+    const possibleDirs = [path.join(process.cwd(), 'public', 'docs'), path.join(__dirname, '..', '..', 'dist', 'docs')]
     const supportedLangs = ['zh-CN', 'en', 'ja', 'ko', 'fr']
     const requested = supportedLangs.includes(lang) ? lang : 'zh-CN'
     for (const guideDir of possibleDirs) {

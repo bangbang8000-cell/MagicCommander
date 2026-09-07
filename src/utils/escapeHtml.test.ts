@@ -11,9 +11,7 @@ describe('escapeHtml（508-a 覆盖率）', () => {
   })
 
   it('组合文本整体转义且顺序正确（先 & 后其它）', () => {
-    expect(escapeHtml('<a href="x">&\'</a>')).toBe(
-      '&lt;a href=&quot;x&quot;&gt;&amp;&#039;&lt;/a&gt;',
-    )
+    expect(escapeHtml('<a href="x">&\'</a>')).toBe('&lt;a href=&quot;x&quot;&gt;&amp;&#039;&lt;/a&gt;')
   })
 
   it('普通文本与空串原样返回', () => {

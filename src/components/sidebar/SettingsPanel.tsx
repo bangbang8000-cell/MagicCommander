@@ -266,7 +266,10 @@ export function SettingsPanel() {
       setAcBusy(true)
       setAcError(null)
       try {
-        const res = await window.electron.aihub.agentConnectConfig({ enable: enabled, agent_mode: acStatus?.agent_mode })
+        const res = await window.electron.aihub.agentConnectConfig({
+          enable: enabled,
+          agent_mode: acStatus?.agent_mode,
+        })
         if (res.data) setAcStatus(res.data as never)
       } catch (e) {
         setAcError(e instanceof Error ? e.message : String(e))
@@ -2081,7 +2084,9 @@ export function SettingsPanel() {
                       isDark ? 'border-gray-600 bg-gray-700 text-gray-200' : 'border-gray-300 bg-white text-gray-700',
                     )}
                   >
-                    <option value="compiled">{t('common:settings.ai.agentConnectCompiled') || '编译态（产品使用）'}</option>
+                    <option value="compiled">
+                      {t('common:settings.ai.agentConnectCompiled') || '编译态（产品使用）'}
+                    </option>
                     <option value="source">{t('common:settings.ai.agentConnectSource') || '源码态（开发者）'}</option>
                   </select>
                 </div>

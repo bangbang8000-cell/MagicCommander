@@ -77,7 +77,10 @@ interface PlatformVersionInfo {
  * 调用平台 /api/v1/client/version?channel= 读取版本信息（灰度通道 + sha512 + 版本锁定）。
  * 仅在配置了 platformBaseUrl 时启用，任何失败返回 null 并回退默认链路（不阻塞）。
  */
-async function fetchPlatformVersionInfo(settings: UpdateSettings, channel: string): Promise<PlatformVersionInfo | null> {
+async function fetchPlatformVersionInfo(
+  settings: UpdateSettings,
+  channel: string,
+): Promise<PlatformVersionInfo | null> {
   if (!settings.platformBaseUrl) return null
   try {
     const url = `${settings.platformBaseUrl}/api/v1/client/version?channel=${encodeURIComponent(channel || 'stable')}`
@@ -138,7 +141,12 @@ async function downloadInstallerFile(
 }
 
 /** 使用 Electron net 模块流式下载（支持 Range 续传 + 3xx 重定向 + Content-Length 校验） */
-function streamViaNet(url: string, partPath: string, startOffset: number, onProgress: (percent: number) => void): Promise<void> {
+function streamViaNet(
+  url: string,
+  partPath: string,
+  startOffset: number,
+  onProgress: (percent: number) => void,
+): Promise<void> {
   return new Promise((resolve, reject) => {
     const doRequest = (requestUrl: string, redirectCount: number, offset: number) => {
       if (redirectCount > 5) {
@@ -150,8 +158,7 @@ function streamViaNet(url: string, partPath: string, startOffset: number, onProg
       let receivedBytes = 0
       let settled = false
 
-      const finishStream = (fileStream: fs.WriteStream): Promise<void> =>
-        new Promise((res) => fileStream.end(res))
+      const finishStream = (fileStream: fs.WriteStream): Promise<void> => new Promise((res) => fileStream.end(res))
 
       const reqOpts: string | Electron.ClientRequestConstructorOptions =
         offset > 0 ? { url: requestUrl, method: 'GET', headers: { Range: `bytes=${offset}-` } } : requestUrl
@@ -509,10 +516,11 @@ export class UpdateService {
     const ymlName = resolveYmlNameForChannel(settings.updateChannel, getPlatformYmlName())
 
     // 509-b：企业部署自定义内网镜像（latest.yml 优先于默认官方地址）
-    const enterpriseUpdateUrl =
-      settings.enableEnterpriseDeploy && settings.updateUrl ? settings.updateUrl.trim() : ''
+    const enterpriseUpdateUrl = settings.enableEnterpriseDeploy && settings.updateUrl ? settings.updateUrl.trim() : ''
     const isInternalYml = enterpriseUpdateUrl && /\.ya?ml$/i.test(enterpriseUpdateUrl)
-    const ymlUrl = isInternalYml ? enterpriseUpdateUrl : `https://github.com/${PUBLISH_OWNER}/${PUBLISH_REPO}/releases/latest/download/${ymlName}`
+    const ymlUrl = isInternalYml
+      ? enterpriseUpdateUrl
+      : `https://github.com/${PUBLISH_OWNER}/${PUBLISH_REPO}/releases/latest/download/${ymlName}`
 
     // 509-b：平台版本信息（灰度通道 + sha512 + 版本锁定），失败不阻塞
     const platformInfo = await fetchPlatformVersionInfo(settings, settings.updateChannel)
@@ -678,9 +686,14 @@ export class UpdateService {
     logger.info(`[UpdateService] Direct downloading ${fileName} to ${localPath}`)
     this.sendUpdateStatus({ status: 'downloading', progress: 0, channel: 'fallback' })
 
-    await downloadInstallerFile(downloadUrl, localPath, (percent) => {
-      this.sendUpdateStatus({ status: 'downloading', progress: Math.round(percent), channel: 'fallback' })
-    }, { sha512, proxy: settings.enableEnterpriseDeploy ? settings.proxy : '' })
+    await downloadInstallerFile(
+      downloadUrl,
+      localPath,
+      (percent) => {
+        this.sendUpdateStatus({ status: 'downloading', progress: Math.round(percent), channel: 'fallback' })
+      },
+      { sha512, proxy: settings.enableEnterpriseDeploy ? settings.proxy : '' },
+    )
 
     logger.info('[UpdateService] Direct download completed:', localPath)
     this.sendUpdateStatus({ status: 'downloaded', channel: 'fallback', verified: true })

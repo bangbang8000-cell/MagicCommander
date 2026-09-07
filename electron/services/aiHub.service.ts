@@ -896,7 +896,10 @@ export class AIHubService extends EventEmitter {
     })
   }
 
-  async agentConnectConfig(config: { enable?: boolean; agent_mode?: string }): Promise<{ status: string; data?: Record<string, unknown>; error?: string }> {
+  async agentConnectConfig(config: {
+    enable?: boolean
+    agent_mode?: string
+  }): Promise<{ status: string; data?: Record<string, unknown>; error?: string }> {
     await this.ensureRunning()
     return this.withRetry(async () => {
       const response = await fetch(`${this.baseUrl}/api/chat/agent-connect/config`, {

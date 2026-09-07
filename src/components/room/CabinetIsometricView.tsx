@@ -44,7 +44,11 @@ function isoProject(w: P3): { x: number; y: number } {
 }
 
 /** 缩放（关于原点/视口锚点） */
-function zoomBy(p: { x: number; y: number }, factor: number, about: { x: number; y: number }): { x: number; y: number } {
+function zoomBy(
+  p: { x: number; y: number },
+  factor: number,
+  about: { x: number; y: number },
+): { x: number; y: number } {
   return { x: about.x + (p.x - about.x) * factor, y: about.y + (p.y - about.y) * factor }
 }
 
@@ -59,7 +63,11 @@ function project(w: P3, angleDeg: number, zoom: number, ox: number, oy: number):
 /** 四边形 polygon points 字符串 */
 function poly(points: P3[], angleDeg: number, zoom: number, ox: number, oy: number): string {
   return points
-    .map((w) => project(w, angleDeg, zoom, ox, oy).map((n) => n.toFixed(2)).join(','))
+    .map((w) =>
+      project(w, angleDeg, zoom, ox, oy)
+        .map((n) => n.toFixed(2))
+        .join(','),
+    )
     .join(' ')
 }
 
@@ -97,13 +105,7 @@ function deviceQuad(dev: { uPlacement: { u: number; heightU: number } }): P3[] {
   ]
 }
 
-export function CabinetIsometricView({
-  rackNumber,
-  devices,
-}: {
-  rackNumber: number
-  devices: CabinetDevice[]
-}) {
+export function CabinetIsometricView({ rackNumber, devices }: { rackNumber: number; devices: CabinetDevice[] }) {
   const [angle, setAngle] = useState(30)
   const [zoom, setZoom] = useState(1)
   const svgRef = useRef<SVGSVGElement | null>(null)
@@ -234,9 +236,19 @@ export function CabinetIsometricView({
         style={{ background: 'var(--bg,#fff)' }}
       >
         {/* 顶面 */}
-        <polygon points={poly(TOP, angle, fitZoom * zoom, ox, oy)} fill="transparent" stroke="#94a3b8" strokeWidth={0.5} />
+        <polygon
+          points={poly(TOP, angle, fitZoom * zoom, ox, oy)}
+          fill="transparent"
+          stroke="#94a3b8"
+          strokeWidth={0.5}
+        />
         {/* 右侧面 */}
-        <polygon points={poly(RIGHT, angle, fitZoom * zoom, ox, oy)} fill="#e2e8f0" stroke="#64748b" strokeWidth={0.5} />
+        <polygon
+          points={poly(RIGHT, angle, fitZoom * zoom, ox, oy)}
+          fill="#e2e8f0"
+          stroke="#64748b"
+          strokeWidth={0.5}
+        />
         {/* 正面 */}
         <polygon points={poly(FRONT, angle, fitZoom * zoom, ox, oy)} fill="#f8fafc" stroke="#334155" strokeWidth={1} />
         {/* 设备 U 槽（正面，自下而上填充热力色） */}

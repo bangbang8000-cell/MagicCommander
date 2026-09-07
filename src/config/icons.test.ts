@@ -37,14 +37,7 @@ describe('icons 配置（508-a 覆盖率）', () => {
   })
 
   it('活动栏图标包含完整 6 项', () => {
-    expect(Object.keys(ACTIVITY_ICONS)).toEqual([
-      'explorer',
-      'search',
-      'config',
-      'label',
-      'render',
-      'output',
-    ])
+    expect(Object.keys(ACTIVITY_ICONS)).toEqual(['explorer', 'search', 'config', 'label', 'render', 'output'])
   })
 
   it('文件类型图标含未知类型回退', () => {
@@ -72,14 +65,7 @@ describe('icons 配置（508-a 覆盖率）', () => {
   })
 
   it('状态图标含全部 6 种语义', () => {
-    expect(Object.keys(STATUS_ICONS)).toEqual([
-      'error',
-      'success',
-      'warning',
-      'info',
-      'loading',
-      'alert',
-    ])
+    expect(Object.keys(STATUS_ICONS)).toEqual(['error', 'success', 'warning', 'info', 'loading', 'alert'])
     expect(STATUS_ICONS.success).toBeTruthy()
   })
 

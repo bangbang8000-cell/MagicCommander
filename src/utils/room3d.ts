@@ -176,6 +176,6 @@ export function powerToHeatColor(percent: number): string {
  * 纯哈希，保证同一机柜颜色稳定、不同机柜有区分度。
  */
 export function rackPowerPercent(rackNumber: number): number {
-  const h = Math.abs(Math.imul(rackNumber, 0x9e3779b1) >>> 0) % 100 / 100
+  const h = (Math.abs(Math.imul(rackNumber, 0x9e3779b1) >>> 0) % 100) / 100
   return 0.3 + h * 0.65 // 0.3 ~ 0.95
 }

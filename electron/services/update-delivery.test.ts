@@ -187,7 +187,12 @@ describe('配置读取：readUpdateSettings', () => {
     const file = path.join(dir, 'update.config.json')
     fs.writeFileSync(
       file,
-      JSON.stringify({ updateChannel: 'beta', enableEnterpriseDeploy: true, updateUrl: ' http://mirror/latest.yml ', platformBaseUrl: 'https://api.example.com/' }),
+      JSON.stringify({
+        updateChannel: 'beta',
+        enableEnterpriseDeploy: true,
+        updateUrl: ' http://mirror/latest.yml ',
+        platformBaseUrl: 'https://api.example.com/',
+      }),
       'utf-8',
     )
     const s = readUpdateSettings(file)

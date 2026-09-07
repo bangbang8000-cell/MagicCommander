@@ -49,12 +49,10 @@ describe('useLogStore（508-a 覆盖率）', () => {
     let handler: ((d: { level: string; message: string; source?: string }) => void) | null = null
     ;(window as unknown as { electron?: unknown }).electron = {
       log: {
-        onOutput: vi.fn(
-          (h: (d: { level: string; message: string; source?: string }) => void) => {
-            handler = h
-            return () => {}
-          },
-        ),
+        onOutput: vi.fn((h: (d: { level: string; message: string; source?: string }) => void) => {
+          handler = h
+          return () => {}
+        }),
       },
     }
     const unsub = useLogStore.getState().subscribeLog()

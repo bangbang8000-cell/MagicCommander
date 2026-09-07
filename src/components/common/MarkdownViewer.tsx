@@ -22,7 +22,13 @@ interface TocItem {
   id: string
 }
 
-function MarkdownContent({ content, title, onClose, inline = false, showCopyConfig = false }: MarkdownViewerProps & { showCopyConfig?: boolean }) {
+function MarkdownContent({
+  content,
+  title,
+  onClose,
+  inline = false,
+  showCopyConfig = false,
+}: MarkdownViewerProps & { showCopyConfig?: boolean }) {
   const isDark = useUIStore((s) => s.isDark)
   const { t } = useTranslation()
   const [toc, setToc] = useState<TocItem[]>([])

@@ -1,9 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { useRenderStore } from './render.store'
 
-function mockElectron(
-  overrides: { render?: object; feature?: object; delete?: object } = {},
-) {
+function mockElectron(overrides: { render?: object; feature?: object; delete?: object } = {}) {
   const handlers: Record<string, (raw: unknown) => void> = {}
   const electron = {
     render: {
@@ -74,7 +72,13 @@ describe('useRenderStore（508-a 覆盖率）', () => {
   })
 
   it('renderProject 失败路径写入 errors', async () => {
-    mockElectron({ render: { project: vi.fn(async () => { throw new Error('x') }) } })
+    mockElectron({
+      render: {
+        project: vi.fn(async () => {
+          throw new Error('x')
+        }),
+      },
+    })
     await useRenderStore.getState().renderProject(['1'])
     const s = useRenderStore.getState()
     expect(s.progress).toBe(0)
@@ -117,7 +121,13 @@ describe('useRenderStore（508-a 覆盖率）', () => {
   })
 
   it('dryRun 失败路径', async () => {
-    mockElectron({ render: { dryRun: vi.fn(async () => { throw new Error('f') }) } })
+    mockElectron({
+      render: {
+        dryRun: vi.fn(async () => {
+          throw new Error('f')
+        }),
+      },
+    })
     await useRenderStore.getState().dryRun(['1'])
     const s = useRenderStore.getState()
     expect(s.errors).toEqual(['f'])
