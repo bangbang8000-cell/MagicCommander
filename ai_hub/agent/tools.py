@@ -996,7 +996,24 @@ async def _add_knowledge(args: dict) -> str:
     return json.dumps({"status": "ok", "entry": entry}, ensure_ascii=False)
 
 
-# ====== 5.1.4-514-c：异步任务工具（长耗时渲染/导出 → task_id + 进度轮询） ======
+# ====== 5.1.4-514-c / 5.1.5-515-d：异步任务工具 + 审计查询 ======
+
+async def _audit_query(args: dict) -> str:
+    """查询 Agent Connect 操作审计（按 agent/tool/result 过滤，返回最近 N 条脱敏摘要）。"""
+    from ai_hub.mcp_server.manager import get_agent_connect_manager
+
+    mgr = get_agent_connect_manager()
+    try:
+        limit = int(args.get("limit") or 20)
+    except (TypeError, ValueError):
+        limit = 20
+    entries = mgr.query_audit(
+        agent=args.get("agent") or "",
+        tool=args.get("tool") or "",
+        result=args.get("result") or "",
+        limit=max(1, min(limit, 200)),
+    )
+    return json.dumps({"status": "ok", "entries": entries, "total": len(entries)}, ensure_ascii=False)
 
 async def _task_submit(args: dict) -> str:
     """提交任意编译态工具为异步后台任务，返回 task_id（用 task_query 轮询进度）。
@@ -1756,6 +1773,24 @@ def init_tools():
             "required": ["taskId"],
         },
         _task_cancel,
+    )
+
+    # ====== 5.1.5-515-d：审计查询工具 ======
+
+    register_tool(
+        "audit_query",
+        "查询 Agent Connect 操作审计：按 agent/tool/result 过滤，返回最近 N 条（含脱敏入参摘要/耗时/模式）",
+        {
+            "type": "object",
+            "properties": {
+                "agent": {"type": "string", "description": "Agent 标识过滤（可选）"},
+                "tool": {"type": "string", "description": "工具名过滤（可选）"},
+                "result": {"type": "string", "description": "结果过滤 ok/error/idempotent（可选）"},
+                "limit": {"type": "integer", "description": "返回条数上限（默认 20，最大 200）"},
+            },
+            "required": [],
+        },
+        _audit_query,
     )
 
     logger.info(f"Initialized {len(_tools)} Agent tools")
