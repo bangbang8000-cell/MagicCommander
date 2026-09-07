@@ -1,10 +1,12 @@
 # MagicCommander User Guide
 
-> Applies to MagicCommander v3.6.0
+> Applies to MagicCommander v5.0.10 (5.1 series Agent Connect preview)
 
 ## Introduction
 
 MagicCommander is a professional network device configuration management tool. It combines device parameters (Excel spreadsheets) with configuration templates (Jinja2 syntax) to batch-generate standardized device configuration files in one click, and automatically produces printable device labels. It supports AI-powered conversational operations and cloud collaboration, while running fully offline with data security under your control.
+
+Starting with the 5.1 series, MagicCommander can also act as a standard MCP Server (Agent Connect), letting external AI agents such as Claude / Codex / Trae Work / VS Code query, create, update, and render projects, templates, device libraries, and outputs directly.
 
 ---
 
@@ -211,6 +213,14 @@ AI tools are gated by risk:
 
 AI assesses project quality: template complexity (variable count, nesting depth), Excel data quality (empty rows, duplicate columns, type issues), and template↔Excel cross-references (missing/unused columns), then suggests improvements.
 
+### Skills & Knowledge Base
+
+The AI Hub ships with a **skills library** and a **knowledge base** so the assistant gets better at your workflow over time:
+
+- **Skills**: save reusable procedures (e.g. "standard project onboarding flow") as skills that AI executes; enable/disable, view details, and let them **self-improve** from usage feedback (`skill_optimize`).
+- **Knowledge**: persist domain facts (e.g. "recommended baseline for a device model"); AI retrieves and injects them into conversations automatically for more accurate answers.
+- Available in AI chat: `list_skills` / `get_skill` / `update_skill` / `skill_optimize`, `list_knowledge` / `search_knowledge` / `add_knowledge`.
+
 ---
 
 ## Cloud Connect
@@ -233,6 +243,82 @@ Connect a self-hosted MagicCommander Platform for team collaboration.
 | Project sync | Push / Pull / conflict detection |
 | Notifications | Platform announcements and version updates |
 | Profile | User info and account binding |
+
+---
+
+## Software Updates & Enterprise Deployment
+
+### Update Experience (5.0.9)
+
+- **Resumable downloads**: interrupted downloads resume from the breakpoint
+- **SHA-512 integrity**: installers are checksum-verified before install
+- **Version rollback**: the previous installer is kept automatically; roll back from Settings
+- **Channels**: switch between stable and beta (Settings → Updates)
+
+### Enterprise Deployment (5.0.9)
+
+An intranet deployment mode is available (off by default, hidden):
+
+- Configure an intranet **updateUrl mirror** and proxy download
+- Platform **version lock**: enforce a minimum version via the platform `min_required_version`
+
+---
+
+## Agent Connect (5.1 series)
+
+The 5.1 series wraps MagicCommander as a standard **MCP Server (Agent Connect)** so external AI agents interact with the product over a standard protocol.
+
+### Dual-mode model
+
+| Mode | Scenario | Capabilities |
+|------|----------|--------------|
+| **Compiled** (default) | Product use | Standard MCP query / create / update / render projects, templates, device libraries, outputs; **the software itself is never modified** |
+| **Source** | Developers (`npm run dev:all`) | Adds CLI passthrough and direct source reading for unrestricted interaction |
+
+### Connect an external agent (3 steps)
+
+1. **Enable**: Settings → Agent Connect, turn the switch on (toggle `compiled` / `source`)
+2. **Paste config**: add the config below to your agent client (replace `<workspace_dir>` with your workspace)
+3. **Self-check**: click Self-check in Settings; when every item is green you are connected
+
+```json
+{
+  "mcpServers": {
+    "magiccommander": {
+      "command": "python",
+      "args": ["-m", "ai_hub.mcp_server.run", "--mode", "compiled", "--workspace", "<workspace_dir>"],
+      "cwd": "<MagicCommander-Client repo root>"
+    }
+  }
+}
+```
+
+- **Claude Desktop**: `claude_desktop_config.json`
+- **Codex CLI**: `.codex/config.toml`
+- **Trae Work / VS Code**: `.mcp.json`
+- Full samples: `docs/agent-connect/README.md`
+
+### Deterministic semantics
+
+- **Input contracts**: every tool declares a JSON Schema; invalid input returns a structured error
+- **Semantic validation**: write results are structurally validated (L2) before committing
+- **Idempotent transactions**: duplicate submissions (projectId + planHash) return "already exists" with the original result instead of re-writing (L3)
+
+### Async tasks
+
+Long-running tools (render / export) become asynchronous automatically: the call returns a `task_id` immediately; poll progress (percent/message) with `task_query`, and use `task_wait` / `task_cancel`. Long agent calls never time out.
+
+### Operation audit
+
+Every agent change to projects/templates/devices is recorded (agent / tool / sanitized argument summary / result / duration); off by default, enabled via configuration. Query with `audit_query` or aggregate to the platform at `/api/v1/agent-connect/audit`.
+
+### Remote mode (pilot, 5.1.8)
+
+The platform gateway at `POST /api/v1/agent-connect/remote/invoke` provides TLS + strong token + per-domain authorization + full audit; **remote writes are blocked by default** (read-only / low-risk domains only) unless explicitly allowed.
+
+### Feedback self-optimization (5.1.9)
+
+`agent_feedback` persists agent interaction feedback to the knowledge base and produces optimization suggestions; the platform aggregates at `POST /api/v1/agent-connect/feedback`, forming a validate → suggest → repair → re-check loop.
 
 ---
 
@@ -279,6 +365,9 @@ DeepSeek, OpenAI, Claude, Gemini, Qwen, GLM, Grok, local Ollama, and any OpenAI-
 
 **Q: Where is my data?**
 All project data lives in the local `workspace/` directory. AI runs locally; API keys are stored encrypted.
+
+**Q: How do I let an external AI agent (Claude / Codex / Trae / VS Code) operate MagicCommander?**
+Since the 5.1 series, use Agent Connect: enable it in Settings → Agent Connect, paste the MCP config from the "Agent Connect" section into your agent client, then run the self-check. Compiled mode never modifies the software; Source mode (`npm run dev:all`) adds CLI passthrough and source reading.
 
 ---
 

@@ -1,10 +1,12 @@
 # MagicCommander 使用指南
 
-> 适用于 MagicCommander v3.9.0
+> 适用于 MagicCommander v5.0.10（5.1 系列 Agent Connect 预告）
 
 ## 简介
 
 MagicCommander 是一款专业的网络设备配置管理工具。它将设备参数（Excel 表格）与配置模板（Jinja2 语法）结合，一键批量生成标准化网络设备配置文件，并自动生成可打印的设备标签。支持 AI 对话式操作、云端团队协作，全程本地离线运行，数据安全可控。
+
+5.1 系列起，MagicCommander 还能以标准 MCP Server（Agent Connect）形式接入 Claude / Codex / Trae Work / VS Code 等外部 AI Agent，让 Agent 直接查询、创建、更新、渲染项目、模板、设备库与输出。
 
 ---
 
@@ -213,6 +215,14 @@ AI 工具按风险分级，保护你的数据：
 
 AI 可分析项目质量：模板复杂度（变量数、嵌套深度）、Excel 数据质量（空行、重复列、类型异常）、模板与 Excel 交叉引用（缺失/未用列），并给出优化建议。
 
+### 技能库与知识库
+
+AI Hub 内置**技能库**与**知识库**，让 AI 越用越懂你的工作方式：
+
+- **技能（Skills）**：把可复用的操作步骤（如"新项目标准开局流程"）保存为技能，AI 会按技能执行任务；支持启用/禁用、查看详情，并可在使用反馈达到阈值时**自学习修订**（`skill_optimize`）。
+- **知识（Knowledge）**：沉淀领域事实（如"某型号设备的推荐配置基线"），AI 在对话中自动检索注入上下文，回答更准确。
+- 在 AI 对话中可直接调用：`list_skills` / `get_skill` / `update_skill` / `skill_optimize`、`list_knowledge` / `search_knowledge` / `add_knowledge`。
+
 ---
 
 ## Cloud Connect 云平台集成
@@ -235,6 +245,82 @@ AI 可分析项目质量：模板复杂度（变量数、嵌套深度）、Excel
 | 项目同步 | Push 推送 / Pull 拉取 / 冲突检测 |
 | 通知中心 | 平台公告和版本更新提醒 |
 | 用户档案 | 个人信息管理、平台账号绑定 |
+
+---
+
+## 软件更新与企业部署
+
+### 更新体验（5.0.9）
+
+- **断点续传**：下载中断后从断点继续，网络不稳也不怕
+- **SHA-512 强校验**：安装包下载后校验完整性，防篡改
+- **版本回滚**：安装前自动留存上一版本安装包，可在设置中回滚
+- **灰度通道**：stable（正式）/ beta（预览）双通道切换（设置 → 更新）
+
+### 企业部署（5.0.9）
+
+企业内网环境可开启「企业部署」模式（默认关闭、隐藏）：
+
+- 配置内网 **updateUrl 镜像** 与代理下载
+- 平台 **版本锁定**：按平台 `min_required_version` 强制最低版本
+
+---
+
+## Agent Connect：AI Agent 互联（5.1 系列）
+
+5.1 系列将 MagicCommander 封装为标准 **MCP Server（Agent Connect）**，让外部 AI Agent / 编程智能体通过标准协议与产品能力交互。
+
+### 双场景模型
+
+| 模式 | 场景 | 能力 |
+|------|------|------|
+| **编译态**（默认） | 产品使用 | 标准 MCP 查询 / 创建 / 更新 / 渲染项目、模板、设备库、输出；**不修改软件本体** |
+| **源码态** | 开发者（`npm run dev:all`） | 追加 CLI 透传与源码直读，无限制交互 |
+
+### 接入外部 Agent（3 步）
+
+1. **开启**：设置 → Agent Connect，打开开关（可切换 `compiled` / `source` 模式）
+2. **复制配置**：将下列配置粘贴到你的 Agent 客户端（`<工作区目录>` 替换为你的 workspace）
+3. **自检**：设置页点击「自检」逐项绿灯即接入成功
+
+```json
+{
+  "mcpServers": {
+    "magiccommander": {
+      "command": "python",
+      "args": ["-m", "ai_hub.mcp_server.run", "--mode", "compiled", "--workspace", "<工作区目录>"],
+      "cwd": "<MagicCommander-Client 仓库根目录>"
+    }
+  }
+}
+```
+
+- **Claude Desktop**：`claude_desktop_config.json`
+- **Codex CLI**：`.codex/config.toml`
+- **Trae Work / VS Code**：`.mcp.json`
+- 详细样板见 `docs/agent-connect/README.md`
+
+### 确定性语义层
+
+- **入参契约**：每个工具定义 JSON Schema，入参非法返回结构化错误
+- **语义校验**：写入结果结构校验（L2），不合法不落盘
+- **幂等事务**：相同请求（projectId + planHash）重复提交返回"已存在"与原结果，不重复写入（L3）
+
+### 异步任务
+
+渲染 / 导出等长耗时工具自动异步化：调用立即返回 `task_id`，用 `task_query` 轮询进度（percent/message），支持 `task_wait` / `task_cancel`。Agent 长任务不再超时。
+
+### 操作审计
+
+Agent 对项目/模板/设备的每次改动均记录（Agent / 工具 / 脱敏入参摘要 / 结果 / 耗时），默认关闭、配置后启用；可用 `audit_query` 工具查询，也可汇聚到平台 `/api/v1/agent-connect/audit`。
+
+### 远程模式（试点，5.1.8）
+
+平台提供远程网关 `POST /api/v1/agent-connect/remote/invoke`：TLS + 强 token + 按域授权 + 审计全开；**远程写默认关闭**（仅试点只读/低风险域），需显式放行才能执行写操作。
+
+### Agent 反馈自优化（5.1.9）
+
+`agent_feedback` 沉淀 Agent 交互反馈为知识库条目并产出优化建议；平台 `POST /api/v1/agent-connect/feedback` 汇聚分析，形成"校验 → 建议 → 修复 → 复核"闭环。
 
 ---
 
@@ -282,11 +368,33 @@ DeepSeek、OpenAI、Claude、Gemini、Qwen、GLM、Grok、Ollama 本地模型，
 **Q: 数据存在哪里？安全吗？**
 所有项目数据在本地 `workspace/` 目录。AI 对话与渲染均在本机执行，API Key 本地加密存储。
 
+**Q: 如何让外部 AI Agent（Claude / Codex / Trae / VS Code）操作 MagicCommander？**
+5.1 系列起支持 Agent Connect：设置 → Agent Connect 开启 → 按"Agent Connect"章节复制 MCP 配置到你的 Agent 客户端，再运行自检即可。编译态不修改软件本体，源码态（`npm run dev:all`）可追加 CLI 与源码直读。
+
 ---
 
-## 近期打磨（v3.9.0）
+## 近期版本亮点
 
-### 安全加固（M1）
+### 5.1 系列（Agent Connect，开发完成）
+
+- **Agent Connect（MCP Server）**：双场景（编译态 / 源码态）接入外部 AI Agent（Claude / Codex / Trae / VS Code）
+- **确定性语义层**：入参契约 / 语义校验 / 幂等事务，外部 Agent 操作可测可回滚
+- **异步任务**：渲染 / 导出长任务自动异步化（task_id + 进度轮询 / 等待 / 取消）
+- **操作审计**：Agent 改动全记录（脱敏），可查询、可汇聚平台
+- **远程模式试点**：平台网关 TLS + 强鉴权 + 按域授权，远程写默认关闭
+- **反馈自优化**：Agent 交互反馈沉淀知识库并产出优化建议
+
+### 5.0 系列（性能 / 质量 / 交付 / 内容资产）
+
+- **5.0.9 升级体验**：断点续传、SHA-512 强校验、版本回滚、灰度通道、企业部署（内网镜像 + 版本锁定）
+- **5.0.7 性能**：批量渲染并发自适应（按设备内存收敛防 OOM）、Monaco 编辑器按需加载
+- **5.0.5 知识库**：领域知识沉淀，AI 对话自动检索注入
+- **5.0.3 技能库自学习**：技能达阈值自动修订，AI 质量持续提升
+- **5.0.1-5.0.2 质量**：全量示例重测、AI 工具参数校验与错误可读化
+
+### v3.9.0
+
+#### 安全加固（M1）
 
 - `escapePythonArg` 修复 Windows 路径转义问题
 - 修复 zip-slip 路径穿越，`file:` 协议读取限界
@@ -294,12 +402,12 @@ DeepSeek、OpenAI、Claude、Gemini、Qwen、GLM、Grok、Ollama 本地模型，
 - `will-navigate` 导航拦截 + 语言白名单
 - `MC_Para` 增量写入，避免全量重写
 
-### 国际化（M2）
+#### 国际化（M2）
 
 - AidcImportDialog 125 处文案全量接入 i18n
 - 6 种语言补齐，新增 i18n 门禁（缺失键阻断构建）
 
-### 导入 UX + 菜单栏 + 工作台重构（M3）
+#### 导入 UX + 菜单栏 + 工作台重构（M3）
 
 - **导入自动流转**：导入 → 校验 → 细化 一条龙
 - 导入/结果分页浏览，支持**真 ZIP 导出**
@@ -308,7 +416,7 @@ DeepSeek、OpenAI、Claude、Gemini、Qwen、GLM、Grok、Ollama 本地模型，
 - **工作台三步分组**对齐 AL，无项目空态引导
 - ActivityBar 语义色对齐、nav 命名空间统一、Monaco 布局收敛、项目匹配索引
 
-### 视觉对齐（M5）
+#### 视觉对齐（M5）
 
 - Popover 组件视觉对齐 AL（CSS token 层）
 
