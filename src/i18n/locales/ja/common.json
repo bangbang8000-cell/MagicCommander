@@ -373,7 +373,10 @@
       "agentConnectTools": "公開ツール",
       "agentConnectAudit": "監査",
       "agentConnectAuditOn": "有効",
-      "agentConnectAuditOff": "無効"
+      "agentConnectAuditOff": "無効",
+      "agentConnectCopyConfig": "設定をコピー",
+      "agentConnectOpenGuide": "MCP 接続ガイドを開く",
+      "agentConnectCopied": "コピーしました"
     }
   },
   "efficiency": {

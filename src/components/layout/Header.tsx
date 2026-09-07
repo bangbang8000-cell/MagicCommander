@@ -14,6 +14,7 @@ import { LANGUAGE_ICON_CHARS } from '@/i18n/resources'
 import { useBuildInfo } from '@/hooks/useAppVersion'
 import { AboutDialog } from '@/components/dialogs/AboutDialog'
 import { AppLogo } from '@/components/common'
+import { openMcpGuideTab } from '@/utils/mcpGuide'
 import { UpdatePopover } from './UpdatePopover'
 import { LanguagePopover } from './LanguagePopover'
 import { ThemePopover } from './ThemePopover'
@@ -289,6 +290,11 @@ export function Header({ onCheatsheet }: HeaderProps) {
     closeMenu()
   }, [t])
 
+  const handleMcpGuide = useCallback(() => {
+    void openMcpGuideTab()
+    closeMenu()
+  }, [])
+
   const handleAbout = useCallback(() => {
     setAboutOpen(true)
     closeMenu()
@@ -431,6 +437,7 @@ export function Header({ onCheatsheet }: HeaderProps) {
     ],
     help: [
       renderMenuItem('userGuide', t('menu.userGuide'), 'F1', handleUserGuide),
+      renderMenuItem('mcpGuide', t('menu.mcpGuide'), '', handleMcpGuide),
       renderSeparator('sep-h1'),
       renderMenuItem('about', t('menu.about'), '', handleAbout),
     ],

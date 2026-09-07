@@ -54,6 +54,11 @@ function mockElectron() {
         usedFallback: false,
         requestedLang: 'zh-CN',
       })),
+      getMcpGuide: vi.fn(async () => ({
+        content: '# MCP 接入指南\n\nAgent Connect',
+        usedFallback: false,
+        requestedLang: 'zh-CN',
+      })),
     },
     shell: { showItemInFolder: vi.fn(async () => {}) },
     aihub: {

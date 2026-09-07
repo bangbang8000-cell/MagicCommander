@@ -64,6 +64,7 @@
     "darkMode": "Mode sombre",
     "highContrastMode": "Contraste élevé",
     "userGuide": "Guide d'utilisation",
+    "mcpGuide": "Guide d'intégration MCP",
     "about": "À propos",
     "guideLoadFailed": "# Échec du chargement\n\nImpossible de charger le guide d'utilisation, veuillez réessayer plus tard.",
     "switchToLight": "Passer au mode clair",

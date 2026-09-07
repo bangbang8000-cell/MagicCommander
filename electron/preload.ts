@@ -118,6 +118,7 @@ const api = {
   },
   guide: {
     getContent: (lang: string) => ipcRenderer.invoke('guide:getContent', lang),
+    getMcpGuide: (lang: string) => ipcRenderer.invoke('guide:getMcpGuide', lang),
   },
   // 5.0.5-505-a：文档工作台（生成产物列表 / 生成 / 打开目录）
   doc: {

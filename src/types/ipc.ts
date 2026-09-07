@@ -405,6 +405,7 @@ export interface GuideContent {
 
 export interface GuideIpcApi {
   getContent: (lang: string) => Promise<GuideContent>
+  getMcpGuide: (lang: string) => Promise<GuideContent>
 }
 
 // ============================================================

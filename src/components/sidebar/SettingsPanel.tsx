@@ -23,11 +23,14 @@ import {
   Info,
   Download,
   Upload,
+  Copy,
+  BookOpen,
 } from 'lucide-react'
 import clsx from 'clsx'
 import { LOCALE_NAMES, LANGUAGE_ICON_CHARS } from '@/i18n/resources'
 import { useBuildInfo } from '@/hooks/useAppVersion'
 import { showSuccess, showError } from '../ui/Toast'
+import { MCP_CONFIG_JSON, openMcpGuideTab } from '@/utils/mcpGuide'
 
 // Provider 目录
 const PROVIDER_CATALOG: Record<string, { name: string; baseUrl: string; models: string[]; defaultModel: string }> = {
@@ -229,6 +232,21 @@ export function SettingsPanel() {
   } | null>(null)
   const [acBusy, setAcBusy] = useState(false)
   const [acError, setAcError] = useState<string | null>(null)
+  const [acCopied, setAcCopied] = useState(false)
+
+  const handleCopyAcConfig = useCallback(async () => {
+    try {
+      await navigator.clipboard.writeText(MCP_CONFIG_JSON)
+      setAcCopied(true)
+      setTimeout(() => setAcCopied(false), 2000)
+    } catch {
+      /* 忽略剪贴板权限错误 */
+    }
+  }, [])
+
+  const handleOpenMcpGuide = useCallback(async () => {
+    await openMcpGuideTab()
+  }, [])
 
   const refreshAgentConnect = useCallback(async () => {
     try {
@@ -2099,6 +2117,37 @@ export function SettingsPanel() {
                 <span>{acError}</span>
               </div>
             )}
+
+            <div className="mt-2 flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => void handleCopyAcConfig()}
+                className={clsx(
+                  'inline-flex items-center gap-1 text-[11px] px-2 py-1 rounded border transition-colors',
+                  isDark
+                    ? 'border-gray-600 text-gray-300 hover:bg-gray-700'
+                    : 'border-gray-300 text-gray-600 hover:bg-gray-100',
+                )}
+              >
+                {acCopied ? <Check size={12} /> : <Copy size={12} />}
+                {acCopied
+                  ? t('common:settings.ai.agentConnectCopied') || '已复制'
+                  : t('common:settings.ai.agentConnectCopyConfig') || '复制接入配置'}
+              </button>
+              <button
+                type="button"
+                onClick={() => void handleOpenMcpGuide()}
+                className={clsx(
+                  'inline-flex items-center gap-1 text-[11px] px-2 py-1 rounded border transition-colors',
+                  isDark
+                    ? 'border-gray-600 text-gray-300 hover:bg-gray-700'
+                    : 'border-gray-300 text-gray-600 hover:bg-gray-100',
+                )}
+              >
+                <BookOpen size={12} />
+                {t('common:settings.ai.agentConnectOpenGuide') || '打开 MCP 接入指南'}
+              </button>
+            </div>
           </div>
         </div>
       </div>

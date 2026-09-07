@@ -485,7 +485,10 @@
       "agentConnectTools": "对外暴露工具",
       "agentConnectAudit": "操作审计",
       "agentConnectAuditOn": "已开启",
-      "agentConnectAuditOff": "未开启"
+      "agentConnectAuditOff": "未开启",
+      "agentConnectCopyConfig": "复制接入配置",
+      "agentConnectOpenGuide": "打开 MCP 接入指南",
+      "agentConnectCopied": "已复制"
     },
     "general": {
       "title": "通用设置",

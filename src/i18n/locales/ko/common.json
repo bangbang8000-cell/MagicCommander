@@ -373,7 +373,10 @@
       "agentConnectTools": "노출 도구",
       "agentConnectAudit": "감사",
       "agentConnectAuditOn": "활성화됨",
-      "agentConnectAuditOff": "비활성화됨"
+      "agentConnectAuditOff": "비활성화됨",
+      "agentConnectCopyConfig": "설정 복사",
+      "agentConnectOpenGuide": "MCP 연결 가이드 열기",
+      "agentConnectCopied": "복사됨"
     }
   },
   "efficiency": {

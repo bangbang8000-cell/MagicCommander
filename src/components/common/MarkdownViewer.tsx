@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
+import { useTranslation } from 'react-i18next'
 import { useUIStore } from '@/stores/ui.store'
-import { ChevronDown, ChevronRight, X } from 'lucide-react'
+import { ChevronDown, ChevronRight, Copy, Check, X } from 'lucide-react'
 import clsx from 'clsx'
 import type { EditorTab } from '@/stores/editor.store'
+import { MCP_CONFIG_JSON, MCP_GUIDE_TAB_ID } from '@/utils/mcpGuide'
 
 interface MarkdownViewerProps {
   content?: string
@@ -20,10 +22,22 @@ interface TocItem {
   id: string
 }
 
-function MarkdownContent({ content, title, onClose, inline = false }: MarkdownViewerProps) {
+function MarkdownContent({ content, title, onClose, inline = false, showCopyConfig = false }: MarkdownViewerProps & { showCopyConfig?: boolean }) {
   const isDark = useUIStore((s) => s.isDark)
+  const { t } = useTranslation()
   const [toc, setToc] = useState<TocItem[]>([])
   const [expanded, setExpanded] = useState(true)
+  const [copied, setCopied] = useState(false)
+
+  const handleCopyConfig = async () => {
+    try {
+      await navigator.clipboard.writeText(MCP_CONFIG_JSON)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch {
+      /* 忽略剪贴板权限错误 */
+    }
+  }
 
   useEffect(() => {
     const headingRegex = /^(#{1,6})\s+(.+)$/gm
@@ -58,17 +72,35 @@ function MarkdownContent({ content, title, onClose, inline = false }: MarkdownVi
         <h2 className={clsx('text-base font-semibold truncate', isDark ? 'text-gray-100' : 'text-gray-800')}>
           {title}
         </h2>
-        {!inline && onClose && (
-          <button
-            onClick={onClose}
-            className={clsx(
-              'p-1.5 rounded transition-colors',
-              isDark ? 'hover:bg-gray-700 text-gray-400' : 'hover:bg-gray-100 text-gray-500',
-            )}
-          >
-            <X size={18} />
-          </button>
-        )}
+        <div className="flex items-center gap-1.5 shrink-0">
+          {showCopyConfig && (
+            <button
+              onClick={() => void handleCopyConfig()}
+              className={clsx(
+                'inline-flex items-center gap-1 text-[11px] px-2 py-1 rounded border transition-colors',
+                isDark
+                  ? 'border-gray-600 text-gray-300 hover:bg-gray-700'
+                  : 'border-gray-300 text-gray-600 hover:bg-gray-100',
+              )}
+            >
+              {copied ? <Check size={12} /> : <Copy size={12} />}
+              {copied
+                ? t('settings.ai.agentConnectCopied', { defaultValue: '已复制' })
+                : t('settings.ai.agentConnectCopyConfig', { defaultValue: '复制接入配置' })}
+            </button>
+          )}
+          {!inline && onClose && (
+            <button
+              onClick={onClose}
+              className={clsx(
+                'p-1.5 rounded transition-colors',
+                isDark ? 'hover:bg-gray-700 text-gray-400' : 'hover:bg-gray-100 text-gray-500',
+              )}
+            >
+              <X size={18} />
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="flex flex-1 overflow-hidden">
@@ -195,7 +227,13 @@ export function MarkdownViewer({ content, title, onClose, tab, inline = false }:
   ) : error ? (
     <div className="flex h-full items-center justify-center text-sm text-red-500">{error}</div>
   ) : (
-    <MarkdownContent content={fileContent} title={resolvedTitle} onClose={onClose} inline={inline} />
+    <MarkdownContent
+      content={fileContent}
+      title={resolvedTitle}
+      onClose={onClose}
+      inline={inline}
+      showCopyConfig={tab?.id === MCP_GUIDE_TAB_ID}
+    />
   )
 
   if (inline) {
