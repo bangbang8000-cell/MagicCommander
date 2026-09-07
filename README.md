@@ -2,14 +2,15 @@
 
 **批量生成网络设备配置 | Network Device Configuration Automation**
 
-[![Version](https://img.shields.io/badge/version-5.0.5-blue)](https://github.com/bangbang8000-cell/MagicCommander/releases)
+[![Version](https://img.shields.io/badge/version-5.0.10-blue)](https://github.com/bangbang8000-cell/MagicCommander/releases)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![Windows](https://img.shields.io/badge/Windows-NSIS-blue)](https://github.com/bangbang8000-cell/MagicCommander/releases)
 [![macOS](https://img.shields.io/badge/macOS-DMG-silver)](https://github.com/bangbang8000-cell/MagicCommander/releases)
 [![Linux](https://img.shields.io/badge/Linux-AppImage%20%7C%20deb-orange)](https://github.com/bangbang8000-cell/MagicCommander/releases)
 [![Languages](https://img.shields.io/badge/languages-6-orange)](https://github.com/bangbang8000-cell/MagicCommander)
 [![AI](https://img.shields.io/badge/AI--Powered-DeepSeek%20%7C%20OpenAI%20%7C%209%20Providers-purple)](https://github.com/bangbang8000-cell/MagicCommander)
-[![Tests](https://img.shields.io/badge/tests-349%20passing-brightgreen)](https://github.com/bangbang8000-cell/MagicCommander/actions)
+[![AI Tools](https://img.shields.io/badge/Agent--Tools-43-brightgreen)](https://github.com/bangbang8000-cell/MagicCommander)
+[![Tests](https://img.shields.io/badge/tests-672%2B%20passing-brightgreen)](https://github.com/bangbang8000-cell/MagicCommander/actions)
 [![CI](https://img.shields.io/badge/CI-passing-brightgreen)](https://github.com/bangbang8000-cell/MagicCommander/actions)
 
 
@@ -78,7 +79,7 @@ interface {{ info['接口名'] }}
 
 ### 模板资产中心
 
-内置示例模板（交换机 ASW/PSW/DOA 配置，以及 4 个 AIDC 示例项目 64/128 台 H100 · IB/RoCE）一键创建新项目；支持将现有项目保存为模板供团队复用；**每个模板自动进行质量评级（A/B/C/D）**，基于变量复杂度、Excel 数据质量与交叉引用打分，帮助快速判断模板质量。
+内置示例模板（交换机 ASW/PSW/DOA 配置，以及 4 个 AIDC 示例项目 64/128 台 H100 · IB/RoCE）一键创建新项目；支持将现有项目保存为模板供团队复用；**每个模板自动进行质量评级（A/B/C/D）**，基于变量复杂度、Excel 数据质量与交叉引用打分，帮助快速判断模板质量。5.0.10 起示例库扩充至 **7 个**（新增 H100-256台/512台-RoCE 规模化、国产-昇腾-256 多厂商场景），覆盖从 64 台到 512 台的完整规模谱系。
 
 ### AI 智能助手，对话式配置管理
 
@@ -100,7 +101,29 @@ AI: [调用 render_config → 生成 22 台设备配置]
      需要我 dry-run 预览一下吗？"
 ```
 
-支持 **智能路由**——根据任务类型（编码/分析/问答/推理）自动选择最优模型。AI 可调用 27 个内置工具，包括项目创建、配置渲染、Excel 分析、模板复杂度评估、dry-run 预演、diff 对比、标签生成、配置反向生成等。
+支持 **智能路由**——根据任务类型（编码/分析/问答/推理）自动选择最优模型。AI 可调用 **43 个内置工具**，包括项目创建、配置渲染、Excel 分析、模板复杂度评估、dry-run 预演、diff 对比、标签生成、配置反向生成、技能自学习、知识库检索等。
+
+**AI Agent 工作流深化**（5.0.3+）：多步自主任务编排（Plan→Execute→Verify 状态机，full_auto 自主 / advisor 每步确认 / semi_auto 关键步确认）；技能自学习闭环（反馈持久化 → 成功率评估 → 自动修订）；**MCP 工具接入**（可调用外部 MCP server 能力）；AI 引擎三选一（自有=默认 / Hermes / 自动）。
+
+**知识库与文档工作台**（5.0.5+）：知识库（KnowledgeEngine 中文 2-gram/英文分词加权检索，Top-K 召回，AI 对话自动注入上下文）；文档工作台（评审包 / 评审 PDF / Markdown / 用户指南 / 知识库聚合一处）。
+
+### 3D 可视化（5.0.6+）
+
+导入 AIDC 项目后，可一键切换 **3D 视图**：机房全景（WebGL，机柜按矩阵落位、冷热通道对向排布）+ 单柜 SVG 等距视图（U 位设备分布）。**热力图**按机柜功率使用率着色（绿→黄→红，与 AutoLink 对齐），点击机柜联动 2D↔3D 一致高亮，支持 PNG/SVG 导出。
+
+### 性能与效率（5.0.7+）
+
+- 性能基准对比基线（`bench_perf.py --json/--compare`）：跨版本逐场景 delta 对比，量化规模化渲染成本
+- 批量渲染并发 2→3 + 按内存动态收敛（防 OOM）；Monaco 编辑器懒加载（降低首屏 bundle 与启动内存）
+- 实测基准：批量渲染 100 项目 ≤90s（实测 31s）；单项目全量渲染 ≤30s（实测 0.57s）；万行参数表 ≤30s（实测 1.14s）
+
+### 质量与可靠（5.0.8+）
+
+覆盖率棘轮只升不降（前端 ≥36% / 后端 ≥64%）；设备库联网校对（400G 端口形态对齐厂商手册）；CI e2e 加固（retry + 超时兜底）；平台依赖漏洞清零（PyJWT 迁移 + pip-audit）。
+
+### 交付与运维（5.0.9+）
+
+升级体验可靠化：安装包下载**断点续传** + **SHA-512 强校验** + **版本回滚** + **灰度通道**（stable/beta）；企业部署基座（内网 updateUrl 镜像 / 代理下载 / 版本锁定，配置开关默认隐藏）；云交付（分享预览页「下载方案包」）。
 
 ### Cloud Connect — 云平台集成
 
@@ -190,8 +213,11 @@ MagicCommander/
 │   ├── analyzer.py       # 项目/模板质量分析引擎
 │   └── requirements.txt  # Python 依赖
 ├── ai_hub/               # AI Hub 服务 (FastAPI Agent)
-│   ├── agent/            # Agent 框架 (27 Tools + 工具权限分级)
+│   ├── agent/            # Agent 框架 (43 Tools + 工具权限分级 + 多步任务)
 │   ├── llm/              # 9 Provider 适配 (OpenAI 兼容接口)
+│   ├── mcp/              # MCP Client（外部 MCP server 工具接入）
+│   ├── skills/           # 技能自学习引擎
+│   ├── knowledge/        # 知识库检索引擎
 │   └── prompts/          # LLM 系统提示词与工具规范
 ├── electron/             # Electron 主进程 (IPC / 安全 / 更新)
 ├── public/               # 静态资源 (图标/文档/使用指南)
@@ -245,6 +271,11 @@ MagicCommander/
 
 | 版本 | 日期 | 更新内容 |
 |------|------|---------|
+| **5.0.10 Build 26090602** | 2026-09-06 | **5.0 系列第 10 版 · 内容资产升级与收官**：双端示例库扩充至 7 个（H100-256台/512台-RoCE 规模化、国产-昇腾-256 多厂商）+ AL 模板 25 / 设备 126 全量重测通过 + 5.0 系列发布收官 |
+| **5.0.9 Build 26090601** | 2026-09-06 | **5.0 系列第 9 版 · 交付与运维强化**：升级体验（断点续传 + SHA-512 强校验 + 版本回滚 + 灰度通道 stable/beta）+ 企业部署基座（内网 updateUrl / 代理下载 / 版本锁定，配置隐藏）+ 平台可观测与版本分发 + 云交付基座 |
+| **5.0.8 Build 26090503** | 2026-09-05 | **5.0 系列第 8 版 · 质量与可靠性深化**：覆盖率棘轮上移（前端 ≥36% / 后端 ≥64%）+ 设备库联网校对（400G 形态对齐厂商手册）+ CI e2e 加固 + 平台依赖漏洞清零（PyJWT/pip-audit） |
+| **5.0.7 Build 26090502** | 2026-09-05 | **5.0 系列第 7 版 · 性能与效率优化**：性能基准对比基线 + 批量渲染并发/内存守卫 + Monaco 懒加载 + 万行大表优化；实测基准 512 项目 ≈174s |
+| **5.0.6 Build 26090501** | 2026-09-05 | **5.0 系列第 6 版 · 3D 可视化**：机房/机柜 3D 只读视图（WebGL + SVG 等距）+ 热力图（功率着色）+ 2D↔3D 联动 + PNG/SVG 导出 |
 | **5.0.5 Build 26090306** | 2026-09-04 | **5.0 系列第 5 版 · 文档与知识**：文档工作台（doc 导航 + 评审包/PDF/指南/知识库聚合）+ 知识库（KnowledgeEngine 检索式召回 Top-K + 工具/端点/面板）+ AI 上下文管理（知识库上下文注入 + knowledge 参数 + 开关） |
 | **5.0.4 Build 26090305** | 2026-09-04 | **5.0 系列第 4 版 · 协作与生态**：协作分享（只读快照分享链接 + 平台预览页）+ 模板市场生态（评分/订阅/精选展示与交互）+ 设备库云同步（拉取合并/发布 bundle）+ 平台生态服务化（COLLAB/MARKET 开关） |
 | **5.0.3 Build 26090304** | 2026-09-03 | **5.0 系列第 3 版 · AI Agent 工作流深化**：多步自主任务编排（Plan→Execute→Verify 状态机，full_auto 自主/advisor 每步确认/semi_auto 关键步确认）+ 技能自学习闭环（反馈持久化/成功率/自动修订/传输 v2）+ MCP 工具接入（协议层、mcp: 命名空间动态注册、双引擎共享）+ 前端任务进度/步骤确认/MCP 管理区 |
@@ -292,9 +323,11 @@ MagicCommander/
 | 阶段 | 时间 | 状态 | 核心交付 |
 |------|------|------|---------|
 | [Alpha](https://github.com/bangbang8000-cell/MagicCommander/milestone/1) | 2026.07 | ✅ 已完成 | AI Hub + Agent v2 + Cloud Connect 云平台集成 |
-| [Beta](https://github.com/bangbang8000-cell/MagicCommander/milestone/2) | 2026.08-09 | 🔄 进行中 | 智能校对、模板资产中心（版本管理/调试沙盒）、Excel/Jinja2 深度集成（依赖分析/片段复用） |
-| [GA](https://github.com/bangbang8000-cell/MagicCommander/milestone/3) | 2026.10-12 | 待开始 | 社区分享中心 + 协作审阅 + 项目生命周期 + 权限体系 |
-| [Scale](https://github.com/bangbang8000-cell/MagicCommander/milestone/4) | 2027.01-03 | 待开始 | Ansible/Nornir 推送 + CI/CD 流水线 + 多租户 + 监控告警 |
+| [Beta](https://github.com/bangbang8000-cell/MagicCommander/milestone/2) | 2026.08-09 | ✅ 已完成 | 智能校对、模板资产中心（版本管理/调试沙盒）、Excel/Jinja2 深度集成（依赖分析/片段复用） |
+| **5.0 系列** | 2026.09 | ✅ 已完成 | 十版收官（AI 底座/工作流/协作/3D/性能/质量/交付/内容资产），双端三位一体 |
+| **5.1 系列（规划）** | 2026.09+ | 🚀 规划中 | **AI Agent 互联**：MCP Server 双场景（编译态受限 / 源码态无限制），让 Claude/Codex/Trae/VS Code/Hermes 等外部 Agent 直接查询、创建、更新、渲染项目/模板/设备库 |
+| [GA](https://github.com/bangbang8000-cell/MagicCommander/milestone/3) | 待定 | 待开始 | 社区分享中心 + 协作审阅 + 项目生命周期 + 权限体系 |
+| [Scale](https://github.com/bangbang8000-cell/MagicCommander/milestone/4) | 待定 | 待开始 | Ansible/Nornir 推送 + CI/CD 流水线 + 多租户 + 监控告警 |
 
 ---
 
