@@ -1,164 +1,221 @@
 /**
- * 4.3 F3-1b（测试计划 A-2）：MC 批量 AI 操作命令化
- *
- * 覆盖：
- * - 批量导出命令 `export`（多项目/当前选中项目回退/目录选项/成功反馈）
- * - 模板操作命令 `template preview`（预览）/ `template create`（基于模板创建）
- * - 批量统一入口 `batch`（render/export/select 转发）
- * - 命令执行有反馈：成功 success 日志、失败 error 日志
+ * MC：终端命令注册表（commandRegistry）命令执行测试
+ * 覆盖 parseInput / executeCommand / commands 主要命令分支
  */
-import { beforeEach, describe, expect, it, vi } from 'vitest'
-import {
-  executeCommand,
-  commands,
-  type CommandContext,
-  type LogLevel,
-  type TerminalOutputKind,
-} from '@/components/terminal/commandRegistry'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { parseInput, executeCommand } from '@/components/terminal/commandRegistry'
+import type { CommandContext } from '@/components/terminal/commandRegistry'
 import { useProjectStore } from '@/stores/project.store'
+import { useUIStore } from '@/stores/ui.store'
 
 function makeCtx() {
-  const logs: Array<{ level: LogLevel; msg: string }> = []
-  const ctx: CommandContext = {
-    addLog: (level, msg, _kind?: TerminalOutputKind) => {
-      logs.push({ level, msg })
-    },
-    toggleDark: () => {},
-    setTheme: () => {},
-    clearTerminal: () => {},
-    selectProject: () => {},
-  }
-  return { ctx, logs }
+  return {
+    addLog: vi.fn(),
+    toggleDark: vi.fn(),
+    setTheme: vi.fn(),
+    clearTerminal: vi.fn(),
+    selectProject: vi.fn(),
+  } as unknown as CommandContext
 }
 
-function mockElectron(partial: Record<string, unknown>) {
-  const base = (window.electron as unknown as Record<string, unknown>) ?? {}
-  ;(window.electron as unknown as Record<string, unknown>) = { ...base, ...partial }
+const electronProjectMock = {
+  list: vi.fn().mockResolvedValue([]),
+  listExamples: vi.fn().mockResolvedValue(['ex1', 'ex2']),
+  listTemplates: vi.fn().mockResolvedValue([{ name: 't1', id: 't1' }]),
+  create: vi.fn().mockResolvedValue(undefined),
+  delete: vi.fn().mockResolvedValue(undefined),
+  readFile: vi.fn().mockResolvedValue('# 文件内容'),
+  deleteTemplate: vi.fn().mockResolvedValue(undefined),
 }
-
-function resetStore() {
-  useProjectStore.setState({ projects: [], selectedProject: null })
-  vi.unstubAllGlobals()
+const electronDeleteMock = {
+  output: vi.fn().mockResolvedValue(undefined),
+  outputSn: vi.fn().mockResolvedValue(undefined),
+  yaml: vi.fn().mockResolvedValue(undefined),
+  yamlSn: vi.fn().mockResolvedValue(undefined),
 }
 
 beforeEach(() => {
-  resetStore()
-  mockElectron({
-    output: {
-      export: vi.fn().mockResolvedValue('D:/exports/projA.zip'),
-    },
-    render: {
-      project: vi.fn().mockResolvedValue(undefined),
-    },
-    project: {
-      list: vi.fn().mockResolvedValue([
-        { id: 1, name: 'projA', index: 0 },
-        { id: 2, name: 'projB', index: 1 },
-      ]),
-      templatePreview: vi.fn().mockResolvedValue({ results: [{ project: 'projA', device: 'ASW-1', content: '...' }] }),
-      create: vi.fn().mockResolvedValue(undefined),
-    },
+  ;(window.electron as unknown as Record<string, unknown>).project = electronProjectMock
+  ;(window.electron as unknown as Record<string, unknown>).delete = electronDeleteMock
+  useProjectStore.setState({ projects: [], selectedProject: null } as never)
+  useUIStore.setState({ isDark: false } as never)
+  for (const m of Object.values(electronProjectMock)) m.mockClear()
+  for (const m of Object.values(electronDeleteMock)) m.mockClear()
+})
+
+describe('parseInput', () => {
+  it('空输入返回空命令', () => {
+    expect(parseInput('')).toEqual({ cmd: '', args: [] })
+    expect(parseInput('   ')).toEqual({ cmd: '', args: [] })
+  })
+
+  it('普通输入拆分命令与参数', () => {
+    expect(parseInput('help')).toEqual({ cmd: 'help', args: [] })
+    expect(parseInput('render project1 --full')).toEqual({ cmd: 'render', args: ['project1', '--full'] })
   })
 })
 
-// ===== 命令注册 =====
+describe('executeCommand 基础', () => {
+  it('空输入为 no-op', async () => {
+    const ctx = makeCtx()
+    await executeCommand('', ctx)
+    expect(ctx.addLog).not.toHaveBeenCalled()
+  })
 
-describe('批量命令注册', () => {
-  it('批量命令已注册（export / batch / template 子命令）', () => {
-    expect(commands.export).toBeDefined()
-    expect(commands.batch).toBeDefined()
-    expect(commands.template).toBeDefined()
+  it('未知命令输出错误提示', async () => {
+    const ctx = makeCtx()
+    await executeCommand('nosuchcmd', ctx)
+    expect(ctx.addLog).toHaveBeenCalledWith('error', expect.stringContaining('未知命令'))
+  })
+
+  it('help 输出帮助行（含 cli 子主题）', async () => {
+    const ctx = makeCtx()
+    await executeCommand('help', ctx)
+    expect(ctx.addLog).toHaveBeenCalled()
+    await executeCommand('help cli', ctx)
+    expect(ctx.addLog).toHaveBeenCalled()
+  })
+
+  it('version / ver 输出版本', async () => {
+    const ctx = makeCtx()
+    await executeCommand('version', ctx)
+    expect(ctx.addLog).toHaveBeenCalledWith('success', expect.stringContaining('MagicCommander'))
+    await executeCommand('ver', ctx)
+    expect(ctx.addLog).toHaveBeenCalledWith('success', expect.stringContaining('MagicCommander'))
+  })
+
+  it('clear / cls 清屏', async () => {
+    const ctx = makeCtx()
+    await executeCommand('clear', ctx)
+    expect(ctx.clearTerminal).toHaveBeenCalled()
+    await executeCommand('cls', ctx)
+    expect(ctx.clearTerminal).toHaveBeenCalled()
+  })
+
+  it('echo 拼接输出', async () => {
+    const ctx = makeCtx()
+    await executeCommand('echo hello world', ctx)
+    expect(ctx.addLog).toHaveBeenCalledWith('info', 'hello world')
   })
 })
 
-// ===== export 批量导出 =====
-
-describe('export 批量导出', () => {
-  it('export projects <ids> 批量导出并输出成功反馈（含导出路径）', async () => {
-    const { ctx, logs } = makeCtx()
-    const exportSpy = vi.fn().mockResolvedValue('D:/exports/projA.zip')
-    mockElectron({ output: { export: exportSpy } })
-    await executeCommand('export projects 1,2', ctx)
-    expect(exportSpy).toHaveBeenCalledTimes(2)
-    expect(exportSpy).toHaveBeenCalledWith('projA', 'zip')
-    expect(exportSpy).toHaveBeenCalledWith('projB', 'zip')
-    expect(logs.some((l) => l.level === 'success' && l.msg.includes('导出'))).toBe(true)
+describe('theme 命令', () => {
+  it('无参数切换主题', async () => {
+    const ctx = makeCtx()
+    await executeCommand('theme', ctx)
+    expect(ctx.toggleDark).toHaveBeenCalled()
+    expect(ctx.addLog).toHaveBeenCalledWith('success', expect.stringContaining('主题'))
   })
 
-  it('export 不带 ids 时回退到当前选中项目', async () => {
-    useProjectStore.setState({
-      projects: [{ id: 9, name: 'selProj', index: 0 }],
-      selectedProject: { id: 9, name: 'selProj', index: 0 },
-    })
-    const { ctx, logs } = makeCtx()
-    const exportSpy = vi.fn().mockResolvedValue('D:/exports/selProj.zip')
-    mockElectron({ output: { export: exportSpy } })
-    await executeCommand('export', ctx)
-    expect(exportSpy).toHaveBeenCalledWith('selProj', 'zip')
-    expect(logs.some((l) => l.level === 'success')).toBe(true)
+  it('light/dark 显式设置', async () => {
+    const ctx = makeCtx()
+    await executeCommand('theme dark', ctx)
+    expect(ctx.setTheme).toHaveBeenCalledWith('dark')
+    await executeCommand('theme light', ctx)
+    expect(ctx.setTheme).toHaveBeenCalledWith('light')
   })
 
-  it('export 无项目时输出错误反馈', async () => {
-    mockElectron({ project: { list: vi.fn().mockResolvedValue([]) } })
-    const { ctx, logs } = makeCtx()
-    await executeCommand('export', ctx)
-    expect(logs.some((l) => l.level === 'error')).toBe(true)
-  })
-
-  it('export 失败时输出 error 反馈', async () => {
-    const exportSpy = vi.fn().mockRejectedValue(new Error('导出失败原因'))
-    mockElectron({ output: { export: exportSpy } })
-    const { ctx, logs } = makeCtx()
-    await executeCommand('export projects 1', ctx)
-    expect(logs.some((l) => l.level === 'error' && l.msg.includes('导出失败原因'))).toBe(true)
+  it('非法主题报错', async () => {
+    const ctx = makeCtx()
+    await executeCommand('theme bogus', ctx)
+    expect(ctx.addLog).toHaveBeenCalledWith('error', expect.stringContaining('未知主题'))
   })
 })
 
-// ===== template preview / create（基于模板创建）=====
-
-describe('template 批量操作子命令', () => {
-  it('template preview <projectId> <templatePath> 预览并输出反馈', async () => {
-    const { ctx, logs } = makeCtx()
-    const previewSpy = vi.fn().mockResolvedValue({ results: [{ project: 'projA', device: 'ASW-1', content: 'x' }] })
-    mockElectron({ project: { templatePreview: previewSpy } })
-    await executeCommand('template preview 1 templates/ASW.j2', ctx)
-    expect(previewSpy).toHaveBeenCalledWith('1', 'templates/ASW.j2')
-    expect(logs.some((l) => l.level === 'success' && l.msg.includes('预览'))).toBe(true)
+describe('list 命令', () => {
+  it('本地有项目时直接列出', async () => {
+    useProjectStore.setState({ projects: [{ id: 1, name: 'p1' }] } as never)
+    const ctx = makeCtx()
+    await executeCommand('list', ctx)
+    expect(ctx.addLog).toHaveBeenCalledWith('info', expect.stringContaining('项目列表'))
   })
 
-  it('template create <name> --template <tpl> 基于模板创建并输出反馈', async () => {
-    const { ctx, logs } = makeCtx()
-    const createSpy = vi.fn().mockResolvedValue(undefined)
-    mockElectron({ project: { create: createSpy } })
-    await executeCommand('template create newProj --template example1', ctx)
-    expect(createSpy).toHaveBeenCalledWith('newProj', { template: 'example1' })
-    expect(logs.some((l) => l.level === 'success' && l.msg.includes('newProj'))).toBe(true)
+  it('本地无项目时走 Electron 列表', async () => {
+    electronProjectMock.list.mockResolvedValueOnce([{ id: 2, name: 'p2' }])
+    const ctx = makeCtx()
+    await executeCommand('list', ctx)
+    expect(ctx.addLog).toHaveBeenCalledWith('info', expect.stringContaining('项目列表'))
+  })
+
+  it('list examples / templates', async () => {
+    const ctx = makeCtx()
+    await executeCommand('list examples', ctx)
+    expect(ctx.addLog).toHaveBeenCalledWith('info', expect.stringContaining('示例模板'))
+    await executeCommand('list templates', ctx)
+    expect(ctx.addLog).toHaveBeenCalledWith('info', expect.stringContaining('模板'))
+  })
+
+  it('未知参数报错', async () => {
+    const ctx = makeCtx()
+    await executeCommand('list bogus', ctx)
+    expect(ctx.addLog).toHaveBeenCalledWith('error', expect.stringContaining('未知参数'))
   })
 })
 
-// ===== batch 批量统一入口 =====
-
-describe('batch 批量统一入口', () => {
-  it('batch render <ids> 转发到 render 命令并输出反馈', async () => {
-    const { ctx, logs } = makeCtx()
-    const renderSpy = vi.fn().mockResolvedValue(undefined)
-    mockElectron({ render: { project: renderSpy } })
-    await executeCommand('batch render 1,2', ctx)
-    expect(renderSpy).toHaveBeenCalledWith(['1', '2'])
-    expect(logs.some((l) => l.level === 'success' && l.msg.includes('渲染'))).toBe(true)
+describe('create / select / delete 命令', () => {
+  it('create 无参数输出用法', async () => {
+    const ctx = makeCtx()
+    await executeCommand('create', ctx)
+    expect(ctx.addLog).toHaveBeenCalledWith('error', expect.stringContaining('用法'))
   })
 
-  it('batch export <ids> 转发到 export 命令', async () => {
-    const { ctx } = makeCtx()
-    const exportSpy = vi.fn().mockResolvedValue('D:/exports/projA.zip')
-    mockElectron({ output: { export: exportSpy } })
-    await executeCommand('batch export 1', ctx)
-    expect(exportSpy).toHaveBeenCalledWith('projA', 'zip')
+  it('create 带选项调用 Electron 创建', async () => {
+    const ctx = makeCtx()
+    await executeCommand('create demo --empty --template t1', ctx)
+    expect(electronProjectMock.create).toHaveBeenCalledWith('demo', { empty: true, template: 't1' })
+    expect(ctx.addLog).toHaveBeenCalledWith('success', expect.stringContaining('创建成功'))
   })
 
-  it('batch 未知子命令输出 error 反馈', async () => {
-    const { ctx, logs } = makeCtx()
-    await executeCommand('batch nonsense', ctx)
-    expect(logs.some((l) => l.level === 'error')).toBe(true)
+  it('create 失败输出错误', async () => {
+    electronProjectMock.create.mockRejectedValueOnce(new Error('磁盘满'))
+    const ctx = makeCtx()
+    await executeCommand('create demo', ctx)
+    expect(ctx.addLog).toHaveBeenCalledWith('error', expect.stringContaining('创建失败'))
+  })
+
+  it('select 本地项目', async () => {
+    useProjectStore.setState({ projects: [{ id: 1, name: 'p1' }] } as never)
+    const ctx = makeCtx()
+    await executeCommand('select p1', ctx)
+    expect(ctx.selectProject).toHaveBeenCalledWith('p1')
+  })
+
+  it('select 不存在项目报错', async () => {
+    const ctx = makeCtx()
+    await executeCommand('select nope', ctx)
+    expect(ctx.addLog).toHaveBeenCalledWith('error', expect.stringContaining('不存在'))
+  })
+
+  it('delete project 删除项目', async () => {
+    const ctx = makeCtx()
+    await executeCommand('delete project 5', ctx)
+    expect(electronProjectMock.delete).toHaveBeenCalledWith(['5'])
+  })
+
+  it('delete output 删除输出', async () => {
+    const ctx = makeCtx()
+    await executeCommand('delete output 1,2', ctx)
+    expect(electronDeleteMock.output).toHaveBeenCalledWith(['1', '2'])
+  })
+
+  it('delete 未知类型报错', async () => {
+    const ctx = makeCtx()
+    await executeCommand('delete bogus', ctx)
+    expect(ctx.addLog).toHaveBeenCalledWith('error', expect.stringContaining('未知删除类型'))
+  })
+})
+
+describe('read / cat 命令', () => {
+  it('read 读取项目文件', async () => {
+    useProjectStore.setState({ projects: [{ id: 1, name: 'p1' }], selectedProject: { id: 1, name: 'p1' } } as never)
+    const ctx = makeCtx()
+    await executeCommand('read p1 docs/a.md', ctx)
+    expect(electronProjectMock.readFile).toHaveBeenCalledWith(1, 'docs/a.md')
+  })
+
+  it('read 项目不存在报错', async () => {
+    const ctx = makeCtx()
+    await executeCommand('read nope docs/a.md', ctx)
+    expect(ctx.addLog).toHaveBeenCalledWith('error', expect.stringContaining('不存在'))
   })
 })
