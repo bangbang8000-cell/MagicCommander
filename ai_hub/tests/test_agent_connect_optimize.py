@@ -19,8 +19,10 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 @pytest.fixture(autouse=True)
 def _init(tmp_path):
     from ai_hub.agent.tools import init_tools, set_workspace_dir
+    from ai_hub.knowledge.engine import get_knowledge_engine
 
     set_workspace_dir(str(tmp_path))
+    get_knowledge_engine().init_dir(str(tmp_path))  # 知识引擎写入 tmp，避免污染仓库
     init_tools()
     yield
 
