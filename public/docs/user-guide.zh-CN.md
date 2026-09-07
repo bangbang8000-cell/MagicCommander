@@ -66,7 +66,7 @@ MagicCommander 是一款专业的网络设备配置管理工具。它将设备�
 - **编辑**：撤销、重做、剪切/复制/粘贴、快捷键列表
 - **视图**：快速切换各活动视图（AI 对话 / 工作台 / 输出结果等）、切换侧边栏/底部面板、切换主题（亮色/暗色/跟随系统）
 - **工具**：检查更新、终端、日志查看器
-- **帮助**：使用指南、快捷键列表、关于
+- **帮助**：使用指南、MCP 接入指南、快捷键列表、关于
 
 ---
 
@@ -316,6 +316,8 @@ AI Hub 内置**技能库**与**知识库**，让 AI 越用越懂你的工作方�
 
 ### 接入外部 Agent（3 步）
 
+> 💡 **程序内指引**：帮助菜单 → **MCP 接入指南** 可直接在工作区打开完整指南（顶部「复制接入配置」一键复制）；设置页 Agent Connect 区块也提供「复制接入配置 / 打开 MCP 接入指南」按钮，无需手动记配置。
+
 1. **开启**：设置 → Agent Connect，打开开关（可切换 `compiled` / `source` 模式）
 2. **复制配置**：按下方你的 Agent 客户端粘贴对应配置（`<工作区目录>` 替换为你的 workspace，`<仓库根>` 为 MagicCommander-Client 绝对路径）
 3. **自检**：设置页点击「自检」逐项绿灯即接入成功
@@ -438,7 +440,7 @@ DeepSeek、OpenAI、Claude、Gemini、Qwen、GLM、Grok、Ollama 本地模型，
 所有项目数据在本地 `workspace/` 目录。AI 对话与渲染均在本机执行，API Key 本地加密存储。
 
 **Q: 如何让外部 AI Agent（Claude / Codex / Trae / VS Code）操作 MagicCommander？**
-5.1 系列起支持 Agent Connect：设置 → Agent Connect 开启 → 按"Agent Connect"章节复制 MCP 配置到你的 Agent 客户端，再运行自检即可。编译态不修改软件本体，源码态（`npm run dev:all`）可追加 CLI 与源码直读。
+5.1 系列起支持 Agent Connect：设置 → Agent Connect 开启 → 按"Agent Connect"章节复制 MCP 配置到你的 Agent 客户端，再运行自检即可。帮助菜单的 **MCP 接入指南** 可在工作区打开完整接入文档并一键复制配置。编译态不修改软件本体，源码态（`npm run dev:all`）可追加 CLI 与源码直读。
 
 ---
 

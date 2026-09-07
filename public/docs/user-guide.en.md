@@ -64,7 +64,7 @@ Starting with the 5.1 series, MagicCommander can also act as a standard MCP Serv
 - **Edit**: undo, redo, copy, paste
 - **View**: toggle sidebar/bottom panel, theme (light/dark/system)
 - **Tools**: check updates, terminal, log viewer
-- **Help**: user guide, shortcut list, about
+- **Help**: user guide, MCP integration guide, shortcut list, about
 
 ---
 
@@ -314,6 +314,8 @@ Run from source with `npm run dev:all` and start with `--mode source` to unlock 
 
 ### Connect an external agent (3 steps)
 
+> 💡 **In-app guide**: Help → **MCP Integration Guide** opens the full guide in the workspace (with a one-click "Copy Config" button at the top); the Agent Connect section in Settings also offers "Copy Config / Open MCP Guide" buttons — no need to remember the config by hand.
+
 1. **Enable**: Settings → Agent Connect, turn the switch on (toggle `compiled` / `source`)
 2. **Paste config**: add the config for your agent client below (replace `<workspace_dir>` with your workspace and `<repo_root>` with the MagicCommander-Client absolute path)
 3. **Self-check**: click Self-check in Settings; when every item is green you are connected
@@ -436,7 +438,7 @@ DeepSeek, OpenAI, Claude, Gemini, Qwen, GLM, Grok, local Ollama, and any OpenAI-
 All project data lives in the local `workspace/` directory. AI runs locally; API keys are stored encrypted.
 
 **Q: How do I let an external AI agent (Claude / Codex / Trae / VS Code) operate MagicCommander?**
-Since the 5.1 series, use Agent Connect: enable it in Settings → Agent Connect, paste the MCP config from the "Agent Connect" section into your agent client, then run the self-check. Compiled mode never modifies the software; Source mode (`npm run dev:all`) adds CLI passthrough and source reading.
+Since the 5.1 series, use Agent Connect: enable it in Settings → Agent Connect, paste the MCP config from the "Agent Connect" section into your agent client, then run the self-check. The **MCP Integration Guide** in the Help menu opens the full integration doc in the workspace with one-click config copy. Compiled mode never modifies the software; Source mode (`npm run dev:all`) adds CLI passthrough and source reading.
 
 ---
 
