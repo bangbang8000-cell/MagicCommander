@@ -57,6 +57,18 @@ def main():
     from ai_hub.llm.provider import init_providers
     init_providers()
 
+    # 5.1.1-511-a/511-c：Agent Connect MCP Server（默认关、隐藏）
+    # 开关开启时按 agent_mode 启用 MCP Server；审计写入 <workspace>/agent-connect-audit.jsonl
+    from ai_hub.config import get_agent_mode, get_enable_agent_connect
+    if get_enable_agent_connect():
+        from ai_hub.mcp_server.manager import get_agent_connect_manager
+        mgr = get_agent_connect_manager()
+        if args.workspace:
+            from pathlib import Path
+            mgr.set_audit_path(Path(args.workspace) / "agent-connect-audit.jsonl")
+        ok, msg = mgr.enable(agent_mode=get_agent_mode())
+        print(f"AGENT_CONNECT mode={get_agent_mode()} ok={ok} {msg}", flush=True)
+
     # 预绑定端口（防御性兜底）：uvicorn 启动前先占用端口，若已被占用立即输出
     # AI_HUB_PORT_IN_USE 信号并以退出码 2 退出，供 Electron 侧识别。
     # 主防线是 Electron 侧 reclaimPort（M2），此处为兜底防线。
