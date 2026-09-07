@@ -210,7 +210,98 @@ async def _diff_compare(args: dict) -> str:
     return await _run_python_cli(["diff", "compare", project_name])
 
 
+# ====== 5.1.7-517-b：源码态文件系统工具（沙箱 + 越权拒绝） ======
+
+def _sandbox_roots() -> list[str]:
+    """源码态可读范围：工作区 + 仓库根（读源码）。"""
+    roots = []
+    if _workspace_dir:
+        roots.append(str(Path(_workspace_dir).resolve()))
+    roots.append(str(Path(__file__).resolve().parents[2]))
+    return roots
+
+
+def _resolve_sandbox(path: str) -> Path | None:
+    """解析路径并校验在沙箱内（符号链接解析后）。越权返回 None。"""
+    try:
+        p = Path(path).resolve()
+    except OSError:
+        return None
+    for root in _sandbox_roots():
+        try:
+            p.relative_to(Path(root).resolve())
+            return p
+        except ValueError:
+            continue
+    return None
+
+
+async def _read_sandbox_file(path: str) -> str:
+    """读取沙箱内文件；越权/不存在/读取失败返回结构化错误。"""
+    resolved = _resolve_sandbox(path)
+    if resolved is None:
+        return json.dumps({"status": "error", "error": f"路径越权（沙箱外）: {path}"}, ensure_ascii=False)
+    if not resolved.is_file():
+        return json.dumps({"status": "error", "error": f"文件不存在: {path}"}, ensure_ascii=False)
+    try:
+        content = resolved.read_text(encoding="utf-8", errors="replace")
+    except OSError as e:
+        return json.dumps({"status": "error", "error": f"读取失败: {e}"}, ensure_ascii=False)
+    return json.dumps({"status": "ok", "path": str(resolved), "content": content[:20000]}, ensure_ascii=False)
+
+
+async def _list_dir(args: dict) -> str:
+    """【源码态】列出沙箱内目录条目。"""
+    path = args.get("path") or args.get("directory") or ""
+    if not path:
+        return json.dumps({"status": "error", "error": "缺少必需参数: path"}, ensure_ascii=False)
+    resolved = _resolve_sandbox(path)
+    if resolved is None:
+        return json.dumps({"status": "error", "error": f"路径越权（沙箱外）: {path}"}, ensure_ascii=False)
+    if not resolved.is_dir():
+        return json.dumps({"status": "error", "error": f"目录不存在: {path}"}, ensure_ascii=False)
+    try:
+        entries = [
+            {"name": child.name, "type": "dir" if child.is_dir() else "file"}
+            for child in sorted(resolved.iterdir())
+        ]
+    except OSError as e:
+        return json.dumps({"status": "error", "error": f"读取目录失败: {e}"}, ensure_ascii=False)
+    return json.dumps({"status": "ok", "path": str(resolved), "entries": entries[:200]}, ensure_ascii=False)
+
+
+async def _read_source(args: dict) -> str:
+    """【源码态】读取源码/项目文件（沙箱内，超范围拒绝）。"""
+    path = args.get("path") or args.get("sourcePath") or ""
+    if not path:
+        return json.dumps({"status": "error", "error": "缺少必需参数: path"}, ensure_ascii=False)
+    return await _read_sandbox_file(path)
+
+
+# ====== 5.1.7-517-a：源码态 CLI 透传（白名单子命令） ======
+_CLI_ALLOWED_ROOTS = ("project", "template", "render", "validate", "diff", "label", "analyze", "file")
+
+
+async def _run_cli(args: dict) -> str:
+    """【源码态】白名单 CLI 透传：仅允许预置子命令族，其余拒绝。"""
+    subcommand = (args.get("subcommand") or "").strip()
+    if not subcommand:
+        return json.dumps({"status": "error", "error": "缺少必需参数: subcommand"}, ensure_ascii=False)
+    root = subcommand.split(" ")[0]
+    if root not in _CLI_ALLOWED_ROOTS:
+        return json.dumps({"status": "error", "error": f"CLI 子命令不在白名单: {subcommand}"}, ensure_ascii=False)
+    cli_args = args.get("args") or []
+    if not isinstance(cli_args, list):
+        return json.dumps({"status": "error", "error": "参数 args 应为数组"}, ensure_ascii=False)
+    cmd = [*subcommand.split(), *[str(a) for a in cli_args]]
+    return await _run_python_cli(cmd)
+
+
 async def _read_file(args: dict) -> str:
+    """读取文件：源码态支持沙箱内任意路径（path），或项目内文件（projectName+filePath）。"""
+    path = args.get("path")
+    if path:
+        return await _read_sandbox_file(path)
     project_name = args["projectName"]
     file_path = args["filePath"]
     return await _run_python_cli(["project", "read-file", project_name, file_path])
@@ -999,8 +1090,6 @@ async def _add_knowledge(args: dict) -> str:
     return json.dumps({"status": "ok", "entry": entry}, ensure_ascii=False)
 
 
-# ====== 5.1.4-514-c / 5.1.5-515-d：异步任务工具 + 审计查询 ======
-
 async def _audit_query(args: dict) -> str:
     """查询 Agent Connect 操作审计（按 agent/tool/result 过滤，返回最近 N 条脱敏摘要）。"""
     from ai_hub.mcp_server.manager import get_agent_connect_manager
@@ -1257,14 +1346,15 @@ def init_tools():
 
     register_tool(
         "read_file",
-        "读取项目中的文件内容",
+        "读取文件：源码态可用 path 读取沙箱内任意文件（工作区/仓库根），或 projectName+filePath 读取项目内文件",
         {
             "type": "object",
             "properties": {
-                "projectName": {"type": "string", "description": "项目名称"},
-                "filePath": {"type": "string", "description": "文件相对路径"},
+                "projectName": {"type": "string", "description": "项目名称（项目内读取时必填）"},
+                "filePath": {"type": "string", "description": "文件相对路径（项目内读取时必填）"},
+                "path": {"type": "string", "description": "沙箱内绝对路径（源码态通用读取，可选）"},
             },
-            "required": ["projectName", "filePath"],
+            "required": [],
         },
         _read_file,
     )
@@ -1709,6 +1799,48 @@ def init_tools():
             "required": ["title", "content"],
         },
         _add_knowledge,
+    )
+
+    # ====== 5.1.7-517-a/b：源码态工具（CLI 透传 + 文件系统，编译态被过滤） ======
+
+    register_tool(
+        "run_cli",
+        "【源码态】白名单 CLI 透传：project/template/render/validate/diff/label/analyze/file 子命令",
+        {
+            "type": "object",
+            "properties": {
+                "subcommand": {"type": "string", "description": "子命令，如 project list / render project <name>"},
+                "args": {"type": "array", "items": {"type": "string"}, "description": "附加参数"},
+            },
+            "required": ["subcommand"],
+        },
+        _run_cli,
+    )
+
+    register_tool(
+        "list_dir",
+        "【源码态】列出沙箱内目录条目（工作区/仓库根内，超范围拒绝）",
+        {
+            "type": "object",
+            "properties": {
+                "path": {"type": "string", "description": "沙箱内目录路径"},
+            },
+            "required": ["path"],
+        },
+        _list_dir,
+    )
+
+    register_tool(
+        "read_source",
+        "【源码态】读取源码/项目文件（沙箱内，超范围拒绝）",
+        {
+            "type": "object",
+            "properties": {
+                "path": {"type": "string", "description": "沙箱内文件路径"},
+            },
+            "required": ["path"],
+        },
+        _read_source,
     )
 
     # ====== 5.1.4-514-c：异步任务工具（长耗时渲染/导出 → task_id + 进度轮询） ======
