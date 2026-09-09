@@ -1,10 +1,10 @@
 MagicCommander
 ==============
-Version: 5.1.0
-Build: 26090701
-Display Version: V5.1.0 Build 26090701
-Release Date: 2026-09-07
+Version: 5.2.1
+Build: 26090901
+Display Version: V5.2.1 Build 26090901
+Release Date: 2026-09-09
 Architecture: Electron + React + Python
 Description: 网络设备配置管理工具 - 基于模板和参数批量生成网络设备配置
 Version Rule: V{MAJOR}.{MINOR}.{PATCH} Build {YYMMDDNN}
-Git Tag: v5.1.0
+Git Tag: v5.2.1

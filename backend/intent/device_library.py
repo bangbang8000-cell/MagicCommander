@@ -12,7 +12,8 @@ import os
 _DEVICES = None
 _DEVICE_LIBRARY_PATH = os.path.join(os.path.dirname(__file__), 'device_library.json')
 DEVICE_LIBRARY_SCHEMA = 'mc.device-library/1'
-DEVICE_LIBRARY_VERSION = 1
+# 522-a：版本 1→2 —— AL 5.2.0 同步灌入 recommended_scenario/recommended_network 字段
+DEVICE_LIBRARY_VERSION = 2
 
 # 角色 → 设备 id（D-1~D-3 定稿，RoCE/以太默认）
 ROLE_DEVICE_ID = {
@@ -55,6 +56,46 @@ def _load():
 def _invalidate_cache():
     global _DEVICES
     _DEVICES = None
+
+
+def apply_recommendations(bundle: dict, target_path: str | None = None) -> dict:
+    """5.2.1（522-a）：从 AL 设备推荐 bundle 灌入 recommended_scenario/recommended_network。
+
+    - bundle schema: al.device-recommend/1（{devices: [{id, recommended_scenario, recommended_network}]}）
+    - 语义：按 id 命中 → 合并推荐字段（last-wins 覆盖，不触碰 MC 其余设备字段）；
+      id 未命中 → 跳过（AL 有而 MC 无的设备不新增，保持 MC 设备库为校正子集）。
+    - target 缺省写回内置 device_library.json。
+    """
+    if not isinstance(bundle, dict) or bundle.get('schema') != 'al.device-recommend/1':
+        raise ValueError(f'设备推荐包 schema 不受支持: {bundle.get("schema")}')
+    recs = {(d.get('id')): d for d in bundle.get('devices', []) if isinstance(d, dict) and d.get('id')}
+    target = target_path or _DEVICE_LIBRARY_PATH
+    existing = load_devices_from(target)
+    updated, skipped = [], []
+    for did, dev in existing.items():
+        rec = recs.get(did)
+        if not rec:
+            continue
+        new_scenario = rec.get('recommended_scenario')
+        new_network = rec.get('recommended_network')
+        if new_scenario is not None:
+            dev['recommended_scenario'] = new_scenario
+        if new_network is not None:
+            dev['recommended_network'] = new_network
+        updated.append(did)
+    # 未命中的推荐条目（AL 有而 MC 无）
+    skipped = sorted(set(recs) - set(existing))
+    with open(target, 'w', encoding='utf-8') as f:
+        json.dump(sorted(existing.values(), key=lambda x: x.get('id', '')), f, ensure_ascii=False, indent=2)
+    if target == _DEVICE_LIBRARY_PATH:
+        _invalidate_cache()
+    return {
+        'ok': True,
+        'schema': 'al.device-recommend/1',
+        'applied': updated,
+        'skipped': skipped,
+        'local_count': len(existing),
+    }
 
 
 def load_devices_from(path: str) -> dict:
@@ -180,6 +221,21 @@ def model_str(device_id):
         vendor = d.get('vendor', 'H3C')
         return f'{vendor} {d.get("model", device_id)}'
     return device_id
+
+
+def device_recommendations(device_id):
+    """5.2.1（522-b）：设备推荐信息（AL 5.2.0 同步灌入）。
+
+    返回 {'recommended_scenario': [...], 'recommended_network': [...]}（缺字段 → 空列表）。
+    供前端设备详情/选型建议展示使用；无该设备返回 None。
+    """
+    d = get_device(device_id)
+    if not d:
+        return None
+    return {
+        'recommended_scenario': d.get('recommended_scenario', []),
+        'recommended_network': d.get('recommended_network', []),
+    }
 
 
 def role_device_id(role, fabric='roce'):

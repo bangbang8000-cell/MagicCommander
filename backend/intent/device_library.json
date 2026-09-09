@@ -11,7 +11,11 @@
       "oob"
     ],
     "protocol": "roce",
-    "port_speed_max": "10G"
+    "port_speed_max": "10G",
+    "recommended_network": [
+      "independent",
+      "eth_3in1"
+    ]
   },
   {
     "id": "h3c_s5130s_52p_ei",
@@ -24,7 +28,11 @@
     "applicable_networks": [
       "oob"
     ],
-    "protocol": "roce"
+    "protocol": "roce",
+    "recommended_network": [
+      "independent",
+      "eth_3in1"
+    ]
   },
   {
     "id": "h3c_s5560x_54c_ei",
@@ -38,7 +46,11 @@
       "oob"
     ],
     "protocol": "roce",
-    "port_speed_max": "10G"
+    "port_speed_max": "10G",
+    "recommended_network": [
+      "independent",
+      "eth_3in1"
+    ]
   },
   {
     "id": "h3c_s6805_56hf_g",
@@ -52,7 +64,11 @@
       "oob"
     ],
     "protocol": "roce",
-    "port_speed_max": "100G"
+    "port_speed_max": "100G",
+    "recommended_network": [
+      "independent",
+      "eth_3in1"
+    ]
   },
   {
     "id": "h3c_s6850_56hf",
@@ -66,7 +82,13 @@
       "biz"
     ],
     "protocol": "roce",
-    "port_speed_max": "100G"
+    "port_speed_max": "100G",
+    "recommended_network": [
+      "independent",
+      "biz_oob_2in1",
+      "eth_3in1",
+      "inference_4in1"
+    ]
   },
   {
     "id": "h3c_s9825_128b",
@@ -79,7 +101,10 @@
     "applicable_networks": [
       "storage"
     ],
-    "protocol": "roce"
+    "protocol": "roce",
+    "recommended_network": [
+      "independent"
+    ]
   },
   {
     "id": "h3c_s9825_64d",
@@ -92,6 +117,10 @@
     "description": "H3C S9825-64D 64×400G 参数网交换机（命令级参考基准，P1 核对源）",
     "applicable_networks": [
       "param"
+    ],
+    "recommended_network": [
+      "rail_optimized",
+      "dual_plane"
     ]
   },
   {
@@ -105,7 +134,12 @@
     "applicable_networks": [
       "param"
     ],
-    "protocol": "roce"
+    "protocol": "roce",
+    "recommended_network": [
+      "rail_optimized",
+      "dual_plane",
+      "zcube"
+    ]
   },
   {
     "id": "h3c_s9850_32h",
@@ -118,7 +152,13 @@
     "applicable_networks": [
       "biz"
     ],
-    "protocol": "roce"
+    "protocol": "roce",
+    "recommended_network": [
+      "independent",
+      "biz_oob_2in1",
+      "eth_3in1",
+      "inference_4in1"
+    ]
   },
   {
     "id": "nvidia_mqm8700_40_200g_ib",
@@ -131,6 +171,9 @@
     "description": "NVIDIA Quantum HDR MQM8700 40×200G HDR InfiniBand 智能交换机（带管理口，中小规模 IB 集群 Spine/Leaf）",
     "applicable_networks": [
       "param"
+    ],
+    "recommended_network": [
+      "rail_optimized"
     ]
   },
   {
@@ -144,6 +187,9 @@
     "description": "NVIDIA Quantum HDR MQM8790 40×200G HDR InfiniBand 非管理交换机（中小规模 IB 集群 Spine/Leaf）",
     "applicable_networks": [
       "param"
+    ],
+    "recommended_network": [
+      "rail_optimized"
     ]
   },
   {
@@ -157,6 +203,10 @@
     "description": "NVIDIA Quantum-2 MQM9700-NS2F 64×NDR 400G InfiniBand 智能交换机（带管理口，AI 训练集群 IB 参数网 Spine/Leaf）",
     "applicable_networks": [
       "param"
+    ],
+    "recommended_network": [
+      "rail_optimized",
+      "dual_plane"
     ]
   },
   {
@@ -170,6 +220,10 @@
     "description": "NVIDIA Quantum-2 MQM9790-NS2F 64×NDR 400G InfiniBand 非管理交换机（AI 训练集群 IB 参数网 Spine/Leaf）",
     "applicable_networks": [
       "param"
+    ],
+    "recommended_network": [
+      "rail_optimized",
+      "dual_plane"
     ]
   }
 ]

@@ -4,6 +4,7 @@
 import { describe, it, expect } from 'vitest'
 import {
   buildRoomModel,
+  cabinetColor,
   gridDims,
   gridPosition,
   gridOriginOffset,
@@ -169,3 +170,53 @@ function hexRed(hex: string): number {
 function hexGreen(hex: string): number {
   return parseInt(hex.slice(3, 5), 16)
 }
+
+// ---- 5.2.1（523-a/b/c）：机柜类型着色 + 拓扑模式透传 ----
+
+describe('cabinetColor（机柜类型着色）', () => {
+  it('GPU / Scale-Up 为绿色', () => {
+    expect(cabinetColor('gpu')).toBe('#22c55e')
+    expect(cabinetColor('scaleup')).toBe('#22c55e')
+  })
+
+  it('网络为蓝色 / 存储为紫色 / 通算为橙色', () => {
+    expect(cabinetColor('network')).toBe('#3b82f6')
+    expect(cabinetColor('storage')).toBe('#a855f7')
+    expect(cabinetColor('compute')).toBe('#f97316')
+  })
+
+  it('安全为青色 / 电源为黄色 / 未知为灰色', () => {
+    expect(cabinetColor('security')).toBe('#06b6d4')
+    expect(cabinetColor('power')).toBe('#eab308')
+    expect(cabinetColor('bogus')).toBe('#9ca3af')
+    expect(cabinetColor(undefined)).toBe('#9ca3af')
+  })
+})
+
+describe('buildRoomModel 拓扑模式透传 + 柜型透传', () => {
+  it('透传 topologyMode / combinedMode 到 RoomModel', () => {
+    const m = buildRoomModel([{ rack: 1, name: 'A' }], {
+      topologyMode: 'zcube',
+      combinedMode: '4in1',
+    })
+    expect(m.topologyMode).toBe('zcube')
+    expect(m.combinedMode).toBe('4in1')
+  })
+
+  it('缺省时不携带拓扑字段', () => {
+    const m = buildRoomModel([{ rack: 1, name: 'A' }])
+    expect(m.topologyMode).toBeUndefined()
+    expect(m.combinedMode).toBeUndefined()
+  })
+
+  it('设备 cabinetType 透传到 CabinetDevice', () => {
+    const m = buildRoomModel([
+      { rack: 1, name: 'GPU1', cabinetType: 'gpu' },
+      { rack: 2, name: 'NET1', cabinetType: 'network' },
+    ])
+    const gpu = m.cabinets.find((c) => c.rackNumber === 1)
+    const net = m.cabinets.find((c) => c.rackNumber === 2)
+    expect(gpu?.cabinetType).toBe('gpu')
+    expect(net?.cabinetType).toBe('network')
+  })
+})

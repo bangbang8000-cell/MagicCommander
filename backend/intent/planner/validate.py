@@ -22,7 +22,7 @@ from ..resolver import IntentContext
 AS_MIN, AS_MAX = 65001, 65500
 VLAN_PLANE = {'compute': (100, 199), 'storage': (200, 299), 'biz': (300, 399), 'oob': (400, 499)}
 
-# 桥接标识（契约 v1.2，判别规则见 docs/plan_table_契约v1.2 §2）
+# 桥接标识（契约 v1.3，判别规则见 docs/plan_table_契约v1.2 §2；MC 5.2.1 同步）
 BRIDGE_FIELDS = ('source', 'projectType', 'bridgeVersion')
 BRIDGE_SOURCE = 'autolink'
 BRIDGE_TYPE = 'aidc'
@@ -199,4 +199,14 @@ def validate_plan(plan: dict) -> list[str]:
                 issues.append('planHash 与 macro 不符（文件被篡改或算法不同步）')
         except (TypeError, ValueError):
             issues.append('planHash 校验失败（macro 不可序列化）')
+    # 6) 契约 v1.3 可选字段值域校验（MC 5.2.1 / 521-b）：
+    #    新字段全部可选 —— 缺（v1.1/v1.2 旧文件）→ 跳过（warn 不阻断）；存在 → 值域校验。
+    for field, allowed in (
+        ('topologyMode', ('rail_optimized', 'dual_plane', 'zcube')),
+        ('combinedMode', ('independent', '2in1', '3in1', '4in1')),
+        ('scenario', ('training', 'inference', 'general')),
+    ):
+        val = macro.get(field)
+        if val is not None and val not in allowed:
+            issues.append(f'{field} 值域非法: {val!r}（须为 {allowed}）')
     return issues

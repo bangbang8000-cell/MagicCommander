@@ -41,7 +41,7 @@ class TestDeviceLibraryIO:
         out = str(tmp_path / 'dev.json')
         bundle = export_device_library(out)
         assert bundle['schema'] == DEVICE_LIBRARY_SCHEMA
-        assert bundle['version'] == 1
+        assert bundle['version'] == 2  # 5.2.1（522-a）：版本 1→2（含 AL 同步推荐字段）
         assert bundle['count'] == len(bundle['devices']) > 0
         assert all(d.get('id') for d in bundle['devices'])
         saved = json.load(open(out, encoding='utf-8'))

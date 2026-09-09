@@ -6,7 +6,7 @@
 import React, { useMemo } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { OrbitControls, Grid, Html } from '@react-three/drei'
-import { powerToHeatColor, rackPowerPercent, type RoomModel } from '@/utils/room3d'
+import { cabinetColor, powerToHeatColor, rackPowerPercent, type RoomModel } from '@/utils/room3d'
 
 /** 机柜盒体尺寸（按真实 42U 机柜 1:1 缩放） */
 const CABINET_W = 0.6
@@ -31,11 +31,15 @@ export function Room3DView({
   selectedRack?: number | null
   onCabinetSelect?: (rackNumber: number) => void
 }) {
+  // 5.2.1（523-a）：机柜颜色优先按柜型着色（cabinetType），无柜型回退功率热力色
   const colorByRack = useMemo(() => {
     const m = new Map<number, string>()
-    for (const r of model.racks) m.set(r.rackNumber, powerToHeatColor(rackPowerPercent(r.rackNumber)))
+    for (const r of model.racks) {
+      const type = model.cabinets.find((c) => c.rackNumber === r.rackNumber)?.cabinetType
+      m.set(r.rackNumber, type ? cabinetColor(type) : powerToHeatColor(rackPowerPercent(r.rackNumber)))
+    }
     return m
-  }, [model.racks])
+  }, [model.racks, model.cabinets])
 
   if (model.racks.length === 0) {
     return (
@@ -83,6 +87,14 @@ export function Room3DView({
         ))}
         <OrbitControls enablePan enableZoom makeDefault />
       </Canvas>
+      <div className="absolute top-2 left-2 flex flex-wrap items-center gap-2 text-[10px]">
+        {model.topologyMode && (
+          <span className="bg-blue-600/90 text-white rounded px-2 py-0.5">拓扑：{model.topologyMode}</span>
+        )}
+        {model.combinedMode && (
+          <span className="bg-indigo-600/90 text-white rounded px-2 py-0.5">合分：{model.combinedMode}</span>
+        )}
+      </div>
       <div className="absolute bottom-2 left-2 flex flex-wrap items-center gap-2 text-[10px] text-gray-500 bg-white/70 dark:bg-gray-900/70 rounded px-2 py-1">
         <span className="inline-flex items-center gap-1">
           <span className="inline-block w-2 h-2 rounded-full" style={{ background: powerToHeatColor(0.3) }} /> 低载

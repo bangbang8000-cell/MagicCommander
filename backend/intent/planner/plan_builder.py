@@ -24,6 +24,14 @@ _DEFAULT_SEG = {
     'interconnect': '10.1.72.0/21',
 }
 
+# 521-c：契约 v1.3 拓扑模式默认值（与 AL aidc_planner 默认一致；v1.1/v1.2 旧文件缺字段时兜底）
+_DEFAULT_TOPOLOGY = {
+    'topologyMode': 'rail_optimized',
+    'combinedMode': 'independent',
+    'scenario': 'training',
+    'paramPlanes': [],
+}
+
 # role → 场景（MC 场景命名）
 _ROLE_TO_SCN = {
     'SPINE': 'SPINE', 'LEAF': 'LEAF', 'STO_SPINE': 'STO_SPINE', 'STO_LEAF': 'STO_LEAF',
@@ -293,6 +301,11 @@ class PlanContextBuilder:
         # 供生成器型号解析与渲染核对使用；缺省 roce（与设备库默认一致）。
         from ..device_library import resolve_models_fabric
         self.ctx.globals['fabric'] = resolve_models_fabric(m.get('deviceModels') or {})
+        # 521-c：契约 v1.3 拓扑模式字段透传（缺省 = AL 默认；v1.1/v1.2 旧文件取默认值，兼容导入）
+        self.ctx.globals['topology_mode'] = m.get('topologyMode', _DEFAULT_TOPOLOGY['topologyMode'])
+        self.ctx.globals['combined_mode'] = m.get('combinedMode', _DEFAULT_TOPOLOGY['combinedMode'])
+        self.ctx.globals['scenario'] = m.get('scenario', _DEFAULT_TOPOLOGY['scenario'])
+        self.ctx.globals['param_planes'] = m.get('paramPlanes', _DEFAULT_TOPOLOGY['paramPlanes'])
         self.ctx.keys = set(self.ctx.globals)
         for scn, by_id in self.ctx.device_params.items():
             for _id, params in by_id.items():

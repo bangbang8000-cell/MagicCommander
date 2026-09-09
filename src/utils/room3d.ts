@@ -10,6 +10,8 @@
 export interface RackDevice {
   rack?: number
   name?: string
+  /** 5.2.1（523-a）：机柜类型（GPU/网络/存储/通算等，供着色） */
+  cabinetType?: string
 }
 
 /** 机柜网格安放位置（原点左上，x 水平、z 纵向） */
@@ -34,12 +36,17 @@ export interface CabinetDevice {
   rackNumber: number
   name?: string
   uPlacement: UPlacement
+  /** 5.2.1（523-a）：机柜类型（供 3D 着色） */
+  cabinetType?: string
 }
 
 /** 生成的机房模型 */
 export interface RoomModel {
   racks: RackGridPlacement[]
   cabinets: CabinetDevice[]
+  /** 5.2.1（523-a）：拓扑模式（AL plan:table v1.3 透传） */
+  topologyMode?: string
+  combinedMode?: string
 }
 
 /** 标准机柜 U 位总数（假定 42U） */
@@ -95,8 +102,12 @@ export function gridPosition(index: number, count: number): { row: number; col: 
  * - 不同 rack 编号排入方形网格（含通道间距）；
  * - 同一 rack 的设备自下而上分配 U 位（默认 1U/台）。
  * 无 rack 的设备将被忽略（不占用机柜）。
+ * 5.2.1（523-a）：可透传拓扑模式/合分模式（AL plan:table v1.3），供 3D 场景标签展示。
  */
-export function buildRoomModel(devices: RackDevice[]): RoomModel {
+export function buildRoomModel(
+  devices: RackDevice[],
+  options?: { topologyMode?: string; combinedMode?: string },
+): RoomModel {
   const byRack = new Map<number, RackDevice[]>()
   for (const d of devices) {
     if (d.rack == null) continue
@@ -115,7 +126,7 @@ export function buildRoomModel(devices: RackDevice[]): RoomModel {
     for (const dev of byRack.get(rackNumber)!) {
       const heightU = Math.min(Math.max(DEFAULT_DEVICE_U, 1), MAX_DEVICE_U)
       const u = cursor
-      cabinets.push({ rackNumber, name: dev.name, uPlacement: { u, heightU } })
+      cabinets.push({ rackNumber, name: dev.name, uPlacement: { u, heightU }, cabinetType: dev.cabinetType })
       cursor += heightU
       if (cursor > CABINET_U) {
         // 超出机柜容量后不再安放后续设备，避免越界
@@ -124,7 +135,35 @@ export function buildRoomModel(devices: RackDevice[]): RoomModel {
     }
   })
 
-  return { racks, cabinets }
+  return {
+    racks,
+    cabinets,
+    topologyMode: options?.topologyMode,
+    combinedMode: options?.combinedMode,
+  }
+}
+
+// ── 5.2.1（523-a）：机柜类型着色（与 AL 机房 3D 语义一致） ──────────
+
+/** 机柜类型 → 颜色（GPU=绿 / 网络=蓝 / 存储=紫 / 通算=橙 / 安全=青 / 其他=灰） */
+export function cabinetColor(cabinetType?: string): string {
+  switch (cabinetType) {
+    case 'gpu':
+    case 'scaleup':
+      return '#22c55e' // 绿（GPU/Scale-Up）
+    case 'network':
+      return '#3b82f6' // 蓝（网络柜）
+    case 'storage':
+      return '#a855f7' // 紫（存储柜）
+    case 'compute':
+      return '#f97316' // 橙（通算柜）
+    case 'security':
+      return '#06b6d4' // 青（安全柜）
+    case 'power':
+      return '#eab308' // 黄（电源柜）
+    default:
+      return '#9ca3af' // 灰（未标记/其他）
+  }
 }
 
 // ── 功率 → 热力色（绿→黄→红，与 AL 一致） ─────────────────────────

@@ -399,7 +399,17 @@ export function AidcImportDialog({ open, onClose }: { open: boolean; onClose: ()
   }, [planObj])
 
   // 5.0.6（C）：机房 3D 模型（由 deviceList 纯推导）
-  const roomModel = useMemo(() => (planObj ? buildRoomModel(planObj.deviceList) : null), [planObj])
+  // 5.2.1（523-b）：透传 plan:table v1.3 拓扑模式/合分模式 → 3D 场景标签
+  const roomModel = useMemo(
+    () =>
+      planObj
+        ? buildRoomModel(planObj.deviceList, {
+            topologyMode: planObj.macro.topologyMode as string | undefined,
+            combinedMode: planObj.macro.combinedMode as string | undefined,
+          })
+        : null,
+    [planObj],
+  )
   const rackDevices = useMemo(() => {
     if (!roomModel || selectedRack == null) return []
     return roomModel.cabinets.filter((c) => c.rackNumber === selectedRack)

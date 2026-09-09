@@ -103,8 +103,8 @@ class TestBridgeContract:
         assert meta['source'] == 'autolink'
         assert meta['projectType'] == 'aidc'
         assert meta['bridgeVersion'] == '1.0'
-        assert meta['version'] == '1.1'
-        assert meta['schema'] == 'plan:table/1.1'
+        assert meta['version'] == '1.3'
+        assert meta['schema'] == 'plan:table/1.3'
         assert meta['generatedAt']
 
     def test_macro_camelcase_and_new_fields(self):
@@ -260,3 +260,109 @@ class TestBridgeContract:
         plan2 = generate_plantable(ctx)
         plan2['connections'].append({'src': 'ghost-device', 'dst': 'SPINE'})
         assert any('src 未在 deviceList' in i for i in validate_plan(plan2))
+
+
+class TestContractV13:
+    """契约 v1.3（MC 5.2.1 / 521-a/b/c/d）：拓扑模式字段生成/校验/导入/向后兼容。"""
+
+    def test_generate_outputs_v13_fields(self):
+        ctx = build_pilot64_context()
+        plan = generate_plantable(ctx)
+        m = plan['macro']
+        # 新字段存在 + 默认值（与 AL aidc_planner 默认一致）
+        assert m['topologyMode'] == 'rail_optimized'
+        assert m['combinedMode'] == 'independent'
+        assert m['scenario'] == 'training'
+        assert m['paramPlanes'] == []
+        # topology 冗余描述
+        assert plan['topology']['mode'] == 'rail_optimized'
+        assert plan['topology']['combined'] == 'independent'
+
+    def test_generate_honors_context_globals(self):
+        ctx = build_pilot64_context()
+        ctx.globals['topology_mode'] = 'dual_plane'
+        ctx.globals['combined_mode'] = '2in1'
+        ctx.globals['scenario'] = 'inference'
+        ctx.globals['param_planes'] = ['p1']
+        plan = generate_plantable(ctx)
+        m = plan['macro']
+        assert m['topologyMode'] == 'dual_plane'
+        assert m['combinedMode'] == '2in1'
+        assert m['scenario'] == 'inference'
+        assert m['paramPlanes'] == ['p1']
+        assert plan['topology']['mode'] == 'dual_plane'
+
+    def test_validate_accepts_valid_v13(self):
+        ctx = build_pilot64_context()
+        plan = generate_plantable(ctx)
+        plan['macro']['topologyMode'] = 'zcube'
+        plan['macro']['combinedMode'] = '4in1'
+        plan['macro']['scenario'] = 'inference'
+        assert validate_plan(plan) == []
+
+    def test_validate_rejects_bad_v13_values(self):
+        ctx = build_pilot64_context()
+        plan = generate_plantable(ctx)
+        plan['macro']['topologyMode'] = 'bogus'
+        issues = validate_plan(plan)
+        assert any('topologyMode 值域非法' in i for i in issues)
+        plan2 = generate_plantable(ctx)
+        plan2['macro']['combinedMode'] = 'nope'
+        assert any('combinedMode 值域非法' in i for i in validate_plan(plan2))
+
+    def test_validate_legacy_missing_v13_fields(self):
+        # v1.1/v1.2 旧文件缺新字段 → 不报错（可选字段，向后兼容）
+        ctx = build_pilot64_context()
+        plan = generate_plantable(ctx)
+        for k in ('topologyMode', 'combinedMode', 'scenario', 'paramPlanes'):
+            plan['macro'].pop(k, None)
+        assert validate_plan(plan) == []
+
+    def test_import_passes_v13_to_context(self):
+        ctx = build_pilot64_context()
+        plan = generate_plantable(ctx)
+        plan['macro']['topologyMode'] = 'zcube'
+        plan['macro']['combinedMode'] = '3in1'
+        plan['macro']['scenario'] = 'inference'
+        ctx2 = plantable_to_context(plan)
+        assert ctx2.globals['topology_mode'] == 'zcube'
+        assert ctx2.globals['combined_mode'] == '3in1'
+        assert ctx2.globals['scenario'] == 'inference'
+        assert ctx2.globals['param_planes'] == []
+
+    def test_import_legacy_defaults_v13(self):
+        # v1.1 旧文件 → 新字段取默认值（不报错，兼容导入）
+        plan = {
+            'meta': {'source': 'autolink', 'projectType': 'aidc', 'bridgeVersion': '1.0'},
+            'macro': {'site': 'BJ01', 'gpuCount': 2, 'pfcQueue': 3, 'cnpQueue': 6,
+                      'ipSegments': {'loopback': '10.1.0.0/20', 'compute': '10.1.16.0/20',
+                                     'storage': '10.1.32.0/20', 'biz': '10.1.48.0/20',
+                                     'oob': '10.1.64.0/21', 'interconnect': '10.1.72.0/21'}},
+            'deviceList': [
+                {'role': 'SPINE', 'scenario': 'SPINE', 'name': 'BJ01-R01-AIDC-H3C-P-Spine-01', 'asn': 65111},
+                {'role': 'LEAF', 'scenario': 'LEAF', 'name': 'BJ01-R02-AIDC-H3C-P-Leaf-01', 'asn': 65101},
+            ],
+            'connections': [
+                {'src': 'BJ01-R02-AIDC-H3C-P-Leaf-01', 'src_port': 'FourHundredGigE1/0/33',
+                 'dst': 'SPINE', 'rate': '400G'},
+            ],
+            'terminals': [],
+        }
+        ctx = plantable_to_context(plan)
+        assert ctx.globals['topology_mode'] == 'rail_optimized'
+        assert ctx.globals['combined_mode'] == 'independent'
+        assert ctx.globals['scenario'] == 'training'
+        assert ctx.globals['param_planes'] == []
+
+    def test_import_auto_summary_includes_topology(self, tmp_path):
+        from intent.planner.plantable_importer import import_plan_auto
+        ctx = build_pilot64_context()
+        plan = generate_plantable(ctx)
+        plan['meta']['projectId'] = 'P-521'
+        plan['meta']['projectName'] = 'v13-summary'
+        plan['meta']['planHash'] = 'x' * 64
+        plan['macro']['topologyMode'] = 'zcube'
+        summary = import_plan_auto(plan, str(tmp_path))
+        assert summary['ok'] is True
+        assert summary['topology']['topologyMode'] == 'zcube'
+        assert summary['topology']['combinedMode'] == 'independent'

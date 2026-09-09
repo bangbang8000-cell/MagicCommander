@@ -4,6 +4,8 @@ import importlib.util
 import json
 import os
 
+import pytest
+
 from intent.device_library import (
     FABRIC_ROLE_DEVICE_ID,
     IB_ROLE_DEVICE_ID,
@@ -166,3 +168,72 @@ def test_validate_device_library_catches_issues(tmp_path):
     miss_path = str(tmp_path / 'miss.json')
     json.dump(missing, open(miss_path, 'w', encoding='utf-8'))
     assert any('必填' in p for p in mod.validate_device_library(miss_path))
+
+
+# ---- 5.2.1（522-a/b）：AL 5.2.0 推荐字段同步 + 读取 ----
+
+def test_recommendations_applied_to_library():
+    """522-a：MC 设备库条目已含 AL 同步的 recommended_* 字段（提交库为基线）。"""
+    from intent.device_library import device_recommendations
+    # 角色映射设备应带推荐网络（AL 同步灌入）
+    rec = device_recommendations('h3c_s9827')
+    assert rec is not None
+    assert 'rail_optimized' in rec['recommended_network']
+    assert 'dual_plane' in rec['recommended_network']
+    # 未知设备 → None
+    assert device_recommendations('nope_missing') is None
+
+
+def test_apply_recommendations_merges(tmp_path):
+    """522-a：apply_recommendations 按 id 合并推荐字段，不触碰其余字段。"""
+    from intent.device_library import apply_recommendations
+    target = tmp_path / 'lib.json'
+    target.write_text(json.dumps([
+        {'id': 'h3c_s9827', 'vendor': 'H3C', 'model': 'S9827', 'port_count': 128},
+        {'id': 'h3c_s5120v3_52p_ei', 'vendor': 'H3C', 'model': 'S5120V3-52P-EI'},
+    ], ensure_ascii=False), encoding='utf-8')
+    bundle = {
+        'schema': 'al.device-recommend/1',
+        'devices': [
+            {'id': 'h3c_s9827', 'recommended_scenario': ['training'], 'recommended_network': ['rail_optimized']},
+            {'id': 'al_only_device', 'recommended_scenario': ['inference']},
+        ],
+    }
+    r = apply_recommendations(bundle, str(target))
+    assert r['ok'] is True
+    assert r['applied'] == ['h3c_s9827']
+    assert r['skipped'] == ['al_only_device']  # AL 有而 MC 无 → 跳过不新增
+    lib = json.load(open(target, encoding='utf-8'))
+    by_id = {d['id']: d for d in lib}
+    # 推荐字段合并 + 其余字段保留
+    assert by_id['h3c_s9827']['recommended_scenario'] == ['training']
+    assert by_id['h3c_s9827']['recommended_network'] == ['rail_optimized']
+    assert by_id['h3c_s9827']['port_count'] == 128
+    # 未命中的设备不新增字段
+    assert 'recommended_scenario' not in by_id['h3c_s5120v3_52p_ei']
+    # 不存在 AL 设备不新增
+    assert 'al_only_device' not in by_id
+
+
+def test_apply_recommendations_rejects_bad_schema(tmp_path):
+    from intent.device_library import apply_recommendations
+    with pytest.raises(ValueError):
+        apply_recommendations({'schema': 'mc.device-library/1'}, str(tmp_path / 'x.json'))
+
+
+def test_recommendations_consistency_with_al_library():
+    """522-a：MC 角色设备推荐网络 ⊆ AL 权威库（AL 仓在场时校验）。"""
+    al_root = r'd:/MyCoding/MC-AL/AIDC AutoLink-Client/template/device_library'
+    if not os.path.isdir(al_root):
+        return  # AL 仓不在场则跳过
+    from intent.device_library import device_recommendations
+    al = {}
+    for p in glob.glob(os.path.join(al_root, 'switches', '*', '*.json')):
+        d = json.load(open(p, encoding='utf-8'))
+        al[d['id']] = d
+    for role, did in ROLE_DEVICE_ID.items():
+        rec = device_recommendations(did)
+        a = al.get(did)
+        assert a is not None, f'AL 权威库缺 {did}'
+        if rec:
+            assert set(rec['recommended_network']) <= set(a.get('recommended_network', [])), did

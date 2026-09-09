@@ -1,14 +1,16 @@
 """
 P1.4 plan:table → MC 项目 转换程序（AL→MC 管道落点）。
 
-流程：AL 输出 plan:table（宏规划，契约 v1.2 含桥接标识）→ MC **校验桥接标识**
-→ 重建规划上下文（用宏参数：PFC/CNP 队列、收敛比等）→ 生成单项目四表格。
+流程：AL 输出 plan:table（宏规划，契约 v1.3 含桥接标识）→ MC **校验桥接标识**
+→ 重建规划上下文（用宏参数：PFC/CNP 队列、收敛比、拓扑模式等）→ 生成单项目四表格。
 
 plan:table 的 macro 参数是「可调整参数」，转换时生效；拓扑/接线由规划引擎
 按宏参数重建（G3 起按 deviceList/connections 全量驱动扩展）。
 
 契约 v1.2（M-4/M-6）：按 projectId 自动匹配导入（新建/更新/跳过）+
 mcPlanVersion 自增 + changelog 字段级 diff + plan.json 溯源保留。
+MC 5.2.1（521-c）：契约 v1.3 —— 解析 topologyMode/combinedMode/scenario/paramPlanes
+到上下文 globals + 摘要透传；v1.1/v1.2 旧文件缺字段取默认值，兼容导入。
 """
 import datetime
 import json
@@ -180,6 +182,12 @@ def import_plan_auto(plan: dict, workspace_dir: str,
     origin_name = meta.get('projectName', '') or meta.get('project', '')
     origin_site = meta.get('site', '') or macro.get('site', '')
     origin_plan_ver = meta.get('planVersion')
+    # 521-c：契约 v1.3 摘要透传（缺省取 AL 默认值，兼容 v1.1/v1.2）
+    topo = {
+        'topologyMode': macro.get('topologyMode', 'rail_optimized'),
+        'combinedMode': macro.get('combinedMode', 'independent'),
+        'scenario': macro.get('scenario', 'training'),
+    }
 
     # 匹配已有项目（P0 find_mc_project_by_origin 返回相对目录名 → 拼回绝对路径）
     existing = find_mc_project_by_origin(origin_id, workspace_dir) if origin_id else None
@@ -206,6 +214,7 @@ def import_plan_auto(plan: dict, workspace_dir: str,
             'mcPlanVersion': prev_mc, 'changed': False, 'changelog': prev_meta.get('changelog', []),
             'origin': {'projectId': origin_id, 'projectName': origin_name,
                        'site': origin_site, 'planVersion': origin_plan_ver, 'matched': 'skip'},
+            'topology': topo,
             'warnings': plan_identity_warnings(plan),
         }
 
@@ -245,6 +254,7 @@ def import_plan_auto(plan: dict, workspace_dir: str,
         'changelog': changelog[-5:],
         'origin': {'projectId': origin_id, 'projectName': origin_name,
                    'site': origin_site, 'planVersion': origin_plan_ver, 'matched': matched},
+        'topology': topo,
         'warnings': plan_identity_warnings(plan),
     }
 

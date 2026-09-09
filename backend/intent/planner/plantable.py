@@ -1,14 +1,16 @@
 """
-P1.3 plan:table 生成器（AL 规划输出，接口契约 PRD v2.0 §5）。
+P1.3 plan:table 生成器（AL 规划输出，接口契约 PRD v2.0 §5；MC 5.2.1 同步至契约 v1.3）。
 
 把规划上下文（IntentContext）序列化为 AL→MC 的 plan:table JSON：
-- meta / macro（可调参数：PFC/CNP 队列、收敛比、命名、AS 段、设备选型）
+- meta / macro（可调参数：PFC/CNP 队列、收敛比、命名、AS 段、设备选型、拓扑模式）
 - deviceList（设备清单：角色/型号/机柜/AS）
 - connections（接线规划：上联 + 终端，端口级 + 描述）
 - vlanRanges / protocols（VLAN 段、BGP AS/ECMP）
 - convergence
 
 AL 程序据此输出；MC 程序（plantable_importer）消费生成项目。
+MC 5.2.1（521-a）：契约 v1.3 —— macro 新增 topologyMode/combinedMode/scenario/paramPlanes，
+topology 新增 mode/combined 冗余描述，与 AL aidc_planner 输出对齐。
 """
 
 import datetime
@@ -24,13 +26,17 @@ _SCN_TO_ROLE = {
 _SCN_MODEL = {scn: ROLE_SCENARIO[role][1] for scn, role in _SCN_TO_ROLE.items()}
 _TERMINAL_KEY = {'LEAF': 'gpu', 'STO_LEAF': 'gpu', 'BIZACC': 'biz', 'OOBACC': 'downlink'}
 
-# 桥接标识（契约 v1.1；本生成器为 AL 产出的测试/联调模拟，故 source=autolink）
+# 桥接标识（契约 v1.3；本生成器为 AL 产出的测试/联调模拟，故 source=autolink）
 _BRIDGE = {
-    'source': 'autolink', 'projectType': 'aidc', 'bridgeVersion': '1.0', 'schema': 'plan:table/1.1',
+    'source': 'autolink', 'projectType': 'aidc', 'bridgeVersion': '1.0', 'schema': 'plan:table/1.3',
 }
-# macro 补齐默认值（契约 v1.1，F9/F10/D17）
+# macro 补齐默认值（契约 v1.3，F9/F10/D17；MC 5.2.1 新增拓扑模式字段，与 AL 默认一致）
 _NOMINAL = {
     'gpuCount': 64,
+    'topologyMode': 'rail_optimized',   # 契约 v1.3：轨道优化/双平面/Zcube
+    'combinedMode': 'independent',      # 契约 v1.3：四网独立/2合1/3合1/4合1
+    'scenario': 'training',             # 契约 v1.3：训练/推理/通用
+    'paramPlanes': [],                  # 契约 v1.3：参数平面列表（推理加速平面，4合1 场景）
     'naming': {'format': '{site}-R{rack:02d}-AIDC-{vendor}-{abbr}-{seq:02d}',
                'abbr': {'SPINE': 'P-Spine', 'LEAF': 'P-Leaf', 'STO_SPINE': 'S-Spine', 'STO_LEAF': 'S-Leaf',
                         'BIZAGG': 'BIZ-AGG', 'BIZACC': 'BIZ-ACC', 'OOBAGG': 'OOB-AGG', 'OOBACC': 'OOB-ACC'}},
@@ -100,7 +106,7 @@ def generate_plantable(ctx: IntentContext, project: str = 'aidc_pilot64') -> dic
     return {
         'meta': {
             'project': project, 'site': site,
-            'version': '1.1', 'schema': _BRIDGE['schema'],
+            'version': '1.3', 'schema': _BRIDGE['schema'],
             'generatedAt': now,
             'source': _BRIDGE['source'], 'projectType': _BRIDGE['projectType'],
             'bridgeVersion': _BRIDGE['bridgeVersion'],
@@ -112,6 +118,10 @@ def generate_plantable(ctx: IntentContext, project: str = 'aidc_pilot64') -> dic
             'bgpMaxPaths': ctx.globals.get('bgp_max_paths', 16),
             'convergence': 1.0,
             'rails': 8,
+            'topologyMode': ctx.globals.get('topology_mode', _NOMINAL['topologyMode']),
+            'combinedMode': ctx.globals.get('combined_mode', _NOMINAL['combinedMode']),
+            'scenario': ctx.globals.get('scenario', _NOMINAL['scenario']),
+            'paramPlanes': ctx.globals.get('param_planes', _NOMINAL['paramPlanes']),
             'naming': _NOMINAL['naming'],
             'ipSegments': _NOMINAL['ipSegments'],
             'deviceModels': dict(_SCN_MODEL),
@@ -123,6 +133,8 @@ def generate_plantable(ctx: IntentContext, project: str = 'aidc_pilot64') -> dic
         'topology': {
             'layers': 2, 'spines': n_spine, 'leaves': n_leaf, 'pods': None,
             'scale': {'gpuCount': _NOMINAL['gpuCount'], 'spine': n_spine, 'leaf': n_leaf},
+            'mode': ctx.globals.get('topology_mode', _NOMINAL['topologyMode']),
+            'combined': ctx.globals.get('combined_mode', _NOMINAL['combinedMode']),
         },
         'deviceList': device_list,
         'connections': connections,

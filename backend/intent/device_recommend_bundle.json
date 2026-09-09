@@ -1,0 +1,637 @@
+{
+  "schema": "al.device-recommend/1",
+  "kind": "device-recommend",
+  "count": 127,
+  "devices": [
+    {
+      "id": "nvidia_dgx_h100",
+      "recommended_scenario": [
+        "training"
+      ]
+    },
+    {
+      "id": "nvidia_dgx_b200",
+      "recommended_scenario": [
+        "training"
+      ]
+    },
+    {
+      "id": "nvidia_dgx_b300",
+      "recommended_scenario": [
+        "training"
+      ]
+    },
+    {
+      "id": "nvidia_dgx_gb300_nvl72",
+      "recommended_scenario": [
+        "training"
+      ]
+    },
+    {
+      "id": "nvidia_dgx_a100",
+      "recommended_scenario": [
+        "training"
+      ]
+    },
+    {
+      "id": "nvidia_hgx_h200",
+      "recommended_scenario": [
+        "training"
+      ]
+    },
+    {
+      "id": "nvidia_l20_8u",
+      "recommended_scenario": [
+        "inference"
+      ]
+    },
+    {
+      "id": "nvidia_l40s_8u",
+      "recommended_scenario": [
+        "inference"
+      ]
+    },
+    {
+      "id": "huawei_atlas_900",
+      "recommended_scenario": [
+        "training"
+      ]
+    },
+    {
+      "id": "huawei_atlas_800t_a2",
+      "recommended_scenario": [
+        "training"
+      ]
+    },
+    {
+      "id": "ascend_910c",
+      "recommended_scenario": [
+        "training"
+      ]
+    },
+    {
+      "id": "hygon_k100_ai",
+      "recommended_scenario": [
+        "training"
+      ]
+    },
+    {
+      "id": "cambricon_mlu590_8u",
+      "recommended_scenario": [
+        "training"
+      ]
+    },
+    {
+      "id": "fusionserver_v8_liquid",
+      "recommended_scenario": [
+        "training"
+      ]
+    },
+    {
+      "id": "h3c_r5500_g7",
+      "recommended_scenario": [
+        "training",
+        "inference"
+      ]
+    },
+    {
+      "id": "inspur_nf5688m7",
+      "recommended_scenario": [
+        "training",
+        "inference"
+      ]
+    },
+    {
+      "id": "generic_4u_gpu",
+      "recommended_scenario": [
+        "training",
+        "inference"
+      ]
+    },
+    {
+      "id": "huawei_oceanstor_dorado_8000",
+      "recommended_scenario": [
+        "storage"
+      ]
+    },
+    {
+      "id": "huawei_oceanstor_dorado_6000",
+      "recommended_scenario": [
+        "storage"
+      ]
+    },
+    {
+      "id": "h3c_unistor_cf22000",
+      "recommended_scenario": [
+        "storage"
+      ]
+    },
+    {
+      "id": "inspur_as13000",
+      "recommended_scenario": [
+        "storage"
+      ]
+    },
+    {
+      "id": "generic_all_flash",
+      "recommended_scenario": [
+        "storage"
+      ]
+    },
+    {
+      "id": "huawei_oceanstor_5310",
+      "recommended_scenario": [
+        "storage"
+      ]
+    },
+    {
+      "id": "huawei_oceanstor_5510",
+      "recommended_scenario": [
+        "storage"
+      ]
+    },
+    {
+      "id": "h3c_unistor_x10000",
+      "recommended_scenario": [
+        "storage"
+      ]
+    },
+    {
+      "id": "inspur_as5500",
+      "recommended_scenario": [
+        "storage"
+      ]
+    },
+    {
+      "id": "generic_hybrid_flash",
+      "recommended_scenario": [
+        "storage"
+      ]
+    },
+    {
+      "id": "beegfs_storage_node",
+      "recommended_scenario": [
+        "storage"
+      ]
+    },
+    {
+      "id": "ibm_spectrum_scale_node",
+      "recommended_scenario": [
+        "storage"
+      ]
+    },
+    {
+      "id": "wekaio_storage_node",
+      "recommended_scenario": [
+        "storage"
+      ]
+    },
+    {
+      "id": "huawei_oceanstor_pacific",
+      "recommended_scenario": [
+        "storage"
+      ]
+    },
+    {
+      "id": "ddn_exascaler_node",
+      "recommended_scenario": [
+        "storage"
+      ]
+    },
+    {
+      "id": "vast_data_storage_node",
+      "recommended_scenario": [
+        "storage"
+      ]
+    },
+    {
+      "id": "huawei_2288h_v7",
+      "recommended_scenario": [
+        "compute"
+      ]
+    },
+    {
+      "id": "h3c_r4900_g7",
+      "recommended_scenario": [
+        "compute"
+      ]
+    },
+    {
+      "id": "inspur_nf5280m7",
+      "recommended_scenario": [
+        "compute"
+      ]
+    },
+    {
+      "id": "ruijie_rg_s6250",
+      "recommended_scenario": [
+        "compute"
+      ]
+    },
+    {
+      "id": "generic_2u_compute",
+      "recommended_scenario": [
+        "compute"
+      ]
+    },
+    {
+      "id": "nvidia_mqm8700_40_200g_ib",
+      "recommended_network": [
+        "rail_optimized"
+      ]
+    },
+    {
+      "id": "nvidia_mqm8790_40_200g_ib",
+      "recommended_network": [
+        "rail_optimized"
+      ]
+    },
+    {
+      "id": "nvidia_q3200_72_800g_ib",
+      "recommended_network": [
+        "rail_optimized",
+        "dual_plane"
+      ]
+    },
+    {
+      "id": "nvidia_q3400_144_800g_ib",
+      "recommended_network": [
+        "rail_optimized",
+        "dual_plane",
+        "zcube"
+      ]
+    },
+    {
+      "id": "nvidia_sn5600_64_400g",
+      "recommended_network": [
+        "rail_optimized",
+        "dual_plane"
+      ]
+    },
+    {
+      "id": "nvidia_sn5400_64_200g",
+      "recommended_network": [
+        "rail_optimized"
+      ]
+    },
+    {
+      "id": "nvidia_sn5240_64_800g",
+      "recommended_network": [
+        "rail_optimized",
+        "dual_plane"
+      ]
+    },
+    {
+      "id": "ruijie_rg_s6990_64oc2xs",
+      "recommended_network": [
+        "rail_optimized",
+        "dual_plane"
+      ]
+    },
+    {
+      "id": "ruijie_rg_s9910_128oc2vs",
+      "recommended_network": [
+        "rail_optimized",
+        "dual_plane",
+        "zcube"
+      ]
+    },
+    {
+      "id": "h3c_s12500r_cpo_51_2t",
+      "recommended_network": [
+        "rail_optimized",
+        "dual_plane",
+        "zcube"
+      ]
+    },
+    {
+      "id": "generic_64p_400g",
+      "recommended_network": [
+        "rail_optimized",
+        "dual_plane"
+      ]
+    },
+    {
+      "id": "h3c_s9820_64h",
+      "recommended_network": [
+        "rail_optimized",
+        "dual_plane"
+      ]
+    },
+    {
+      "id": "h3c_s9820_8c",
+      "recommended_network": [
+        "rail_optimized"
+      ]
+    },
+    {
+      "id": "h3c_s9825_64d",
+      "recommended_network": [
+        "rail_optimized",
+        "dual_plane"
+      ]
+    },
+    {
+      "id": "h3c_s9827",
+      "recommended_network": [
+        "rail_optimized",
+        "dual_plane",
+        "zcube"
+      ]
+    },
+    {
+      "id": "huawei_ce16800_64_800g",
+      "recommended_network": [
+        "rail_optimized",
+        "dual_plane"
+      ]
+    },
+    {
+      "id": "huawei_ce8860_4c_ei",
+      "recommended_network": [
+        "rail_optimized"
+      ]
+    },
+    {
+      "id": "huawei_ce9860_4c_ei",
+      "recommended_network": [
+        "rail_optimized"
+      ]
+    },
+    {
+      "id": "nvidia_mqm9700_64_400g_ib",
+      "recommended_network": [
+        "rail_optimized",
+        "dual_plane"
+      ]
+    },
+    {
+      "id": "nvidia_mqm9790_64_400g_ib",
+      "recommended_network": [
+        "rail_optimized",
+        "dual_plane"
+      ]
+    },
+    {
+      "id": "ruijie_rg_s6980_64qc",
+      "recommended_network": [
+        "rail_optimized",
+        "dual_plane"
+      ]
+    },
+    {
+      "id": "ruijie_rg_s6910_32oc2vs_1_6t",
+      "recommended_network": [
+        "rail_optimized"
+      ]
+    },
+    {
+      "id": "nvidia_th6_128_800g_ib",
+      "recommended_network": [
+        "rail_optimized"
+      ]
+    },
+    {
+      "id": "huawei_ce6881_48s6cq",
+      "recommended_network": [
+        "independent"
+      ]
+    },
+    {
+      "id": "huawei_ce6885h",
+      "recommended_network": [
+        "independent"
+      ]
+    },
+    {
+      "id": "nvidia_sn4600c",
+      "recommended_network": [
+        "independent"
+      ]
+    },
+    {
+      "id": "generic_48p_200g",
+      "recommended_network": [
+        "independent"
+      ]
+    },
+    {
+      "id": "h3c_s9825_128b",
+      "recommended_network": [
+        "independent"
+      ]
+    },
+    {
+      "id": "h3c_s5560x_54s_ei",
+      "recommended_network": [
+        "independent",
+        "biz_oob_2in1",
+        "eth_3in1",
+        "inference_4in1"
+      ]
+    },
+    {
+      "id": "h3c_s6520x_54qc_ei",
+      "recommended_network": [
+        "independent",
+        "biz_oob_2in1",
+        "eth_3in1",
+        "inference_4in1"
+      ]
+    },
+    {
+      "id": "h3c_s6850_56hf",
+      "recommended_network": [
+        "independent",
+        "biz_oob_2in1",
+        "eth_3in1",
+        "inference_4in1"
+      ]
+    },
+    {
+      "id": "huawei_ce6860_48s6cq",
+      "recommended_network": [
+        "independent",
+        "biz_oob_2in1",
+        "eth_3in1",
+        "inference_4in1"
+      ]
+    },
+    {
+      "id": "huawei_s6730_h48x6c",
+      "recommended_network": [
+        "independent",
+        "biz_oob_2in1",
+        "eth_3in1",
+        "inference_4in1"
+      ]
+    },
+    {
+      "id": "huawei_s5731_h48t4xc",
+      "recommended_network": [
+        "independent",
+        "biz_oob_2in1",
+        "eth_3in1",
+        "inference_4in1"
+      ]
+    },
+    {
+      "id": "ruijie_rg_s6120_48xs8cq",
+      "recommended_network": [
+        "independent",
+        "biz_oob_2in1",
+        "eth_3in1",
+        "inference_4in1"
+      ]
+    },
+    {
+      "id": "ruijie_rg_s6000_8c_400g",
+      "recommended_network": [
+        "independent",
+        "biz_oob_2in1",
+        "eth_3in1",
+        "inference_4in1"
+      ]
+    },
+    {
+      "id": "generic_48p_25g",
+      "recommended_network": [
+        "independent",
+        "biz_oob_2in1",
+        "eth_3in1",
+        "inference_4in1"
+      ]
+    },
+    {
+      "id": "h3c_s12500r_48_800g",
+      "recommended_network": [
+        "independent",
+        "biz_oob_2in1",
+        "eth_3in1",
+        "inference_4in1"
+      ]
+    },
+    {
+      "id": "h3c_s9850_32h",
+      "recommended_network": [
+        "independent",
+        "biz_oob_2in1",
+        "eth_3in1",
+        "inference_4in1"
+      ]
+    },
+    {
+      "id": "huawei_ce8850_64cq_ei",
+      "recommended_network": [
+        "independent",
+        "biz_oob_2in1",
+        "eth_3in1",
+        "inference_4in1"
+      ]
+    },
+    {
+      "id": "ruijie_rg_s6510_48vs8cq",
+      "recommended_network": [
+        "independent",
+        "biz_oob_2in1",
+        "eth_3in1",
+        "inference_4in1"
+      ]
+    },
+    {
+      "id": "huawei_s5735_l48p4x_a",
+      "recommended_network": [
+        "independent",
+        "biz_oob_2in1",
+        "eth_3in1",
+        "inference_4in1"
+      ]
+    },
+    {
+      "id": "ruijie_rg_s5310_48gt4xs",
+      "recommended_network": [
+        "independent",
+        "biz_oob_2in1",
+        "eth_3in1",
+        "inference_4in1"
+      ]
+    },
+    {
+      "id": "h3c_s5130s_52p_ei",
+      "recommended_network": [
+        "independent",
+        "eth_3in1"
+      ]
+    },
+    {
+      "id": "h3c_s5130s_28p_ei",
+      "recommended_network": [
+        "independent",
+        "eth_3in1"
+      ]
+    },
+    {
+      "id": "h3c_s5120v3_52p_ei",
+      "recommended_network": [
+        "independent",
+        "eth_3in1"
+      ]
+    },
+    {
+      "id": "huawei_s5732_h48s6q",
+      "recommended_network": [
+        "independent",
+        "eth_3in1"
+      ]
+    },
+    {
+      "id": "ruijie_rg_s5750c_48gt4xs_h",
+      "recommended_network": [
+        "independent",
+        "eth_3in1"
+      ]
+    },
+    {
+      "id": "generic_48p_1g",
+      "recommended_network": [
+        "independent",
+        "eth_3in1"
+      ]
+    },
+    {
+      "id": "h3c_s6805_56hf_g",
+      "recommended_network": [
+        "independent",
+        "eth_3in1"
+      ]
+    },
+    {
+      "id": "h3c_s5820v2_52qf",
+      "recommended_network": [
+        "independent",
+        "eth_3in1"
+      ]
+    },
+    {
+      "id": "huawei_s5735_l48t4x_a",
+      "recommended_network": [
+        "independent",
+        "eth_3in1"
+      ]
+    },
+    {
+      "id": "ruijie_rg_s2928g",
+      "recommended_network": [
+        "independent",
+        "eth_3in1"
+      ]
+    },
+    {
+      "id": "h3c_s5560x_54c_ei",
+      "recommended_network": [
+        "independent",
+        "eth_3in1"
+      ]
+    }
+  ]
+}
