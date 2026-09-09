@@ -24,7 +24,7 @@ test('业务链路：新建项目 → 渲染 → 导出（冒烟三件套）', a
     await expect(nameInput).toBeVisible({ timeout: 20_000 })
     await nameInput.fill(projectName)
     await window.getByRole('button', { name: '创建', exact: true }).click()
-    await expect(window.getByText(`项目 "${projectName}" 创建成功`)).toBeVisible({ timeout: 30_000 })
+    await expect(window.getByText(`项目 "${projectName}" 创建成功`, { exact: true })).toBeVisible({ timeout: 30_000 })
     await expect(window.getByText(projectName, { exact: true }).first()).toBeVisible()
 
     // ── 2. 渲染（选中项目 → 工作台 → 仅渲染当前项目）──
