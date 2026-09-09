@@ -4,15 +4,20 @@
 
 ## [5.2.1] - 2026-09-09
 
-### AL 5.2.0 同步版（5.2.1 = MC 对 AL 5.2.0 的同步回应，3 项待同步全落地）
+### 新增
 
-- **契约 v1.3 解析（521-a/b/c/d）**：plan:table schema 升级到 1.3，完整解析 AL 新增的 `topologyMode / combinedMode / scenario / paramPlanes` 字段到规划上下文 + 摘要透传；`topology.mode/combined` 冗余描述；值域校验（可选，v1.1/v1.2 旧文件缺字段取默认值，向后兼容导入）。
-- **设备库互灌（522-a/b/c）**：从 AL 5.2.0 灌入 `recommended_scenario / recommended_network` 推荐字段（MC 13 台设备全部命中），新增 `apply_recommendations`（bundle 合并，last-wins）+ `device_recommendations`（读取辅助）；设备库版本 1→2。
-- **3D 数据源联动（523-a/b/c）**：机房 3D 视图读取 `topologyMode/combinedMode`（AL plan:table v1.3），顶部显示拓扑/合分标签；新增 `cabinetColor` 按机柜类型着色（GPU 绿 / 网络蓝 / 存储紫 / 通算橙 / 安全青 / 电源黄），无柜型回退功率热力色。
+- **契约 v1.3 解析（对 AL 5.2.0 同步，521-a/b/c/d）**：plan:table schema 升级到 1.3，完整解析 AL 新增的 `topologyMode / combinedMode / scenario / paramPlanes` 字段并注入规划上下文 + 导入摘要透传；`topology.mode/combined` 冗余描述与 AL 输出对齐。
+- **设备库互灌（522-a/b/c）**：从 AL 5.2.0 灌入 `recommended_scenario / recommended_network` 推荐字段（MC 13 台角色设备全部命中），新增 `apply_recommendations`（bundle 合并，last-wins）+ `device_recommendations`（读取辅助，供选型建议展示）；设备库版本 1→2。
+- **3D 数据源联动（523-a/b/c）**：机房 3D 视图读取 `topologyMode/combinedMode`（AL plan:table v1.3），场景顶部显示「拓扑/合分」标签；新增 `cabinetColor` 按机柜类型着色（GPU 绿 / 网络蓝 / 存储紫 / 通算橙 / 安全青 / 电源黄），无柜型回退功率热力色。
+
+### 改进
+
+- **v1.3 值域校验（可选）**：`validate_plan` 对 `topologyMode / combinedMode / scenario` 做值域校验；v1.1/v1.2 旧文件缺新字段时取 AL 默认值，向后兼容导入不阻断。
+- **e2e 稳定性**：新建项目成功通知改用精确匹配（exact），修复日志文本混排导致的 strict mode 冲突。
 
 ### 工程
 
-- 前端 vitest room3d 24 用例 + 后端 test_intent_plantable 23 用例 + test_device_library 17 用例全绿。
+- 前端 vitest 全量 645 用例（含 room3d 24）+ 后端 pytest 全量 378 用例（含契约 v1.3 23 + 设备库 17）全绿；typecheck / lint / format / check-version 门禁通过；CI（check + coverage + e2e）全绿。
 
 ## [5.1.0] - 2026-09-07
 
