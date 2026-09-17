@@ -2,15 +2,15 @@
 
 **批量生成网络设备配置 | Network Device Configuration Automation**
 
-[![Version](https://img.shields.io/badge/version-5.0.10-blue)](https://github.com/bangbang8000-cell/MagicCommander/releases)
+[![Version](https://img.shields.io/badge/version-5.2.2-blue)](https://github.com/bangbang8000-cell/MagicCommander/releases)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![Windows](https://img.shields.io/badge/Windows-NSIS-blue)](https://github.com/bangbang8000-cell/MagicCommander/releases)
 [![macOS](https://img.shields.io/badge/macOS-DMG-silver)](https://github.com/bangbang8000-cell/MagicCommander/releases)
 [![Linux](https://img.shields.io/badge/Linux-AppImage%20%7C%20deb-orange)](https://github.com/bangbang8000-cell/MagicCommander/releases)
 [![Languages](https://img.shields.io/badge/languages-6-orange)](https://github.com/bangbang8000-cell/MagicCommander)
 [![AI](https://img.shields.io/badge/AI--Powered-DeepSeek%20%7C%20OpenAI%20%7C%209%20Providers-purple)](https://github.com/bangbang8000-cell/MagicCommander)
-[![AI Tools](https://img.shields.io/badge/Agent--Tools-43-brightgreen)](https://github.com/bangbang8000-cell/MagicCommander)
-[![Tests](https://img.shields.io/badge/tests-672%2B%20passing-brightgreen)](https://github.com/bangbang8000-cell/MagicCommander/actions)
+[![AI Tools](https://img.shields.io/badge/Agent--Tools-53-brightgreen)](https://github.com/bangbang8000-cell/MagicCommander)
+[![Tests](https://img.shields.io/badge/tests-1645%20passing-brightgreen)](https://github.com/bangbang8000-cell/MagicCommander/actions)
 [![CI](https://img.shields.io/badge/CI-passing-brightgreen)](https://github.com/bangbang8000-cell/MagicCommander/actions)
 
 
@@ -101,7 +101,7 @@ AI: [调用 render_config → 生成 22 台设备配置]
      需要我 dry-run 预览一下吗？"
 ```
 
-支持 **智能路由**——根据任务类型（编码/分析/问答/推理）自动选择最优模型。AI 可调用 **43 个内置工具**，包括项目创建、配置渲染、Excel 分析、模板复杂度评估、dry-run 预演、diff 对比、标签生成、配置反向生成、技能自学习、知识库检索等。
+支持 **智能路由**——根据任务类型（编码/分析/问答/推理）自动选择最优模型。AI 可调用 **53 个内置工具**，包括项目创建、配置渲染、Excel 分析、模板复杂度评估、dry-run 预演、diff 对比、标签生成、配置反向生成、技能自学习、知识库检索等。
 
 **AI Agent 工作流深化**（5.0.3+）：多步自主任务编排（Plan→Execute→Verify 状态机，full_auto 自主 / advisor 每步确认 / semi_auto 关键步确认）；技能自学习闭环（反馈持久化 → 成功率评估 → 自动修订）；**MCP 工具接入**（可调用外部 MCP server 能力）；AI 引擎三选一（自有=默认 / Hermes / 自动）。
 
@@ -134,6 +134,21 @@ MagicCommander 支持连接自建 MagicCommander Platform（基于 Gitea + FastA
 - **QR 扫码登录**：支持飞书 / QQ / 微信扫码登录，JWT Token 自动刷新
 - **通知中心**：实时接收平台公告和版本更新提醒
 - **用户资料**：云端用户档案管理，支持平台账号绑定
+
+### Agent Connect — 让外部 AI Agent 直接操作 MagicCommander（5.1+）
+
+MagicCommander 5.1 起把自身封装为标准 **MCP Server**，Claude Desktop / Codex CLI / Trae Work / VS Code 等外部 Agent 可直接查询项目、读写模板、渲染配置、生成标签，无需你手工点界面。
+
+- **双场景模式**
+  - `--mode compiled`（编译态，默认）：**只读 + 受控写入**，不触碰软件本体；高危工具（删除/清库/裸 CLI/读源码）强制隐藏
+  - `--mode source`（源码态，`npm run dev:all`）：追加 `run_cli` 白名单透传与沙箱内文件系统读写，写操作放宽为 NOTIFY
+- **权限门禁（5.2.2 真实化）**：`gate_mode`（`enforce` / `shadow` / `off`）配置化生效，`gate_hits` / `block_audit` 记录拦截明细；启动时执行「屏蔽规则对账」断言——规则未命中任何注册工具即拒绝启动，杜绝静默失效
+- **确定性语义层**：一次调用返回单层 `{success, isError …}` 结构 + 扁平化 payload，工具结果机器可读
+- **异步长任务**：渲染等长耗时工具自动异步化（`task_submit` / `task_query` / `task_wait` / `task_cancel`），MCP 调用立即返回 task_id
+- **操作审计**：`--audit <path>` 落 JSONL，`audit_query` 工具可按会话查询脱敏摘要
+- **自检**：`GET /api/chat/agent-connect/selfcheck` 逐项体检（SDK / 开关 / 工具注册 / 屏蔽对账 / 门禁 / 审计）
+
+接入配置样例见 [docs/agent-connect/README.md](docs/agent-connect/README.md)。
 
 ### 6 种语言，全球团队可用
 
@@ -195,7 +210,7 @@ npm run dev:all
 
 ## 技术栈
 
-Electron 28 · React 18 · TypeScript 5 · Vite 5 · TailwindCSS 3 · Zustand 4 · Monaco Editor · Python 3.11 · Jinja2 · FastAPI · Gitea · JWT · i18next (6 语言) · Vitest
+Electron 28 · React 18 · TypeScript 5 · Vite 5 · TailwindCSS 3 · Zustand 4 · Monaco Editor · Python 3.12 · Jinja2 · FastAPI · Gitea · JWT · i18next (6 语言) · Vitest
 
 ## 项目架构
 
@@ -213,7 +228,7 @@ MagicCommander/
 │   ├── analyzer.py       # 项目/模板质量分析引擎
 │   └── requirements.txt  # Python 依赖
 ├── ai_hub/               # AI Hub 服务 (FastAPI Agent)
-│   ├── agent/            # Agent 框架 (43 Tools + 工具权限分级 + 多步任务)
+│   ├── agent/            # Agent 框架 (53 Tools + 工具权限分级 + 多步任务)
 │   ├── llm/              # 9 Provider 适配 (OpenAI 兼容接口)
 │   ├── mcp/              # MCP Client（外部 MCP server 工具接入）
 │   ├── skills/           # 技能自学习引擎
@@ -271,6 +286,9 @@ MagicCommander/
 
 | 版本 | 日期 | 更新内容 |
 |------|------|---------|
+| **5.2.2 Build 26091701** | 2026-09-17 | **Agent Connect 对外契约止血 + 可信门禁**（与 AL 5.2.2 同批次）：`tools/call` 失败置 `isError=true` 且响应扁平化 + 结构化 `error_code`（**破坏性变更**）；修复 **`toolName` 越权**（高危，可把只读调用路由到高风险工具）与**编译态屏蔽静默失效**（高危，固定枚举名单与实际注册名不符致危险工具泄漏）；屏蔽规则改**语义匹配** + `audit_block_rules()` 启动对账 + 编译态启动断言；stdio 入口强制校验总开关（关闭即退出码 2，`--ignore-switch` 排障）；新增 confirm 门禁可观测（`set_gate_mode`/`gate_hits`/`block_audit`）、MCP `annotations`、`resources`/`prompts` 注册、`inputSchema` 保真透传、`selfcheck()` 真实化；新增**双端同构结构比对**用例 + Agent Connect 契约用例（26 条）+ 文档数字一致性门禁 |
+| **5.2.1 Build 26090901** | 2026-09-09 | **AL 5.2.0 同步版**：契约 v1.3 解析（`topologyMode`/`combinedMode`/`scenario`/`paramPlanes`）+ 设备库互灌（推荐字段 + `apply_recommendations`，设备库版本 1→2）+ 3D 数据源联动（拓扑/合分标签 + 按柜型着色） |
+| **5.1.0 Build 26090701** | 2026-09-07 | **Agent Connect（MCP Server）全量对外**：把 MagicCommander 封装为标准 MCP Server，Claude / Codex / Trae Work / VS Code 等外部 Agent 可直接查询、创建、更新、渲染项目 / 模板 / 设备库 / 输出；双场景模型（编译态受限 / 源码态无限制）+ 确定性语义层（L1 入参契约 / L2 语义校验 / L3 幂等事务）+ 异步任务 + 操作审计 + 远程模式试点 + Agent 反馈自优化；帮助菜单新增「MCP 接入指南」 |
 | **5.0.10 Build 26090602** | 2026-09-06 | **5.0 系列第 10 版 · 内容资产升级与收官**：双端示例库扩充至 7 个（H100-256台/512台-RoCE 规模化、国产-昇腾-256 多厂商）+ AL 模板 25 / 设备 126 全量重测通过 + 5.0 系列发布收官 |
 | **5.0.9 Build 26090601** | 2026-09-06 | **5.0 系列第 9 版 · 交付与运维强化**：升级体验（断点续传 + SHA-512 强校验 + 版本回滚 + 灰度通道 stable/beta）+ 企业部署基座（内网 updateUrl / 代理下载 / 版本锁定，配置隐藏）+ 平台可观测与版本分发 + 云交付基座 |
 | **5.0.8 Build 26090503** | 2026-09-05 | **5.0 系列第 8 版 · 质量与可靠性深化**：覆盖率棘轮上移（前端 ≥36% / 后端 ≥64%）+ 设备库联网校对（400G 形态对齐厂商手册）+ CI e2e 加固 + 平台依赖漏洞清零（PyJWT/pip-audit） |
@@ -325,14 +343,33 @@ MagicCommander/
 | 3.x · Alpha/Beta | ✅ 已完成 | AI Hub + Agent v2 + Cloud Connect 云平台集成；智能校对、模板资产中心、Excel/Jinja2 深度集成 |
 | 4.0 系列 | ✅ 已完成 | 十版收官（基座/视觉/稳定/AI/高效/准确/质量/运维/互操作/示例） |
 | 5.0 系列 | ✅ 已完成 | 十版收官（AI 底座/工作流/协作/3D/性能/质量/交付/内容资产），双端三位一体 |
-| **5.1 系列（规划）** | 🚀 规划中 | **AI Agent 互联**：MCP Server 双场景（编译态受限 / 源码态无限制），让 Claude/Codex/Trae/VS Code/Hermes 等外部 Agent 直接查询、创建、更新、渲染项目/模板/设备库 |
+| **5.1 系列** | ✅ 已完成 | **AI Agent 互联**：Agent Connect（MCP Server 双场景：编译态受限 / 源码态无限制），让 Claude/Codex/Trae/VS Code 等外部 Agent 直接查询、创建、更新、渲染项目/模板/设备库 |
+| **5.2 系列** | ✅ 已完成 | 与 AL 同步版（5.2.1 契约 v1.3 / 设备库互灌 / 3D 联动）+ **5.2.2 契约止血与可信门禁**（越权与屏蔽静默失效双高危修复、语义化屏蔽规则 + 启动对账断言、门禁可观测、双端同构护栏） |
 | 后续方向 | 待定 | 社区分享中心 + 协作审阅 + 权限体系；Ansible/Nornir 推送 + CI/CD 流水线 + 多租户 + 监控告警 |
+
+---
+
+## 文档
+
+| 文档 | 面向 | 说明 |
+|------|------|------|
+| [使用指南（中文）](public/docs/user-guide.zh-CN.md) | 使用者 | 全功能操作手册（应用内「帮助」可离线查看） |
+| [User Guide (EN)](public/docs/user-guide.en.md) | 使用者 | English user guide |
+| [部署指南](docs/DEPLOYMENT.md) | 运维 / 开发者 | 环境准备、构建测试、版本与发布、客户端/云平台/AI Hub 部署、故障排查 |
+| [Agent Connect 接入样板](docs/agent-connect/README.md) | 集成方 | Claude Desktop / Codex CLI / Trae / VS Code 的 MCP 配置与排错 |
+| [文档规约](docs/DOCUMENT_CONVENTIONS.md) | 贡献者 | 文档命名、目录与维护约定 |
+| [文档索引](docs/README.md) | 全员 | 文档体系地图与维护规约 |
+| [更新日志](CHANGELOG.md) | 全员 | 逐版本变更明细 |
+
+> 文档中的数字（Agent 工具 53 / 设备库 / 模板数）由 `scripts/check_doc_numbers.py` 以**代码为唯一真值源**反向校验，CI 门禁拦截漂移。
 
 ---
 
 ## 参与贡献
 
-欢迎提交 Issue 和 Pull Request。**请遵守工程门禁**：`npm run lint`（0 warning）、`npm run typecheck`、`npm test`、`npm run format:check` 全部通过后再提交，CI 会自动校验。
+欢迎提交 Issue 和 Pull Request。**请遵守工程门禁**：`npm run lint`（0 warning）、`npm run typecheck`、`npm run format:check`、`npm run check-version`、`npm test`、后端与 AI Hub pytest 全部通过后再提交，CI 会自动校验。
+
+当前测试规模：前端 Vitest **802** 用例（渲染 645 + Electron 157）+ 后端 pytest **843** 用例（`backend/tests` 378 + `ai_hub/tests` 465）。
 
 **搜索引擎关键词**：网络设备配置批量生成、交换机配置自动生成、Jinja2 网络配置工具、网络运维自动化、设备标签打印、批量生成设备配置
 

@@ -2,6 +2,88 @@
 
 本文件为发布说明的单一事实来源（`npm run sync-version -- --release-notes` 自动抽取当前版本段）。
 
+## [5.2.2] - 2026-09-17
+
+> 与 AL 5.2.2 同批次发布。本版重点：**Agent Connect 对外契约止血 + 可信门禁**，
+> 以及与 AL 的**结构级同构护栏**（防"一端修了另一端没修"）。
+
+### ⚠️ 破坏性变更（升级前必读）
+
+**MCP `tools/call` 失败语义变更（无兼容开关）**
+
+旧行为：工具执行失败仍返回普通内容，协议层 `isError` **恒为 false**，
+下游 Agent 无法区分成功/失败（参数错误会被当成功结果处理）。
+
+新行为：
+
+- 失败置 `isError=true`；响应**扁平化为单层**并携带结构化 `error_code`。
+- `result` 不再是转义 JSON 字符串，直接是对象。
+- 迁移指引：以 `isError` / `success` 判定结果，不要解析文本内容。
+
+**其他行为变更**
+
+- 确认档（`confirm`）工具新增 `approvalToken` 控制字段；门禁为 `enforce` 时缺失即拒绝
+  （`AC_ERR_PERMISSION_REQUIRED`），默认 `notify` 灰度**只记录不阻断**。
+- MCP 工具**不再暴露 `toolName` 入参**；若外部客户端依赖该参数透传，需改为直接调用目标工具。
+
+### 安全修复
+
+- **`toolName` 越权（高危）**：MCP 工具处理器原将工具名做成入参默认值，调用方传入
+  `toolName=delete_project` 即可把只读调用（如 `list_projects`）**路由到高风险工具**。
+  改为注册期**工厂闭包**绑定工具名，参数模型中不再存在 `toolName`。
+- **编译态屏蔽静默失效（高危）**：原屏蔽用固定枚举名单（`delete_project` / `delete_template` …），
+  与实际注册名（`project_delete` / `template_delete`）不符 → 规则**未命中任何工具**，
+  危险工具泄漏到编译态。改为命名语义匹配（`is_destructive_tool` / `is_source_only_tool`），
+  并新增 `audit_block_rules()` 启动对账与 `assert_compiled_selection_safe()` **编译态启动断言**
+  （命中集含受屏蔽工具或规则全不命中 → **拒绝启动**）。
+- **stdio 开关形同虚设**：应用内 Agent Connect 总开关关闭时，MCP Server 仍可经 stdio
+  被外部 Agent 拉起。现入口强制校验总开关（关闭即退出码 2，排障可用 `--ignore-switch`）。
+- **入口级白名单兜底**：`execute_tool` 增加模式守卫，防止绕过注册期过滤直接按名调用。
+
+### 新增
+
+- **MCP `annotations`（外部 Agent 可感知的工具语义）**：`readOnlyHint` / `destructiveHint` /
+  `idempotentHint` / `openWorldHint` 随工具元数据下发。
+- **`resources` / `prompts` 注册**：模板清单 / 知识库 / 项目清单三个只读资源；
+  模板渲染、项目交付、交付物导出三个工作流提示模板。
+- **confirm 门禁可观测**：`set_gate_mode()` / `gate_mode` / `gate_hits` / `block_audit`，
+  并在 `selfcheck()` 中展示屏蔽对账与门禁模式。
+
+### 改进
+
+- **`inputSchema` 保真透传**：原实现只保留 `type` / `properties` / `required`，把参数
+  `description` / `enum` 等可读信息整体丢弃，外部 Agent 拿到的是"空壳 schema"。
+- **`selfcheck()` 真实化**：改为读取应用内真实开关配置（原只看内存状态，
+  开关关掉后自检仍报"已开启"）。
+- **文档数字一致性门禁**：新增 `scripts/check_doc_numbers.py`，以代码为唯一真值源反向校验
+  README / CHANGELOG 中的 Agent 工具数（**53**），漂移即 CI 失败。
+
+### 工程
+
+- 新增**双端同构结构比对**用例（双端各一份：`ai_hub/tests/test_dual_end_parity_522.py`
+  与 AL `tests/backend/test_dual_end_parity_522.py`）：AST 静态比对 `ai_hub` 与 AL `autolink_hub`
+  的公有契约面（核心名缺失 / 共有公有函数形参序列漂移即失败），从结构层面防双端无声分化。
+- 新增 Agent Connect 契约用例 `ai_hub/tests/test_agent_connect_contract_522.py`（26 条）。
+- `ai_hub` 全量 **465** 用例 + 前端 vitest 全量 + typecheck / lint / format / check-version 门禁全绿。
+
+### 文档体系整理
+
+- **新增文档索引** [`docs/README.md`](docs/README.md)：按角色导航 + 文档清单 + 「文档 ↔ 代码真值」对照 +
+  防漂移维护规约（与既有的 [`docs/DOCUMENT_CONVENTIONS.md`](docs/DOCUMENT_CONVENTIONS.md) 目录规约互补：
+  规约管**放哪、叫什么**，索引管**谁该读哪份、改了代码要同步谁**）。
+- **`docs/DEPLOYMENT.md` 更新**：版本口径 v3.9.0 → **v5.2.2**；环境要求 Node 20+ → **22+**、
+  Python 3.8+ → **3.12+**；新增 **Agent Connect 部署**章节（启动参数 / 前置条件 / 5.2.2 可信门禁 / 自检）；
+  CI 步骤表补「文档数字校验」与资产/基线门禁；发布流程补 `[skip ci]` 与 tag 触发说明；
+  故障排查补 Agent Connect 三项。
+- **用户指南更新**：中英双份版本对齐 5.2.2；新增「工具权限门禁与失败语义（5.2.2）」小节
+  （`gate_mode` / `approvalToken` / `isError` 扁平化 / MCP `annotations` / 只读资源）；
+  「近期版本亮点」补 **5.2.2 / 5.2.1** 两节（含破坏性变更与安全修复说明）；修正英文 FAQ 中
+  Python 3.8+ → **3.12+**。
+- **README 校正**：Agent 工具数 43 → **53**（两处）；测试徽章改为实测值
+  （前端 Vitest **802** + 后端 pytest **843** = **1645**）；新增 **Agent Connect** 能力章节；
+  版本历史补 **5.1.0 / 5.2.1 / 5.2.2** 三条；路线图 5.1「规划中」→ **已完成** 并补 5.2 系列；
+  新增「文档」章节汇总各文档入口。
+
 ## [5.2.1] - 2026-09-09
 
 ### 新增

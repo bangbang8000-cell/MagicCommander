@@ -1,6 +1,6 @@
 # MagicCommander 使用指南
 
-> 适用于 MagicCommander v5.0.10（含 5.1 系列 Agent Connect）
+> 适用于 MagicCommander v5.2.2（含 5.1 系列 Agent Connect）
 
 ## 简介
 
@@ -384,13 +384,21 @@ Agent 对项目/模板/设备的每次改动均记录（Agent / 工具 / 脱敏�
 
 `agent_feedback` 沉淀 Agent 交互反馈为知识库条目并产出优化建议；平台 `POST /api/v1/agent-connect/feedback` 汇聚分析，形成"校验 → 建议 → 修复 → 复核"闭环。
 
+### 工具权限门禁与失败语义（5.2.2）
+
+- **门禁模式**：`gate_mode` 支持 `enforce`（缺失 `approvalToken` 即拒绝，错误码 `AC_ERR_PERMISSION_REQUIRED`）/ `shadow`（**默认**，只记录不阻断）/ `off`；`gate_hits` 与 `block_audit` 可查看拦截明细
+- **失败响应**：工具执行失败时协议层 `isError=true`，响应**扁平化为单层**并带结构化 `error_code`；请以 `isError` / `success` 判定结果，**不要解析文本内容**
+- **工具语义标注**：MCP `annotations` 下发 `readOnlyHint` / `destructiveHint` / `idempotentHint` / `openWorldHint`，便于 Agent 判断风险
+- **只读资源**：模板清单 / 知识库 / 项目清单可直接作为 MCP resource 读取
+
 ### 自检与排错
 
 | 现象 | 检查项 | 修复 |
 |------|--------|------|
 | 连接失败「MCP SDK 未安装」 | `pip show mcp` | `pip install "mcp>=1.2.0"` 后重启应用 |
-| 工具列表为空 | 设置开关 | 开启 Agent Connect 后再连接 |
-| 权限提示频繁 | `--mode` | 编译态写入需确认属预期；开发场景切 `--mode source` |
+| 启动即退出（退出码 2） | 应用内总开关 | 打开「设置 → Agent Connect」；排障可加 `--ignore-switch` |
+| 工具列表为空 | 屏蔽对账 | 查看自检中的「屏蔽对账」；规则全不命中会拒绝启动 |
+| 权限提示频繁 | `gate_mode` / `--mode` | `enforce` 下写入需确认属预期；开发场景切 `--mode source` |
 | 审计缺失 | 审计开关 | 设置中开启审计；`--audit <path>` 指定路径 |
 
 ---
@@ -446,7 +454,41 @@ DeepSeek、OpenAI、Claude、Gemini、Qwen、GLM、Grok、Ollama 本地模型，
 
 ## 近期版本亮点
 
-### 5.1 系列（Agent Connect，开发完成）
+### 5.2 系列
+
+#### 5.2.2 — Agent Connect 契约止血与可信门禁
+
+**安全修复（建议尽快升级）**
+
+- **修复 `toolName` 越权（高危）**：此前外部调用方可传入 `toolName=delete_project` 把只读调用（如查询项目）路由到高风险工具；现改为注册期绑定工具名，参数中不再存在 `toolName`
+- **修复编译态屏蔽静默失效（高危）**：原屏蔽用固定枚举名单，与实际注册名不符导致删除类工具泄漏到编译态；现改为**命名语义匹配** + 启动对账断言（规则未命中任何注册工具即**拒绝启动**）
+- **stdio 入口强制校验总开关**：应用内 Agent Connect 关闭时，外部无法再经 stdio 拉起（退出码 2；排障可用 `--ignore-switch`）
+- **入口级白名单兜底**：新增模式守卫，防止绕过注册期过滤按名直调工具
+
+**对外契约变更（破坏性，影响自建集成）**
+
+- 工具失败时 `isError` 置为 `true`，响应**扁平化为单层**并携带结构化 `error_code`（`result` 不再是转义 JSON 文本）
+- `confirm`（需确认）档工具新增 `approvalToken` 控制字段；门禁默认 `shadow` 灰度**只记录不阻断**
+- MCP 工具**不再暴露 `toolName` 入参**
+
+**新增**
+
+- MCP `annotations` 工具语义（只读 / 破坏性 / 幂等 / 开放世界提示），外部 Agent 可据此判断风险
+- 只读资源（模板清单 / 知识库 / 项目清单）与 3 个工作流提示模板
+- 门禁可观测：`gate_mode` / `gate_hits` / `block_audit`，自检中展示屏蔽对账与门禁模式
+
+**改进**
+
+- `inputSchema` 保真透传（此前会丢弃参数 `description` / `enum`，外部 Agent 拿到"空壳 schema"）
+- `selfcheck()` 读取应用内**真实开关**（此前只看内存状态，关掉开关仍报"已开启"）
+
+#### 5.2.1 — 与 AL 5.2.0 同步
+
+- 契约 v1.3 解析（`topologyMode` / `combinedMode` / `scenario` / `paramPlanes`）
+- 设备库互灌推荐字段（`recommended_scenario` / `recommended_network`）+ `apply_recommendations`
+- 3D 视图联动（拓扑 / 合分标签 + 按柜型着色）
+
+### 5.1 系列（Agent Connect）
 
 - **Agent Connect（MCP Server）**：双场景（编译态 / 源码态）接入外部 AI Agent（Claude / Codex / Trae / VS Code）
 - **确定性语义层**：入参契约 / 语义校验 / 幂等事务，外部 Agent 操作可测可回滚

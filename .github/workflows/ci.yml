@@ -46,6 +46,10 @@ jobs:
       - run: python scripts/validate_templates.py
       # 5.0.1（501-c）：设备库校验门禁 —— id 唯一/字段完整/protocol/角色映射/AL 对账
       - run: python scripts/validate_device_library.py
+      # 5.2.2-522-d1（T4.2）: 文档数字一致性门禁 — 以代码为唯一真值源反向校验
+      # README/CHANGELOG 中的设备数/模板数/Agent 工具数漂移即失败
+      - name: Doc numbers vs code
+        run: python scripts/check_doc_numbers.py
       # 4.9.0（49-d）：AIDC 示例自动化验收 —— 打开/渲染/导出/回灌幂等/golden 确定性
       - run: python scripts/validate_samples.py
       # 4.0.0-F0-1（40-b）：golden 基线比对 —— 渲染文本/批次清单结构变化时 CI 失败

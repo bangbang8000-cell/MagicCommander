@@ -310,6 +310,37 @@ def set_ai_engine(value) -> str:
 AGENT_CONNECT_MODES = ("compiled", "source")
 AGENT_CONNECT_DEFAULT_MODE = "compiled"
 
+# 5.2.2-522-s4：写工具门禁模式（notify=灰度只记录不阻断 / enforce=缺凭据即阻断）
+AGENT_CONNECT_GATE_MODES = ("notify", "enforce")
+AGENT_CONNECT_GATE_DEFAULT = "notify"
+
+
+def clamp_agent_gate_mode(value) -> str:
+    """校验门禁模式合法（notify/enforce）；非法/缺失回退 notify（灰度）"""
+    if isinstance(value, str) and value in AGENT_CONNECT_GATE_MODES:
+        return value
+    return AGENT_CONNECT_GATE_DEFAULT
+
+
+def get_agent_connect_gate_mode() -> str:
+    """读取写工具门禁模式。实时读 secrets 文件。"""
+    try:
+        secrets = load_secrets()
+        if "agent_connect_gate_mode" in secrets:
+            return clamp_agent_gate_mode(secrets["agent_connect_gate_mode"])
+    except Exception:
+        pass
+    return AGENT_CONNECT_GATE_DEFAULT
+
+
+def set_agent_connect_gate_mode(value) -> str:
+    """设置写工具门禁模式：校验 → 持久化到 secrets 文件"""
+    clamped = clamp_agent_gate_mode(value)
+    secrets = load_secrets()
+    secrets["agent_connect_gate_mode"] = clamped
+    save_secrets(secrets)
+    return clamped
+
 
 def clamp_agent_mode(value) -> str:
     """校验 agent_mode 合法（compiled/source）；非法/缺失回退 compiled"""

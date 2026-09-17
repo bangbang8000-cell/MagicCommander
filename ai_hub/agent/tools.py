@@ -10,7 +10,7 @@ import subprocess
 import sys
 import time
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable, Optional
 
 from ai_hub.agent.schemas import ToolPermission, get_tool_permission
 from ai_hub.agent.preset_templates import TEMPLATE_MAP, _TPL_GENERIC
@@ -19,6 +19,38 @@ logger = logging.getLogger(__name__)
 
 # 工具注册表
 _tools: dict[str, dict] = {}
+
+
+# ---------------------------------------------------------------------------
+# 5.2.2-522-s1：执行守卫（模式白名单兜底）
+# ---------------------------------------------------------------------------
+# 注册期过滤（filter_tools_for_mode）只决定"暴露哪些工具"；一旦有别的路径能按名字
+# 直接调 execute_tool（历史缺陷：MCP 处理器把工具名做成入参，可被调用方覆盖），
+# 过滤就被绕过。此处再加一层**入口级**白名单，由 Agent Connect 依据当前模式装载。
+_execution_guard: Optional[Callable[[str], Optional[str]]] = None
+
+
+def set_execution_guard(guard: Optional[Callable[[str], Optional[str]]]) -> None:
+    """装载/卸载执行守卫。``guard(tool_name)`` 返回拒绝原因字符串或 None（放行）。"""
+    global _execution_guard
+    _execution_guard = guard
+
+
+def get_execution_guard() -> Optional[Callable[[str], Optional[str]]]:
+    """读取当前执行守卫（未装载返回 None，此时不限制任何工具）。"""
+    return _execution_guard
+
+
+def _guard_reject(name: str) -> Optional[str]:
+    """调用守卫判定；守卫自身异常不应阻断正常调用（保守放行并告警）。"""
+    guard = _execution_guard
+    if guard is None:
+        return None
+    try:
+        return guard(name)
+    except Exception as e:  # noqa: BLE001 - 守卫异常不应让工具整体不可用
+        logger.warning("execution guard failed for '%s': %s", name, e)
+        return None
 
 
 def register_tool(name: str, description: str, parameters: dict, handler: callable,
@@ -58,10 +90,15 @@ async def execute_tool(name: str, arguments: dict) -> dict:
     """执行指定工具（4.3 F3-4：参数校验 + 业务错误可读化，全部失败均返回可读中文错误）。
 
     5.1.6-516-d：失败响应携带结构化 error_code（机器可读）与可读中文 error（人类可排）。
+    5.2.2-522-s1：入口加**模式白名单兜底**——Agent Connect 装载守卫后，未在当前模式
+    选中的工具一律拒绝（``AC_ERR_TOOL_NOT_ALLOWED``），防止绕过注册期过滤。
     """
     tool = _tools.get(name)
     if not tool:
         return {"success": False, "error": f"未知工具: {name}", "error_code": "AC_ERR_UNKNOWN_TOOL"}
+    rejected = _guard_reject(name)
+    if rejected:
+        return {"success": False, "error": rejected, "error_code": "AC_ERR_TOOL_NOT_ALLOWED"}
     # 参数校验（必需字段缺失/类型错误/enum 越界 → 可读中文错误，不抛异常）
     errors = _validate_tool_args(name, arguments, tool.get("parameters", {}))
     if errors:

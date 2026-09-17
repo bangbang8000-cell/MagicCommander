@@ -1,6 +1,6 @@
 # MagicCommander User Guide
 
-> Applies to MagicCommander v5.0.10 (incl. 5.1 series Agent Connect)
+> Applies to MagicCommander v5.2.2 (incl. 5.1 series Agent Connect)
 
 ## Introduction
 
@@ -382,13 +382,21 @@ The platform gateway at `POST /api/v1/agent-connect/remote/invoke` provides TLS 
 
 `agent_feedback` persists agent interaction feedback to the knowledge base and produces optimization suggestions; the platform aggregates at `POST /api/v1/agent-connect/feedback`, forming a validate → suggest → repair → re-check loop.
 
+### Tool permission gate & failure semantics (5.2.2)
+
+- **Gate modes**: `gate_mode` supports `enforce` (missing `approvalToken` is rejected with `AC_ERR_PERMISSION_REQUIRED`), `shadow` (**default**, logs only, does not block) and `off`; inspect `gate_hits` / `block_audit` for blocked calls
+- **Failure responses**: on tool failure the protocol-level `isError` is `true`, the response is **flattened to a single layer** and carries a structured `error_code`. Branch on `isError` / `success` — **do not parse the text payload**
+- **Tool annotations**: MCP `annotations` expose `readOnlyHint` / `destructiveHint` / `idempotentHint` / `openWorldHint` so agents can judge risk
+- **Read-only resources**: template list / knowledge base / project list are exposed as MCP resources
+
 ### Self-check & troubleshooting
 
 | Symptom | Check | Fix |
 |---------|-------|-----|
 | Connection fails "MCP SDK not installed" | `pip show mcp` | `pip install "mcp>=1.2.0"` then restart the app |
-| Empty tool list | Settings switch | Enable Agent Connect before connecting |
-| Frequent permission prompts | `--mode` | Confirm expected for compiled writes; switch to `--mode source` for development |
+| Exits immediately (code 2) | In-app master switch | Turn on Settings → Agent Connect; add `--ignore-switch` for troubleshooting |
+| Empty tool list | Block-rule reconciliation | Check "block reconciliation" in self-check; if no rule matches any tool the server refuses to start |
+| Frequent permission prompts | `gate_mode` / `--mode` | Confirm expected for `enforce` writes; switch to `--mode source` for development |
 | Missing audit | Audit switch | Enable audit in Settings, or pass `--audit <path>` |
 
 ---
@@ -429,7 +437,7 @@ In the **Output** panel, under `output`, `output-sn`, `yaml`, `yaml-sn` director
 Settings → AI tab → choose provider → enter API key → test connection. Ollama needs no key.
 
 **Q: AI Hub fails to start?**
-The Windows build embeds Python. From source, ensure Python 3.8+ and `pip install -r backend/requirements.txt`.
+The Windows build embeds Python. From source, ensure Python 3.12+ and `pip install -r backend/requirements.txt`.
 
 **Q: Which AI models are supported?**
 DeepSeek, OpenAI, Claude, Gemini, Qwen, GLM, Grok, local Ollama, and any OpenAI-compatible custom provider.
@@ -439,6 +447,39 @@ All project data lives in the local `workspace/` directory. AI runs locally; API
 
 **Q: How do I let an external AI agent (Claude / Codex / Trae / VS Code) operate MagicCommander?**
 Since the 5.1 series, use Agent Connect: enable it in Settings → Agent Connect, paste the MCP config from the "Agent Connect" section into your agent client, then run the self-check. The **MCP Integration Guide** in the Help menu opens the full integration doc in the workspace with one-click config copy. Compiled mode never modifies the software; Source mode (`npm run dev:all`) adds CLI passthrough and source reading.
+
+---
+
+## Recent Releases
+
+### 5.2.2 — Agent Connect contract hardening & trustworthy gate
+
+**Security fixes (upgrade recommended)**
+
+- **`toolName` privilege escalation (high)**: callers could previously pass `toolName=delete_project` to route a read-only call (e.g. listing projects) to a high-risk tool. Tool names are now bound at registration time and `toolName` no longer exists as a parameter.
+- **Silent failure of compiled-mode blocking (high)**: the blocklist used a fixed enumeration that no longer matched real tool names, leaking delete-class tools into compiled mode. Blocking is now **name-semantics based** plus a startup reconciliation assertion (server **refuses to start** if no rule matches any registered tool).
+- **stdio entry enforces the master switch**: an external agent can no longer start the server over stdio while Agent Connect is off in the app (exit code 2; use `--ignore-switch` for troubleshooting).
+- **Entry-level allowlist guard** prevents bypassing registration-time filtering.
+
+**Breaking contract changes (affects custom integrations)**
+
+- On failure `isError` is now `true`; the response is **flattened to a single layer** with a structured `error_code` (`result` is no longer escaped JSON text).
+- Confirmation-tier tools accept an `approvalToken` control field; the gate defaults to `shadow` (logs only).
+- MCP tools **no longer expose a `toolName` parameter**.
+
+**Added / Improved**
+
+- MCP `annotations` (`readOnlyHint` / `destructiveHint` / `idempotentHint` / `openWorldHint`)
+- Read-only resources (template list / knowledge base / project list) and three workflow prompt templates
+- Observable gate: `gate_mode` / `gate_hits` / `block_audit`, shown in self-check
+- Faithful `inputSchema` passthrough (parameter `description` / `enum` were previously dropped)
+- `selfcheck()` now reads the real in-app switch instead of in-memory state
+
+### 5.2.1 — Synced with AL 5.2.0
+
+- Contract v1.3 parsing (`topologyMode` / `combinedMode` / `scenario` / `paramPlanes`)
+- Device library recommendation fields + `apply_recommendations`
+- 3D view linkage (topology/combined label, cabinet-type colouring)
 
 ---
 
