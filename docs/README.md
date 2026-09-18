@@ -46,12 +46,18 @@
 | [../CLIENT_CLOUD_INTEGRATION_PRD.md](../CLIENT_CLOUD_INTEGRATION_PRD.md) | 客户端与云平台集成 PRD |
 | [../CLOUD_DEVELOPMENT_PLAN.md](../CLOUD_DEVELOPMENT_PLAN.md) | 云平台开发计划 |
 
+### 版本说明（`docs/wiki/`）
+
+| 文档 | 说明 |
+|------|------|
+| [wiki/sample-assets_v1.0_2026-09-03.md](wiki/sample-assets_v1.0_2026-09-03.md) | **4.9.0 示例资产（AIDC 四示例）说明**：64/128 台 H100 × IB/RoCE 的设备数、接线数、终端数快照。⚠️ 内容为 **4.9.0 时期**快照，示例库此后已扩充（AL 侧 4→7 套），引用具体数字前请以当前示例库为准 |
+
 ### 历史归档（本地保留，不入库）
 
 | 位置 | 内容 | 说明 |
 |------|------|------|
 | `docs/_archive/` | 2026-07 ～ 08 的 PRD / 实施计划 / 代码审查 / 阶段计划 | 已在 `.gitignore` 中排除，仅本地留存 |
-| `docs/prd/` `docs/spec/` `docs/plan/` `docs/report/` `docs/temp/` | [DOCUMENT_CONVENTIONS.md](DOCUMENT_CONVENTIONS.md) 约定的标准分类目录 | 当前为空目录（未跟踪），新增长期文档请按规约放入对应目录 |
+| `docs/prd/` `docs/spec/` `docs/plan/` `docs/report/` `docs/temp/` | [DOCUMENT_CONVENTIONS.md](DOCUMENT_CONVENTIONS.md) 约定的标准分类目录 | 当前均为**空**：`prd/` `spec/` `report/` 已建但无文件（git 不跟踪空目录）；`plan/` `temp/` **尚未创建**。新增长期文档请按规约放入对应目录（`temp/` 每个版本发布前清理一次） |
 
 ## 三、文档与代码的「真值」关系
 
@@ -103,4 +109,5 @@ node scripts/sync-version.js --check    # 版本一致性 + CHANGELOG 覆盖校�
 
 | 日期 | 版本 | 说明 |
 |------|------|------|
+| 2026-09-18 | v1.1 | 文档体系梳理：补登记 `wiki/sample-assets`（原已入库但索引缺失，并标注其为 4.9.0 快照）；修正约定目录现状描述（`prd/spec/report` 空、`plan/temp` 未建）；[DOCUMENT_CONVENTIONS.md](DOCUMENT_CONVENTIONS.md) 修正重复小节号（两处 `## 6.` → `## 6./## 7.`） |
 | 2026-09-17 | v1.0 | 首版：按角色导航 + 文档清单 + 真值关系 + 维护规约（配套 v5.2.2 文档整理；补 Agent Connect 部署入口索引） |
