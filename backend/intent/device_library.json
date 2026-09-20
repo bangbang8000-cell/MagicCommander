@@ -225,5 +225,140 @@
       "rail_optimized",
       "dual_plane"
     ]
+  },
+  {
+    "id": "inspur_x400_128_400g",
+    "vendor": "浪潮",
+    "model": "X400 (Spectrum-4)",
+    "port_count": 128,
+    "port_speed": "400G",
+    "port_type": "QSFP112",
+    "protocol": "roce",
+    "applicable_networks": [
+      "param",
+      "storage"
+    ],
+    "description": "浪潮 X400 128端口400G QSFP112 以太网交换机（NVIDIA Spectrum-4 芯片 / 自研 UXOS，SONiC 兼容），适用于RoCEv2 超大规模AI训练集群（V5.4.0-640-h/W2.1：参数网每口 1 个 400G 不分光；存储网每口 1 个 200G 不分光（PRD §3.5-B））",
+    "recommended_network": [
+      "rail_optimized",
+      "dual_plane"
+    ]
+  },
+  {
+    "id": "nvidia_mqm9700_64_400g_ib_storage",
+    "vendor": "NVIDIA",
+    "model": "MQM9700-NS2F (Quantum-2)",
+    "port_count": 64,
+    "port_speed": "400G",
+    "port_type": "OSFP",
+    "protocol": "ib",
+    "applicable_networks": [
+      "storage"
+    ],
+    "description": "NVIDIA Quantum-2 MQM9700-NS2F 64端口NDR 400Gb/s InfiniBand存储交换机（V5.4.0-640-j/W2.2：与 switches/param/nvidia_mqm9700_64_400g_ib **同型复用**，存储角色变体；存储网 400G 1分2 → 2×200G（PRD §3.5-B））",
+    "recommended_network": [
+      "rail_optimized",
+      "dual_plane"
+    ]
+  },
+  {
+    "id": "nvidia_q3400_144_800g_ib",
+    "vendor": "NVIDIA",
+    "model": "Q3400 (Quantum-3)",
+    "port_count": 144,
+    "port_speed": "800G",
+    "port_type": "OSFP",
+    "protocol": "ib",
+    "applicable_networks": [
+      "param"
+    ],
+    "description": "NVIDIA Quantum-3 Q3400 144端口XDR 800Gb/s（1.6T 物理口）InfiniBand智能交换机，带管理端口，适用于超大规模AI训练集群高速互联（V5.4.0-640-i/W2.4：breakout 单级 1.6T→2×800G（PRD §3.5-B 场景⑥）；两级 1.6T→2×800G→4×400G 为保留能力（FR-A7：需现场确认链路预算与中继），本轮不启用）",
+    "recommended_network": [
+      "rail_optimized",
+      "dual_plane",
+      "zcube"
+    ]
+  },
+  {
+    "id": "nvidia_dgx_b300",
+    "vendor": "NVIDIA",
+    "model": "DGX-B300",
+    "port_count": null,
+    "port_speed": null,
+    "port_type": null,
+    "protocol": "ib",
+    "applicable_networks": [
+      "param",
+      "storage",
+      "biz",
+      "oob"
+    ],
+    "description": "NVIDIA DGX-B300 GPU服务器，搭载8块B300 (Blackwell Ultra) GPU，CX8双口网卡（2×400G，每卡口1连平面A、口2连平面B），支持液冷散热，适用于双平面 800G IB 超大规模AI集群（V5.4.0-640-k/W2.5：存储网卡 2×200G，本轮按 storage_ports_gpu=1 仅用 1 口（PRD §3.5-A））",
+    "recommended_network": []
+  },
+  {
+    "id": "nvidia_hgx_h200",
+    "vendor": "NVIDIA",
+    "model": "HGX H200 8-GPU",
+    "port_count": null,
+    "port_speed": null,
+    "port_type": null,
+    "protocol": "roce",
+    "applicable_networks": [
+      "param",
+      "storage",
+      "biz",
+      "oob"
+    ],
+    "description": "NVIDIA HGX H200 8-GPU 服务器，搭载8块H200 141GB GPU，NVLink 3.0全互联，面向万亿参数大模型训练",
+    "recommended_network": []
+  },
+  {
+    "id": "generic_all_flash",
+    "vendor": "通用",
+    "model": "All-Flash-Storage",
+    "port_count": null,
+    "port_speed": null,
+    "port_type": null,
+    "protocol": "roce",
+    "applicable_networks": [
+      "param",
+      "storage",
+      "biz",
+      "oob"
+    ],
+    "description": "通用全闪存NVMe存储服务器，适用于通用高性能存储场景",
+    "recommended_network": []
+  },
+  {
+    "id": "generic_hybrid_flash",
+    "vendor": "通用",
+    "model": "Hybrid-Flash-Storage",
+    "port_count": null,
+    "port_speed": null,
+    "port_type": null,
+    "protocol": "roce",
+    "applicable_networks": [
+      "storage",
+      "biz",
+      "oob"
+    ],
+    "description": "通用混闪存储服务器（SSD+HDD），适用于通用混合存储场景",
+    "recommended_network": []
+  },
+  {
+    "id": "generic_2u_compute",
+    "vendor": "通用",
+    "model": "2U-Compute",
+    "port_count": null,
+    "port_speed": null,
+    "port_type": null,
+    "protocol": "roce",
+    "applicable_networks": [
+      "biz",
+      "oob"
+    ],
+    "description": "通用 2U 计算服务器，适用于通用企业级计算场景",
+    "recommended_network": []
   }
 ]
