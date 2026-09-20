@@ -123,3 +123,59 @@ class TestH2TableStructure:
             assert 'port s-mlag group' in joined
             assert 'port link-type trunk' in joined
             assert 'description GPU-' in joined
+
+class TestRenderSplit:
+    """V5.3.0-640-m（W4.1 / FR-M1）：渲染按协议分流——IB 跳过 fabric j2，RoCE 全部产出。"""
+
+    def test_ib_skips_fabric_j2(self):
+        ctx = build_pilot64_context()
+        ctx.globals['fabric'] = 'ib'
+        with tempfile.TemporaryDirectory() as tmp:
+            project = os.path.join(tmp, 'aidc_pilot64')
+            generate_single_pilot64_project(project, ctx)
+            templates = os.path.join(project, 'templates')
+            for role in ('SPINE', 'LEAF', 'STO_SPINE', 'STO_LEAF'):
+                assert not os.path.exists(os.path.join(templates, f'{role}.j2')), f'{role}.j2 不应产出（IB）'
+            for role in ('BIZ_AGG', 'BIZ_ACCESS', 'OOB_AGG', 'OOB_ACCESS'):
+                assert os.path.exists(os.path.join(templates, f'{role}.j2')), f'{role}.j2 应产出（非 fabric）'
+            # 清单/连接表仍出
+            assert os.path.exists(os.path.join(project, 'excel', 'hostname.xlsx'))
+            assert os.path.exists(os.path.join(project, 'excel', 'connection.xlsx'))
+            # meta 标注渲染分流（对外可见行为变化，Release Notes 知会 O-7）
+            import json
+            with open(os.path.join(project, 'template.meta.json'), encoding='utf-8') as mf:
+                meta = json.load(mf)
+            assert meta['fabric'] == 'ib'
+            assert meta['renderSplit']['skippedFabricRoles'] == ['LEAF', 'SPINE', 'STO_LEAF', 'STO_SPINE']
+
+    def test_roce_produces_all_j2(self):
+        ctx = build_pilot64_context()
+        ctx.globals['fabric'] = 'roce'
+        with tempfile.TemporaryDirectory() as tmp:
+            project = os.path.join(tmp, 'aidc_pilot64')
+            generate_single_pilot64_project(project, ctx)
+            templates = os.path.join(project, 'templates')
+            for role in ('SPINE', 'LEAF', 'STO_SPINE', 'STO_LEAF', 'BIZ_AGG', 'BIZ_ACCESS', 'OOB_AGG', 'OOB_ACCESS'):
+                assert os.path.exists(os.path.join(templates, f'{role}.j2')), f'{role}.j2 应产出（RoCE）'
+
+    def test_fabric_default_roce(self):
+        ctx = build_pilot64_context()
+        assert 'fabric' not in ctx.globals
+        assert ctx.globals.get('fabric', 'roce') == 'roce'
+class TestSonicTemplates:
+    """V5.3.0-640-m（W4.2 / FR-M2）：SONiC/UXOS 命令族基准（X400 RoCE 渲染产物）。"""
+
+    def test_sonic_five_families_present(self):
+        from intent import sonic_templates as st
+        assert 'PFC' in st._UPLINK_BLOCK or 'pfc' in st._UPLINK_BLOCK
+        assert 'ecn' in st._UPLINK_BLOCK or 'ECN' in st._UPLINK_BLOCK
+        assert 'l2vpn evpn' in st._BGP_BLOCK
+        assert 'maximum-paths' in st._BGP_BLOCK
+        assert 'headroom' in st._HEAD_TEMPLATE
+        assert 'Ethernet' in st._UPLINK_BLOCK or 'gpu_port' in st._GPU_DOWNLINK_BLOCK
+
+    def test_sonic_spine_leaf_built(self):
+        from intent import sonic_templates as st
+        assert 'X400' in st.SPINE_TEMPLATE
+        assert 'breakout 1:2' in st.LEAF_TEMPLATE
+        assert '待现网校准' in st.SPINE_TEMPLATE + st.LEAF_TEMPLATE + st._HEAD_TEMPLATE

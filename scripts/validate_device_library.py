@@ -25,8 +25,10 @@ BACKEND = os.path.join(REPO, 'backend')
 # AL 权威库根（在场时对账；不在场跳过，仅本地结构校验）
 AL_ROOT = r'd:/MyCoding/MC-AL/AIDC AutoLink-Client/template/device_library'
 
-# 必填字段
-REQUIRED_FIELDS = ('id', 'vendor', 'model', 'port_count', 'port_speed', 'port_type')
+# 必填字段（全部条目）
+REQUIRED_FIELDS = ('id', 'vendor', 'model')
+# 交换机必填字段（仅被角色映射引用的交换机条目；服务器条目如 DGX-B300 无交换机端口语义）
+SWITCH_REQUIRED_FIELDS = ('port_count', 'port_speed', 'port_type')
 NETWORK_DIR = {'param': 'param', 'storage': 'storage', 'biz': 'biz', 'oob': 'oob'}
 
 
@@ -53,12 +55,15 @@ def _load_entries(path):
 
 
 def _load_al_index():
-    """扫描 AL switches/*/*.json → {id: entry}；AL 仓不在场返回 None。"""
-    root = os.path.join(AL_ROOT, 'switches')
-    if not os.path.isdir(root):
+    """扫描 AL 设备库全部档案（switches / gpu_servers / storage_servers_* / compute_servers）→ {id: entry}。
+
+    服务器条目（DGX-B300 / All-Flash 等）同样是 AL 权威档案（W2.6 对账同步）；
+    AL 仓不在场返回 None。"""
+    if not os.path.isdir(AL_ROOT):
         return None
     out = {}
-    for p in glob.glob(os.path.join(root, '*', '*.json')):
+    # 交换机：switches/<分类>/*.json（两层）；服务器：gpu_servers|storage_servers|compute_servers/*.json（一层）
+    for p in glob.glob(os.path.join(AL_ROOT, '*', '*.json')) + glob.glob(os.path.join(AL_ROOT, '*', '*', '*.json')):
         try:
             with open(p, encoding='utf-8') as f:
                 d = json.load(f)
@@ -83,6 +88,11 @@ def validate_device_library(path: str | None = None) -> list[str]:
         dup = {i for i in ids if ids.count(i) > 1}
         problems.append(f'设备 id 重复: {sorted(dup)}')
 
+    # 交换机条目（port_count 非空，含角色映射外交换机如 S5120V3）须含端口字段；
+    # 服务器条目（DGX-B300 / All-Flash 等 port_count=null）无交换机端口语义
+    sys.path.insert(0, BACKEND)
+    from intent import device_library as dl
+
     for d in devices:
         if not isinstance(d, dict):
             problems.append(f'非对象条目: {d!r}')
@@ -91,32 +101,40 @@ def validate_device_library(path: str | None = None) -> list[str]:
         missing = [f for f in REQUIRED_FIELDS if d.get(f) in (None, '')]
         if missing:
             problems.append(f'{did} 缺少必填字段: {missing}')
+        is_switch = d.get('port_count') not in (None, '')
+        if is_switch:
+            smissing = [f for f in SWITCH_REQUIRED_FIELDS if d.get(f) in (None, '')]
+            if smissing:
+                problems.append(f'{did} 缺少交换机必填字段: {smissing}')
         protocol = d.get('protocol')
         if protocol and protocol not in ('ib', 'roce'):
             problems.append(f'{did} protocol 非法: {protocol}')
         elif not protocol:
             problems.append(f'{did} 缺 protocol 字段（ib/roce）')
         else:
-            inferred = 'ib' if str(d.get('vendor', '')).upper() == 'NVIDIA' else 'roce'
-            if protocol != inferred:
-                problems.append(f'{did} protocol({protocol}) 与厂商({d.get("vendor")})推断({inferred})不一致')
+            # 厂商推断仅对交换机条目；NVIDIA 服务器（DGX/HGX）可跑 RoCE，协议由场景决定
+            if is_switch:
+                inferred = 'ib' if str(d.get('vendor', '')).upper() == 'NVIDIA' else 'roce'
+                if protocol != inferred:
+                    problems.append(f'{did} protocol({protocol}) 与厂商({d.get("vendor")})推断({inferred})不一致')
         nets = d.get('applicable_networks')
         if not nets or not isinstance(nets, list):
             problems.append(f'{did} 缺 applicable_networks')
         elif any(n not in NETWORK_DIR for n in nets):
             problems.append(f'{did} applicable_networks 含未知平面: {nets}')
-        # 端口数/速率/类型 基础合理性
-        try:
-            if int(d.get('port_count', 0)) <= 0:
-                problems.append(f'{did} port_count 非法: {d.get("port_count")}')
-        except (TypeError, ValueError):
-            problems.append(f'{did} port_count 非整数: {d.get("port_count")}')
-        pmax = d.get('port_speed_max')
-        if pmax:
-            base = _rate_gbps(d.get('port_speed'))
-            mx = _rate_gbps(pmax)
-            if base is None or mx is None or mx < base:
-                problems.append(f'{did} port_speed_max({pmax}) 应 ≥ port_speed({d.get("port_speed")})')
+        # 端口数/速率/类型 基础合理性（仅交换机条目）
+        if is_switch:
+            try:
+                if int(d.get('port_count', 0)) <= 0:
+                    problems.append(f'{did} port_count 非法: {d.get("port_count")}')
+            except (TypeError, ValueError):
+                problems.append(f'{did} port_count 非整数: {d.get("port_count")}')
+            pmax = d.get('port_speed_max')
+            if pmax:
+                base = _rate_gbps(d.get('port_speed'))
+                mx = _rate_gbps(pmax)
+                if base is None or mx is None or mx < base:
+                    problems.append(f'{did} port_speed_max({pmax}) 应 ≥ port_speed({d.get("port_speed")})')
 
     # 角色映射存在
     sys.path.insert(0, BACKEND)

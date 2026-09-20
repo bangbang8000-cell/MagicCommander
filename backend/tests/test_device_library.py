@@ -38,8 +38,12 @@ def test_library_loads():
     # 501-c：每条含 protocol 字段且取值合法
     for d in devs:
         assert d.get('protocol') in ('ib', 'roce'), d['id']
-        for f in ('id', 'vendor', 'model', 'port_count', 'port_speed', 'port_type'):
+        for f in ('id', 'vendor', 'model'):
             assert d.get(f), f'{d["id"]} 缺 {f}'
+        # 交换机条目（port_count 非空）须含端口字段；服务器条目（DGX-B300 等 port_count=null）无交换机端口语义
+        if d.get('port_count') not in (None, ''):
+            for f in ('port_count', 'port_speed', 'port_type'):
+                assert d.get(f), f'{d["id"]} 缺 {f}'
 
 
 def test_role_models_match_library():
@@ -237,3 +241,14 @@ def test_recommendations_consistency_with_al_library():
         assert a is not None, f'AL 权威库缺 {did}'
         if rec:
             assert set(rec['recommended_network']) <= set(a.get('recommended_network', [])), did
+
+# ---- V5.3.0-640-m（W4.3）：6 场景关键型号协议判定（X400→roce / QM9700→ib）----
+
+def test_resolve_models_fabric_6scenarios():
+    """W4.3：6 场景关键型号 → 协议族判定（X400 UXOS RoCE / QM9700 IB）。"""
+    assert resolve_models_fabric({'SPINE': '浪潮 X400 128×400G', 'LEAF': '浪潮 X400 128×400G'}) == 'roce'
+    assert resolve_models_fabric({'SPINE': 'NVIDIA Quantum QM9700', 'LEAF': 'NVIDIA Quantum QM9700',
+                                  'STO_SPINE': 'NVIDIA Quantum QM9700'}) == 'ib'
+    assert resolve_models_fabric({'SPINE': 'NVIDIA Q3400', 'LEAF': 'NVIDIA Q3400'}) == 'ib'
+    assert resolve_models_fabric({'SPINE': 'H3C S9827', 'LEAF': 'H3C S9827'}) == 'roce'
+    assert resolve_models_fabric({}) == 'roce'

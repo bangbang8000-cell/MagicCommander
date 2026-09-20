@@ -419,9 +419,17 @@ class SingleProjectGenerator:
                  [os.path.join(excel, n) for n in ('hostname.xlsx', 'connection.xlsx', 'ipaddress.xlsx', 'parameter.xlsx')]:
             _fix_workbook_byte_idempotent(f)
 
-        # 每角色模板
-        for role in self.roles:
+        # V5.3.0-640-m（W4.1 / FR-M1）：渲染按协议分流——IB 项目参数/存储网（fabric）交换机
+        # 不产出 fabric j2（该角色无设备配置语义，配置在 IB 子网管理器侧），仍出清单/连接表；
+        # 业务/带外（非 fabric）角色照常产出。RoCE 项目全部角色照旧。
+        fabric = getattr(self.ctx, 'globals', {}).get('fabric', 'roce')
+        fabric_roles = frozenset({'SPINE', 'LEAF', 'STO_SPINE', 'STO_LEAF'})
+        skipped_fabric_roles = set()
+        for role in sorted(self.roles):
             plane = _SCN_PLANE[_role_to_scn(role)]
+            if fabric == 'ib' and role in fabric_roles:
+                skipped_fabric_roles.add(role)
+                continue
             with open(os.path.join(project_dir, 'templates', f'{role}.j2'), 'w', encoding='utf-8') as f:
                 f.write(_info_template(role, plane))
 
@@ -435,6 +443,12 @@ class SingleProjectGenerator:
             'tunables': ['PFC队列', 'CNP队列'],
             'generator': 'intent.project_single.SingleProjectGenerator',
             'version': '0.3',
+            # V5.3.0-640-m（W4.1 / FR-M1）：渲染分流标注（对外可见行为变化，Release Notes 知会 O-7）
+            'fabric': fabric,
+            'renderSplit': {
+                'skippedFabricRoles': sorted(skipped_fabric_roles),
+                'note': 'IB 参数/存储网交换机不产出 fabric j2（配置在子网管理器侧）',
+            },
             'validation': {'ok': len(issues) == 0, 'issue_count': len(issues), 'issues': issues[:20]},
         }
         # G3.2 + 契约 v1.2（M-1）：桥接标识与项目身份透传（AL plan → MC 项目，判别规则见契约 §1.4/§6.2）
