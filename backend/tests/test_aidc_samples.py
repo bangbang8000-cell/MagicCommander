@@ -253,7 +253,10 @@ class TestRegister:
 
 class TestValidateSamples:
     def test_expected_device_count(self, V):
-        assert V.expected_device_count('64H100-IB') == 22
+        # S4 渲染分流（V5.3.0）：IB 场景 fabric 角色（SPINE/LEAF/STO_*）不产出配置
+        assert V.expected_device_count('64H100-IB') == 9
+        assert V.expected_device_count('128H100-IB') == 9
+        assert V.expected_device_count('64H100-RoCE') == 22
         assert V.expected_device_count('128H100-RoCE') == 24
 
     def test_render_snapshot_deterministic(self, V):
