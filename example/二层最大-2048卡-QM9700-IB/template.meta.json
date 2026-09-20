@@ -1,0 +1,26 @@
+{
+  "name": "二层最大-2048卡-QM9700-IB",
+  "status": "skeleton",
+  "note": "W5.1 骨架：templates/para.xlsx/template.meta.json/README.md 就位；plan.json 与渲染产物（IB 无 fabric j2 / RoCE SONiC 族）由 W6.4 导入 AL 交付包填充",
+  "source": "autolink",
+  "license": "private",
+  "planes": [
+    "参数网",
+    "存储网",
+    "业务&管理网",
+    "带外网"
+  ],
+  "roles": [
+    "SPINE",
+    "LEAF",
+    "STO_SPINE",
+    "STO_LEAF",
+    "BIZ_AGG",
+    "BIZ_ACCESS",
+    "OOB_AGG",
+    "OOB_ACCESS"
+  ],
+  "scenario": "二层最大 A：256 台 H200 / 2048 卡，NVIDIA QM9700 k=64，IB 二层（恰为上限），不渲染",
+  "generator": "intent.project_single.SingleProjectGenerator",
+  "version": "0.3"
+}

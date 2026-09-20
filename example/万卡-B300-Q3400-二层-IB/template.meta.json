@@ -1,0 +1,26 @@
+{
+  "name": "万卡-B300-Q3400-二层-IB",
+  "status": "skeleton",
+  "note": "W5.1 骨架：templates/para.xlsx/template.meta.json/README.md 就位；plan.json 与渲染产物（IB 无 fabric j2 / RoCE SONiC 族）由 W6.4 导入 AL 交付包填充",
+  "source": "autolink",
+  "license": "private",
+  "planes": [
+    "参数网",
+    "存储网",
+    "业务&管理网",
+    "带外网"
+  ],
+  "roles": [
+    "SPINE",
+    "LEAF",
+    "STO_SPINE",
+    "STO_LEAF",
+    "BIZ_AGG",
+    "BIZ_ACCESS",
+    "OOB_AGG",
+    "OOB_ACCESS"
+  ],
+  "scenario": "万卡集群 D：1250 台 DGX B300 / 10000 卡，NVIDIA Q3400（72×1.6T→144×800G）k=144，IB 二层，不渲染",
+  "generator": "intent.project_single.SingleProjectGenerator",
+  "version": "0.3"
+}
