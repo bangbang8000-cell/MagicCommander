@@ -211,6 +211,18 @@ class Base:
                     deep_dict(self.devices, [hostnameA, sheet + ' ' + header[key_num - 1], interfaceA, header[key_num:col_num * 2]], tmp_listA)
                     deep_dict(self.devices, [hostnameZ, sheet + ' ' + header[key_num - 1], interfaceZ, header[key_num:col_num * 2]], tmp_listZ)
 
+    def _skipped_fabric_roles(self, project_name: str) -> set:
+        """S4 渲染分流：读取 template.meta.json renderSplit.skippedFabricRoles。
+        IB 等场景参数/存储网交换机不产出 fabric j2（配置在子网管理器侧），渲染时跳过这些角色。"""
+        try:
+            import json as _json
+            meta_path = os.path.join(self.workspace, project_name, 'template.meta.json')
+            with open(meta_path, encoding='utf-8') as _f:
+                meta = _json.load(_f)
+            return set(meta.get('renderSplit', {}).get('skippedFabricRoles') or [])
+        except Exception:
+            return set()
+
     def render_txt(self, templates: str, project_name: str, time_str: str, out_name_type: str):
         """使用jinja2模板渲染生成配置文件"""
         mid_path = self.workspace
@@ -243,9 +255,12 @@ class Base:
         env = SandboxedEnvironment(loader=ChoiceLoader(loaders), extensions=jinja2_extensions)
         register_intent_filters(env)  # 意图参数适配器过滤器（AIDC 内容包，D12）
 
+        skipped = self._skipped_fabric_roles(project_name)
         for info in self.devices.values():
             hostname_now = info['设备名']
             role = info['角色']
+            if role in skipped:
+                continue
             template = env.get_template(f"{role}.j2")
             output = template.render(hostname=hostname_now, info=info)
 
@@ -305,11 +320,12 @@ class Base:
 
         env = self._build_env(template_path)
         results = []
+        skipped = self._skipped_fabric_roles(project_name)
 
         for info in self.devices.values():
             hostname_now = info['设备名']
             role = info.get('角色', '')
-            if not role:
+            if not role or role in skipped:
                 continue
             try:
                 template = env.get_template(f"{role}.j2")

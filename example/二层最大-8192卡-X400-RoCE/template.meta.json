@@ -43,5 +43,9 @@
   "originPlanVersion": 1,
   "planHash": "b678ff78b505ff0215de13a23fb521ccabd973e24808c6b64696bc0667e4b247",
   "status": "ready",
-  "note": "W6.4 导入 AL 交付包：plan.json/para.xlsx/渲染产物齐备；IB 无 fabric j2 / RoCE 有 SONiC 族"
+  "note": "W6.4 导入 AL 交付包：plan.json/para.xlsx/渲染产物齐备；IB 无 fabric j2 / RoCE 有 SONiC 族",
+  "description": "8192 卡 X400 RoCE 二层最大规模（SONiC 参数网）",
+  "scenario": "二层容量上限 RoCE 训练集群参数网（X400 全调度）",
+  "inputRequirements": "项目名称 + 参数网/存储网/业务/带外四网段参数表（excel/parameter.xlsx、hostname.xlsx）",
+  "outputDescription": "逐设备配置：SONiC 族参数网（LEAF/SPINE j2）+ H3C 族存储/业务/带外 j2"
 }

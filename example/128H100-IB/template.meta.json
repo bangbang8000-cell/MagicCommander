@@ -59,13 +59,8 @@
     }
   ],
   "updatedAt": "2026-09-03T00:00:00.000Z",
-  "inputRequirements": [
-    "excel/hostname.xlsx - 设备名、角色、型号、环回/管理IP、BGP AS、MLAG 等基础信息",
-    "excel/connection.xlsx - 终端连接表（每接口一行）+ VLAN 网关表（每 VLAN 一行）",
-    "excel/ipaddress.xlsx - IP 规划地址表（对称表）+ 环回地址表 + 网段规划表",
-    "excel/parameter.xlsx - 全局参数（PFC/CNP 队列、AAA、NTP、SNMP 等）"
-  ],
-  "outputDescription": "生成设备的 CLI 配置文件（sysname、VLAN、接口、EBGP/ECMP、PFC/CNP 无损参数、MLAG 等）。",
-  "description": "128 台 H100 集群 · InfiniBand（IB）无损计算网络示例项目：4 台 SPINE 骨干，NVIDIA Quantum 组网，收敛比 1:1，四网合一。",
-  "scenario": "AIDC/128 台/IB"
+  "inputRequirements": "项目名称 + 参数网/存储网/业务/带外四网段参数表（excel/parameter.xlsx、hostname.xlsx）",
+  "outputDescription": "逐设备配置（BIZ/OOB H3C 族 j2；IB 参数/存储网交换机由子网管理器侧配置，不产出 fabric j2）",
+  "description": "128×H100 单集群 IB（QM9700 二层）",
+  "scenario": "万卡 IB 训练集群参数网 QM9700 二层全调度"
 }

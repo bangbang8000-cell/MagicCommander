@@ -136,6 +136,15 @@ def _model_of(scn, fabric='roce'):
         return ROLE_SCENARIO[role][1]
 
 
+def _model_of_plan(ctx, scn, fabric='roce'):
+    """型号解析：优先 plan deviceModels（X400/自定义场景），其次按 fabric 静态映射。"""
+    role = _SCN_TO_ROLE[scn]
+    dm = (getattr(ctx, 'globals', None) or {}).get('device_models') or {}
+    if dm.get(role):
+        return str(dm[role])
+    return _model_of(scn, fabric)
+
+
 class SingleProjectGenerator:
     """单项目四表格生成器（覆盖全部场景）。"""
 
@@ -168,7 +177,7 @@ class SingleProjectGenerator:
                 fabric = self.ctx.globals.get('fabric', 'roce')
                 rows.append({
                     '设备名': self._dev(scn, local, 'hostname_hostname_B_'),
-                    '型号': _model_of(scn, fabric),
+                    '型号': _model_of_plan(self.ctx, scn, fabric),
                     '角色': role,
                     '环回接口': 'LoopBack0',
                     '环回IP': _strip(loopback),

@@ -62,7 +62,8 @@ class TestVerifyRenderedMatrix:
         plan = S.build_all_plans()[key]
         issues, metrics = VR.verify_structural(rendered[key], plan)
         assert issues == []
-        assert metrics['device_count'] == metrics['plan_device_count'] == len(plan['deviceList'])
+        # S4 渲染分流（V5.3.0）：IB 场景 fabric 角色不产出配置，plan_device_count 已按分流排除
+        assert metrics['device_count'] == metrics['plan_device_count']
         assert metrics['convergence_target'] == plan['macro']['convergence']
         assert metrics['convergence_actual'] is not None
 
@@ -88,20 +89,26 @@ class TestVerifyRenderedMatrix:
         assert any('不符合命名规范' in i for i in issues)
 
     def test_ip_segment_violation_detected(self, VR, S, rendered):
-        plan = S.build_all_plans()['64H100-IB']
-        recs = rendered['64H100-IB']
-        n, role, text = recs[0]
-        text = text.replace('ip address 10.1.0.', 'ip address 10.9.0.')  # 环回换段
-        bad = [(n, role, text)] + list(recs[1:])
+        # IB 场景渲染不含 fabric 设备（无 LoopBack0），改用 RoCE 场景 Leaf 记录做环回换段
+        plan = S.build_all_plans()['64H100-RoCE']
+        recs = rendered['64H100-RoCE']
+        idx, (n, role, text) = next((i, r) for i, r in enumerate(recs)
+                                    if 'interface LoopBack0' in r[2] and '10.1.0.' in r[2])
+        text = text.replace('10.1.0.', '10.9.0.')  # 环回换段
+        bad = list(recs)
+        bad[idx] = (n, role, text)
         issues, _ = VR.verify_structural(bad, plan)
         assert any('环回' in i and '不在' in i for i in issues)
 
     def test_connection_missing_port_detected(self, VR, S, rendered):
-        plan = S.build_all_plans()['64H100-IB']
-        recs = rendered['64H100-IB']
-        n, role, text = recs[0]
+        # IB 场景渲染不含 fabric 设备（无 400G 上联口），改用 RoCE 场景 Leaf 记录删上联口
+        plan = S.build_all_plans()['64H100-RoCE']
+        recs = rendered['64H100-RoCE']
+        idx, (n, role, text) = next((i, r) for i, r in enumerate(recs)
+                                    if 'interface FourHundredGigE1/0/33' in r[2])
         text = text.replace('interface FourHundredGigE1/0/33\n', '', 1)  # 删一个上联口
-        bad = [(n, role, text)] + list(recs[1:])
+        bad = list(recs)
+        bad[idx] = (n, role, text)
         issues, _ = VR.verify_structural(bad, plan)
         assert any('连接表缺对端接口' in i for i in issues)
 
@@ -137,7 +144,7 @@ class TestVerifyProjectFull:
         report = VR.verify_project_full(str(proj))
         assert report['ok'] is True
         assert report['structural']['ok'] is True
-        assert report['structural']['metrics']['device_count'] == 22
+        assert report['structural']['metrics']['device_count'] == 9  # IB 分流：fabric 13 台不产出配置
 
     def test_project_full_detects_mismatch(self, VR, S, rendered, tmp_path):
         """output 少一台 → verify_project_full 结构核对报错。"""

@@ -43,5 +43,9 @@
   "originPlanVersion": 1,
   "planHash": "bb2c741ce72feb8eb769719b5072755b8579878ac5d95559e007099c9e813910",
   "status": "ready",
-  "note": "W6.4 导入 AL 交付包：plan.json/para.xlsx/渲染产物齐备；IB 无 fabric j2 / RoCE 有 SONiC 族"
+  "note": "W6.4 导入 AL 交付包：plan.json/para.xlsx/渲染产物齐备；IB 无 fabric j2 / RoCE 有 SONiC 族",
+  "description": "万卡 H200 RoCE 三层（X400 SONiC 参数网 + H3C 存储/业务/带外）",
+  "scenario": "万卡 RoCE 训练集群参数网三层全调度",
+  "inputRequirements": "项目名称 + 参数网/存储网/业务/带外四网段参数表（excel/parameter.xlsx、hostname.xlsx）",
+  "outputDescription": "逐设备配置：SONiC 族参数网（LEAF/SPINE j2）+ H3C 族存储/业务/带外 j2"
 }

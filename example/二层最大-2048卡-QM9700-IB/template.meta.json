@@ -48,5 +48,9 @@
   "originPlanVersion": 1,
   "planHash": "cb990e65d95bbb3edae191f21e7bc60e184b117039c28096147e581636588c96",
   "status": "ready",
-  "note": "W6.4 导入 AL 交付包：plan.json/para.xlsx/渲染产物齐备；IB 无 fabric j2 / RoCE 有 SONiC 族"
+  "note": "W6.4 导入 AL 交付包：plan.json/para.xlsx/渲染产物齐备；IB 无 fabric j2 / RoCE 有 SONiC 族",
+  "description": "2048 卡 QM9700 IB 二层最大规模",
+  "scenario": "二层容量上限 IB 训练集群参数网（QM9700 全调度）",
+  "inputRequirements": "项目名称 + 参数网/存储网/业务/带外四网段参数表（excel/parameter.xlsx、hostname.xlsx）",
+  "outputDescription": "逐设备配置（BIZ/OOB H3C 族 j2；IB 参数/存储网交换机由子网管理器侧配置，不产出 fabric j2）"
 }

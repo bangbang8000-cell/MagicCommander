@@ -1,48 +1,21 @@
 # 参数网 Leaf（X400 / UXOS / SONiC 基准，400G breakout 1:2 → 200G GPU，待现网校准）
-# hostname {{hostname_hostname_B_LEAF[[ID]]}}
+# hostname {{hostname}}
 #
-# SONiC/UXOS 基准（待现网校准）—— 全局
-# PFC 无损队列（可调，0-7，默认 PFC=3 / CNP=6）
-# BUFFER: egress lossless profile（headroom {{roce_pfc_headroom}} bytes）
-config buffer profile add BUFFER_LOSSLESS_HEADROOM --size {{roce_pfc_headroom}} --pool ingress_lossless
-#
-# ECN: 无损队列 WRED 阈值（Kbytes）
-config ecn set 200000 100000 --queue {{cnp_queue}}
+# SONiC/UXOS 基准 —— 全局（PFC/CNP 队列可调，默认 PFC=3 / CNP=6，见 parameter.xlsx）
+# PFC 无损队列与 WRED 阈值待现网校准；上联/下联端口明细（uplink/gpu 端口表）待补充
 #
 # 环回（/32）与带内管理
-ip address add {{ipv4_LoopBack_P_LEAF[[ID]]}}/32 dev Loopback0
-ip address add {{ipv4_M-ILO_P_LEAF[[ID]]}}/24 dev Management0
+ip address add {{info['环回IP']}}/{{info['环回长度']}} dev Loopback0
+ip address add {{info['管理IP']}}/24 dev Management0
 #
-{%- for item in iter_obj_func("uplink_port[[ID]]", "uplink_ip[[ID]]", "uplink_desc[[ID]]") %}
-# 上联 {{item.uplink_desc[[ID]]}}（{{item.uplink_port[[ID]]}}，/31 点对点）
-config interface ip add {{item.uplink_port[[ID]]}} {{item.uplink_ip[[ID]]}}/31
-config interface pfc set {{item.uplink_port[[ID]]}} --queue {{pfc_queue}} --enable on
-config interface pfc set {{item.uplink_port[[ID]]}} --queue {{pfc_queue}} --deadlock-detect on --deadlock-recover on
-config interface ecn set {{item.uplink_port[[ID]]}} --wred 400G-WRED-Profile --queue {{cnp_queue}}
-{%- endfor %}
-{%- for item in iter_obj_func("gpu_port[[ID]]", "gpu_vlan[[ID]]", "gpu_desc[[ID]]") %}
-# GPU 下联 {{item.gpu_desc[[ID]]}}（{{item.gpu_port[[ID]]}}，breakout 1:2 → 200G）
-config interface ip add {{item.gpu_port[[ID]]}} --vlan {{item.gpu_vlan[[ID]]}}
-config interface pfc set {{item.gpu_port[[ID]]}} --queue {{pfc_queue}} --enable on
-config interface pfc set {{item.gpu_port[[ID]]}} --queue {{pfc_queue}} --deadlock-detect on --deadlock-recover on
-config interface ecn set {{item.gpu_port[[ID]]}} --wred 200G-WRED-Profile --queue {{cnp_queue}}
-{%- endfor %}
+# GPU 下联 / 上联端口明细待现网参数补充（breakout 1:2 → 200G）
 #
-router bgp {{hostname_hostname_E_LEAF[[ID]]}}
- bgp router-id {{ipv4_LoopBack_P_LEAF[[ID]]|to_ip}}
- maximum-paths 16
-{%- for item in iter_obj_func("bgp_peer_ip[[ID]]", "bgp_peer_as[[ID]]") %}
- neighbor {{item.bgp_peer_ip[[ID]]}} remote-as {{item.bgp_peer_as[[ID]]}}
-{%- endfor %}
+router bgp {{info['BGP AS']}}
+ bgp router-id {{info['环回IP']}}
+ maximum-paths {{info['BGP多路径']}}
  address-family ipv4 unicast
-  network {{ipv4_LoopBack_P_LEAF[[ID]]|to_ip}}/32
-{%- for item in iter_obj_func("gw_net[[ID]]", "gw_mask[[ID]]") %}
-  network {{item.gw_net[[ID]]}}/{{item.gw_mask[[ID]]}}
-{%- endfor %}
+  network {{info['环回IP']}}/32
  exit-address-family
  address-family l2vpn evpn
-{%- for item in iter_obj_func("bgp_peer_ip[[ID]]") %}
-  neighbor {{item.bgp_peer_ip[[ID]]}} activate
-{%- endfor %}
  exit-address-family
 #

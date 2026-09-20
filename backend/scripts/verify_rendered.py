@@ -142,13 +142,46 @@ def _naming_pattern(plan, site):
     return pattern
 
 
-def _verify_naming(records, plan, issues):
+# S4（V5.3.0-640-m）：IB 场景参数/存储网交换机（fabric 角色）不产出 j2 配置
+# （配置在 IB 子网管理器侧），结构核对时按 plan protocol 排除。
+_FABRIC_ROLES = frozenset({'SPINE', 'LEAF', 'STO_SPINE', 'STO_LEAF'})
+
+
+def _derive_skipped(plan, meta_path=None):
+    """推导渲染分流跳过角色：template.meta.json renderSplit 优先，否则 IB→fabric 角色。"""
+    if meta_path and os.path.exists(meta_path):
+        try:
+            import json
+            with open(meta_path, encoding='utf-8') as f:
+                meta = json.load(f)
+            sk = meta.get('renderSplit', {}).get('skippedFabricRoles')
+            if sk:
+                return set(sk)
+        except Exception:  # noqa: BLE001
+            pass
+    proto = str((plan.get('macro') or {}).get('protocol', '')).lower()
+    if proto == 'ib':
+        return set(_FABRIC_ROLES)
+    try:
+        sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
+        from intent.device_library import resolve_models_fabric
+        fabric = resolve_models_fabric((plan.get('macro') or {}).get('deviceModels') or {})
+        if fabric == 'ib':
+            return set(_FABRIC_ROLES)
+    except Exception:  # noqa: BLE001
+        pass
+    return set()
+
+
+def _verify_naming(records, plan, issues, skipped_roles=frozenset()):
     site = plan.get('macro', {}).get('site', '')
     abbr_map = _naming_abbr_map(plan)
     pattern = _naming_pattern(plan, site)
     names = {n for n, _, _ in records}
     for d in plan.get('deviceList', []):
         name = d.get('name', '')
+        if d.get('role') in skipped_roles:
+            continue
         if name not in names:
             issues.append(f'plan 设备 {name} 未渲染')
             continue
@@ -188,7 +221,7 @@ def _rate_gbps(rate):
     return float(m.group(1)) if m else None
 
 
-def _verify_connection_table(records, plan, issues, metrics):
+def _verify_connection_table(records, plan, issues, metrics, skipped_roles=frozenset()):
     """连接表：plan connections 的 己端端口/速率 在渲染文本中对端引用齐全。
 
     对端引用 = 渲染配置含 `interface <己端端口>`（L3 上联 /31、L2 trunk/access 均覆盖）；
@@ -202,6 +235,11 @@ def _verify_connection_table(records, plan, issues, metrics):
     for name, conns in by_src.items():
         rec = records_by_name.get(name)
         if rec is None:
+            if skipped_roles:
+                role = next((d.get('role') for d in plan.get('deviceList', [])
+                             if d.get('name') == name), None)
+                if role in skipped_roles:
+                    continue
             issues.append(f'连接对端 {name} 未渲染')
             continue
         text = rec[2]
@@ -243,23 +281,27 @@ def _verify_convergence(plan, issues, metrics):
         issues.append(f'IB 参数网收敛比须 1:1，实际 {ratio:.2f}:1')
 
 
-def verify_structural(records, plan):
+def verify_structural(records, plan, skipped_roles=None):
     """501-d：结构核对（设备数/命名/IP 连通/连接表/收敛比）。返回 (issues, metrics)。"""
     issues = []
-    metrics = {'device_count': len(records), 'plan_device_count': len(plan.get('deviceList', []))}
+    if skipped_roles is None:
+        skipped_roles = _derive_skipped(plan)
+    skipped_roles = set(skipped_roles)
+    plan_devices = [d for d in plan.get('deviceList', []) if d.get('role') not in skipped_roles]
+    metrics = {'device_count': len(records), 'plan_device_count': len(plan_devices)}
 
     # 1) 设备数
-    if len(records) != len(plan.get('deviceList', [])):
-        issues.append(f'渲染设备数 {len(records)} ≠ plan deviceList {len(plan.get("deviceList", []))}')
+    if len(records) != len(plan_devices):
+        issues.append(f'渲染设备数 {len(records)} ≠ plan deviceList {len(plan_devices)}（分流跳过 {sorted(skipped_roles)}）')
 
     # 2) 命名规范
-    _verify_naming(records, plan, issues)
+    _verify_naming(records, plan, issues, skipped_roles)
 
     # 3) IP 连通（环回/管理/互联段）
     _verify_ip_connectivity(records, plan, issues)
 
     # 4) 连接表（对端引用 / 速率）
-    _verify_connection_table(records, plan, issues, metrics)
+    _verify_connection_table(records, plan, issues, metrics, skipped_roles)
 
     # 5) 收敛比（上联/下联 vs 目标）
     _verify_convergence(plan, issues, metrics)

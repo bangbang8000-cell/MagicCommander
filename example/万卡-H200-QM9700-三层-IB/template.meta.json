@@ -48,5 +48,9 @@
   "originPlanVersion": 1,
   "planHash": "db6dcc5e2566f08a9a84a0388187e8107e5c53361c9177c1d3923271512a9422",
   "status": "ready",
-  "note": "W6.4 导入 AL 交付包：plan.json/para.xlsx/渲染产物齐备；IB 无 fabric j2 / RoCE 有 SONiC 族"
+  "note": "W6.4 导入 AL 交付包：plan.json/para.xlsx/渲染产物齐备；IB 无 fabric j2 / RoCE 有 SONiC 族",
+  "description": "万卡 H200 IB 三层（QM9700 主用 + X400 备用）",
+  "scenario": "万卡 IB 训练集群参数网三层全调度",
+  "inputRequirements": "项目名称 + 参数网/存储网/业务/带外四网段参数表（excel/parameter.xlsx、hostname.xlsx）",
+  "outputDescription": "逐设备配置（BIZ/OOB H3C 族 j2；IB 参数/存储网交换机由子网管理器侧配置，不产出 fabric j2）"
 }

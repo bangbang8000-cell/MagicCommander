@@ -90,6 +90,13 @@ def _check_jinja(tpl_dir, j2_files, problems):
         loader=FileSystemLoader(os.path.join(tpl_dir, 'templates')),
         undefined=StrictUndefined,
     )
+    # 与正式渲染环境一致：注册意图过滤器（to_ip/to_mask 等，SONiC 模板依赖）
+    try:
+        sys.path.insert(0, BACKEND)
+        from intent.filters import register as _register_filters
+        _register_filters(env)
+    except Exception:
+        pass
     for f in j2_files:
         try:
             env.get_template(f)
@@ -311,7 +318,9 @@ def _check_protocol_compat(tpl_dir, problems):
     fabric = _resolve_fabric(models)
     _PARAM_STO = ('SPINE', 'LEAF', 'STO_SPINE', 'STO_LEAF')
 
-    # 7a. plan 声明型号 → 设备库解析 + 参数/存储角色协议与 plan fabric 一致
+    # 7a. plan 声明型号 → 设备库解析：参数角色（SPINE/LEAF）须与 plan fabric 一致；
+    #     STO 角色使用存储网协议（如 IB 场景存储网落以太/H3C，合法，不与参数网 fabric 强制一致）
+    param_roles = ('SPINE', 'LEAF')
     for role, m in models.items():
         if not m:
             continue
@@ -321,21 +330,36 @@ def _check_protocol_compat(tpl_dir, problems):
             continue
         dev = _resolve_device(did)
         proto = (dev or {}).get('protocol')
-        if role in _PARAM_STO and proto and proto != fabric:
+        if role in param_roles and proto and proto != fabric:
             problems.append(f'协议不匹配: {role}={m}({proto}) 与 plan fabric({fabric}) 不符')
 
-    # 7b. 模板与 plan.json 协议一致：hostname.xlsx 参数/存储平面 型号协议须与 plan fabric 一致
+    # 7b. 模板与 plan.json 协议一致：hostname.xlsx 参数网 型号协议须与 plan fabric 一致；
+    #     存储网 型号协议须与 plan STO 角色设备协议一致（可不同于参数网 fabric）
     import openpyxl
+    sto_proto = None
+    for m in (models.get('STO_SPINE') or models.get('STO_LEAF')):
+        if not m:
+            continue
+        did = _lookup_device_id(m)
+        dev = _resolve_device(did) if did else None
+        proto = (dev or {}).get('protocol')
+        if proto:
+            sto_proto = proto
+            break
     host_path = os.path.join(tpl_dir, 'excel', 'hostname.xlsx')
     if os.path.exists(host_path):
-        seen_protos = set()
+        seen_param, seen_sto = set(), set()
         try:
             wb = openpyxl.load_workbook(host_path, read_only=True, data_only=True)
         except Exception:
             wb = None
         if wb is not None:
             for ws in wb.worksheets:
-                if not (ws.title.startswith('设备表-参数网') or ws.title.startswith('设备表-存储网')):
+                if ws.title.startswith('设备表-参数网'):
+                    target = seen_param
+                elif ws.title.startswith('设备表-存储网'):
+                    target = seen_sto
+                else:
                     continue
                 rows = ws.iter_rows(values_only=True)
                 next(rows, None)  # header
@@ -347,10 +371,12 @@ def _check_protocol_compat(tpl_dir, problems):
                     dev = _resolve_device(did) if did else None
                     proto = (dev or {}).get('protocol')
                     if proto:
-                        seen_protos.add(proto)
+                        target.add(proto)
             wb.close()
-        if seen_protos and seen_protos != {fabric}:
-            problems.append(f'hostname.xlsx 参数/存储型号协议 {sorted(seen_protos)} 与 plan fabric({fabric}) 不一致')
+        if seen_param and seen_param != {fabric}:
+            problems.append(f'hostname.xlsx 参数网型号协议 {sorted(seen_param)} 与 plan fabric({fabric}) 不一致')
+        if sto_proto and seen_sto and seen_sto != {sto_proto}:
+            problems.append(f'hostname.xlsx 存储网型号协议 {sorted(seen_sto)} 与 STO 角色协议({sto_proto}) 不一致')
 
 
 def _resolve_fabric(models):
