@@ -1,26 +1,52 @@
 {
   "name": "二层最大-2048卡-QM9700-IB",
-  "status": "skeleton",
-  "note": "W5.1 骨架：templates/para.xlsx/template.meta.json/README.md 就位；plan.json 与渲染产物（IB 无 fabric j2 / RoCE SONiC 族）由 W6.4 导入 AL 交付包填充",
   "source": "autolink",
   "license": "private",
   "planes": [
+    "业务&管理网",
     "参数网",
     "存储网",
-    "业务&管理网",
     "带外网"
   ],
   "roles": [
-    "SPINE",
-    "LEAF",
-    "STO_SPINE",
-    "STO_LEAF",
-    "BIZ_AGG",
     "BIZ_ACCESS",
+    "BIZ_AGG",
+    "LEAF",
+    "OOB_ACCESS",
     "OOB_AGG",
-    "OOB_ACCESS"
+    "SPINE",
+    "STO_LEAF",
+    "STO_SPINE"
   ],
-  "scenario": "二层最大 A：256 台 H200 / 2048 卡，NVIDIA QM9700 k=64，IB 二层（恰为上限），不渲染",
+  "tunables": [
+    "PFC队列",
+    "CNP队列"
+  ],
   "generator": "intent.project_single.SingleProjectGenerator",
-  "version": "0.3"
+  "version": "0.3",
+  "fabric": "ib",
+  "renderSplit": {
+    "skippedFabricRoles": [
+      "LEAF",
+      "SPINE",
+      "STO_LEAF",
+      "STO_SPINE"
+    ],
+    "note": "IB 参数/存储网交换机不产出 fabric j2（配置在子网管理器侧）"
+  },
+  "validation": {
+    "ok": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  "projectType": "aidc",
+  "bridgeVersion": "1.0",
+  "originPlan": "aidc_256",
+  "originProjectId": "6s-2048-qm9700-2l-ib-0001",
+  "originProjectName": "二层最大-2048卡-QM9700-IB",
+  "originSite": "BJ01",
+  "originPlanVersion": 1,
+  "planHash": "cb990e65d95bbb3edae191f21e7bc60e184b117039c28096147e581636588c96",
+  "status": "ready",
+  "note": "W6.4 导入 AL 交付包：plan.json/para.xlsx/渲染产物齐备；IB 无 fabric j2 / RoCE 有 SONiC 族"
 }

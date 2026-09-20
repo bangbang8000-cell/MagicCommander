@@ -1,0 +1,32 @@
+# OOB_ACCESS（带外接入，1G BMC/ILO：下行 access vlan + 上行 trunk）
+sysname {{ info['设备名'] }}
+#
+lldp global enable
+#
+interface M-GigabitEthernet0/0/0
+ ip address {{ info['管理IP'] }} 255.255.255.0
+#
+{# 带外下行（access vlan + description） #}
+{%- set oob_ports = info['己端接口'][1:] %}
+{%- set oob_vlans = info['己端VLAN'][1:] %}
+{%- set oob_descs = info.get('己端描述', ['list'])[1:] %}
+{%- for p in oob_ports %}
+interface {{ p }}
+ port link-mode bridge
+ description {{ oob_descs[loop.index0] if oob_descs else '' }}
+ port access vlan {{ oob_vlans[loop.index0] }}
+#
+{%- endfor %}
+{# 带外上行（trunk 透传） #}
+{%- for key, val in info.get('IP规划地址表-带外网 己端接口', {}).items() %}
+interface {{ key }}
+ port link-mode bridge
+ description to-AGG
+ port link-type trunk
+ port trunk permit vlan all
+#
+{%- endfor %}
+snmp-agent
+snmp-agent community read {{ info['SNMP团体名'] }}
+#
+ssh server enable

@@ -24,6 +24,16 @@
   ],
   "generator": "intent.project_single.SingleProjectGenerator",
   "version": "0.3",
+  "fabric": "ib",
+  "renderSplit": {
+    "skippedFabricRoles": [
+      "LEAF",
+      "SPINE",
+      "STO_LEAF",
+      "STO_SPINE"
+    ],
+    "note": "IB 参数/存储网交换机不产出 fabric j2（配置在子网管理器侧）"
+  },
   "validation": {
     "ok": true,
     "issue_count": 0,

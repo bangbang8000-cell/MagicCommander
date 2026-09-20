@@ -1,0 +1,58 @@
+# BIZ_ACCESS（业务接入，2×25G；同组 ACC 间 MLAG，上联 EBGP+ECMP）
+sysname {{ info['设备名'] }}
+#
+lldp global enable
+#
+{%- if info['MLAG对'] %}
+ip vpn-instance keepalive
+#
+stp global enable
+#
+mlag system-mac 0001-0001-000{{ info['MLAG对'] }}
+mlag system-number {{ info['MLAG序号'] }}
+mlag keepalive ip destination {{ info['MLAG对端'] }} source {{ info['MLAG本端'] }} vpn-instance keepalive
+#
+{%- endif %}
+{# 业务接入口（25G，MLAG 接入口 + description） #}
+{%- set biz_ports = info['己端接口'][1:] %}
+{%- set biz_vlans = info['己端VLAN'][1:] %}
+{%- set biz_descs = info.get('己端描述', ['list'])[1:] %}
+{%- for p in biz_ports %}
+interface {{ p }}
+ port link-mode bridge
+ description {{ biz_descs[loop.index0] if biz_descs else '' }}
+ port access vlan {{ biz_vlans[loop.index0] }}
+ stp edged-port
+{%- if info['MLAG对'] %}
+ port s-mlag group {{ info['MLAG对'] }}
+{%- endif %}
+#
+{%- endfor %}
+{%- for key, val in info.get('IP规划地址表-业务网 己端接口', {}).items() %}
+interface {{ key }}
+ port link-mode route
+ ip address {{ val['己端IP地址'] }} 255.255.255.254
+#
+{%- endfor %}
+router bgp {{ info['BGP AS'] }}
+ bgp router-id {{ info['环回IP'] }}
+ bgp log-neighbor-changes
+ maximum-paths ebgp {{ info['BGP多路径'] }}
+{%- for key, val in info.get('IP规划地址表-业务网 己端接口', {}).items() %}
+ neighbor {{ val['对端IP地址'] }} as-number {{ val['对端AS'] }}
+{%- endfor %}
+ address-family ipv4
+  network {{ info['环回IP'] }} mask 255.255.255.255
+{%- for key, val in info.get('IP规划地址表-业务网 己端接口', {}).items() %}
+  neighbor {{ val['对端IP地址'] }} activate
+{%- endfor %}
+  exit-address-family
+#
+snmp-agent
+snmp-agent community read {{ info['SNMP团体名'] }}
+#
+local-user {{ info['本地用户名'] }} class manage
+ password simple {{ info['本地用户密钥'] }}
+ service-type ssh terminal
+#
+ssh server enable

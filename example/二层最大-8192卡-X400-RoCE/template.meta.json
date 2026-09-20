@@ -1,26 +1,47 @@
 {
   "name": "二层最大-8192卡-X400-RoCE",
-  "status": "skeleton",
-  "note": "W5.1 骨架：templates/para.xlsx/template.meta.json/README.md 就位；plan.json 与渲染产物（IB 无 fabric j2 / RoCE SONiC 族）由 W6.4 导入 AL 交付包填充",
   "source": "autolink",
   "license": "private",
   "planes": [
+    "业务&管理网",
     "参数网",
     "存储网",
-    "业务&管理网",
     "带外网"
   ],
   "roles": [
-    "SPINE",
-    "LEAF",
-    "STO_SPINE",
-    "STO_LEAF",
-    "BIZ_AGG",
     "BIZ_ACCESS",
+    "BIZ_AGG",
+    "LEAF",
+    "OOB_ACCESS",
     "OOB_AGG",
-    "OOB_ACCESS"
+    "SPINE",
+    "STO_LEAF",
+    "STO_SPINE"
   ],
-  "scenario": "二层最大 B：1024 台 H200 / 8192 卡，浪潮 X400 k=128，RoCE 二层（恰为上限），需渲染",
+  "tunables": [
+    "PFC队列",
+    "CNP队列"
+  ],
   "generator": "intent.project_single.SingleProjectGenerator",
-  "version": "0.3"
+  "version": "0.3",
+  "fabric": "roce",
+  "renderSplit": {
+    "skippedFabricRoles": [],
+    "note": "IB 参数/存储网交换机不产出 fabric j2（配置在子网管理器侧）"
+  },
+  "validation": {
+    "ok": true,
+    "issue_count": 0,
+    "issues": []
+  },
+  "projectType": "aidc",
+  "bridgeVersion": "1.0",
+  "originPlan": "aidc_1024",
+  "originProjectId": "6s-8192-x400-2l-roce-0001",
+  "originProjectName": "二层最大-8192卡-X400-RoCE",
+  "originSite": "BJ01",
+  "originPlanVersion": 1,
+  "planHash": "b678ff78b505ff0215de13a23fb521ccabd973e24808c6b64696bc0667e4b247",
+  "status": "ready",
+  "note": "W6.4 导入 AL 交付包：plan.json/para.xlsx/渲染产物齐备；IB 无 fabric j2 / RoCE 有 SONiC 族"
 }
