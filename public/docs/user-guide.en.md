@@ -1,6 +1,6 @@
 # MagicCommander User Guide
 
-> Applies to MagicCommander v5.2.2 (incl. 5.1 series Agent Connect)
+> Applies to MagicCommander v5.3.0 (incl. 5.1 series Agent Connect; render-split semantics see §Template rendering)
 
 ## Introduction
 

@@ -1,6 +1,6 @@
 # MagicCommander 使用指南
 
-> 适用于 MagicCommander v5.2.2（含 5.1 系列 Agent Connect）
+> 适用于 MagicCommander v5.3.0（含 5.1 系列 Agent Connect；渲染分流语义见 §模板渲染）
 
 ## 简介
 

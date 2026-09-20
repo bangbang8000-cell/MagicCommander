@@ -1,6 +1,6 @@
 # MagicCommander 部署指南
 
-> 适用于 **v5.2.2**。涵盖：开发环境、构建测试、版本管理与发布（GitHub Actions）、客户端安装、云平台（MagicCommander Platform）部署、AI Hub 与 Agent Connect（MCP Server）部署。
+> 适用于 **v5.3.0**。涵盖：开发环境、构建测试、版本管理与发布（GitHub Actions）、客户端安装、云平台（MagicCommander Platform）部署、AI Hub 与 Agent Connect（MCP Server）部署。
 
 ## 目录
 

@@ -2,7 +2,7 @@
 
 **批量生成网络设备配置 | Network Device Configuration Automation**
 
-[![Version](https://img.shields.io/badge/version-5.2.2-blue)](https://github.com/bangbang8000-cell/MagicCommander/releases)
+[![Version](https://img.shields.io/badge/version-5.3.0-blue)](https://github.com/bangbang8000-cell/MagicCommander/releases)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![Windows](https://img.shields.io/badge/Windows-NSIS-blue)](https://github.com/bangbang8000-cell/MagicCommander/releases)
 [![macOS](https://img.shields.io/badge/macOS-DMG-silver)](https://github.com/bangbang8000-cell/MagicCommander/releases)
@@ -286,6 +286,7 @@ MagicCommander/
 
 | 版本 | 日期 | 更新内容 |
 |------|------|---------|
+| **5.3.0 Build 26092001** | 2026-09-20 | **渲染分流 + 6 场景 example（与 AL 5.4.0 同日发布）**：IB 项目不再产出 SPINE/LEAF/STO_SPINE/STO_LEAF 四个 fabric 角色 j2（配置在 IB 子网管理器侧，业务/带外照常）+ RoCE X400 渲染族（SPINE/LEAF 走 SONiC/UXOS 命令族，H3C 族保持占位）+ 6 场景 example 成品导入（万卡 H200×3 + 二层最大 ×2 + B300，plan.json/para.xlsx/excel×4/templates/meta status=ready 溯源）+ 既有 4 个 IB 样例按分流语义重生成 + device_library 21 台同步 |
 | **5.2.2 Build 26091701** | 2026-09-17 | **Agent Connect 对外契约止血 + 可信门禁**（与 AL 5.2.2 同批次）：`tools/call` 失败置 `isError=true` 且响应扁平化 + 结构化 `error_code`（**破坏性变更**）；修复 **`toolName` 越权**（高危，可把只读调用路由到高风险工具）与**编译态屏蔽静默失效**（高危，固定枚举名单与实际注册名不符致危险工具泄漏）；屏蔽规则改**语义匹配** + `audit_block_rules()` 启动对账 + 编译态启动断言；stdio 入口强制校验总开关（关闭即退出码 2，`--ignore-switch` 排障）；新增 confirm 门禁可观测（`set_gate_mode`/`gate_hits`/`block_audit`）、MCP `annotations`、`resources`/`prompts` 注册、`inputSchema` 保真透传、`selfcheck()` 真实化；新增**双端同构结构比对**用例 + Agent Connect 契约用例（26 条）+ 文档数字一致性门禁 |
 | **5.2.1 Build 26090901** | 2026-09-09 | **AL 5.2.0 同步版**：契约 v1.3 解析（`topologyMode`/`combinedMode`/`scenario`/`paramPlanes`）+ 设备库互灌（推荐字段 + `apply_recommendations`，设备库版本 1→2）+ 3D 数据源联动（拓扑/合分标签 + 按柜型着色） |
 | **5.1.0 Build 26090701** | 2026-09-07 | **Agent Connect（MCP Server）全量对外**：把 MagicCommander 封装为标准 MCP Server，Claude / Codex / Trae Work / VS Code 等外部 Agent 可直接查询、创建、更新、渲染项目 / 模板 / 设备库 / 输出；双场景模型（编译态受限 / 源码态无限制）+ 确定性语义层（L1 入参契约 / L2 语义校验 / L3 幂等事务）+ 异步任务 + 操作审计 + 远程模式试点 + Agent 反馈自优化；帮助菜单新增「MCP 接入指南」 |
@@ -344,6 +345,7 @@ MagicCommander/
 | 4.0 系列 | ✅ 已完成 | 十版收官（基座/视觉/稳定/AI/高效/准确/质量/运维/互操作/示例） |
 | 5.0 系列 | ✅ 已完成 | 十版收官（AI 底座/工作流/协作/3D/性能/质量/交付/内容资产），双端三位一体 |
 | **5.1 系列** | ✅ 已完成 | **AI Agent 互联**：Agent Connect（MCP Server 双场景：编译态受限 / 源码态无限制），让 Claude/Codex/Trae/VS Code 等外部 Agent 直接查询、创建、更新、渲染项目/模板/设备库 |
+| **5.3.0** | ✅ 已发布（待编译验证） | **渲染分流 + 6 场景 example**：IB 无 fabric j2 / RoCE X400 SONiC 族、6 场景 example 成品、device_library 21 台 |
 | **5.2 系列** | ✅ 已完成 | 与 AL 同步版（5.2.1 契约 v1.3 / 设备库互灌 / 3D 联动）+ **5.2.2 契约止血与可信门禁**（越权与屏蔽静默失效双高危修复、语义化屏蔽规则 + 启动对账断言、门禁可观测、双端同构护栏） |
 | 后续方向 | 待定 | 社区分享中心 + 协作审阅 + 权限体系；Ansible/Nornir 推送 + CI/CD 流水线 + 多租户 + 监控告警 |
 
