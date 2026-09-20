@@ -1,0 +1,61 @@
+{
+  "batch_manifest": [
+    {
+      "device": "BJ01-R54-AIDC-H3C-BIZ-AGG-01",
+      "filename": "BJ01-R54-AIDC-H3C-BIZ-AGG-01.txt",
+      "role": "BIZ_AGG",
+      "sha256": "8a5908c6613cdf00"
+    },
+    {
+      "device": "BJ01-R55-AIDC-H3C-BIZ-AGG-02",
+      "filename": "BJ01-R55-AIDC-H3C-BIZ-AGG-02.txt",
+      "role": "BIZ_AGG",
+      "sha256": "b8c48f3977aac75a"
+    },
+    {
+      "device": "BJ01-R56-AIDC-H3C-BIZ-ACC-01",
+      "filename": "BJ01-R56-AIDC-H3C-BIZ-ACC-01.txt",
+      "role": "BIZ_ACCESS",
+      "sha256": "791182ea1bfbf546"
+    },
+    {
+      "device": "BJ01-R57-AIDC-H3C-BIZ-ACC-02",
+      "filename": "BJ01-R57-AIDC-H3C-BIZ-ACC-02.txt",
+      "role": "BIZ_ACCESS",
+      "sha256": "1e1ab3dc7d3ebf19"
+    },
+    {
+      "device": "BJ01-R58-AIDC-H3C-BIZ-ACC-03",
+      "filename": "BJ01-R58-AIDC-H3C-BIZ-ACC-03.txt",
+      "role": "BIZ_ACCESS",
+      "sha256": "1b54d92f5a182d26"
+    },
+    {
+      "device": "BJ01-R59-AIDC-H3C-BIZ-ACC-04",
+      "filename": "BJ01-R59-AIDC-H3C-BIZ-ACC-04.txt",
+      "role": "BIZ_ACCESS",
+      "sha256": "3c53513874ef4077"
+    },
+    {
+      "device": "BJ01-R60-AIDC-H3C-OOB-AGG-01",
+      "filename": "BJ01-R60-AIDC-H3C-OOB-AGG-01.txt",
+      "role": "OOB_AGG",
+      "sha256": "64e461a19e61311e"
+    },
+    {
+      "device": "BJ01-R61-AIDC-H3C-OOB-ACC-01",
+      "filename": "BJ01-R61-AIDC-H3C-OOB-ACC-01.txt",
+      "role": "OOB_ACCESS",
+      "sha256": "d8c60561ab3cced9"
+    },
+    {
+      "device": "BJ01-R62-AIDC-H3C-OOB-ACC-02",
+      "filename": "BJ01-R62-AIDC-H3C-OOB-ACC-02.txt",
+      "role": "OOB_ACCESS",
+      "sha256": "3483edd275a7df9a"
+    }
+  ],
+  "device_count": 9,
+  "render_hash": "bb9343a08000b8f9",
+  "source": "example/万卡-H200-QM9700-三层-IB"
+}

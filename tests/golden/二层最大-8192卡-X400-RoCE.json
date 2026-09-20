@@ -1,0 +1,319 @@
+{
+  "batch_manifest": [
+    {
+      "device": "BJ01-R01-AIDC-H3C-P-Spine-01",
+      "filename": "BJ01-R01-AIDC-H3C-P-Spine-01.txt",
+      "role": "SPINE",
+      "sha256": "cd563bf6df6da42c"
+    },
+    {
+      "device": "BJ01-R02-AIDC-H3C-P-Spine-02",
+      "filename": "BJ01-R02-AIDC-H3C-P-Spine-02.txt",
+      "role": "SPINE",
+      "sha256": "050da39e54f0e7f6"
+    },
+    {
+      "device": "BJ01-R03-AIDC-H3C-P-Spine-03",
+      "filename": "BJ01-R03-AIDC-H3C-P-Spine-03.txt",
+      "role": "SPINE",
+      "sha256": "bbf37d7f5d486373"
+    },
+    {
+      "device": "BJ01-R04-AIDC-H3C-P-Spine-04",
+      "filename": "BJ01-R04-AIDC-H3C-P-Spine-04.txt",
+      "role": "SPINE",
+      "sha256": "b4aba778223198d1"
+    },
+    {
+      "device": "BJ01-R05-AIDC-H3C-P-Spine-05",
+      "filename": "BJ01-R05-AIDC-H3C-P-Spine-05.txt",
+      "role": "SPINE",
+      "sha256": "ca13b3dfdb0e4d17"
+    },
+    {
+      "device": "BJ01-R06-AIDC-H3C-P-Spine-06",
+      "filename": "BJ01-R06-AIDC-H3C-P-Spine-06.txt",
+      "role": "SPINE",
+      "sha256": "9ba8efdb5c7f84a8"
+    },
+    {
+      "device": "BJ01-R07-AIDC-H3C-P-Spine-07",
+      "filename": "BJ01-R07-AIDC-H3C-P-Spine-07.txt",
+      "role": "SPINE",
+      "sha256": "f3de65c2b183e16b"
+    },
+    {
+      "device": "BJ01-R08-AIDC-H3C-P-Spine-08",
+      "filename": "BJ01-R08-AIDC-H3C-P-Spine-08.txt",
+      "role": "SPINE",
+      "sha256": "ae5edafb9fd6a0b9"
+    },
+    {
+      "device": "BJ01-R09-AIDC-H3C-P-Leaf-01",
+      "filename": "BJ01-R09-AIDC-H3C-P-Leaf-01.txt",
+      "role": "LEAF",
+      "sha256": "df04cc9ec40515dd"
+    },
+    {
+      "device": "BJ01-R10-AIDC-H3C-P-Leaf-02",
+      "filename": "BJ01-R10-AIDC-H3C-P-Leaf-02.txt",
+      "role": "LEAF",
+      "sha256": "390f1cc9d52b643a"
+    },
+    {
+      "device": "BJ01-R11-AIDC-H3C-P-Leaf-03",
+      "filename": "BJ01-R11-AIDC-H3C-P-Leaf-03.txt",
+      "role": "LEAF",
+      "sha256": "16551850b936ebc4"
+    },
+    {
+      "device": "BJ01-R12-AIDC-H3C-P-Leaf-04",
+      "filename": "BJ01-R12-AIDC-H3C-P-Leaf-04.txt",
+      "role": "LEAF",
+      "sha256": "c7fb0f4e4eec2c83"
+    },
+    {
+      "device": "BJ01-R13-AIDC-H3C-P-Leaf-05",
+      "filename": "BJ01-R13-AIDC-H3C-P-Leaf-05.txt",
+      "role": "LEAF",
+      "sha256": "15fa834c035404e8"
+    },
+    {
+      "device": "BJ01-R14-AIDC-H3C-P-Leaf-06",
+      "filename": "BJ01-R14-AIDC-H3C-P-Leaf-06.txt",
+      "role": "LEAF",
+      "sha256": "5277b986e3321e98"
+    },
+    {
+      "device": "BJ01-R15-AIDC-H3C-P-Leaf-07",
+      "filename": "BJ01-R15-AIDC-H3C-P-Leaf-07.txt",
+      "role": "LEAF",
+      "sha256": "f8c32e5d78a28192"
+    },
+    {
+      "device": "BJ01-R16-AIDC-H3C-P-Leaf-08",
+      "filename": "BJ01-R16-AIDC-H3C-P-Leaf-08.txt",
+      "role": "LEAF",
+      "sha256": "008205d405c7ea8c"
+    },
+    {
+      "device": "BJ01-R17-AIDC-H3C-P-Leaf-09",
+      "filename": "BJ01-R17-AIDC-H3C-P-Leaf-09.txt",
+      "role": "LEAF",
+      "sha256": "e794e3114305c06d"
+    },
+    {
+      "device": "BJ01-R18-AIDC-H3C-P-Leaf-10",
+      "filename": "BJ01-R18-AIDC-H3C-P-Leaf-10.txt",
+      "role": "LEAF",
+      "sha256": "441803cbed351584"
+    },
+    {
+      "device": "BJ01-R19-AIDC-H3C-P-Leaf-11",
+      "filename": "BJ01-R19-AIDC-H3C-P-Leaf-11.txt",
+      "role": "LEAF",
+      "sha256": "c8bdad52ee875fb8"
+    },
+    {
+      "device": "BJ01-R20-AIDC-H3C-P-Leaf-12",
+      "filename": "BJ01-R20-AIDC-H3C-P-Leaf-12.txt",
+      "role": "LEAF",
+      "sha256": "a592b0af30bfc353"
+    },
+    {
+      "device": "BJ01-R21-AIDC-H3C-P-Leaf-13",
+      "filename": "BJ01-R21-AIDC-H3C-P-Leaf-13.txt",
+      "role": "LEAF",
+      "sha256": "28b37841e695a2a4"
+    },
+    {
+      "device": "BJ01-R22-AIDC-H3C-P-Leaf-14",
+      "filename": "BJ01-R22-AIDC-H3C-P-Leaf-14.txt",
+      "role": "LEAF",
+      "sha256": "0fa84077a6580150"
+    },
+    {
+      "device": "BJ01-R23-AIDC-H3C-P-Leaf-15",
+      "filename": "BJ01-R23-AIDC-H3C-P-Leaf-15.txt",
+      "role": "LEAF",
+      "sha256": "7fffcb1068fd1a52"
+    },
+    {
+      "device": "BJ01-R24-AIDC-H3C-P-Leaf-16",
+      "filename": "BJ01-R24-AIDC-H3C-P-Leaf-16.txt",
+      "role": "LEAF",
+      "sha256": "edc0ce57b77e27e9"
+    },
+    {
+      "device": "BJ01-R25-AIDC-H3C-P-Leaf-17",
+      "filename": "BJ01-R25-AIDC-H3C-P-Leaf-17.txt",
+      "role": "LEAF",
+      "sha256": "73d35a13341bb1a4"
+    },
+    {
+      "device": "BJ01-R26-AIDC-H3C-P-Leaf-18",
+      "filename": "BJ01-R26-AIDC-H3C-P-Leaf-18.txt",
+      "role": "LEAF",
+      "sha256": "069643707c2b7f57"
+    },
+    {
+      "device": "BJ01-R27-AIDC-H3C-P-Leaf-19",
+      "filename": "BJ01-R27-AIDC-H3C-P-Leaf-19.txt",
+      "role": "LEAF",
+      "sha256": "c49ffab7e441ee31"
+    },
+    {
+      "device": "BJ01-R28-AIDC-H3C-P-Leaf-20",
+      "filename": "BJ01-R28-AIDC-H3C-P-Leaf-20.txt",
+      "role": "LEAF",
+      "sha256": "78a72d73b6e70f97"
+    },
+    {
+      "device": "BJ01-R29-AIDC-H3C-P-Leaf-21",
+      "filename": "BJ01-R29-AIDC-H3C-P-Leaf-21.txt",
+      "role": "LEAF",
+      "sha256": "ac48b2a967a6e52f"
+    },
+    {
+      "device": "BJ01-R30-AIDC-H3C-P-Leaf-22",
+      "filename": "BJ01-R30-AIDC-H3C-P-Leaf-22.txt",
+      "role": "LEAF",
+      "sha256": "e1f41b94c01e6846"
+    },
+    {
+      "device": "BJ01-R31-AIDC-H3C-P-Leaf-23",
+      "filename": "BJ01-R31-AIDC-H3C-P-Leaf-23.txt",
+      "role": "LEAF",
+      "sha256": "50282bfc82b92383"
+    },
+    {
+      "device": "BJ01-R32-AIDC-H3C-P-Leaf-24",
+      "filename": "BJ01-R32-AIDC-H3C-P-Leaf-24.txt",
+      "role": "LEAF",
+      "sha256": "57d850b07a466626"
+    },
+    {
+      "device": "BJ01-R33-AIDC-H3C-P-Leaf-25",
+      "filename": "BJ01-R33-AIDC-H3C-P-Leaf-25.txt",
+      "role": "LEAF",
+      "sha256": "84d54b3b1410cca9"
+    },
+    {
+      "device": "BJ01-R34-AIDC-H3C-P-Leaf-26",
+      "filename": "BJ01-R34-AIDC-H3C-P-Leaf-26.txt",
+      "role": "LEAF",
+      "sha256": "e22eb5f4b0723ee8"
+    },
+    {
+      "device": "BJ01-R35-AIDC-H3C-P-Leaf-27",
+      "filename": "BJ01-R35-AIDC-H3C-P-Leaf-27.txt",
+      "role": "LEAF",
+      "sha256": "711d7ffc8994148d"
+    },
+    {
+      "device": "BJ01-R36-AIDC-H3C-P-Leaf-28",
+      "filename": "BJ01-R36-AIDC-H3C-P-Leaf-28.txt",
+      "role": "LEAF",
+      "sha256": "d2d1a26e9949de6d"
+    },
+    {
+      "device": "BJ01-R37-AIDC-H3C-P-Leaf-29",
+      "filename": "BJ01-R37-AIDC-H3C-P-Leaf-29.txt",
+      "role": "LEAF",
+      "sha256": "87c5d80a2a5a1d21"
+    },
+    {
+      "device": "BJ01-R38-AIDC-H3C-P-Leaf-30",
+      "filename": "BJ01-R38-AIDC-H3C-P-Leaf-30.txt",
+      "role": "LEAF",
+      "sha256": "22b6e8a126303134"
+    },
+    {
+      "device": "BJ01-R39-AIDC-H3C-P-Leaf-31",
+      "filename": "BJ01-R39-AIDC-H3C-P-Leaf-31.txt",
+      "role": "LEAF",
+      "sha256": "e1e1de3ce16e4a17"
+    },
+    {
+      "device": "BJ01-R40-AIDC-H3C-P-Leaf-32",
+      "filename": "BJ01-R40-AIDC-H3C-P-Leaf-32.txt",
+      "role": "LEAF",
+      "sha256": "fa1e5cbdf3aac709"
+    },
+    {
+      "device": "BJ01-R41-AIDC-H3C-S-Spine-01",
+      "filename": "BJ01-R41-AIDC-H3C-S-Spine-01.txt",
+      "role": "STO_SPINE",
+      "sha256": "677dd7c5612bbfa0"
+    },
+    {
+      "device": "BJ01-R42-AIDC-H3C-S-Leaf-01",
+      "filename": "BJ01-R42-AIDC-H3C-S-Leaf-01.txt",
+      "role": "STO_LEAF",
+      "sha256": "352781cdfaca33e7"
+    },
+    {
+      "device": "BJ01-R43-AIDC-H3C-S-Leaf-02",
+      "filename": "BJ01-R43-AIDC-H3C-S-Leaf-02.txt",
+      "role": "STO_LEAF",
+      "sha256": "f402aab35a14ff37"
+    },
+    {
+      "device": "BJ01-R44-AIDC-H3C-BIZ-AGG-01",
+      "filename": "BJ01-R44-AIDC-H3C-BIZ-AGG-01.txt",
+      "role": "BIZ_AGG",
+      "sha256": "7f81fd93ecc150e3"
+    },
+    {
+      "device": "BJ01-R45-AIDC-H3C-BIZ-AGG-02",
+      "filename": "BJ01-R45-AIDC-H3C-BIZ-AGG-02.txt",
+      "role": "BIZ_AGG",
+      "sha256": "967bd1e31959b5c3"
+    },
+    {
+      "device": "BJ01-R46-AIDC-H3C-BIZ-ACC-01",
+      "filename": "BJ01-R46-AIDC-H3C-BIZ-ACC-01.txt",
+      "role": "BIZ_ACCESS",
+      "sha256": "663b7d1fba75a0ce"
+    },
+    {
+      "device": "BJ01-R47-AIDC-H3C-BIZ-ACC-02",
+      "filename": "BJ01-R47-AIDC-H3C-BIZ-ACC-02.txt",
+      "role": "BIZ_ACCESS",
+      "sha256": "18dfd45b13628469"
+    },
+    {
+      "device": "BJ01-R48-AIDC-H3C-BIZ-ACC-03",
+      "filename": "BJ01-R48-AIDC-H3C-BIZ-ACC-03.txt",
+      "role": "BIZ_ACCESS",
+      "sha256": "e0af9c4525cfe55a"
+    },
+    {
+      "device": "BJ01-R49-AIDC-H3C-BIZ-ACC-04",
+      "filename": "BJ01-R49-AIDC-H3C-BIZ-ACC-04.txt",
+      "role": "BIZ_ACCESS",
+      "sha256": "56ebb4f820c7d531"
+    },
+    {
+      "device": "BJ01-R50-AIDC-H3C-OOB-AGG-01",
+      "filename": "BJ01-R50-AIDC-H3C-OOB-AGG-01.txt",
+      "role": "OOB_AGG",
+      "sha256": "be7569fe38fbaa51"
+    },
+    {
+      "device": "BJ01-R51-AIDC-H3C-OOB-ACC-01",
+      "filename": "BJ01-R51-AIDC-H3C-OOB-ACC-01.txt",
+      "role": "OOB_ACCESS",
+      "sha256": "230381d303388be3"
+    },
+    {
+      "device": "BJ01-R52-AIDC-H3C-OOB-ACC-02",
+      "filename": "BJ01-R52-AIDC-H3C-OOB-ACC-02.txt",
+      "role": "OOB_ACCESS",
+      "sha256": "0aa3b68765dfce83"
+    }
+  ],
+  "device_count": 52,
+  "render_hash": "4efff37899f70449",
+  "source": "example/二层最大-8192卡-X400-RoCE"
+}

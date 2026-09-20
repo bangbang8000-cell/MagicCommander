@@ -34,8 +34,26 @@ _DATA_DIRS = ('excel', 'templates')
 _DATA_FILES = ('para.xlsx', 'plan.json')
 
 
+_FABRIC_ROLES = frozenset({'SPINE', 'LEAF', 'STO_SPINE', 'STO_LEAF'})
+
+
 def expected_device_count(key):
-    return 24 if key.startswith('128') else 22
+    """预期渲染设备数：IB 场景按渲染分流排除 fabric 角色（S4，V5.3.0-640-m）；
+    RoCE 场景为 plan deviceList 全量。"""
+    plan = build_all_plans()[key]
+    proto = str((plan.get('macro') or {}).get('protocol', '')).lower()
+    fabric = proto
+    if proto != 'ib':
+        try:
+            from intent.device_library import resolve_models_fabric
+            fabric = resolve_models_fabric((plan.get('macro') or {}).get('deviceModels') or {}) or proto
+        except Exception:  # noqa: BLE001
+            fabric = proto
+    total = len(plan.get('deviceList', []))
+    if fabric == 'ib':
+        skipped = {d.get('role') for d in plan.get('deviceList', [])} & _FABRIC_ROLES
+        return total - len([d for d in plan.get('deviceList', []) if d.get('role') in skipped])
+    return total
 
 
 def _required_excel_files():

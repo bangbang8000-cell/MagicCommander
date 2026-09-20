@@ -1,0 +1,61 @@
+{
+  "batch_manifest": [
+    {
+      "device": "BJ01-R24-AIDC-H3C-BIZ-AGG-01",
+      "filename": "BJ01-R24-AIDC-H3C-BIZ-AGG-01.txt",
+      "role": "BIZ_AGG",
+      "sha256": "3e5f102a2099b9c9"
+    },
+    {
+      "device": "BJ01-R25-AIDC-H3C-BIZ-AGG-02",
+      "filename": "BJ01-R25-AIDC-H3C-BIZ-AGG-02.txt",
+      "role": "BIZ_AGG",
+      "sha256": "157b4957b470e5d5"
+    },
+    {
+      "device": "BJ01-R26-AIDC-H3C-BIZ-ACC-01",
+      "filename": "BJ01-R26-AIDC-H3C-BIZ-ACC-01.txt",
+      "role": "BIZ_ACCESS",
+      "sha256": "5593c48cf1d27a71"
+    },
+    {
+      "device": "BJ01-R27-AIDC-H3C-BIZ-ACC-02",
+      "filename": "BJ01-R27-AIDC-H3C-BIZ-ACC-02.txt",
+      "role": "BIZ_ACCESS",
+      "sha256": "3c30b22e694a1f7c"
+    },
+    {
+      "device": "BJ01-R28-AIDC-H3C-BIZ-ACC-03",
+      "filename": "BJ01-R28-AIDC-H3C-BIZ-ACC-03.txt",
+      "role": "BIZ_ACCESS",
+      "sha256": "9eb8f575c4b8ec02"
+    },
+    {
+      "device": "BJ01-R29-AIDC-H3C-BIZ-ACC-04",
+      "filename": "BJ01-R29-AIDC-H3C-BIZ-ACC-04.txt",
+      "role": "BIZ_ACCESS",
+      "sha256": "9e4eacec2d81a223"
+    },
+    {
+      "device": "BJ01-R30-AIDC-H3C-OOB-AGG-01",
+      "filename": "BJ01-R30-AIDC-H3C-OOB-AGG-01.txt",
+      "role": "OOB_AGG",
+      "sha256": "6cdf5022f0328eb0"
+    },
+    {
+      "device": "BJ01-R31-AIDC-H3C-OOB-ACC-01",
+      "filename": "BJ01-R31-AIDC-H3C-OOB-ACC-01.txt",
+      "role": "OOB_ACCESS",
+      "sha256": "5013d86726297803"
+    },
+    {
+      "device": "BJ01-R32-AIDC-H3C-OOB-ACC-02",
+      "filename": "BJ01-R32-AIDC-H3C-OOB-ACC-02.txt",
+      "role": "OOB_ACCESS",
+      "sha256": "26b4c494eae93f2f"
+    }
+  ],
+  "device_count": 9,
+  "render_hash": "f7ef4baf1151d3c1",
+  "source": "example/二层最大-2048卡-QM9700-IB"
+}
