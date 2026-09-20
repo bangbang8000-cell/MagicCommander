@@ -2,6 +2,36 @@
 
 本文件为发布说明的单一事实来源（`npm run sync-version -- --release-notes` 自动抽取当前版本段）。
 
+## [5.3.0] - 2026-09-20
+
+> **渲染分流与 6 场景 example 版（B-2/B-4，与 AL 5.4.0 同日发布）**
+> —— IB 参数/存储网不再产出 fabric j2（配置在 IB 子网管理器侧）+ RoCE X400 渲染族（SONiC/UXOS）
+> + 6 场景 example 成品导入；行为变更分节 §B/§C，详见 docs/AL-MC_6场景内容建设_ReleaseNotes_草稿_v0.9。
+
+### 行为变更（§B 渲染与交付）
+
+- **B1 渲染分流（FR-M1，S4）**：project_single.write() 按 ctx.globals['fabric'] 分流——
+  IB 跳过 SPINE/LEAF/STO_SPINE/STO_LEAF 四个 fabric 角色 .j2；业务/带外照常。
+  meta 新增 abric + 
+enderSplit.skippedFabricRoles。
+- **B2 渲染族分流（FR-M2，S4+W6.4）**：RoCE + X400（deviceModels 原始型号含 X400/Spectrum/UXOS）→
+  SPINE/LEAF 产出 SONiC 命令族（sonic_templates.py：config buffer/ecn/interface 基准，**待现网校准** JR-2）；
+  H3C 族保持 info 占位。alidate_samples.py 按 fabric 校验 j2 数量（IB 4 / RoCE 8）。
+- **B3 导入产物元数据（S5→W6.4）**：example 6 场景 = plan.json（AL 源保留，planHash 溯源）+ para.xlsx
+  + excel/×4 + templates/ + template.meta.json（status=ready、originProjectId/Name/Site/PlanVersion/planHash、fabric、renderSplit）。
+
+### 内容资产（§C 6 场景 example）
+
+- example/ 新增 6 目录（与 AL 模板同名）：万卡-H200-QM9700-三层-IB / 万卡-H200-Q3400-二层-IB /
+  万卡-H200-X400-三层-RoCE / 二层最大-2048卡-QM9700-IB / 二层最大-8192卡-X400-RoCE / 万卡-B300-Q3400-二层-IB。
+- 既有 4 个 IB 样例（64H100-IB / 128H100-IB）重生成：templates/ 仅 BIZ/OOB 4 个 j2（S4 分流语义落地）。
+- device_library 21 台（S2 同步 X400/Q3400 修正/B300 定稿）。
+
+### 测试
+
+- 	est_w6_5_render_products.py 24 条（M1/M2 判据 + render_sonic 渲染）；	est_aidc_samples / 	est_scenario_skeletons
+  （IB 4 j2 / RoCE 8 j2、status=ready）全绿；相关子集 135 passed。
+
 ## [5.2.2] - 2026-09-17
 
 > 与 AL 5.2.2 同批次发布。本版重点：**Agent Connect 对外契约止血 + 可信门禁**，
