@@ -44,7 +44,8 @@ class TestScenarioSkeletons:
             assert (d / 'README.md').is_file(), f'{name}/README.md 缺'
             meta = json.loads((d / 'template.meta.json').read_text(encoding='utf-8'))
             assert meta['name'] == name
-            assert meta['status'] == 'skeleton'
+            # W6.4 导入完成 → status=ready（S5 骨架 → S6 内容建设落地）
+            assert meta['status'] in ('skeleton', 'ready')
 
     def test_skeleton_para_xlsx_has_project_para_header(self):
         import pandas as pd

@@ -430,8 +430,19 @@ class SingleProjectGenerator:
             if fabric == 'ib' and role in fabric_roles:
                 skipped_fabric_roles.add(role)
                 continue
+            # V5.3.0-640-m（W6.4 / FR-M2）：RoCE + X400（Spectrum-4/UXOS）的
+            # SPINE/LEAF 用 SONiC 命令族（承接 W4.2 模板基准）；其余角色保持 info 占位。
+            # 型号以 plan deviceModels 实际解析为准（X400 来自 AL 设备库，静态 fabric→H3C 映射不覆盖）
+            dm = (getattr(self.ctx, 'globals', {}) or {}).get('device_models') or {}
+            model = str(dm.get('SPINE') or dm.get('LEAF') or '')
+            template_text = _info_template(role, plane)
+            if fabric == 'roce' and role in ('SPINE', 'LEAF') and (
+                    'X400' in model or 'Spectrum' in model or 'UXOS' in model):
+                from .sonic_templates import SPINE_TEMPLATE as _SONIC_SPINE
+                from .sonic_templates import LEAF_TEMPLATE as _SONIC_LEAF
+                template_text = _SONIC_SPINE if role == 'SPINE' else _SONIC_LEAF
             with open(os.path.join(project_dir, 'templates', f'{role}.j2'), 'w', encoding='utf-8') as f:
-                f.write(_info_template(role, plane))
+                f.write(template_text)
 
         issues = validate_context(self.ctx)
         meta = {

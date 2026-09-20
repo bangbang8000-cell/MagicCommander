@@ -301,6 +301,9 @@ class PlanContextBuilder:
         # 供生成器型号解析与渲染核对使用；缺省 roce（与设备库默认一致）。
         from ..device_library import resolve_models_fabric
         self.ctx.globals['fabric'] = resolve_models_fabric(m.get('deviceModels') or {})
+        # V5.3.0-640-m（W6.4 / FR-M2）：保留原始 deviceModels 供渲染族分流
+        #（RoCE 既有 H3C 族（S9827/S9825）与 SONiC 族（浪潮 X400）之分）
+        self.ctx.globals['device_models'] = dict(m.get('deviceModels') or {})
         # 521-c：契约 v1.3 拓扑模式字段透传（缺省 = AL 默认；v1.1/v1.2 旧文件取默认值，兼容导入）
         self.ctx.globals['topology_mode'] = m.get('topologyMode', _DEFAULT_TOPOLOGY['topologyMode'])
         self.ctx.globals['combined_mode'] = m.get('combinedMode', _DEFAULT_TOPOLOGY['combinedMode'])

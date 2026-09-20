@@ -104,7 +104,17 @@ LEAF_TEMPLATE = (
 )
 
 
-def render_sonic_leaf(**ctx) -> str:
-    """按赋值表渲染 X400 Leaf 命令族（承接 roce_templates.build_roce_context 的调用面）。"""
-    from jinja2 import Environment, FileSystemLoader  # noqa: F401  # 占位：接入渲染在 W6.4
-    raise NotImplementedError('SONiC 族渲染接入在 W6.4（X400 example 渲染产物），此处仅为模板基准')
+def render_sonic_spine(ctx, device_id: int) -> str:
+    """V5.3.0-640-m（W6.4 / FR-M2）：按赋值表渲染 X400 Spine 命令族。
+
+    与 H3C 族（roce_templates）同构：normalize_template 按设备展开
+    [[ID]] / iter_obj_func / to_ip 等占位语义，产出逐设备 SONiC/UXOS 配置。
+    """
+    from .normalizer import normalize_template
+    return normalize_template(SPINE_TEMPLATE, ctx, device_id, _SCN_SPINE)
+
+
+def render_sonic_leaf(ctx, device_id: int) -> str:
+    """V5.3.0-640-m（W6.4 / FR-M2）：按赋值表渲染 X400 Leaf 命令族（SONiC/UXOS 基准）。"""
+    from .normalizer import normalize_template
+    return normalize_template(LEAF_TEMPLATE, ctx, device_id, _SCN_LEAF)

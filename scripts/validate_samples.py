@@ -81,8 +81,11 @@ def check_load(name, problems):
             problems.append(f'缺少 excel/{f}')
     tpl_dir = os.path.join(base, 'templates')
     j2 = [f for f in os.listdir(tpl_dir) if f.endswith('.j2')] if os.path.isdir(tpl_dir) else []
-    if len(j2) != 8:
-        problems.append(f'templates/ 应含 8 个角色 .j2，实际 {len(j2)}')
+    # V5.3.0-640-m（S4 分流）：IB 参数/存储网（fabric）交换机不产出 j2 → 4 个；
+    # RoCE 全角色 → 8 个
+    expect_j2 = 4 if name.endswith('IB') else 8
+    if len(j2) != expect_j2:
+        problems.append(f'templates/ 应含 {expect_j2} 个角色 .j2（S4：IB 跳过 fabric 4 角色），实际 {len(j2)}')
     if not os.path.exists(os.path.join(base, 'para.xlsx')):
         problems.append('缺少 para.xlsx')
     return base

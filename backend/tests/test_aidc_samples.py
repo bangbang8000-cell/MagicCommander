@@ -154,7 +154,8 @@ class TestCommittedAssets:
         for f in ('hostname.xlsx', 'connection.xlsx', 'ipaddress.xlsx', 'parameter.xlsx'):
             assert os.path.exists(os.path.join(base, 'excel', f)), f'{key} 缺 excel/{f}'
         j2 = [f for f in os.listdir(os.path.join(base, 'templates')) if f.endswith('.j2')]
-        assert len(j2) == 8
+        # V5.3.0-640-m（S4 分流）：IB 无 fabric j2（4 个）/ RoCE 全角色（8 个）
+        assert len(j2) == (4 if key.endswith('IB') else 8)
 
     @pytest.mark.parametrize('key', ['64H100-IB', '64H100-RoCE', '128H100-IB', '128H100-RoCE'])
     def test_template_meta_required_fields(self, key):
@@ -184,7 +185,15 @@ class TestRegister:
                 assert os.path.exists(os.path.join(target, 'para.xlsx'))
                 assert os.path.exists(os.path.join(target, 'plan.json'))
                 assert os.path.exists(os.path.join(target, 'excel', 'hostname.xlsx'))
-                assert os.path.exists(os.path.join(target, 'templates', 'SPINE.j2'))
+                # V5.3.0-640-m（S4 分流）：IB 样例参数/存储网（fabric）交换机不产出 j2，
+                # 业务/带外角色照常；RoCE 样例 SPINE/LEAF 产出 j2（info 占位）
+                tpl = os.path.join(target, 'templates')
+                if key.endswith('IB'):
+                    assert not os.path.exists(os.path.join(tpl, 'SPINE.j2'))
+                    assert os.path.exists(os.path.join(tpl, 'BIZ_AGG.j2'))
+                else:
+                    assert os.path.exists(os.path.join(tpl, 'SPINE.j2'))
+                    assert os.path.exists(os.path.join(tpl, 'LEAF.j2'))
                 # 派生状态不入仓
                 assert not os.path.exists(os.path.join(target, 'allocator_state.json'))
 
