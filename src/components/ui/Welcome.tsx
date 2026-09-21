@@ -8,7 +8,6 @@ import {
   LayoutPanelTop,
   Keyboard,
   HelpCircle,
-  Clock,
   LayoutTemplate,
 } from 'lucide-react'
 import clsx from 'clsx'
@@ -27,9 +26,6 @@ export function Welcome() {
   const setWelcomeOpen = useUIStore((s) => s.setWelcomeOpen)
   const dismissWelcome = useUIStore((s) => s.dismissWelcome)
   const setActiveActivity = useUIStore((s) => s.setActiveActivity)
-  const projects = useProjectStore((s) => s.projects)
-  const recentProjects = useProjectStore((s) => s.recentProjects)
-  const selectProject = useProjectStore((s) => s.selectProject)
   const triggerCreateProject = useProjectStore((s) => s.triggerCreateProject)
 
   const open = !hasSeenWelcome || welcomeOpen
@@ -54,19 +50,6 @@ export function Welcome() {
     triggerCreateProject()
     handleClose()
   }
-
-  // 4.4 F4-4：最近使用项目入口
-  const handleOpenRecent = (name: string) => {
-    const project = projects.find((p) => p.name === name)
-    if (project) {
-      selectProject(project)
-      useProjectStore.getState().loadStructure(name)
-    }
-    setActiveActivity('explorer')
-    handleClose()
-  }
-
-  const recent = recentProjects.slice(0, 5)
 
   const steps = [
     {
@@ -218,43 +201,6 @@ export function Welcome() {
             ))}
           </div>
         </div>
-
-        {recent.length > 0 && (
-          <div>
-            <h3
-              className={clsx(
-                'text-xs font-semibold uppercase tracking-wider mb-2',
-                isDark ? 'text-gray-400' : 'text-gray-500',
-              )}
-            >
-              <span className="inline-flex items-center gap-1">
-                <Clock size={12} /> {t('recentTitle')}
-              </span>
-            </h3>
-            <div
-              className={clsx(
-                'p-2 rounded border grid grid-cols-1 gap-y-1',
-                isDark ? 'border-gray-700 bg-gray-900/40' : 'border-gray-200 bg-gray-50',
-              )}
-            >
-              {recent.map((name) => (
-                <button
-                  key={name}
-                  onClick={() => handleOpenRecent(name)}
-                  className={clsx(
-                    'flex items-center justify-between py-1 px-1.5 rounded text-xs text-left',
-                    isDark ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-700 hover:bg-gray-100',
-                  )}
-                >
-                  <span className="truncate">{name}</span>
-                  <span className={clsx('text-[10px] shrink-0', isDark ? 'text-gray-500' : 'text-gray-400')}>
-                    {t('recentOpen')}
-                  </span>
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
 
         <div>
           <h3

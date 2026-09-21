@@ -97,6 +97,8 @@
     "platform": "Platform",
     "advanced": "Advanced",
     "about": "About",
+    "searchPlaceholder": "Rechercher des paramètres...",
+    "searchNoResults": "Aucun paramètre correspondant",
     "serverUrl": "Server URL",
     "testConnection": "Test Connection",
     "connectionSuccess": "Connection Successful",

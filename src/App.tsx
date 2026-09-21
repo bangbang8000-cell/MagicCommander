@@ -30,7 +30,6 @@ import { CommandPalette, type CommandItem } from './components/ui/CommandPalette
 import {
   buildRenderCommands,
   buildExportCommands,
-  buildRecentCommands,
   buildFavoriteCommands,
   buildPipelineCommands,
   buildSettingsCommands,
@@ -297,7 +296,7 @@ export default function App() {
   const commandItems = useMemo<CommandItem[]>(() => {
     const handler = (activity: string) => () => setActiveActivity(activity as ActivityType)
 
-    // 4.4 F4-5：渲染 / 导出 / 最近收藏 / 管线 / 设置 / 终端 命令辅助
+    // 4.4 F4-5：渲染 / 导出 / 收藏 / 管线 / 设置 / 终端 命令辅助
     const renderByKind = async (kind: 'project' | 'yaml' | 'sn') => {
       const rs = useRenderStore.getState()
       const proj = useProjectStore.getState().selectedProject
@@ -468,11 +467,10 @@ export default function App() {
       return { id: h.combo, label: h.label, category: h.category, shortcut: h.combo, action }
     })
 
-    // 4.4 F4-5：命令全集（渲染/导出/最近/收藏/管线/设置/终端）
+    // 4.4 F4-5：命令全集（渲染/导出/收藏/管线/设置/终端）
     const fullSet: CommandItem[] = [
       ...buildRenderCommands((kind) => void renderByKind(kind), renderSelectedCount),
       ...buildExportCommands(() => void exportCurrent(), renderSelectedCount),
-      ...buildRecentCommands(projectState.recentProjects, openProjectByName),
       ...buildFavoriteCommands(projectState.favoriteProjects, openProjectByName),
       ...buildPipelineCommands(
         () => setActiveActivity('workbench'),

@@ -17,7 +17,7 @@ beforeEach(() => {
 function makeTab(content?: unknown, overrides: Record<string, unknown> = {}) {
   return {
     id: 'user-guide',
-    title: 'MagicCommander User Guide',
+    title: 'MagicCommander 使用指南',
     filePath: 'docs/user-guide.md',
     fileType: 'markdown' as const,
     projectId: 0,

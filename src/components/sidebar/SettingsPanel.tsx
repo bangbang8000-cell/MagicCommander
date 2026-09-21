@@ -25,6 +25,7 @@ import {
   Upload,
   Copy,
   BookOpen,
+  Search,
 } from 'lucide-react'
 import clsx from 'clsx'
 import { LOCALE_NAMES, LANGUAGE_ICON_CHARS } from '@/i18n/resources'
@@ -160,13 +161,90 @@ export function resolveProviderSaveOutcome(hubRunning: boolean, syncError: unkno
   return { showSaved: true, error: null }
 }
 
-const TAB_CONFIG: { id: SettingsTab; icon: React.ReactNode; labelKey: string }[] = [
-  { id: 'general', icon: <Globe size={14} />, labelKey: 'cloud:settings.general' },
-  { id: 'ai', icon: <Cpu size={14} />, labelKey: 'cloud:settings.ai' },
-  { id: 'platform', icon: <Globe size={14} />, labelKey: 'cloud:settings.platform' },
-  { id: 'advanced', icon: <Wrench size={14} />, labelKey: 'cloud:settings.advanced' },
-  { id: 'about', icon: <Info size={14} />, labelKey: 'cloud:settings.about' },
+const CATEGORIES: { id: SettingsTab; icon: React.ReactNode; labelKey: string; searchKeys: string[] }[] = [
+  {
+    id: 'general',
+    icon: <Globe size={14} />,
+    labelKey: 'cloud:settings.general',
+    searchKeys: [
+      'common:settings.appearance.title',
+      'common:settings.general.title',
+      'common:settings.general.language',
+      'common:settings.general.fontSize',
+      'common:settings.general.autoSave',
+      'common:settings.general.autoSaveInterval',
+      'common:settings.general.knowledgeInjection',
+      'common:settings.general.workspacePath',
+    ],
+  },
+  {
+    id: 'ai',
+    icon: <Cpu size={14} />,
+    labelKey: 'cloud:settings.ai',
+    searchKeys: [
+      'common:settings.ai.title',
+      'common:settings.ai.providerConfig',
+      'common:settings.ai.apiKey',
+      'common:settings.ai.model',
+      'common:settings.ai.baseUrl',
+      'common:settings.ai.engine',
+      'common:settings.ai.routing',
+      'common:settings.ai.maxToolLoopRounds',
+      'common:settings.advanced.autonomyMode',
+      'common:settings.ai.agentConnectTitle',
+    ],
+  },
+  {
+    id: 'platform',
+    icon: <Globe size={14} />,
+    labelKey: 'cloud:settings.platform',
+    searchKeys: [
+      'common:settings.platform.title',
+      'common:settings.platform.serverUrl',
+      'common:settings.platform.testConnection',
+      'common:settings.platform.loginStatus',
+    ],
+  },
+  {
+    id: 'advanced',
+    icon: <Wrench size={14} />,
+    labelKey: 'cloud:settings.advanced',
+    searchKeys: [
+      'common:settings.advanced.title',
+      'common:settings.advanced.pythonPath',
+      'common:settings.advanced.debugMode',
+      'common:settings.advanced.proxy',
+      'common:settings.advanced.aiHubPort',
+      'common:settings.advanced.aiHubAutoStart',
+      'common:settings.updates.title',
+    ],
+  },
+  {
+    id: 'about',
+    icon: <Info size={14} />,
+    labelKey: 'cloud:settings.about',
+    searchKeys: [
+      'common:settings.about.desc',
+      'common:settings.about.version',
+      'common:settings.updates.checkButton',
+    ],
+  },
 ]
+
+/** MC-U2：分类名命中关键词时高亮（<mark>） */
+function HighlightLabel({ text, keyword, isDark }: { text: string; keyword: string; isDark: boolean }) {
+  if (!keyword) return <span className="truncate">{text}</span>
+  const idx = text.toLowerCase().indexOf(keyword)
+  if (idx === -1) return <span className="truncate">{text}</span>
+  const markCls = isDark ? 'bg-amber-500/40 text-amber-200' : 'bg-amber-200 text-amber-900'
+  return (
+    <span className="truncate">
+      {text.slice(0, idx)}
+      <mark className={clsx('rounded px-0.5', markCls)}>{text.slice(idx, idx + keyword.length)}</mark>
+      {text.slice(idx + keyword.length)}
+    </span>
+  )
+}
 
 export function SettingsPanel() {
   const { t } = useTranslation()
@@ -190,6 +268,20 @@ export function SettingsPanel() {
 
   // Tab state
   const [activeTab, setActiveTab] = useState<SettingsTab>('general')
+
+  // MC-U2：搜索 + 分类导航（对齐 AL SettingsPanel）
+  const [search, setSearch] = useState('')
+  const keyword = search.trim().toLowerCase()
+  const visibleCats = CATEGORIES.filter((cat) => {
+    if (!keyword) return true
+    const label = t(cat.labelKey).toLowerCase()
+    if (label.includes(keyword)) return true
+    return cat.searchKeys.some((k) => t(k).toLowerCase().includes(keyword))
+  })
+  // 当前选中分类被搜索过滤掉时，回退到第一个可见分类，避免右侧空白
+  const effectiveTab: SettingsTab = visibleCats.some((c) => c.id === activeTab)
+    ? activeTab
+    : (visibleCats[0]?.id ?? 'general')
 
   // AI Provider state
   const [activeProvider, setActiveProvider] = useState('deepseek')
@@ -2536,49 +2628,79 @@ export function SettingsPanel() {
   )
 
   return (
-    <div className="flex flex-col h-full overflow-auto">
-      <div className="p-3 space-y-3">
-        <div className="flex items-center gap-2 mb-1">
+    <div className="flex flex-col h-full">
+      <div className="p-3 space-y-3 flex-1 min-h-0 flex flex-col">
+        <div className="flex items-center gap-2">
           <Settings size={16} className={isDark ? 'text-gray-400' : 'text-gray-500'} />
           <span className={clsx('text-sm font-semibold', isDark ? 'text-gray-200' : 'text-gray-700')}>
             {t('common:settings.title')}
           </span>
         </div>
 
-        {/* Tab 导航 */}
+        {/* MC-U2：搜索框（按分类名 / 设置项 label 过滤） */}
         <div
           className={clsx(
-            'flex rounded-lg border p-0.5',
+            'flex items-center gap-1.5 px-2 py-1.5 rounded border',
+            isDark ? 'border-gray-700 bg-gray-800/60' : 'border-gray-200 bg-white',
+          )}
+        >
+          <Search size={12} className={isDark ? 'text-gray-500' : 'text-gray-400'} />
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder={t('cloud:settings.searchPlaceholder')}
+            className={clsx(
+              'w-full text-xs bg-transparent outline-none',
+              isDark ? 'text-gray-200 placeholder:text-gray-500' : 'text-gray-700 placeholder:text-gray-400',
+            )}
+          />
+        </div>
+
+        {/* 顶部分段 Tab（上下布局，对齐 AL SettingsPanel） */}
+        <div
+          className={clsx(
+            'flex flex-wrap rounded-lg border p-0.5',
             isDark ? 'border-gray-700 bg-gray-800' : 'border-gray-200 bg-gray-100',
           )}
         >
-          {TAB_CONFIG.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={clsx(
-                'flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded text-xs transition-colors',
-                activeTab === tab.id
-                  ? isDark
-                    ? 'bg-gray-700 text-gray-200'
-                    : 'bg-white text-gray-800 shadow-sm'
-                  : isDark
-                    ? 'text-gray-500 hover:text-gray-300'
-                    : 'text-gray-500 hover:text-gray-700',
-              )}
-            >
-              {tab.icon}
-              <span>{t(tab.labelKey)}</span>
-            </button>
-          ))}
+          {visibleCats.map((cat) => {
+            const active = effectiveTab === cat.id
+            return (
+              <button
+                key={cat.id}
+                onClick={() => setActiveTab(cat.id)}
+                className={clsx(
+                  'flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded text-xs transition-colors',
+                  active
+                    ? isDark
+                      ? 'bg-gray-700 text-gray-200 shadow-sm'
+                      : 'bg-white text-gray-800 shadow-sm'
+                    : isDark
+                      ? 'text-gray-400 hover:text-gray-200'
+                      : 'text-gray-500 hover:text-gray-700',
+                )}
+              >
+                {cat.icon}
+                <HighlightLabel text={t(cat.labelKey)} keyword={keyword} isDark={isDark} />
+              </button>
+            )
+          })}
         </div>
 
-        {/* Tab 内容 */}
-        {activeTab === 'general' && renderGeneralTab()}
-        {activeTab === 'ai' && renderAITab()}
-        {activeTab === 'platform' && renderPlatformTab()}
-        {activeTab === 'advanced' && renderAdvancedTab()}
-        {activeTab === 'about' && renderAboutTab()}
+        {visibleCats.length === 0 && (
+          <div className={clsx('px-1 text-[11px]', isDark ? 'text-gray-500' : 'text-gray-400')}>
+            {t('cloud:settings.searchNoResults')}
+          </div>
+        )}
+
+        {/* 下方内容区 */}
+        <div className="flex-1 min-w-0 overflow-y-auto">
+          {effectiveTab === 'general' && renderGeneralTab()}
+          {effectiveTab === 'ai' && renderAITab()}
+          {effectiveTab === 'platform' && renderPlatformTab()}
+          {effectiveTab === 'advanced' && renderAdvancedTab()}
+          {effectiveTab === 'about' && renderAboutTab()}
+        </div>
       </div>
     </div>
   )

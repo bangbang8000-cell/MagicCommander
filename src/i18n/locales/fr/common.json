@@ -2,6 +2,9 @@
   "header": {
     "guideFallbackBanner": "> ⚠️ Ce guide n'est pas encore disponible dans cette langue ; affichage de la version anglaise."
   },
+  "guide": {
+    "title": "Guide d'utilisation de MagicCommander"
+  },
   "app": {
     "title": "MagicCommander",
     "subtitle": "Outil de gestion de configuration des équipements réseau",
@@ -49,8 +52,6 @@
     "window": "Fenêtre",
     "help": "Aide",
     "newProject": "Nouveau projet",
-    "recentProjects": "Projets récents",
-    "noRecentProjects": "Aucun projet récent",
     "openProjectDir": "Ouvrir le dossier du projet",
     "saveProject": "Enregistrer le projet",
     "exit": "Quitter",
@@ -63,6 +64,21 @@
     "lightMode": "Mode clair",
     "darkMode": "Mode sombre",
     "highContrastMode": "Contraste élevé",
+    "chat": "Discussion IA",
+    "workbench": "Workbench",
+    "hidePanel": "Masquer le panneau inférieur",
+    "showPanel": "Afficher le panneau inférieur",
+    "systemMode": "Thème système",
+    "undo": "Annuler",
+    "redo": "Rétablir",
+    "copy": "Copier",
+    "paste": "Coller",
+    "cheatsheet": "Raccourcis clavier",
+    "checkUpdate": "Rechercher les mises à jour",
+    "terminal": "Terminal",
+    "logViewer": "Visualiseur de journaux",
+    "saveFile": "Enregistrer le fichier",
+    "language": "Langue",
     "userGuide": "Guide d'utilisation",
     "mcpGuide": "Guide d'intégration MCP",
     "about": "À propos",

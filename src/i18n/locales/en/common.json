@@ -2,6 +2,9 @@
   "header": {
     "guideFallbackBanner": "> ⚠️ This language has no guide yet; showing the English version."
   },
+  "guide": {
+    "title": "MagicCommander User Guide"
+  },
   "app": {
     "title": "MagicCommander",
     "subtitle": "Network Device Configuration Management Tool",
@@ -67,8 +70,6 @@
     "tools": "Tools",
     "help": "Help",
     "newProject": "New Project",
-    "recentProjects": "Recent Projects",
-    "noRecentProjects": "No recent projects",
     "openProjectDir": "Open Project Directory",
     "saveFile": "Save File",
     "exit": "Exit",
@@ -94,6 +95,7 @@
     "terminal": "Terminal",
     "logViewer": "Log Viewer",
     "userGuide": "User Guide",
+    "mcpGuide": "MCP Integration Guide",
     "about": "About",
     "language": "Language",
     "guideLoadFailed": "# Load Failed\n\nUnable to load the user guide. Please try again later.",

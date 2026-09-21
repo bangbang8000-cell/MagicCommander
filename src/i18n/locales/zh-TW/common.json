@@ -2,6 +2,9 @@
   "header": {
     "guideFallbackBanner": "> ⚠️ 目前語言尚無指南，已使用英文版"
   },
+  "guide": {
+    "title": "MagicCommander 使用指南"
+  },
   "app": {
     "title": "MagicCommander",
     "subtitle": "網路設備配置管理工具",
@@ -68,8 +71,6 @@
     "window": "視窗",
     "help": "說明",
     "newProject": "新建專案",
-    "recentProjects": "最近專案",
-    "noRecentProjects": "暫無最近專案",
     "openProjectDir": "開啟專案目錄",
     "saveProject": "儲存專案",
     "exit": "結束",
@@ -82,6 +83,21 @@
     "lightMode": "淺色模式",
     "darkMode": "深色模式",
     "highContrastMode": "高對比模式",
+    "chat": "AI 對話",
+    "workbench": "工作台",
+    "hidePanel": "隱藏底部面板",
+    "showPanel": "顯示底部面板",
+    "systemMode": "跟隨系統",
+    "undo": "撤銷",
+    "redo": "重做",
+    "copy": "複製",
+    "paste": "貼上",
+    "cheatsheet": "快捷鍵清單",
+    "checkUpdate": "檢查更新",
+    "terminal": "終端",
+    "logViewer": "日誌檢視器",
+    "saveFile": "儲存檔案",
+    "language": "語言",
     "userGuide": "使用指南",
     "mcpGuide": "MCP 接入指南",
     "about": "關於",

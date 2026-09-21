@@ -2,6 +2,23 @@
 
 本文件为发布说明的单一事实来源（`npm run sync-version -- --release-notes` 自动抽取当前版本段）。
 
+## [5.4.0] - 2026-09-21
+
+> **双端 UI 体验改进规划·阶段 A（MC 侧）+ 本轮三项修复，与 AL 5.5.0 同日发布。**
+
+### 行为变更（UI 对齐）
+
+- **M1 用户指南标题 i18n（MC-U1）**：Header 硬编码英文→6 语言 key；中文界面显示「MagicCommander 使用指南」。
+- **M2 设置面板搜索+分类（MC-U2）**：Tab 式→搜索+分类导航；本轮再按 AL 调整为「顶部搜索框 + 顶部分段 Tab + 下方内容」上下布局（分类仍 5 类，搜索过滤/高亮保留）。
+- **M3 移除设备库灰态占位（MC-U3）**。
+- **M4 主框架 i18n（MC-U5）**：Header/通用对话框/Loading 入 i18n。
+- **M5 Modal 无障碍（MC-U6）**：滚动锁定/aria-labelledby/close aria-label。
+- **M6 移除「最近项目」入口**：侧边栏分组、文件→最近项目菜单、欢迎页、命令面板 recent 命令全部移除（保留收藏+全部项目）。
+- **M7 菜单 i18n 补键**：menu.mcpGuide（zh-CN/en/ja/ko）+ 15 基础键（ja/ko/fr/zh-TW）补齐，六语言审计归零。
+
+### 测试
+
+- vitest renderer **650 passed** + electron **157 passed**；tsc（main+electron）/eslint 双 0 错。
 ## [5.3.0] - 2026-09-20
 
 > **渲染分流与 6 场景 example 版（B-2/B-4，与 AL 5.4.0 同日发布）**

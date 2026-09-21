@@ -70,7 +70,7 @@ export function buildTemplateCommands(): CommandItem[] {
   ]
 }
 
-// ===== 4.4 F4-5：命令面板命令全集（覆盖项目/模板/渲染/导出/批量/管线/最近收藏/设置/终端） =====
+// ===== 4.4 F4-5：命令面板命令全集（覆盖项目/模板/渲染/导出/批量/收藏/管线/设置/终端） =====
 
 export function createCommand(
   id: string,
@@ -110,13 +110,6 @@ export function buildExportCommands(onExport: () => void, batchCount = 0): Comma
     items.unshift(createCommand('exportBatch', `批量导出所选 ${batchCount} 个项目`, '导出', undefined, onExport))
   }
   return items
-}
-
-/** 最近使用命令 */
-export function buildRecentCommands(recent: string[], onOpen: (name: string) => void): CommandItem[] {
-  return recent
-    .slice(0, 5)
-    .map((name) => createCommand(`recent:${name}`, name, '最近使用', undefined, () => onOpen(name)))
 }
 
 /** 收藏项目命令 */

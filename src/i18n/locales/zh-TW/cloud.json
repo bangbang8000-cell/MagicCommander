@@ -90,6 +90,8 @@
     "platform": "平台",
     "advanced": "進階",
     "about": "關於",
+    "searchPlaceholder": "搜尋設定...",
+    "searchNoResults": "無相符的設定",
     "serverUrl": "伺服器位址",
     "testConnection": "測試連線",
     "connectionSuccess": "連線成功",

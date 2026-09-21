@@ -90,6 +90,8 @@
     "platform": "Platform",
     "advanced": "Advanced",
     "about": "About",
+    "searchPlaceholder": "設定を検索...",
+    "searchNoResults": "一致する設定がありません",
     "serverUrl": "Server URL",
     "testConnection": "Test Connection",
     "connectionSuccess": "Connection Successful",

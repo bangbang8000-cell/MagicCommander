@@ -3,7 +3,7 @@
  *
  * 覆盖：
  * - buildRenderCommands / buildExportCommands：当前 + 批量
- * - buildRecentCommands / buildFavoriteCommands：最近/收藏
+ * - buildFavoriteCommands：收藏
  * - buildPipelineCommands：一键管线
  * - buildSettingsCommands：设置全集
  * - buildTerminalCommands：终端命令全集
@@ -14,7 +14,6 @@ import {
   createCommand,
   buildRenderCommands,
   buildExportCommands,
-  buildRecentCommands,
   buildFavoriteCommands,
   buildPipelineCommands,
   buildSettingsCommands,
@@ -49,16 +48,7 @@ describe('E-5 渲染 / 导出命令', () => {
   })
 })
 
-describe('E-5 最近使用 / 收藏命令', () => {
-  it('buildRecentCommands 生成最近项目命令（动作带项目名）', () => {
-    const onOpen = vi.fn()
-    const items = buildRecentCommands(['p1', 'p2', 'p3', 'p4', 'p5', 'p6'], onOpen)
-    expect(items).toHaveLength(5)
-    expect(items[0].category).toBe('最近使用')
-    items[0].action()
-    expect(onOpen).toHaveBeenCalledWith('p1')
-  })
-
+describe('E-5 收藏命令', () => {
   it('buildFavoriteCommands 生成收藏命令', () => {
     const onOpen = vi.fn()
     const items = buildFavoriteCommands(['fav1', 'fav2'], onOpen)
@@ -100,7 +90,7 @@ describe('E-5 一键管线 / 设置 / 终端命令', () => {
 })
 
 describe('E-5 命令全集聚合（主要操作全覆盖）', () => {
-  it('聚合全部构建器应覆盖项目/模板/渲染/导出/批量/管线/最近收藏/设置/终端', () => {
+  it('聚合全部构建器应覆盖项目/模板/渲染/导出/批量/收藏/管线/设置/终端', () => {
     const all: Array<{ id: string; category: string }> = [
       ...buildProjectCommands(),
       ...buildTemplateCommands(),
@@ -108,7 +98,6 @@ describe('E-5 命令全集聚合（主要操作全覆盖）', () => {
       ...buildExportCommands(vi.fn(), 2),
       ...buildBatchRenderCommands(['1']),
       ...buildBatchExportCommands(['1']),
-      ...buildRecentCommands(['r1'], vi.fn()),
       ...buildFavoriteCommands(['f1'], vi.fn()),
       ...buildPipelineCommands(vi.fn(), vi.fn()),
       ...buildSettingsCommands(vi.fn()),
@@ -121,7 +110,6 @@ describe('E-5 命令全集聚合（主要操作全覆盖）', () => {
       '渲染',
       '导出',
       '批量操作',
-      '最近使用',
       '收藏',
       '一键管线',
       '设置',

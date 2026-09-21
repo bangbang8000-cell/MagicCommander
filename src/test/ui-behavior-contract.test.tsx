@@ -109,6 +109,33 @@ describe('Modal 行为契约', () => {
     const dialog = screen.getByRole('dialog')
     expect(dialog.contains(document.activeElement)).toBe(true)
   })
+
+  it('打开时锁定 body 滚动，关闭后恢复', () => {
+    const { rerender } = render(
+      <Modal open onClose={() => {}} title="标题">
+        内容
+      </Modal>,
+    )
+    expect(document.body.style.overflow).toBe('hidden')
+    rerender(
+      <Modal open={false} onClose={() => {}} title="标题">
+        内容
+      </Modal>,
+    )
+    expect(document.body.style.overflow).toBe('')
+  })
+
+  it('title 存在时 dialog 关联 aria-labelledby', () => {
+    render(
+      <Modal open onClose={() => {}} title="契约标题">
+        内容
+      </Modal>,
+    )
+    const dialog = screen.getByRole('dialog')
+    const heading = screen.getByText('契约标题')
+    expect(heading.id).toBeTruthy()
+    expect(dialog).toHaveAttribute('aria-labelledby', heading.id)
+  })
 })
 
 describe('Popover 行为契约', () => {

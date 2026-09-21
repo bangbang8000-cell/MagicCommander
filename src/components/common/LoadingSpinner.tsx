@@ -4,6 +4,7 @@
  */
 
 import React from 'react'
+import { useTranslation } from 'react-i18next'
 
 interface LoadingSpinnerProps {
   size?: 'sm' | 'md' | 'lg'
@@ -51,13 +52,15 @@ interface LoadingOverlayProps {
   children: React.ReactNode
 }
 
-export function LoadingOverlay({ loading, text = '加载中...', children }: LoadingOverlayProps) {
+export function LoadingOverlay({ loading, text, children }: LoadingOverlayProps) {
+  const { t } = useTranslation()
+  const label = text ?? t('app.loading')
   return (
     <div className="relative">
       {children}
       {loading && (
         <div className="absolute inset-0 flex items-center justify-center bg-white/60 dark:bg-gray-900/60 z-10">
-          <LoadingSpinner size="md" text={text} />
+          <LoadingSpinner size="md" text={label} />
         </div>
       )}
     </div>

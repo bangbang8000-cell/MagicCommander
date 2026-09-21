@@ -99,6 +99,8 @@
     "platform": "平台",
     "advanced": "高级",
     "about": "关于",
+    "searchPlaceholder": "搜索设置...",
+    "searchNoResults": "无匹配的设置",
     "serverUrl": "服务器地址",
     "testConnection": "测试连接",
     "connectionSuccess": "连接成功",

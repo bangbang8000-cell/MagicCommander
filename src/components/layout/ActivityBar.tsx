@@ -10,7 +10,6 @@ import {
   Cloud,
   PanelLeftClose,
   PanelLeft,
-  HardDrive,
   BookOpen,
 } from 'lucide-react'
 import clsx from 'clsx'
@@ -33,12 +32,6 @@ const activities: ActivityItem[] = [
   { id: 'doc', icon: <BookOpen size={20} />, labelKey: 'nav:doc', shortcut: 'Ctrl+Shift+D' },
   { id: 'settings', icon: <Settings size={20} />, labelKey: 'nav:settings', shortcut: 'Ctrl+,' },
 ]
-
-/**
- * MC-M3l / MC-N1: 设备库一级入口预留（灰态 disabled 占位）。
- * MC 端本版不做设备库功能入口；与 AL 的 device_library 对齐，占位并提示使用 AL 端。
- */
-const DEVICE_LIBRARY_PLACEHOLDER = true
 
 /**
  * MC-M3j / MC-N2: 一级导航语义色映射（与 AL 对齐）。
@@ -129,18 +122,6 @@ export function ActivityBar() {
           )
         })}
       </div>
-
-      {/* MC-M3l / MC-N1: 设备库预留灰态入口（disabled，提示使用 AL 端） */}
-      {DEVICE_LIBRARY_PLACEHOLDER && (
-        <button
-          type="button"
-          disabled
-          title={t('common:sidebar.deviceLibrary', { defaultValue: '设备库（MC 端暂不可用，请使用 AL 端）' })}
-          className="w-12 h-12 flex items-center justify-center text-gray-300 dark:text-gray-600 cursor-not-allowed"
-        >
-          <HardDrive size={20} />
-        </button>
-      )}
 
       <button
         onClick={toggleSidebar}

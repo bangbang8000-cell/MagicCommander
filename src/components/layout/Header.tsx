@@ -41,8 +41,6 @@ export function Header({ onCheatsheet }: HeaderProps) {
   const cloudEnabled = useUIStore((s) => s.generalSettings.cloudEnabled)
   const saveActiveTab = useEditorStore((s) => s.saveActiveTab)
   const createProject = useProjectStore((s) => s.createProject)
-  const recentProjects = useProjectStore((s) => s.recentProjects)
-  const selectProject = useProjectStore((s) => s.selectProject)
   const platformLoggedIn = usePlatformStore((s) => s.loggedIn)
   const platformUsername = usePlatformStore((s) => s.username)
   const buildInfo = useBuildInfo()
@@ -149,20 +147,6 @@ export function Header({ onCheatsheet }: HeaderProps) {
     saveActiveTab()
     closeMenu()
   }, [saveActiveTab])
-
-  // MC-M3g: 文件→最近项目（最近 5 项）——按名称切到项目并展开结构
-  const handleOpenRecent = useCallback(
-    (name: string) => {
-      const p = useProjectStore.getState().projects.find((x) => x.name === name)
-      if (p) {
-        selectProject(p)
-        setActiveActivity('explorer')
-        useProjectStore.getState().loadStructure(name)
-      }
-      closeMenu()
-    },
-    [selectProject, setActiveActivity],
-  )
 
   const handleRefresh = useCallback(() => {
     window.location.reload()
@@ -275,7 +259,7 @@ export function Header({ onCheatsheet }: HeaderProps) {
         }
         useEditorStore.getState().openFile({
           id: 'user-guide',
-          title: 'MagicCommander User Guide',
+          title: t('guide.title'),
           filePath: 'docs/user-guide.md',
           fileType: 'markdown',
           projectId: 0,
@@ -378,21 +362,6 @@ export function Header({ onCheatsheet }: HeaderProps) {
       renderMenuItem('newProject', t('menu.newProject'), 'Ctrl+N', handleNewProject),
       renderMenuItem('openProjectDir', t('menu.openProjectDir'), '', handleOpenProjectDir),
       renderSeparator('sep-f0'),
-      <div
-        key="recent-label"
-        className={clsx(
-          'px-3 py-1 text-[10px] font-medium uppercase tracking-wider',
-          isDark ? 'text-gray-500' : 'text-gray-400',
-        )}
-      >
-        {t('menu.recentProjects')}
-      </div>,
-      ...(recentProjects.length
-        ? recentProjects
-            .slice(0, 5)
-            .map((name) => renderMenuItem(`recent-${name}`, name, '', () => handleOpenRecent(name)))
-        : [renderMenuItem('noRecent', t('menu.noRecentProjects'), '', undefined, true)]),
-      renderSeparator('sep-f0b'),
       renderMenuItem('saveFile', t('menu.saveFile'), 'Ctrl+S', handleSaveFile),
       renderSeparator('sep-f2'),
       renderMenuItem('settings', t('common:settings.title'), 'Ctrl+,', () => handleGoToActivity('settings')),
@@ -408,7 +377,7 @@ export function Header({ onCheatsheet }: HeaderProps) {
       renderMenuItem('copy', t('menu.copy'), 'Ctrl+C', handleCopy),
       renderMenuItem('paste', t('menu.paste'), 'Ctrl+V', handlePaste),
       renderSeparator('sep-e2'),
-      renderMenuItem('cheatsheet', t('menu.cheatsheet'), 'Ctrl+K S', handleCheatsheet),
+      renderMenuItem('cheatsheet', t('menu.cheatsheet'), 'F1', handleCheatsheet),
     ],
     view: [
       renderMenuItem('search', t('common:sidebar.search'), 'Ctrl+Shift+F', () => handleGoToActivity('search')),
@@ -436,7 +405,7 @@ export function Header({ onCheatsheet }: HeaderProps) {
       renderMenuItem('logViewer', t('menu.logViewer'), '', handleLogViewer),
     ],
     help: [
-      renderMenuItem('userGuide', t('menu.userGuide'), 'F1', handleUserGuide),
+      renderMenuItem('userGuide', t('menu.userGuide'), '', handleUserGuide),
       renderMenuItem('mcpGuide', t('menu.mcpGuide'), '', handleMcpGuide),
       renderSeparator('sep-h1'),
       renderMenuItem('about', t('menu.about'), '', handleAbout),

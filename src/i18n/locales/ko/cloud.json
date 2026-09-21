@@ -90,6 +90,8 @@
     "platform": "Platform",
     "advanced": "Advanced",
     "about": "About",
+    "searchPlaceholder": "설정 검색...",
+    "searchNoResults": "일치하는 설정 없음",
     "serverUrl": "Server URL",
     "testConnection": "Test Connection",
     "connectionSuccess": "Connection Successful",

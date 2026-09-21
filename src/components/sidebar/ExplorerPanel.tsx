@@ -11,7 +11,7 @@ import { ProjectListItem } from './project/ProjectListItem'
 import { AidcImportDialog } from '@/components/aidc/AidcImportDialog'
 import { ProjectBatchBar } from './project/ProjectBatchBar'
 import { TemplateCenterPanel } from './template/TemplateCenterPanel'
-import { Star, Clock, Folder } from 'lucide-react'
+import { Star, Folder } from 'lucide-react'
 import clsx from 'clsx'
 import { useTranslation } from 'react-i18next'
 import { usePlatformStore } from '@/stores/platform.store'
@@ -32,7 +32,6 @@ export function ExplorerPanel() {
   const deleteProjects = useProjectStore((s) => s.deleteProjects)
   const projectError = useProjectStore((s) => s.error)
   const favoriteProjects = useProjectStore((s) => s.favoriteProjects)
-  const recentProjects = useProjectStore((s) => s.recentProjects)
   const toggleFavorite = useProjectStore((s) => s.toggleFavorite)
   const pendingCreateDialog = useProjectStore((s) => s.pendingCreateDialog)
   const clearCreateTrigger = useProjectStore((s) => s.clearCreateTrigger)
@@ -223,8 +222,7 @@ export function ExplorerPanel() {
       : [...filtered].sort((a, b) => a.name.localeCompare(b.name))
 
   const favoriteList = sorted.filter((p) => favoriteProjects.includes(p.name))
-  const recentList = sorted.filter((p) => recentProjects.includes(p.name) && !favoriteProjects.includes(p.name))
-  const normalList = sorted.filter((p) => !favoriteProjects.includes(p.name) && !recentProjects.includes(p.name))
+  const normalList = sorted.filter((p) => !favoriteProjects.includes(p.name))
 
   const toggleSelect = (id: number) => {
     setSelectedIdsLocal((prev) => {
@@ -264,7 +262,7 @@ export function ExplorerPanel() {
   const toggleSort = () => setSortBy((s) => (s === 'name' ? 'date' : 'name'))
 
   const showEmptyHint = sorted.length === 0
-  const showAllGroups = !showEmptyHint && (favoriteList.length > 0 || recentList.length > 0 || normalList.length > 0)
+  const showAllGroups = !showEmptyHint && (favoriteList.length > 0 || normalList.length > 0)
 
   return (
     <div className="flex flex-col h-full">
@@ -373,37 +371,6 @@ export function ExplorerPanel() {
                             selected={selectedProject?.name === p.name}
                             checked={selectedIds.has(p.id)}
                             favorite={true}
-                            onToggleCheck={() => toggleSelect(p.id)}
-                            onToggleFavorite={() => toggleFavorite(p.name)}
-                            onSelect={() => {
-                              selectProject(p)
-                              setSelectedIds([String(p.id)])
-                            }}
-                            onOpenFolder={async () => {
-                              const workspacePath = await window.electron.app.getPath('workspace')
-                              window.electron.shell.showItemInFolder(`${workspacePath}/${p.name}`)
-                            }}
-                            onPush={loggedIn ? () => setPushDialogProject(p.name) : undefined}
-                            onPull={loggedIn ? () => setPullDialogProject(p.name) : undefined}
-                          />
-                        ))}
-                      </div>
-                    )}
-                    {recentList.length > 0 && (
-                      <div>
-                        <div className="px-3 py-1 text-[11px] font-semibold uppercase tracking-wider flex items-center gap-1 bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400">
-                          <Clock size={10} className="text-gray-400 dark:text-gray-500" />
-                          {t('explorer.recent')}
-                        </div>
-                        {recentList.map((p) => (
-                          <ProjectListItem
-                            key={p.id}
-                            project={p}
-                            status={projectStatuses[p.name]}
-                            syncStatus={syncStatuses[p.name]}
-                            selected={selectedProject?.name === p.name}
-                            checked={selectedIds.has(p.id)}
-                            favorite={false}
                             onToggleCheck={() => toggleSelect(p.id)}
                             onToggleFavorite={() => toggleFavorite(p.name)}
                             onSelect={() => {
