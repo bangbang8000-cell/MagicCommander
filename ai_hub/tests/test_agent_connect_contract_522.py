@@ -9,10 +9,28 @@
   非 confirm 档不受门禁影响
 - 开关 2：stdio 入口遵守总开关（exit 2）、selfcheck 真实读开关
 - 注解 2：tools/list 带 annotations、只读工具 readOnlyHint=true
+
+----------------------------------------------------------------------------
+flaky 根因结论（仅测试层问题，非业务逻辑缺陷，勿据此改业务引擎）：
+``TestPermissionGate::test_notify_mode_records_without_blocking`` 历史上偶发
+``assert gate_hits >= 1`` 得 0。定位结论为**时序竞态**，而非共享状态污染：
+- ``render_config`` 既是 confirm 档（schemas.py）又是长耗时工具（capabilities.LONG_RUNNING_TOOLS）。
+- 长耗时工具走 ``AgentConnectManager._invoke(long_running=True)``：主线程先以
+  ``record=False`` 过门（**不记账**），随即把真实执行 submit 到独立 daemon 后台事件
+  循环线程（mcp_server/tasks.py），调用当场返回 task_id 回执。
+- 真正的 ``self._gate_hits.append(...)`` 发生在后台线程跑 ``_execute_wrapped`` →
+  ``_permission_gate(record=True)`` 时。
+- 原用例在调用返回后立刻同步断言 ``gate_hits >= 1``，此时后台线程往往尚未调度执行，
+  于是偶发读到 0；重跑时线程调度恰好先落账则通过。本机连跑 10 次 9 败 1 过可复现。
+- ``reset_manager()`` 每用例都新建 manager（``_gate_hits=[]``），gate 记录本身无跨用例残留。
+修复方式：仅在测试层对该断言做**有界轮询等待后台记账**（``_wait_gate_hit``），
+不改任何业务引擎 / 导出契约 / 业务逻辑。
+----------------------------------------------------------------------------
 """
 import asyncio
 import json
 import sys
+import time
 from pathlib import Path
 
 import pytest
@@ -253,12 +271,28 @@ class TestPermissionGate:
     def _call(self, mgr, name, args):
         return asyncio.run(mgr.mcp._tool_manager.call_tool(name, args, convert_result=True))
 
+    @staticmethod
+    def _wait_gate_hit(mgr, timeout: float = 3.0) -> None:
+        """等待后台任务线程完成一次 gate 记账（有界轮询，消除时序竞态）。
+
+        长耗时 confirm 工具的 ``_gate_hits.append`` 发生在后台 daemon 任务线程
+        （``_execute_wrapped`` → ``_permission_gate(record=True)``），主线程调用路径以
+        ``record=False`` 过门后立即返回 task_id。调用当场读 ``gate_hits`` 偶发为 0（flaky），
+        故此处在断言前轮询等待后台落账。仅测试层同步手段，不改业务逻辑。
+        """
+        deadline = time.time() + timeout
+        while time.time() < deadline:
+            if mgr.status_report()["gate_hits"] >= 1:
+                return
+            time.sleep(0.01)
+
     def test_notify_mode_records_without_blocking(self):
         mgr = _enable_compiled()
         mgr.set_gate_mode("notify")
         res = self._call(mgr, "render_config", {"projectName": "___nonexistent___"})
         body = json.loads(res.content[0].text)
         assert body.get("error_code") != "AC_ERR_PERMISSION_REQUIRED"
+        self._wait_gate_hit(mgr)  # 等后台线程落账，消除长耗时工具的同步断言竞态
         assert mgr.status_report()["gate_hits"] >= 1
 
     def test_enforce_mode_blocks_without_token(self):
