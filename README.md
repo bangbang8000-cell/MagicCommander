@@ -2,7 +2,7 @@
 
 **批量生成网络设备配置 | Network Device Configuration Automation**
 
-[![Version](https://img.shields.io/badge/version-5.4.0-blue)](https://github.com/bangbang8000-cell/MagicCommander/releases)
+[![Version](https://img.shields.io/badge/version-5.4.1-blue)](https://github.com/bangbang8000-cell/MagicCommander/releases)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![Windows](https://img.shields.io/badge/Windows-NSIS-blue)](https://github.com/bangbang8000-cell/MagicCommander/releases)
 [![macOS](https://img.shields.io/badge/macOS-DMG-silver)](https://github.com/bangbang8000-cell/MagicCommander/releases)
@@ -286,7 +286,7 @@ MagicCommander/
 
 | 版本 | 日期 | 更新内容 |
 |------|------|---------|
-| **5.4.0 Build 26092101** | 2026-09-21 | **双端 UI 阶段 A（与 AL 5.5.0 同日发布）**：用户指南标题 i18n、设置面板搜索+分类并改上下 Tab 布局、移除设备库灰态占位、主框架 i18n、Modal 无障碍、移除「最近项目」入口、菜单 i18n 补键（mcpGuide + 15 基础键） |
+| **5.4.1 Build 26092101** | 2026-09-21 | **双端 UI 阶段 A（与 AL 5.4.1 同日发布）**：用户指南标题 i18n、设置面板搜索+分类并改上下 Tab 布局、移除设备库灰态占位、主框架 i18n、Modal 无障碍、移除「最近项目」入口、菜单 i18n 补键（mcpGuide + 15 基础键） |
 | **5.3.0 Build 26092001** | 2026-09-20 | **渲染分流 + 6 场景 example（与 AL 5.4.0 同日发布）**：IB 项目不再产出 SPINE/LEAF/STO_SPINE/STO_LEAF 四个 fabric 角色 j2（配置在 IB 子网管理器侧，业务/带外照常）+ RoCE X400 渲染族（SPINE/LEAF 走 SONiC/UXOS 命令族，H3C 族保持占位）+ 6 场景 example 成品导入（万卡 H200×3 + 二层最大 ×2 + B300，plan.json/para.xlsx/excel×4/templates/meta status=ready 溯源）+ 既有 4 个 IB 样例按分流语义重生成 + device_library 21 台同步 |
 | **5.2.2 Build 26091701** | 2026-09-17 | **Agent Connect 对外契约止血 + 可信门禁**（与 AL 5.2.2 同批次）：`tools/call` 失败置 `isError=true` 且响应扁平化 + 结构化 `error_code`（**破坏性变更**）；修复 **`toolName` 越权**（高危，可把只读调用路由到高风险工具）与**编译态屏蔽静默失效**（高危，固定枚举名单与实际注册名不符致危险工具泄漏）；屏蔽规则改**语义匹配** + `audit_block_rules()` 启动对账 + 编译态启动断言；stdio 入口强制校验总开关（关闭即退出码 2，`--ignore-switch` 排障）；新增 confirm 门禁可观测（`set_gate_mode`/`gate_hits`/`block_audit`）、MCP `annotations`、`resources`/`prompts` 注册、`inputSchema` 保真透传、`selfcheck()` 真实化；新增**双端同构结构比对**用例 + Agent Connect 契约用例（26 条）+ 文档数字一致性门禁 |
 | **5.2.1 Build 26090901** | 2026-09-09 | **AL 5.2.0 同步版**：契约 v1.3 解析（`topologyMode`/`combinedMode`/`scenario`/`paramPlanes`）+ 设备库互灌（推荐字段 + `apply_recommendations`，设备库版本 1→2）+ 3D 数据源联动（拓扑/合分标签 + 按柜型着色） |
