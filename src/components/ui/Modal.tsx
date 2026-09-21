@@ -66,7 +66,9 @@ export function Modal({ open, onClose, title, children, width = '500px', footer,
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between px-5 py-3 border-b border-edge-subtle">
-          <h3 id={titleId} className="text-base font-semibold text-text-primary">{title}</h3>
+          <h3 id={titleId} className="text-base font-semibold text-text-primary">
+            {title}
+          </h3>
           <button
             onClick={onClose}
             aria-label={t('window.close')}

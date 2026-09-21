@@ -223,11 +223,7 @@ const CATEGORIES: { id: SettingsTab; icon: React.ReactNode; labelKey: string; se
     id: 'about',
     icon: <Info size={14} />,
     labelKey: 'cloud:settings.about',
-    searchKeys: [
-      'common:settings.about.desc',
-      'common:settings.about.version',
-      'common:settings.updates.checkButton',
-    ],
+    searchKeys: ['common:settings.about.desc', 'common:settings.about.version', 'common:settings.updates.checkButton'],
   },
 ]
 

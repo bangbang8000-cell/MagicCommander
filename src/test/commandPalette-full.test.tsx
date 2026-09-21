@@ -104,17 +104,7 @@ describe('E-5 命令全集聚合（主要操作全覆盖）', () => {
       ...buildTerminalCommands(),
     ]
     const categories = new Set(all.map((i) => i.category))
-    for (const expected of [
-      '项目操作',
-      '模板操作',
-      '渲染',
-      '导出',
-      '批量操作',
-      '收藏',
-      '一键管线',
-      '设置',
-      '终端',
-    ]) {
+    for (const expected of ['项目操作', '模板操作', '渲染', '导出', '批量操作', '收藏', '一键管线', '设置', '终端']) {
       expect(categories.has(expected), `缺少命令类别: ${expected}`).toBe(true)
     }
     expect(all.length).toBeGreaterThan(25)
