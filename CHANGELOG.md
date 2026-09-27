@@ -2,6 +2,35 @@
 
 本文件为发布说明的单一事实来源（`npm run sync-version -- --release-notes` 自动抽取当前版本段）。
 
+## [5.4.3] - 2026-09-27
+
+> **CLI 契约收敛版（批次 B/C）：命令形态、输出契约与审计全链路对齐 AL。**
+
+### 行为变更（调用方需注意）
+
+- **`--format` 语义拆分（MC-CLI-A5 P2-1）**：`render project|yaml|dry-run` 与 `diff` 的**设备命名标识**由 `--format {device_name,device_sn}` 改为 **`--naming {device_name,device_sn}`**。`--format` 自此**专指输出形态**（`text`/`json`/`yaml`），不再承担双重语义。
+  - 同步回填 6 份 i18n `terminal.json`、`commandRegistry.ts`、`--help` epilog 示例。
+  - **受影响**：脚本/文档中 `--format device_sn` 需改为 `--naming device_sn`。
+
+- **stdout `status` 取值收拢（MC-CLI-A6 P2-6）**：stdout JSON **顶层** `status` 统一为 `success` / `error` / `warning` / `progress` / `complete` 五种（常量 `STATUS_*`）。Electron `render.handler.ts` 现将 `warning`（成功但有降级/跳过）**按成功处理** —— 此前会命中「Python 脚本输出格式不正确（非 JSON）」误判分支。
+  - `pass` / `fail` / `warn` 仅出现在 `results[]` **嵌套项**内，不属于顶层契约。
+
+### 新增
+
+- **CLI 审计日志（MC-CLI-A7 P2-7）**：每次 CLI 执行写 `mc-audit.jsonl`（命令 / 参数脱敏 / 结果 / 退出码），对齐 AL `cli-audit.jsonl`。
+  - 路径优先级：`MC_AUDIT_PATH` > `$MC_USER_DATA/audit/mc-audit.jsonl` > `~/.magiccommander/audit/mc-audit.jsonl`。
+  - 脱敏：参数键名含 `password`/`secret`/`token`/`api_key`/`apikey`/`content` 时值替换为 `***`（argv 与 params 双路径）。
+  - 失败/异常也留痕（`ok:false` + `error` + 实际 `exitCode`）；写入失败**不阻塞**主流程；`MC_AUDIT_DISABLED=1` 可关闭。
+  - **`docs/cli.md`（MC-CLI-A5 P3-2）**：新建 CLI 参考文档（13 命令速查 + 退出码 + status 契约 + 审计 + 双端差异）。
+
+### 门禁扩展
+
+- **`scripts/check_cli_contract.py` 扩至 C1–C7**：
+  - **C6 修正**：原取法把**子命令**也当注册命令、且文档侧只认缩进清单 ⇒ 改为「仅顶层命令 ↔ 文档表格/反引号」，并支持 `docs/cli.md` 从无到有。
+  - **C7 新增**：stdout JSON 顶层 `status` 白名单（扫描 `main.py` + `pre_processing.py`）。
+- 新增 `backend/tests/test_cli_contract.py`（15 用例）+ `backend/tests/test_cli_audit.py`（9 用例），**均含负向断言**。
+- 接入 `.github/workflows/ci.yml`（`Doc numbers vs code` 之后）。
+
 ## [5.4.2] - 2026-09-27
 
 > **CLI 契约止血版（批次 A）：让 `mc` 命令可被程序与旁挂 Agent 安全消费。**
