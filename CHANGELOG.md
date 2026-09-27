@@ -2,6 +2,46 @@
 
 本文件为发布说明的单一事实来源（`npm run sync-version -- --release-notes` 自动抽取当前版本段）。
 
+## [5.4.2] - 2026-09-27
+
+> **CLI 契约止血版（批次 A）：让 `mc` 命令可被程序与旁挂 Agent 安全消费。**
+
+### 行为变更（破坏性，调用方需注意）
+
+- **退出码对齐 AL 四档语义（MC-CLI-A1）**：此前 MC 只有 `0`/`1` 两档（`sys.exit(1)` 硬编码 28 处），调用方无法区分「参数写错」（应改参数重试）与「执行失败」（应告警）。现统一为 **`0` 成功 / `1` 内部异常 / `2` 参数或配置错误 / `3` 执行失败**，与 AL `cli.py` 退出码**取值逐位一致**。
+  - `2`（参数/前置条件）：未知命令、项目/Template 不存在、模板名非法、路径越界、文件不存在、未加 `--force` 的重复创建 —— 共 19 处
+  - `3`（业务执行失败）：业务处理中捕获异常 —— 共 5 处
+  - `1`（内部异常）：顶层未预期异常兜底 —— 1 处
+  - `0`：成功 / 无命令显示帮助 / `[y/N]` 提示取消 —— 共 4 处
+  - `KeyboardInterrupt` 由 `1` 改为 **`130`**（128+2 惯例，便于 shell/CI 识别中断）
+  - **受影响**：此前依赖「失败恒为 1」的脚本需按新语义调整。
+
+- **stdout 纯净（MC-CLI-A2）**：`print_error` / `print_warning` 由 **stdout 改道 stderr**，与 AL 约定一致。此前失败时会把 `✗ ...` 混入 stdout，破坏下游 JSON 解析（Electron `runPythonCommand`、MCP 工具、CI 均受影响）。
+  - 同时修复 `project info` 与 `file list` 的 text 分支：此前全走 `logger.info` → stderr，导致**默认调用 stdout 为空、拿不到任何输出**。
+
+### 修复
+
+- **`--version` 版本漂移（MC-CLI-A3）**：此前硬编码 `3.0.0`，与产品实际版本（`version.json`）**落后 2 个大版本**。现改为运行时读取（`version.json` → `VERSION.txt` → `$MC_VERSION_FILE` 三路径回退），并新增 `MC_CLI_VERSION` 表达 **CLI 契约版本**（与产品版本解耦，对齐 AL `CLI_VERSION`）。
+  - 输出形如：`main.py 5.4.1 (mc-cli 1.0.0)`
+- **`--help` epilog 过时（MC-CLI-A4）**：此前列出 5.4.1 已移除的 `render project-sn` / `render yaml-sn`，却漏掉 `plan` / `device` / `review` / `share` / `diff` / `analyze` / `proofread` / `template` / `validate` 等 9 个实际命令。现抽为 `_build_epilog()`，补全 13 个顶层命令 + 退出码说明。
+
+### 新增（门禁）
+
+- **`scripts/check_cli_contract.py`（MC-CLI-A5）**：CLI 契约守卫，六项检查：
+  1. 退出码常量存在且取值符合契约（0/1/2/3）
+  2. 无裸 `sys.exit(<数字>)`（130 白名单）
+  3. `--version` 不硬编码版本号字面量
+  4. `print_error` / `print_warning` 走 stderr
+  5. `--help` epilog 无残留已移除命令
+  6. `docs/cli.md` 命令表 ↔ 真实命令树对账（文档存在时）
+
+  实测首轮即抓出 4 项真实违例（3 处裸 `sys.exit(0)`），修复后 6/6 通过。
+
+### 测试
+
+- 批次 A 改动以实机探测验证：`project info` stdout 行数 **0 → 11**；`project info 99` stdout 由 `✗ ...` 变**空**、stderr 收到错误、退出码 **1 → 2**；`--version` 由 `3.0.0` → `5.4.1 (mc-cli 1.0.0)`；`render bogus 1`（2）与 `project list`（0）无回归。
+- 契约守卫 6/6 通过。
+
 ## [5.4.1] - 2026-09-21
 
 > **双端 UI 体验改进规划·阶段 A（MC 侧）+ 本轮三项修复，与 AL 5.4.1 同日发布。**

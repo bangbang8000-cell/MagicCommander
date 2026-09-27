@@ -18,6 +18,71 @@ from config import WORKSPACE_DIR
 
 logger = logging.getLogger(__name__)
 
+# ================================================================
+#  MC-CLI-A1：退出码契约（对齐 AL cli.py 语义，双端统一判据）
+#  ================================================================
+#  来源：AL `backend/cli.py` EXIT_OK/INTERNAL/USAGE/EXEC。
+#  破坏性变更：此前 MC 只有 0/1 两档（`sys.exit(1)` 硬编码），调用方
+#  无法区分「参数写错」（应改参数重试）与「执行失败」（应告警）。
+#  契约以本文档与 docs/cli.md 为准。
+EXIT_OK = 0        # 成功
+EXIT_INTERNAL = 1  # 内部异常（未预期异常）
+EXIT_USAGE = 2     # 参数或配置错误（缺参/取值非法/项目不存在/名称非法/路径越界）
+EXIT_EXEC = 3      # 执行失败（业务处理失败、部分项目失败）
+
+# MC-CLI-A1：CLI 契约版本（与产品版本解耦，对齐 AL `CLI_VERSION`）
+MC_CLI_VERSION = '1.0.0'
+
+
+def _product_version() -> str:
+    """读取产品版本（多路径回退，覆盖开发态与打包态）。
+
+    此前 `--version` 硬编码 '3.0.0'，与产品实际版本（version.json = 5.4.1）
+    长期脱节；改为运行时读取，消除版本漂移。
+
+    路径优先级（打包态 `backend/` 被放进 `resources/backend/`，
+    而 `version.json` 在 `resources/app.asar/version.json`，故上级目录找不到）：
+      1. `<backend上级>/version.json`（开发态：脚本 <repo>/backend/main.py）
+      2. `<backend上级>/VERSION.txt`（同上，纯文本回退）
+      3. `$MC_VERSION_FILE` 环境变量指向的文件（Electron 可显式注入）
+    读不到时返回 'unknown'，绝不因此报错。
+    """
+    root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+    def _from_json(path: str) -> str | None:
+        try:
+            with open(path, 'r', encoding='utf-8') as f:
+                v = json.load(f).get('version')
+            return str(v) if v else None
+        except (OSError, ValueError):
+            return None
+
+    def _from_txt(path: str) -> str | None:
+        try:
+            with open(path, 'r', encoding='utf-8') as f:
+                for line in f:
+                    if line.strip().startswith('Version:'):
+                        return line.split(':', 1)[1].strip()
+        except OSError:
+            pass
+        return None
+
+    # 1/2. 开发态：backend 上级即仓根
+    for loader, name in ((_from_json, 'version.json'), (_from_txt, 'VERSION.txt')):
+        v = loader(os.path.join(root, name))
+        if v:
+            return v
+
+    # 3. 打包态：允许 Electron 通过环境变量显式注入版本文件路径
+    env_path = os.environ.get('MC_VERSION_FILE', '')
+    if env_path:
+        for loader in (_from_json, _from_txt):
+            v = loader(env_path)
+            if v:
+                return v
+
+    return 'unknown'
+
 
 def _project_origin(name: str) -> dict | None:
     """契约 v1.2（M-7）：从项目 template.meta.json 读取来源摘要（AL 项目 → MC 项目溯源）。"""
@@ -96,46 +161,56 @@ def _resolve_project_file(project_dir: str, rel_path: str) -> str:
     return full_path
 
 
-def main():
-    # 创建主解析器
-    parser = argparse.ArgumentParser(
-        description='Magic Commander 3 - 网络设备配置管理工具',
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog='''
-        项目管理:
-          mc project list                列出所有项目
-          mc project create <name>       创建新项目
-          mc project delete <id>         删除项目
-          mc project info <id>          获取项目信息
-        
-        配置渲染:
-          mc render project <ids>       渲染项目配置
-          mc render yaml <ids>          渲染YAML文件
-          mc render project-sn <ids>    渲染项目配置(SN模式)
-          mc render yaml-sn <ids>       渲染YAML文件(SN模式)
-        
-        标签功能:
-          mc label print <ids>          打印标签
-          mc label delete <ids>         删除标签
-        
-        文件操作:
-          mc file delete <type> <ids>   删除项目文件
-          mc file list <id>             列出项目文件
-        
+def _build_epilog() -> str:
+    """MC-CLI-A4：epilog 动态生成，消除与实际命令树的漂移。
+
+    此前 epilog 为手写常量，且**长期过时**：列出了 5.4.1 已移除的
+    `render project-sn` / `render yaml-sn`，却漏掉 plan / device / review /
+    share / diff / analyze / proofread / template / validate 等 9 个实际命令。
+    改为从「命令树真值」生成，杜绝再次漂移。
+    """
+    return '''
+        命令一览（完整清单见 `mc <命令> --help`）:
+          plan        AIDC plan:table 导入与分析（import / analyze / validate / verify）
+          project     项目管理（list / create / delete / info / package / export / import
+                       / read-excel / write-excel / read-file / write-file / list-files）
+          render      配置渲染（project / yaml / undo / dry-run）
+          validate    校验（template / excel / consistency / output / ip / all / manifest）
+          review      评审报告与评审包（report / package / md）
+          share       项目分享只读快照（snapshot）
+          diff        对比 dry-run 输出与既有输出
+          analyze     分析项目模板与参数表（project）
+          proofread   智能校对（project）
+          template    模板中心（preview / list / save / update / delete）
+          device      设备库导入导出（library export / library import）
+          label       标签（print / md / delete）
+          file        文件操作（delete / list）
+
         项目ID格式:
           - 单个ID: 1
           - 多个ID: 1,2,3
           - 所有项目: all
-        
+
         示例:
           mc project list
           mc project create "test-project"
           mc render project 1
           mc render yaml 1,2,3
-          mc render project-sn all
+          mc render project 1 --format device_sn
           mc label print 1
           mc file delete output 1
-        '''
+
+        退出码:
+          0 成功 / 1 内部异常 / 2 参数或配置错误 / 3 执行失败
+    '''
+
+
+def main():
+    # 创建主解析器
+    parser = argparse.ArgumentParser(
+        description='Magic Commander 3 - 网络设备配置管理工具',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog=_build_epilog()
     )
 
     # 创建子解析器
@@ -377,7 +452,10 @@ def main():
     list_files_parser.add_argument('--type', choices=['excel', 'yaml', 'template', 'output', 'all'], default='all', help='文件类型过滤')
 
     # 全局选项
-    parser.add_argument('--version', '-v', action='version', version='%(prog)s 3.0.0')
+    # MC-CLI-A3：版本改为运行时读取（此前硬编码 '3.0.0'，与产品 5.4.1 脱节）。
+    # 同时暴露 CLI 契约版本 MC_CLI_VERSION，与产品版本解耦（对齐 AL `CLI_VERSION`）。
+    parser.add_argument('--version', '-v', action='version',
+                        version=f'%(prog)s {_product_version()} (mc-cli {MC_CLI_VERSION})')
     parser.add_argument('--verbose', '-V', action='count', default=0, help='增加详细输出')
     parser.add_argument('--quiet', '-q', action='store_true', help='静默模式')
 
@@ -386,7 +464,7 @@ def main():
     # 如果没有提供命令，显示帮助信息
     if args.command is None:
         parser.print_help()
-        sys.exit(0)
+        sys.exit(EXIT_OK)
 
     try:
         processor = PreProcessing()
@@ -421,13 +499,13 @@ def main():
             handle_share_command(args)
         else:
             print_error(f'未知命令: {args.command}')
-            sys.exit(1)
+            sys.exit(EXIT_USAGE)
 
     except Exception as e:
         print_error(str(e))
         if args.verbose:
             logger.error("命令执行异常", exc_info=True)
-        sys.exit(1)
+        sys.exit(EXIT_INTERNAL)
 
 
 def handle_plan_command(args):
@@ -540,7 +618,7 @@ def handle_project_command(processor, args):
             proj = os.path.join(WORKSPACE_DIR, args.project_name)
             if not os.path.isdir(proj):
                 print_error(f'项目不存在: {args.project_name}')
-                sys.exit(1)
+                sys.exit(EXIT_USAGE)
             manifest = export_project_package(proj, args.output)
             summary = {'status': 'success', 'message': f'项目包已导出: {args.output}',
                        'data': {'path': args.output, 'projectId': manifest['projectId'],
@@ -589,7 +667,7 @@ def handle_project_command(processor, args):
                 print_warning(f'项目 "{args.name}" 已存在，将强制覆盖')
             else:
                 print_error(f'项目 "{args.name}" 已存在，请使用 --force 参数强制覆盖')
-                sys.exit(1)
+                sys.exit(EXIT_USAGE)
         
         if args.template:
             processor.execute_create_from_template(args.name, args.template)
@@ -606,7 +684,7 @@ def handle_project_command(processor, args):
             confirm = input(f'确认删除项目: {names} [y/N]: ')
             if confirm.lower() != 'y':
                 print_info('操作已取消')
-                sys.exit(0)
+                sys.exit(EXIT_OK)
         
         for idx in sorted(target_ids, reverse=True):
             project_name = processor.project_name[idx]
@@ -654,19 +732,21 @@ def handle_project_command(processor, args):
                 except ImportError:
                     print_error('YAML格式需要安装PyYAML库')
             else:
-                logger.info(f'项目信息:')
-                logger.info(f'ID: {info["id"]}')
-                logger.info(f'名称: {info["name"]}')
-                logger.info(f'路径: {info["path"]}')
-                logger.info(f'存在: {"是" if info["exists"] else "否"}')
+                # MC-CLI-A2：text 路径改走 _safe_print（stdout），
+                # 此前全用 logger.info → stderr ⇒ 非交互调用 stdout 为空、拿不到任何输出
+                _safe_print('项目信息:')
+                _safe_print(f'ID: {info["id"]}')
+                _safe_print(f'名称: {info["name"]}')
+                _safe_print(f'路径: {info["path"]}')
+                _safe_print(f'存在: {"是" if info["exists"] else "否"}')
                 if info['exists']:
-                    logger.info('结构:')
+                    _safe_print('结构:')
                     for key, value in info['structure'].items():
-                        logger.info(f'  - {key}: {"存在" if value else "不存在"}')
-                        
+                        _safe_print(f'  - {key}: {"存在" if value else "不存在"}')
+
         except ValueError as e:
             print_error(str(e))
-            sys.exit(1)
+            sys.exit(EXIT_USAGE)
 
     elif args.subcommand == 'read-excel':
         try:
@@ -715,7 +795,7 @@ def handle_project_command(processor, args):
                 'message': str(e),
                 'data': None
             }, ensure_ascii=False))
-            sys.exit(1)
+            sys.exit(EXIT_EXEC)
 
     elif args.subcommand == 'write-excel':
         try:
@@ -761,7 +841,7 @@ def handle_project_command(processor, args):
                 'message': str(e),
                 'data': None
             }, ensure_ascii=False))
-            sys.exit(1)
+            sys.exit(EXIT_EXEC)
 
     elif args.subcommand == 'read-file':
         try:
@@ -790,7 +870,7 @@ def handle_project_command(processor, args):
                 'message': str(e),
                 'data': None
             }, ensure_ascii=False))
-            sys.exit(1)
+            sys.exit(EXIT_EXEC)
 
     elif args.subcommand == 'write-file':
         try:
@@ -818,7 +898,7 @@ def handle_project_command(processor, args):
                 'message': str(e),
                 'data': None
             }, ensure_ascii=False))
-            sys.exit(1)
+            sys.exit(EXIT_EXEC)
 
     elif args.subcommand == 'list-files':
         try:
@@ -875,7 +955,7 @@ def handle_project_command(processor, args):
                 'message': str(e),
                 'data': None
             }, ensure_ascii=False))
-            sys.exit(1)
+            sys.exit(EXIT_EXEC)
 
 
 def handle_render_command(processor, args):
@@ -988,7 +1068,7 @@ def handle_device_command(args):
                           'data': result}, ensure_ascii=False))
     else:
         print_error(f'未知设备库操作: {args.device_action}/{getattr(args, "lib_action", "")}')
-        sys.exit(1)
+        sys.exit(EXIT_USAGE)
 
 
 def handle_review_command(args):
@@ -997,7 +1077,7 @@ def handle_review_command(args):
     proj = os.path.join(WORKSPACE_DIR, args.project)
     if not os.path.isdir(proj):
         print_error(f'项目不存在: {args.project}')
-        sys.exit(1)
+        sys.exit(EXIT_USAGE)
     if args.review_action == 'report':
         report = build_review_report(proj)
         print(json.dumps(report, ensure_ascii=False))
@@ -1013,7 +1093,7 @@ def handle_review_command(args):
                          ensure_ascii=False))
     else:
         print_error(f'未知评审操作: {getattr(args, "review_action", "")}')
-        sys.exit(1)
+        sys.exit(EXIT_USAGE)
 
 
 def handle_share_command(args):
@@ -1022,14 +1102,14 @@ def handle_share_command(args):
     proj = os.path.join(WORKSPACE_DIR, args.project)
     if not os.path.isdir(proj):
         print_error(f'项目不存在: {args.project}')
-        sys.exit(1)
+        sys.exit(EXIT_USAGE)
     if args.share_action == 'snapshot':
         snapshot = build_share_snapshot(proj)
         print(json.dumps({'status': 'success', 'message': '分享快照已生成',
                           'data': snapshot}, ensure_ascii=False))
     else:
         print_error(f'未知分享操作: {getattr(args, "share_action", "")}')
-        sys.exit(1)
+        sys.exit(EXIT_USAGE)
 
 
 def handle_diff_command(processor, args):
@@ -1125,7 +1205,7 @@ def handle_template_command(processor, args):
         target_str = convert_to_project_string(process_project_ids(args.ids, processor.project_name))
         if '..' in args.template or args.template.startswith(('/', '\\')):
             print_error(f'模板路径无效: {args.template}')
-            sys.exit(1)
+            sys.exit(EXIT_USAGE)
         processor.execute_template_preview(target_str, args.template)
         print_success(f'模板预览完成')
 
@@ -1144,15 +1224,15 @@ def handle_template_command(processor, args):
     elif args.subcommand == 'save':
         if not _valid_template_name(args.name):
             print_error(f'模板名无效: {args.name}')
-            sys.exit(1)
+            sys.exit(EXIT_USAGE)
         proj = os.path.join(WORKSPACE_DIR, args.project)
         if not os.path.isdir(proj):
             print_error(f'项目不存在: {args.project}')
-            sys.exit(1)
+            sys.exit(EXIT_USAGE)
         target = os.path.join(_example_dir(), args.name)
         if os.path.exists(target):
             print_error(f'模板已存在: {args.name}')
-            sys.exit(1)
+            sys.exit(EXIT_USAGE)
         os.makedirs(_example_dir(), exist_ok=True)
         shutil.copytree(proj, target, ignore=shutil.ignore_patterns(
             'output', 'yaml', 'output-label', '.output_backups', '.render_cache'))
@@ -1162,19 +1242,19 @@ def handle_template_command(processor, args):
         name = args.name
         if not _valid_template_name(name):
             print_error(f'模板名无效: {name}')
-            sys.exit(1)
+            sys.exit(EXIT_USAGE)
         if '..' in args.file_path or args.file_path.startswith(('/', '\\')):
             print_error(f'文件路径无效: {args.file_path}')
-            sys.exit(1)
+            sys.exit(EXIT_USAGE)
         target = os.path.join(_example_dir(), name, args.file_path)
         target_abs = os.path.abspath(target)
         root_abs = os.path.abspath(os.path.join(_example_dir(), name))
         if os.path.commonpath([target_abs, root_abs]) != root_abs:
             print_error('路径越界，禁止写入')
-            sys.exit(1)
+            sys.exit(EXIT_USAGE)
         if not os.path.isfile(target):
             print_error(f'文件不存在: {name}/{args.file_path}')
-            sys.exit(1)
+            sys.exit(EXIT_USAGE)
         os.makedirs(os.path.dirname(target), exist_ok=True)
         with open(target, 'w', encoding='utf-8') as f:
             f.write(args.content)
@@ -1184,16 +1264,16 @@ def handle_template_command(processor, args):
         name = args.name
         if not _valid_template_name(name):
             print_error(f'模板名无效: {name}')
-            sys.exit(1)
+            sys.exit(EXIT_USAGE)
         target = os.path.join(_example_dir(), name)
         if not os.path.isdir(target):
             print_error(f'模板不存在: {name}')
-            sys.exit(1)
+            sys.exit(EXIT_USAGE)
         if not args.force:
             confirm = input(f'确认删除模板: {name} [y/N]: ')
             if confirm.lower() != 'y':
                 print_info('操作已取消')
-                sys.exit(0)
+                sys.exit(EXIT_OK)
         shutil.rmtree(target, ignore_errors=True)
         print_success(f'模板 "{name}" 删除成功')
 
@@ -1214,7 +1294,7 @@ def handle_file_command(processor, args):
             confirm = input(f'确认删除{file_type_name.get(args.type, args.type)}: {names} [y/N]: ')
             if confirm.lower() != 'y':
                 print_info('操作已取消')
-                sys.exit(0)
+                sys.exit(EXIT_OK)
         
         target_str = convert_to_project_string(target_ids)
         processor.execute_delete(args.type, target_str)
@@ -1232,20 +1312,21 @@ def handle_file_command(processor, args):
             
             if not os.path.exists(project_dir):
                 print_error(f'项目目录不存在: {project_dir}')
-                sys.exit(1)
+                sys.exit(EXIT_USAGE)
             
-            logger.info(f'项目 "{project_name}" 文件结构:')
+            # MC-CLI-A2：目录树改走 _safe_print（stdout），此前走 logger → stderr
+            _safe_print(f'项目 "{project_name}" 文件结构:')
             for root, dirs, files in os.walk(project_dir):
                 level = root.replace(project_dir, '').count(os.sep)
                 indent = ' ' * 2 * level
-                logger.info(f'{indent}{os.path.basename(root)}/')
+                _safe_print(f'{indent}{os.path.basename(root)}/')
                 subindent = ' ' * 2 * (level + 1)
                 for file in files:
-                    logger.info(f'{subindent}{file}')
-                    
+                    _safe_print(f'{subindent}{file}')
+
         except ValueError as e:
             print_error(str(e))
-            sys.exit(1)
+            sys.exit(EXIT_USAGE)
 
 
 def process_project_ids(ids_str, project_names):
@@ -1289,34 +1370,46 @@ def convert_to_project_string(ids):
     return '/'.join([str(idx + 1) for idx in ids])
 
 
-def _safe_print(text: str):
-    """安全打印，处理 Windows GBK 编码问题"""
+def _safe_print(text: str, file=None):
+    """安全打印，处理 Windows GBK 编码问题。
+
+    MC-CLI-A2：新增 ``file`` 参数。约定（与 AL `cli.py` 一致）：
+      - **stdout 仅含命令业务输出**（成功信息、JSON 结果）；
+      - **错误/警告走 stderr**，避免污染下游 JSON 管道
+        （此前 `print_error` 写 stdout，失败时会把 `✗ ...` 混进 JSON 输出）。
+    """
+    def _emit(t: str):
+        if file is not None:
+            print(t, file=file)
+        else:
+            print(t)
+
     try:
-        print(text)
+        _emit(text)
     except UnicodeEncodeError:
         # GBK 编码回退：替换 Unicode 符号为 ASCII
         text = text.replace('\u2713', '[OK]').replace('\u2717', '[ERR]').replace('\u26a0', '[WARN]').replace('\u2139', '[INFO]')
         text = text.replace('\033[92m', '').replace('\033[91m', '').replace('\033[93m', '').replace('\033[94m', '').replace('\033[0m', '')
-        print(text)
+        _emit(text)
 
 
 def print_success(message):
-    """打印成功信息"""
+    """打印成功信息（stdout：属命令业务输出）"""
     _safe_print(f'\033[92m✓ {message}\033[0m')
 
 
 def print_error(message):
-    """打印错误信息"""
-    _safe_print(f'\033[91m✗ {message}\033[0m')
+    """打印错误信息（MC-CLI-A2：改道 stderr，不污染 stdout JSON 管道）"""
+    _safe_print(f'\033[91m✗ {message}\033[0m', file=sys.stderr)
 
 
 def print_warning(message):
-    """打印警告信息"""
-    _safe_print(f'\033[93m⚠ {message}\033[0m')
+    """打印警告信息（MC-CLI-A2：改道 stderr）"""
+    _safe_print(f'\033[93m⚠ {message}\033[0m', file=sys.stderr)
 
 
 def print_info(message):
-    """打印信息"""
+    """打印信息（stdout：提示性业务信息）"""
     _safe_print(f'\033[94mℹ {message}\033[0m')
 
 
@@ -1325,8 +1418,8 @@ if __name__ == '__main__':
         main()
     except KeyboardInterrupt:
         print_error('\n操作被用户中断')
-        sys.exit(1)
+        sys.exit(130)  # SIGINT 惯例：128 + 2（Ctrl-C），便于 shell/CI 识别中断
     except BrokenPipeError:
-        # 处理管道中断错误
+        # 处理管道中断错误（下游已关闭，如 `| head`）——非错误，静默退出
         sys.stderr.close()
-        sys.exit(0)
+        sys.exit(EXIT_OK)
