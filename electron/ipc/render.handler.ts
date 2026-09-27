@@ -396,15 +396,12 @@ export class RenderHandler {
               // error 为失败。其余取值视为输出格式异常。
               if (
                 result &&
-                (result.status === 'success' ||
-                  result.status === 'complete' ||
-                  result.status === 'warning')
+                (result.status === 'success' || result.status === 'complete' || result.status === 'warning')
               ) {
                 const warning = result.status === 'warning'
                 this.queueProgress({
                   status: warning ? 'log' : 'complete',
-                  message:
-                    result.message || (warning ? '命令执行完成（有降级/跳过）' : '命令执行完成'),
+                  message: result.message || (warning ? '命令执行完成（有降级/跳过）' : '命令执行完成'),
                 })
                 resolve(result.data as T)
                 return
