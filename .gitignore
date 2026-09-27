@@ -34,6 +34,12 @@ __pycache__/
 .env
 .env.local
 
+# Python virtual environment
+# 2026-09-27 补：此前 .venv/ 未被忽略，git ls-files --others 会列出
+# site-packages 下上千个 .py —— 任何一次 `git add -A` 都会把整个虚拟环境灌进仓库
+/.venv/
+venv/
+
 # Electron cache
 .electron-user-data/
 electron-builder-cache/
