@@ -39,7 +39,7 @@
       "",
       "配置渲染:",
       "  render project [ids]                      渲染配置",
-      "  render project [ids] --format device_sn   按SN渲染",
+      "  render project [ids] --naming device_sn   按SN渲染",
       "  render yaml [ids]                         渲染YAML",
       "  render dry-run [ids]                      预览(不写文件)",
       "  render undo [ids]                         撤销渲染",
@@ -76,8 +76,8 @@
       "  template list / save <源> <名> / delete <名>",
       "",
       "配置渲染:",
-      "  render project <ids> [--format device_sn]",
-      "  render yaml <ids> [--format device_sn]",
+      "  render project <ids> [--naming device_sn]",
+      "  render yaml <ids> [--naming device_sn]",
       "  render dry-run <ids> / undo <ids>",
       "",
       "标签:",
@@ -134,7 +134,7 @@
       "desc": "模板管理: template list|save <项目> <模板名>|delete <模板名>"
     },
     "render": {
-      "desc": "渲染: render project|yaml|dry-run|undo [ids] [--format device_sn]"
+      "desc": "渲染: render project|yaml|dry-run|undo [ids] [--naming device_sn]"
     },
     "label": {
       "desc": "标签: label print|md|pdf|delete [ids]"

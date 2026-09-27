@@ -391,8 +391,21 @@ export class RenderHandler {
             if (returnData) {
               // 从混合输出中提取最后一个合法 JSON 对象（支持跨行 + 进度消息混合）
               const result = extractLastJson(output)
-              if (result && (result.status === 'success' || result.status === 'complete')) {
-                this.queueProgress({ status: 'complete', message: result.message || '命令执行完成' })
+              // MC-CLI-A6 status 契约：success / warning 均按成功处理；
+              // progress 是流式非终态（已在上方 queueProgress(parsed) 呈现）；
+              // error 为失败。其余取值视为输出格式异常。
+              if (
+                result &&
+                (result.status === 'success' ||
+                  result.status === 'complete' ||
+                  result.status === 'warning')
+              ) {
+                const warning = result.status === 'warning'
+                this.queueProgress({
+                  status: warning ? 'log' : 'complete',
+                  message:
+                    result.message || (warning ? '命令执行完成（有降级/跳过）' : '命令执行完成'),
+                })
                 resolve(result.data as T)
                 return
               }

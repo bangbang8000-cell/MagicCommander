@@ -239,3 +239,81 @@ class TestGrantAuditAndSelfcheck:
         result = m.selfcheck()
         grant_check = next(c for c in result["checks"] if c["name"] == "grant")
         assert grant_check["ok"] is False
+
+
+# ---------------------------------------------------------------------------
+# AG-4 复核：权限表 ↔ 注册表一致性守卫
+# ---------------------------------------------------------------------------
+# 背景：MC 的 register_tool **从不显式传 permission**（依赖 get_tool_permission 兜底），
+# 因此「未登记」会被兜底为 CONFIRM ⇒ 只读/编排类工具被误伤为高危，semi 档下每次都要
+# 人工确认。本守卫把「实现 ⊂ 权限表」钉死，防再度静默漂移。
+#
+# 注：MC 与 AL 不同 —— MC 无 register 显式 permission 声明，故不校验「声明值一致性」，
+# 也不存在死条目白名单（MC 权限表当前无未注册条目）。
+
+
+class TestPermissionTableMatchesRegistry:
+    """权限表必须覆盖全部已注册工具（否则被兜底 CONFIRM 误伤）。"""
+
+    @staticmethod
+    def _registered_tool_permissions() -> dict:
+        from ai_hub.agent.tools import init_tools, get_tool_definitions
+
+        init_tools()
+        out = {}
+        for d in get_tool_definitions():
+            fn = d.get("function", d)
+            out[fn["name"]] = fn.get("permission")
+        return out
+
+    def test_no_unregistered_but_used(self):
+        """实现有、表中无 ⇒ 失败（会被兜底 CONFIRM 静默误伤）。"""
+        from ai_hub.agent.schemas import TOOL_PERMISSIONS
+
+        impl = self._registered_tool_permissions()
+        missing = sorted(set(impl) - set(TOOL_PERMISSIONS))
+        assert not missing, f"以下已注册工具未在权限表登记（将兜底 CONFIRM）: {missing}"
+
+    def test_no_dead_entries(self):
+        """表中有、实现无 ⇒ 失败（MC 当前无历史预留条目）。"""
+        from ai_hub.agent.schemas import TOOL_PERMISSIONS
+
+        impl = self._registered_tool_permissions()
+        dead = sorted(set(TOOL_PERMISSIONS) - set(impl))
+        assert not dead, f"权限表存在未注册死条目: {dead}"
+
+    def test_table_matches_effective_permission(self):
+        """表值与工具最终生效 permission 一致（MC 兜底路径下二者应恒等）。"""
+        from ai_hub.agent.schemas import TOOL_PERMISSIONS
+
+        impl = self._registered_tool_permissions()
+        mismatch = {
+            n: (impl[n], TOOL_PERMISSIONS[n].value)
+            for n in (set(impl) & set(TOOL_PERMISSIONS))
+            if impl[n] != TOOL_PERMISSIONS[n].value
+        }
+        assert not mismatch, f"权限表与生效值不一致（工具: 生效值, 表值）: {mismatch}"
+
+    def test_task_orchestration_permission(self):
+        """AG-4 裁定：task_list/query/wait=AUTO；task_submit/cancel=NOTIFY。"""
+        from ai_hub.agent.schemas import get_tool_permission
+
+        for t in ("task_list", "task_query", "task_wait"):
+            assert get_tool_permission(t).value == "auto", t
+        for t in ("task_submit", "task_cancel"):
+            assert get_tool_permission(t).value == "notify", t
+
+    def test_readonly_query_tools_not_confirm(self):
+        """只读/编排类不得被兜底成 CONFIRM（AG-4 直接修复项）。"""
+        from ai_hub.agent.schemas import get_tool_permission
+
+        for t in ("audit_query",):
+            assert get_tool_permission(t).value == "auto", t
+        assert get_tool_permission("agent_feedback").value == "notify"
+
+    def test_source_only_tools_are_confirm(self):
+        """源码态专用工具须显式 CONFIRM（不再依赖兜底）。"""
+        from ai_hub.agent.schemas import get_tool_permission
+
+        for t in ("run_cli", "list_dir", "read_source"):
+            assert get_tool_permission(t).value == "confirm", t

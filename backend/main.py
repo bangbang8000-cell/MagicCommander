@@ -33,6 +33,140 @@ EXIT_EXEC = 3      # 执行失败（业务处理失败、部分项目失败）
 # MC-CLI-A1：CLI 契约版本（与产品版本解耦，对齐 AL `CLI_VERSION`）
 MC_CLI_VERSION = '1.0.0'
 
+# ================================================================
+#  MC-CLI-A6：status 取值契约（P2-6 收拢）
+#  ================================================================
+#  背景：此前 `status` 取值半统一（6 种：success/error/warning +
+#  pre_processing 侧的 complete/pass/progress/fail），Electron
+#  `render.handler.ts:394` 只认 success/complete/error 三种 ——
+#  `warning` 会命中「输出格式不正确（非 JSON）」误判分支。
+#  这是一条「隐式契约、无文档、无守卫」的跨模块口径耦合（血训 §M4 类）。
+#
+#  契约（stdout JSON 顶层 `status` 白名单，仅这 5 种）：
+#    success  业务成功（命令正常完成，有/无 data 均可）
+#    error    业务失败（配合退出码 3；参数错误用退出码 2）
+#    warning  成功但有降级/跳过（如权限跳过目录）；**Electron 应按成功处理**
+#    progress 长任务进度事件（流式输出，非终态）
+#    complete 渲染流水线终态（pre_processing.py `_emit_progress` 之后的完成事件，
+#             历史命名；**Electron 按成功处理**；不再新增此值，新代码用 success）
+#  `pass`/`fail`/`warn` 仅出现在 `results[]` **嵌套项**内（校验项状态），
+#  不在 stdout 顶层契约内，勿混用。
+STATUS_SUCCESS = 'success'
+STATUS_ERROR = 'error'
+STATUS_WARNING = 'warning'
+STATUS_PROGRESS = 'progress'
+STATUS_COMPLETE = 'complete'  # 历史别名（渲染终态），视为成功
+STATUS_VALUES = (STATUS_SUCCESS, STATUS_ERROR, STATUS_WARNING, STATUS_PROGRESS, STATUS_COMPLETE)
+TOP_LEVEL_STATUS_VALUES = STATUS_VALUES
+
+# ================================================================
+#  MC-CLI-A7：审计日志（P2-7，对齐 AL cli-audit.jsonl）
+# ================================================================
+#  背景：AL 每次 CLI/GUI 执行写 `cli-audit.jsonl`（含脱敏参数），MC **无任何审计**，
+#  双端能力不对等。MC 的 `template update <content>` / `file write-file <content>`
+#  属**内容写入**，追溯价值高（尤其配合 Agent Connect 的 `--grant full` 外部授权）。
+#
+#  路径优先级：`MC_AUDIT_PATH`（测试注入）> `$MC_USER_DATA/audit/mc-audit.jsonl`
+#  （Electron spawn 注入）> `~/.magiccommander/audit/mc-audit.jsonl`。
+#  脱敏：参数键名含 password/secret/token/api_key/apikey/content 时值替换为 `***`。
+#  失败留痕也写入（ok=False + error）；**审计写入失败不阻塞主流程**。
+_SENSITIVE_KEYS = ('password', 'secret', 'token', 'api_key', 'apikey', 'content')
+
+# 审计开关：`MC_AUDIT_DISABLED=1` 可关闭（打包态默认开启）
+_AUDIT_ENABLED = os.environ.get('MC_AUDIT_DISABLED', '') not in ('1', 'true', 'yes')
+
+
+def _audit_path() -> str:
+    """审计日志路径（见上注释的优先级）。"""
+    env_path = os.environ.get('MC_AUDIT_PATH')
+    if env_path:
+        return env_path
+    user_data = os.environ.get('MC_USER_DATA', '')
+    if user_data:
+        return os.path.join(user_data, 'audit', 'mc-audit.jsonl')
+    return os.path.join(os.path.expanduser('~'), '.magiccommander', 'audit', 'mc-audit.jsonl')
+
+
+def _redact_params(params):
+    """脱敏：含敏感键名的值替换为 ***（审计用）。"""
+    if not isinstance(params, dict):
+        return params
+    redacted = {}
+    for k, v in params.items():
+        if any(s in str(k).lower() for s in _SENSITIVE_KEYS):
+            redacted[k] = '***'
+        else:
+            redacted[k] = v
+    return redacted
+
+
+def _redact_argv(argv):
+    """脱敏 argv：`--api-key=sk-xxx` / `--content '...'` 等落盘前替换。"""
+    import re as _re
+    if not argv:
+        return list(argv or [])
+    result = []
+    i = 0
+    while i < len(argv):
+        arg = str(argv[i])
+        # --key=value 内联形式
+        m = _re.match(r'(?i)^(--[a-z0-9_-]*(?:key|token|secret|password|content)[a-z0-9_-]*)=(.*)$', arg)
+        if m:
+            result.append(f'{m.group(1)}=***')
+            i += 1
+            continue
+        # --key value 分离形式（下一项为值）
+        if _re.match(r'(?i)^--[a-z0-9_-]*(?:key|token|secret|password|content)[a-z0-9_-]*$', arg):
+            result.append(arg)
+            if i + 1 < len(argv):
+                result.append('***')
+                i += 2
+                continue
+            i += 1
+            continue
+        # --content 的内联 JSON
+        if arg.startswith('{') and any(s in arg.lower() for s in _SENSITIVE_KEYS):
+            result.append('***')
+            i += 1
+            continue
+        result.append(arg)
+        i += 1
+    return result
+
+
+def audit_log(command: str, params, argv, ok: bool, error: str | None = None,
+              exit_code: int | None = None) -> None:
+    """写审计日志（失败不阻塞执行）。MC-CLI-A7。"""
+    if not _AUDIT_ENABLED:
+        return
+    try:
+        import datetime
+        path = _audit_path()
+        d = os.path.dirname(path)
+        if d:
+            os.makedirs(d, exist_ok=True)
+        record = {
+            'ts': datetime.datetime.now().isoformat(),
+            'command': command,
+            'argv': _redact_argv(argv),
+            'params': _redact_params(params),
+            'ok': bool(ok),
+        }
+        if exit_code is not None:
+            record['exitCode'] = exit_code
+        if error:
+            record['error'] = error
+        with open(path, 'a', encoding='utf-8') as f:
+            f.write(json.dumps(record, ensure_ascii=False) + '\n')
+    except Exception:
+        pass  # 审计失败不阻塞主流程
+
+
+def _audit_params_from_args(args) -> dict:
+    """从 argparse namespace 抽可审计参数（排除内部 _ 前缀键）。"""
+    raw = vars(args)
+    return {k: v for k, v in raw.items() if not k.startswith('_')}
+
 
 def _product_version() -> str:
     """读取产品版本（多路径回退，覆盖开发态与打包态）。
@@ -196,7 +330,7 @@ def _build_epilog() -> str:
           mc project create "test-project"
           mc render project 1
           mc render yaml 1,2,3
-          mc render project 1 --format device_sn
+          mc render project 1 --naming device_sn
           mc label print 1
           mc file delete output 1
 
@@ -286,12 +420,12 @@ def main():
     # 渲染项目配置
     render_project_parser = render_subparsers.add_parser('project', help='渲染项目配置')
     render_project_parser.add_argument('ids', help='项目ID (使用,分隔多个ID)')
-    render_project_parser.add_argument('--format', choices=['device_name', 'device_sn'], default='device_name', help='输出格式')
+    render_project_parser.add_argument('--naming', choices=['device_name', 'device_sn'], default='device_name', help='设备命名标识（device_name=device_name / device_sn=device_sn）')
 
     # 渲染YAML文件
     render_yaml_parser = render_subparsers.add_parser('yaml', help='渲染YAML文件')
     render_yaml_parser.add_argument('ids', help='项目ID (使用,分隔多个ID)')
-    render_yaml_parser.add_argument('--format', choices=['device_name', 'device_sn'], default='device_name', help='输出格式')
+    render_yaml_parser.add_argument('--naming', choices=['device_name', 'device_sn'], default='device_name', help='设备命名标识（device_name=device_name / device_sn=device_sn）')
 
     # 渲染撤销
     render_undo_parser = render_subparsers.add_parser('undo', help='撤销渲染 (恢复最近一次备份)')
@@ -300,7 +434,7 @@ def main():
     # 渲染预览
     render_dryrun_parser = render_subparsers.add_parser('dry-run', help='渲染预览 (不写文件，仅返回输出内容)')
     render_dryrun_parser.add_argument('ids', help='项目ID (使用,分隔多个ID)')
-    render_dryrun_parser.add_argument('--format', choices=['device_name', 'device_sn'], default='device_name', help='输出格式')
+    render_dryrun_parser.add_argument('--naming', choices=['device_name', 'device_sn'], default='device_name', help='设备命名标识（device_name=device_name / device_sn=device_sn）')
 
     # 校验命令
     validate_parser = subparsers.add_parser('validate', help='校验操作')
@@ -353,7 +487,7 @@ def main():
     diff_parser.add_argument('project', help='项目名称')
     diff_parser.add_argument('device', help='设备标识')
     diff_parser.add_argument('content', help='dry-run 渲染内容')
-    diff_parser.add_argument('--format', choices=['device_name', 'device_sn'], default='device_name', help='输出格式')
+    diff_parser.add_argument('--naming', choices=['device_name', 'device_sn'], default='device_name', help='设备命名标识（device_name=device_name / device_sn=device_sn）')
 
     # 分析项目
     analyze_parser = subparsers.add_parser('analyze', help='分析项目模板和参数表')
@@ -466,6 +600,15 @@ def main():
         parser.print_help()
         sys.exit(EXIT_OK)
 
+    # MC-CLI-A7：审计留痕（失败/异常均写入；写入本身不阻塞主流程）
+    _audit_argv = sys.argv[1:]
+    _audit_cmd = args.command
+    if getattr(args, 'subcommand', None):
+        _audit_cmd = f'{args.command}:{args.subcommand}'
+    if getattr(args, 'sub2', None):
+        _audit_cmd = f'{_audit_cmd}:{args.sub2}'
+    _audit_params = _audit_params_from_args(args)
+
     try:
         processor = PreProcessing()
         processor.read_MC_para('MC_Para.xlsx')
@@ -499,12 +642,24 @@ def main():
             handle_share_command(args)
         else:
             print_error(f'未知命令: {args.command}')
+            audit_log(_audit_cmd, _audit_params, _audit_argv, ok=False,
+                      error=f'未知命令: {args.command}', exit_code=EXIT_USAGE)
             sys.exit(EXIT_USAGE)
 
+        audit_log(_audit_cmd, _audit_params, _audit_argv, ok=True, exit_code=EXIT_OK)
+
+    except SystemExit as e:
+        # handler 内显式 sys.exit(code)（如参数错误/业务失败）——审计记实际码
+        code = e.code if isinstance(e.code, int) else EXIT_INTERNAL
+        audit_log(_audit_cmd, _audit_params, _audit_argv, ok=(code == EXIT_OK),
+                  exit_code=code)
+        raise
     except Exception as e:
         print_error(str(e))
         if args.verbose:
             logger.error("命令执行异常", exc_info=True)
+        audit_log(_audit_cmd, _audit_params, _audit_argv, ok=False,
+                  error=str(e), exit_code=EXIT_INTERNAL)
         sys.exit(EXIT_INTERNAL)
 
 
@@ -968,13 +1123,13 @@ def handle_render_command(processor, args):
     
     if args.subcommand == 'project':
         # 渲染项目配置
-        format_type = 'device_sn' if args.format == 'device_sn' else 'device_name'
+        format_type = 'device_sn' if args.naming == 'device_sn' else 'device_name'
         processor.execute_render(target_str, format_type)
         print_success(f'项目配置渲染完成')
         
     elif args.subcommand == 'yaml':
         # 渲染YAML文件（device_sn 时输出到 yaml-sn 目录；不渲染配置文本）
-        processor.execute_yaml(target_str, args.format)
+        processor.execute_yaml(target_str, args.naming)
         print_success(f'YAML文件渲染完成')
 
     elif args.subcommand == 'undo':
@@ -989,7 +1144,7 @@ def handle_render_command(processor, args):
 
     elif args.subcommand == 'dry-run':
         # 渲染预览：不写文件，返回输出内容
-        format_type = 'device_sn' if args.format == 'device_sn' else 'device_name'
+        format_type = 'device_sn' if args.naming == 'device_sn' else 'device_name'
         processor.execute_dry_run(target_str, format_type)
 
 
@@ -1117,7 +1272,7 @@ def handle_diff_command(processor, args):
     import difflib
     project_dir = os.path.join(WORKSPACE_DIR, args.project)
 
-    if args.format == 'device_sn':
+    if args.naming == 'device_sn':
         existing_path = os.path.join(project_dir, 'output-sn', f'conf_{args.device}.cfg')
     else:
         existing_path = os.path.join(project_dir, 'output', f'{args.device}.txt')

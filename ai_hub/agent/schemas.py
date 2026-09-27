@@ -38,6 +38,30 @@ TOOL_PERMISSIONS: dict[str, ToolPermission] = {
     "list_knowledge": ToolPermission.AUTO,
     "search_knowledge": ToolPermission.AUTO,
     "add_knowledge": ToolPermission.NOTIFY,
+    # ------------------------------------------------------------------
+    # 5.4.x 权限表补登（AG-4 复核）：此前下列工具**未登记**，而 MC 的
+    # register_tool 从不显式传 permission（`grep -c "permission=" tools.py` = 0），
+    # 一律走 get_tool_permission() 兜底 CONFIRM ⇒ 只读/编排类工具被误伤为高危，
+    # semi 档下每次都要人工确认。此处按语义显式登记，消除误伤。
+    # ⚠️ 注意：模型端（程序内 AI 助手）的 register_tool 走本表；MCP 侧经
+    # capabilities.mcp_permission_meta() 亦读同一份 permission 值。
+    # ------------------------------------------------------------------
+    # 任务编排原语（只读轮询 AUTO / 提交与取消属编排动作 NOTIFY）
+    "task_list": ToolPermission.AUTO,
+    "task_query": ToolPermission.AUTO,
+    "task_wait": ToolPermission.AUTO,
+    "task_submit": ToolPermission.NOTIFY,
+    "task_cancel": ToolPermission.NOTIFY,
+    # 审计查询（只读）
+    "audit_query": ToolPermission.AUTO,
+    # 反馈写入（追加式，非破坏）
+    "agent_feedback": ToolPermission.NOTIFY,
+    # 源码态专用工具（编译态经 is_source_only_tool 屏蔽）：显式登记为 CONFIRM，
+    # 不再依赖兜底，语义更明确（与 AL 的 register 显式 confirm 对齐）
+    # 注：read_file 已在上方登记为 AUTO（MC 的 read_file 两模式可用，非源码态专用）
+    "run_cli": ToolPermission.CONFIRM,
+    "list_dir": ToolPermission.CONFIRM,
+    "read_source": ToolPermission.CONFIRM,
 }
 
 TOOL_NAME_ALIASES: dict[str, str] = {

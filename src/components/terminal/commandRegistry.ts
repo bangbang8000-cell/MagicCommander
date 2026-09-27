@@ -404,7 +404,7 @@ export const commands: { [name: string]: CommandEntry } = {
 
   // ── 渲染 ──
   render: {
-    desc: () => '渲染配置: render project|yaml|dry-run|undo [ids] [--format device_sn]',
+    desc: () => '渲染配置: render project|yaml|dry-run|undo [ids] [--naming device_sn]',
     fn: async (args, ctx) => {
       if (!window.electron?.render) {
         ctx.addLog('error', '需要 Electron 环境')

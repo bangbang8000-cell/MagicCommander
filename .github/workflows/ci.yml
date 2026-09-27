@@ -52,6 +52,10 @@ jobs:
       # README/CHANGELOG 中的设备数/模板数/Agent 工具数漂移即失败
       - name: Doc numbers vs code
         run: python scripts/check_doc_numbers.py
+      # V5.4.x-CLI-A5: CLI 契约守卫 C1~C6 —— ①退出码常量取值 ②禁裸 sys.exit(数字)（130 白名单）
+      # ③--version 禁硬编码 ④print_error/warning 须走 stderr ⑤epilog 无残留命令 ⑥docs/cli.md ↔ 命令树对账
+      - name: CLI contract guard
+        run: python scripts/check_cli_contract.py
       # 4.9.0（49-d）：AIDC 示例自动化验收 —— 打开/渲染/导出/回灌幂等/golden 确定性
       - run: python scripts/validate_samples.py
         continue-on-error: true
