@@ -39,11 +39,7 @@ import {
 import { readWorkspaceIndex, refreshWorkspaceIndex } from '../services/workspace-index.service'
 import { aiHubService, type AIHubStatus } from '../services/aiHub.service'
 import { diagnosticsService } from '../services/diagnostics.service'
-import {
-  syncContent,
-  rollbackContent,
-  loadLocalState,
-} from '../services/content-sync.service'
+import { syncContent, rollbackContent, loadLocalState } from '../services/content-sync.service'
 import { healthService } from '../services/health.service'
 import { telemetryService } from '../services/telemetry.service'
 import {
@@ -2071,21 +2067,18 @@ export function setupIpcHandlers(window: BrowserWindow): void {
   }
   const contentStateFile = (): string => path.join(app.getPath('userData'), 'content-state.json')
 
-  ipcMain.handle(
-    'content:sync',
-    async (e, opts: { baseUrl: string }): Promise<unknown> => {
-      if (!isTrustedSender(e)) throw new Error('无权执行该操作')
-      const baseUrl = opts?.baseUrl?.replace(/\/$/, '')
-      if (!baseUrl) throw new Error('缺少平台地址 baseUrl')
-      const contentDir = resolveContentDirs()[0]
-      return await syncContent({
-        manifestUrl: `${baseUrl}/content/manifest`,
-        baseUrl,
-        contentDir,
-        stateFile: contentStateFile(),
-      })
-    },
-  )
+  ipcMain.handle('content:sync', async (e, opts: { baseUrl: string }): Promise<unknown> => {
+    if (!isTrustedSender(e)) throw new Error('无权执行该操作')
+    const baseUrl = opts?.baseUrl?.replace(/\/$/, '')
+    if (!baseUrl) throw new Error('缺少平台地址 baseUrl')
+    const contentDir = resolveContentDirs()[0]
+    return await syncContent({
+      manifestUrl: `${baseUrl}/content/manifest`,
+      baseUrl,
+      contentDir,
+      stateFile: contentStateFile(),
+    })
+  })
   ipcMain.handle('content:status', async (e): Promise<unknown> => {
     if (!isTrustedSender(e)) throw new Error('无权执行该操作')
     const state = loadLocalState(contentStateFile())

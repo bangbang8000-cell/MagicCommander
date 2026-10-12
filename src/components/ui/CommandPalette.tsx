@@ -52,14 +52,10 @@ export function buildBatchRenderCommands(ids: string[]): CommandItem[] {
   const idsArg = ids.join(',')
   const count = ids.length
   return [
-    createBatchCommand(
-      'batchRender',
-      `批量渲染 ${count} 个项目`,
-      '批量操作',
-      `render project ${idsArg}`,
-      undefined,
-      { labelKey: 'batchRender', labelParams: { count } },
-    ),
+    createBatchCommand('batchRender', `批量渲染 ${count} 个项目`, '批量操作', `render project ${idsArg}`, undefined, {
+      labelKey: 'batchRender',
+      labelParams: { count },
+    }),
     createBatchCommand(
       'batchRenderYaml',
       `批量渲染 YAML ${count} 个项目`,

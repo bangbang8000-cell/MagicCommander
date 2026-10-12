@@ -101,7 +101,9 @@ export function ValidationPanel() {
     try {
       const r = await window.electron.project.exportReviewPackage(activeProjectName)
       const data = r.data
-      showSuccess(data ? t('validation.reviewPackageExported', { path: data.path }) : t('validation.reviewPackageExportedNoPath'))
+      showSuccess(
+        data ? t('validation.reviewPackageExported', { path: data.path }) : t('validation.reviewPackageExportedNoPath'),
+      )
     } catch (err) {
       showError(err instanceof Error ? err.message : String(err))
     }
@@ -112,7 +114,9 @@ export function ValidationPanel() {
     try {
       const r = await window.electron.project.exportReviewPdf(activeProjectName)
       const data = r.data
-      showSuccess(data ? t('validation.reviewPdfExported', { path: data.path }) : t('validation.reviewPdfExportedNoPath'))
+      showSuccess(
+        data ? t('validation.reviewPdfExported', { path: data.path }) : t('validation.reviewPdfExportedNoPath'),
+      )
     } catch (err) {
       showError(err instanceof Error ? err.message : String(err))
     }

@@ -391,7 +391,11 @@ export function SettingsPanel() {
       setAcBusy(true)
       setAcError(null)
       try {
-        const res = await window.electron.aihub.agentConnectConfig({ enable: acStatus?.enabled, agent_mode: acStatus?.agent_mode, grant })
+        const res = await window.electron.aihub.agentConnectConfig({
+          enable: acStatus?.enabled,
+          agent_mode: acStatus?.agent_mode,
+          grant,
+        })
         if (res.data) setAcStatus(res.data as never)
       } catch (e) {
         setAcError(e instanceof Error ? e.message : String(e))
@@ -2205,13 +2209,18 @@ export function SettingsPanel() {
                     value={acStatus?.grant ?? 'semi'}
                     onChange={(e) => void handleAcGrantChange(e.target.value)}
                     disabled={acBusy}
-                    title={t('common:settings.ai.agentConnectGrantHint') || '外部 Agent 免确认授权档位：readonly 只读 / semi 部分确认 / full 全免确认'}
+                    title={
+                      t('common:settings.ai.agentConnectGrantHint') ||
+                      '外部 Agent 免确认授权档位：readonly 只读 / semi 部分确认 / full 全免确认'
+                    }
                     className={clsx(
                       'w-36 px-2 py-1 rounded text-xs border',
                       isDark ? 'border-gray-600 bg-gray-700 text-gray-200' : 'border-gray-300 bg-white text-gray-700',
                     )}
                   >
-                    <option value="readonly">{t('common:settings.ai.agentConnectGrantReadonly') || '只读（readonly）'}</option>
+                    <option value="readonly">
+                      {t('common:settings.ai.agentConnectGrantReadonly') || '只读（readonly）'}
+                    </option>
                     <option value="semi">{t('common:settings.ai.agentConnectGrantSemi') || '半授权（semi）'}</option>
                     <option value="full">{t('common:settings.ai.agentConnectGrantFull') || '全授权（full）'}</option>
                   </select>

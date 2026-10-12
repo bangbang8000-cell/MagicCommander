@@ -33,20 +33,29 @@ export function ToastContainer() {
     if (timer) clearTimeout(timer)
   }, [])
 
-  const resumeToast = useCallback((id: number, duration: number) => {
-    const timer = timersRef.current.get(id)
-    if (timer) clearTimeout(timer)
-    if (duration > 0) {
-      timersRef.current.set(id, setTimeout(() => removeToast(id), duration))
-    }
-  }, [removeToast])
+  const resumeToast = useCallback(
+    (id: number, duration: number) => {
+      const timer = timersRef.current.get(id)
+      if (timer) clearTimeout(timer)
+      if (duration > 0) {
+        timersRef.current.set(
+          id,
+          setTimeout(() => removeToast(id), duration),
+        )
+      }
+    },
+    [removeToast],
+  )
 
   useEffect(() => {
     const show = (type: ToastType, message: string, duration = 4000) => {
       const id = ++toastId
       setToasts((prev) => [...prev, { id, type, message, duration }])
       if (duration > 0) {
-        timersRef.current.set(id, setTimeout(() => removeToast(id), duration))
+        timersRef.current.set(
+          id,
+          setTimeout(() => removeToast(id), duration),
+        )
       }
     }
     const remove = (id: number) => removeToast(id)

@@ -54,11 +54,7 @@ const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms))
  * @returns 解析即成功；重试耗尽抛最后一次错误。
  */
 export async function downloadWithResilience(
-  attempt: (
-    ctx: DownloadAttemptContext,
-    signal: AbortSignal,
-    onProgress: (bytes: number) => void,
-  ) => Promise<void>,
+  attempt: (ctx: DownloadAttemptContext, signal: AbortSignal, onProgress: (bytes: number) => void) => Promise<void>,
   options: ResilientDownloadOptions = {},
 ): Promise<void> {
   const {
@@ -80,11 +76,14 @@ export async function downloadWithResilience(
     // 停滞熔断监视：progress 无增长超时 → abort 本次
     let stallTimer: ReturnType<typeof setTimeout> | null = null
     if (stallTimeoutMs > 0) {
-      stallTimer = setInterval(() => {
-        if (Date.now() - progressedAt >= stallTimeoutMs) {
-          controller.abort(new StallAbortError())
-        }
-      }, Math.max(250, Math.floor(stallTimeoutMs / 4)))
+      stallTimer = setInterval(
+        () => {
+          if (Date.now() - progressedAt >= stallTimeoutMs) {
+            controller.abort(new StallAbortError())
+          }
+        },
+        Math.max(250, Math.floor(stallTimeoutMs / 4)),
+      )
     }
 
     const onProgress = (bytes: number) => {

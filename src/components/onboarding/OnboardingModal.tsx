@@ -88,10 +88,7 @@ export function OnboardingModal() {
             onClick={() => setStep(i)}
             aria-label={stepTitle(i)}
             aria-current={step === i ? 'step' : undefined}
-            className={clsx(
-              'h-1.5 rounded-full transition-all',
-              step === i ? 'w-6 bg-primary' : 'w-3 bg-edge-strong',
-            )}
+            className={clsx('h-1.5 rounded-full transition-all', step === i ? 'w-6 bg-primary' : 'w-3 bg-edge-strong')}
           />
         ))}
       </div>

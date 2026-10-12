@@ -88,16 +88,14 @@ function toRelative(p: string): string {
  * - 对每项：本地 version 相同 → 跳过；否则下载（含 Range 续传）→ sha512 校验 → 原子替换
  * - 校验失败 → 该项记入 failed，保留旧文件（可回退）
  */
-export async function syncContent(
-  opts: {
-    manifestUrl: string
-    baseUrl: string
-    contentDir: string
-    stateFile: string
-    httpGet?: HttpGet
-    signal?: AbortSignal
-  },
-): Promise<SyncSummary> {
+export async function syncContent(opts: {
+  manifestUrl: string
+  baseUrl: string
+  contentDir: string
+  stateFile: string
+  httpGet?: HttpGet
+  signal?: AbortSignal
+}): Promise<SyncSummary> {
   const { manifestUrl, baseUrl, contentDir, stateFile, httpGet = defaultHttpGet, signal } = opts
   const manifestRes = await httpGet(manifestUrl, signal)
   if (manifestRes.status !== 200) throw new Error(`manifest 拉取失败: HTTP ${manifestRes.status}`)
