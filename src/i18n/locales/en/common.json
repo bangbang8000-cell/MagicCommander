@@ -613,5 +613,18 @@
     "batchErrors": "Errors",
     "batchEditHint": "Apply the source project's parameter sheets (Excel) to the selected projects",
     "batchStop": "Stop"
+  },
+  "onboarding": {
+    "title": "Welcome to MagicCommander",
+    "step1Title": "Create a Project",
+    "step1Desc": "Create a project from the '+' button on the left, or start quickly from a sample template",
+    "step2Title": "Import Params & Render",
+    "step2Desc": "Import Excel parameters, choose a template, and batch-generate device configs",
+    "step3Title": "Output & Delivery",
+    "step3Desc": "Review output and YAML artifacts, export configs and labels",
+    "start": "Get Started",
+    "skip": "Skip",
+    "prev": "Back",
+    "next": "Next"
   }
 }

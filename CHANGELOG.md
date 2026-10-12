@@ -2,6 +2,26 @@
 
 本文件为发布说明的单一事实来源（`npm run sync-version -- --release-notes` 自动抽取当前版本段）。
 
+## [5.4.11] - 2026-10-12
+
+> **体验深化版（与 AL 5.4.11 同号同步）：首启引导 + a11y 强化 + 反馈机制统一。**
+> 决策基线：MC-AL 5.4.X 系列向导 D8（双端同号同步）。
+
+### 新增
+
+- **首次启动引导（F54-11-3，对齐 AL OnboardingModal）**：三步引导（创建项目 → 导入参数与渲染 → 输出交付），看过一次后不再弹出；门控逻辑抽为纯函数 `onboardingGate.ts`（localStorage 安全封装，异常时静默视为已引导）。
+- **引导门控单测**（`onboardingGate.test.ts`，5 用例）：未引导/标记持久/幂等/localStorage 不可用两类兜底。
+
+### 改进
+
+- **Toast 反馈机制统一（F54-11-5，对齐 AL）**：hover 暂停 / 移开恢复计时（文案未读完不被吞），计时器集中管理并在卸载时清理。
+- **a11y 强化（F54-11-2）**：Toast 容器声明 `role="status"` + `aria-live="polite"` 非打断性提示区域；结合既有 focus-ring token（`--focus-ring-width` / `--color-focus-ring`，高对比 3px）形成键盘可达基线。
+- **i18n 补齐**：`onboarding.*` 键 6 语言全量（zh-CN/en/ja/ko/zh-TW/fr）。
+
+### 文档
+
+- 双端 5.4.11 版本说明详见系列 PRD（docs/MC-AL_5.4.X系列版本PRD_v1.0_2026-10-12.md）。
+
 ## [5.4.10] - 2026-10-12
 
 > **智能化与 Agent 版（与 AL 5.4.10 同号同步）：Agent Connect 授权档位 UI 闭环 + 配置持久化。**

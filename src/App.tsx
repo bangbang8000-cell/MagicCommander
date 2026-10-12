@@ -25,6 +25,7 @@ import { EditorArea } from './components/editor/EditorArea'
 import { PanelArea } from './components/panel/PanelArea'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { ToastContainer } from './components/ui/Toast'
+import { OnboardingModal } from './components/onboarding/OnboardingModal'
 import { Cheatsheet } from './components/ui/Cheatsheet'
 import { CommandPalette, type CommandItem } from './components/ui/CommandPalette'
 import {
@@ -606,6 +607,7 @@ export default function App() {
         </div>
         <StatusBar />
         <ToastContainer />
+        <OnboardingModal />
         <Cheatsheet open={cheatsheetOpen} onClose={() => setCheatsheetOpen(false)} />
         <CommandPalette
           open={commandPaletteOpen}

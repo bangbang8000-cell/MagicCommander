@@ -395,5 +395,18 @@
     "batchErrors": "Erreurs",
     "batchEditHint": "Appliquer les feuilles de paramètres (Excel) du projet source aux projets sélectionnés",
     "batchStop": "Arrêter"
+  },
+  "onboarding": {
+    "title": "Bienvenue dans MagicCommander",
+    "step1Title": "Créer un projet",
+    "step1Desc": "Créez un projet via le bouton « + » à gauche, ou démarrez rapidement depuis un modèle d'exemple",
+    "step2Title": "Importer les paramètres et générer",
+    "step2Desc": "Importez les paramètres Excel, choisissez un modèle et générez les configurations par lots",
+    "step3Title": "Sortie et livraison",
+    "step3Desc": "Consultez les sorties et les artefacts YAML, exportez configurations et étiquettes",
+    "start": "Commencer",
+    "skip": "Passer",
+    "prev": "Précédent",
+    "next": "Suivant"
   }
 }

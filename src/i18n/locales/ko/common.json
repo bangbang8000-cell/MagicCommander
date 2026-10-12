@@ -438,5 +438,18 @@
     "batchErrors": "오류",
     "batchEditHint": "소스 프로젝트의 파라미터 시트(Excel)를 선택한 프로젝트에 일괄 적용",
     "batchStop": "중지"
+  },
+  "onboarding": {
+    "title": "MagicCommander에 오신 것을 환영합니다",
+    "step1Title": "프로젝트 생성",
+    "step1Desc": "왼쪽의 '+' 버튼으로 새 프로젝트를 만들거나 샘플 템플릿으로 빠르게 시작하세요",
+    "step2Title": "파라미터 가져오기 및 렌더링",
+    "step2Desc": "Excel 파라미터를 가져오고 템플릿을 선택해 장비 구성을 일괄 생성합니다",
+    "step3Title": "출력 및 전달",
+    "step3Desc": "출력 및 YAML 산출물을 확인하고 구성과 라벨을 내보냅니다",
+    "start": "시작하기",
+    "skip": "건너뛰기",
+    "prev": "이전",
+    "next": "다음"
   }
 }

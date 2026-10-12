@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, type ReactNode } from 'react'
+import { useState, useCallback, useEffect, useRef, type ReactNode } from 'react'
 import { X, CheckCircle, AlertCircle, AlertTriangle, Info } from 'lucide-react'
 import clsx from 'clsx'
 
@@ -16,17 +16,37 @@ let toastId = 0
 /** 全局 Toast 容器（挂载到 App 根） */
 export function ToastContainer() {
   const [toasts, setToasts] = useState<ToastItem[]>([])
+  const timersRef = useRef<Map<number, ReturnType<typeof setTimeout>>>(new Map())
 
   const removeToast = useCallback((id: number) => {
     setToasts((prev) => prev.filter((t) => t.id !== id))
+    const timer = timersRef.current.get(id)
+    if (timer) {
+      clearTimeout(timer)
+      timersRef.current.delete(id)
+    }
   }, [])
+
+  // 5.4.11-F54-11-2/5：hover 暂停 / 移开恢复（对齐 AL ToastContainer，避免文案未读完被吞）
+  const pauseToast = useCallback((id: number) => {
+    const timer = timersRef.current.get(id)
+    if (timer) clearTimeout(timer)
+  }, [])
+
+  const resumeToast = useCallback((id: number, duration: number) => {
+    const timer = timersRef.current.get(id)
+    if (timer) clearTimeout(timer)
+    if (duration > 0) {
+      timersRef.current.set(id, setTimeout(() => removeToast(id), duration))
+    }
+  }, [removeToast])
 
   useEffect(() => {
     const show = (type: ToastType, message: string, duration = 4000) => {
       const id = ++toastId
       setToasts((prev) => [...prev, { id, type, message, duration }])
       if (duration > 0) {
-        setTimeout(() => removeToast(id), duration)
+        timersRef.current.set(id, setTimeout(() => removeToast(id), duration))
       }
     }
     const remove = (id: number) => removeToast(id)
@@ -34,15 +54,29 @@ export function ToastContainer() {
     ;(window as Window & { __removeToast?: (id: number) => void }).__removeToast = remove
 
     return () => {
+      timersRef.current.forEach((t) => clearTimeout(t))
+      timersRef.current.clear()
       delete (window as Window & { __showToast?: unknown }).__showToast
       delete (window as Window & { __removeToast?: unknown }).__removeToast
     }
   }, [removeToast])
 
   return (
-    <div className="fixed bottom-4 end-4 z-[100] flex flex-col gap-2 pointer-events-none">
+    <div
+      // 5.4.11-F54-11-2：Toast 容器声明 live 区域，屏幕阅读器可感知非打断性提示
+      role="status"
+      aria-live="polite"
+      className="fixed bottom-4 end-4 z-[100] flex flex-col gap-2 pointer-events-none"
+    >
       {toasts.map((toast) => (
-        <Toast key={toast.id} toast={toast} onClose={() => removeToast(toast.id)} />
+        <div
+          key={toast.id}
+          className="pointer-events-auto"
+          onMouseEnter={() => pauseToast(toast.id)}
+          onMouseLeave={() => resumeToast(toast.id, toast.duration)}
+        >
+          <Toast toast={toast} onClose={() => removeToast(toast.id)} />
+        </div>
       ))}
     </div>
   )

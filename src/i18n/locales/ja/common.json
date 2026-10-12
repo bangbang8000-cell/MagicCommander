@@ -438,5 +438,18 @@
     "batchErrors": "エラー",
     "batchEditHint": "ソースプロジェクトのパラメータシート（Excel）を選択プロジェクトへ一括適用",
     "batchStop": "停止"
+  },
+  "onboarding": {
+    "title": "MagicCommander へようこそ",
+    "step1Title": "プロジェクト作成",
+    "step1Desc": "左側の「+」からプロジェクトを新規作成、またはサンプルテンプレートですぐに開始",
+    "step2Title": "パラメータ取込とレンダリング",
+    "step2Desc": "Excel パラメータを取込み、テンプレートを選んでデバイス設定を一括生成",
+    "step3Title": "出力と納品",
+    "step3Desc": "出力と YAML 成果物を確認し、設定とラベルをエクスポート",
+    "start": "利用開始",
+    "skip": "スキップ",
+    "prev": "戻る",
+    "next": "次へ"
   }
 }
