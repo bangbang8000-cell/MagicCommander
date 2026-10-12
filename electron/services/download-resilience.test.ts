@@ -10,8 +10,6 @@ import {
   DEFAULT_MAX_ATTEMPTS,
 } from './download-resilience'
 
-const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms))
-
 describe('downloadWithResilience', () => {
   beforeEach(() => vi.useRealTimers())
   afterEach(() => vi.useRealTimers())
