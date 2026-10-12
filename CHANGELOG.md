@@ -2,6 +2,25 @@
 
 本文件为发布说明的单一事实来源（`npm run sync-version -- --release-notes` 自动抽取当前版本段）。
 
+## [5.4.13] - 2026-10-12
+
+> **测试体系与质量门禁版（与 AL 5.4.13 同号同步）：本地全量重跑硬前置。**
+> 决策基线：MC-AL 5.4.X 系列向导 D8（双端同号同步）。
+
+### 新增
+
+- **本地全量检查脚本（F54-13-2）**：`scripts/run_full_checks_local.py` —— 将 CI 硬前置门禁一键本地化（13 步：typecheck/lint/单测/build/模板/设备库/文档数字/CLI 契约/示例/golden/性能/后端 pytest/ai_hub pytest）。CI 中受 GitHub 环境限制而 `continue-on-error` 的步骤（模板/示例/golden）在本地为**硬门禁**——发布前必须全绿。
+  - `--dry-run` 打印执行计划；`--step <子串>` 只跑单步；任一失败退出码 1。
+- **执行计划契约测试**（`backend/tests/test_run_full_checks_local_5413.py`，4 用例）：核心门禁齐全、env-limited 步骤本地硬门禁、计划名唯一、命令为字符串列表。
+
+### 说明
+
+- 覆盖率棘轮（`tests/coverage_baseline.json` 只升不降）与 `tests/coverage_thresholds.json` 阈值门禁维持既有 CI coverage job 不变。
+
+### 文档
+
+- 双端 5.4.13 版本说明详见系列 PRD（docs/MC-AL_5.4.X系列版本PRD_v1.0_2026-10-12.md）。
+
 ## [5.4.12] - 2026-10-12
 
 > **内容与互操作版（与 AL 5.4.12 同号同步）：下载可靠性强化 + 跨端资产往返加固。**
