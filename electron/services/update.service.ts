@@ -32,6 +32,7 @@ import {
   readUpdateSettings,
   type UpdateSettings,
 } from './update-delivery'
+import { downloadWithResilience, IntegrityError, type DownloadAttemptContext } from './download-resilience'
 
 const PUBLISH_OWNER = 'bangbang8000-cell'
 const PUBLISH_REPO = 'MagicCommander'
@@ -113,14 +114,14 @@ async function downloadInstallerFile(
   url: string,
   localPath: string,
   onProgress: (percent: number) => void,
-  opts: { sha512?: string; proxy?: string } = {},
+  opts: { sha512?: string; proxy?: string; signal?: AbortSignal } = {},
 ): Promise<void> {
   const partPath = partFileFor(localPath)
   const startOffset = resumeOffset(partPath)
   if (opts.proxy) {
-    await streamViaNodeProxy(url, opts.proxy, partPath, startOffset, onProgress)
+    await streamViaNodeProxy(url, opts.proxy, partPath, startOffset, onProgress, opts.signal)
   } else {
-    await streamViaNet(url, partPath, startOffset, onProgress)
+    await streamViaNet(url, partPath, startOffset, onProgress, opts.signal)
   }
 
   // 完整性校验：优先 sha512 强校验，缺失退化为 Content-Length（由流内校验）
@@ -132,7 +133,7 @@ async function downloadInstallerFile(
       } catch {
         /* ignore */
       }
-      throw new Error('sha512 integrity check failed')
+      throw new IntegrityError('sha512 integrity check failed')
     }
   }
 
@@ -146,8 +147,26 @@ function streamViaNet(
   partPath: string,
   startOffset: number,
   onProgress: (percent: number) => void,
+  signal?: AbortSignal,
 ): Promise<void> {
   return new Promise((resolve, reject) => {
+    let currentRequest: Electron.ClientRequest | null = null
+    // 5.4.12-F54-12-5：停滞熔断 —— 外部 abort 时中断在途请求（保留 .part 供续传）
+    const onAbort = () => {
+      const reason = signal?.reason instanceof Error ? signal.reason : new Error('Download aborted')
+      try {
+        currentRequest?.abort()
+      } catch {
+        /* ignore */
+      }
+      reject(reason)
+    }
+    if (signal?.aborted) {
+      onAbort()
+      return
+    }
+    signal?.addEventListener('abort', onAbort, { once: true })
+
     const doRequest = (requestUrl: string, redirectCount: number, offset: number) => {
       if (redirectCount > 5) {
         reject(new Error('Too many redirects'))
@@ -163,6 +182,7 @@ function streamViaNet(
       const reqOpts: string | Electron.ClientRequestConstructorOptions =
         offset > 0 ? { url: requestUrl, method: 'GET', headers: { Range: `bytes=${offset}-` } } : requestUrl
       const request = net.request(reqOpts)
+      currentRequest = request
 
       request.on('response', (response) => {
         const statusCode = response.statusCode || 0
@@ -260,15 +280,21 @@ function streamViaNodeProxy(
   partPath: string,
   startOffset: number,
   onProgress: (percent: number) => void,
+  signal?: AbortSignal,
 ): Promise<void> {
   const proxy = new URL(proxyUrl)
   const proxyHost = proxy.hostname || '127.0.0.1'
   const proxyPort = Number(proxy.port) || (proxy.protocol === 'https:' ? 443 : 80)
 
+  // 5.4.12-F54-12-5：在途请求/隧道引用（供停滞熔断 abort 使用，函数级作用域）
+  let currentSocket: nodeNet.Socket | null = null
+  let currentReq: http.ClientRequest | null = null
+
   /** 建立 https 目标的 CONNECT 隧道，返回可复用的 socket */
   const openTunnel = (host: string, port: number): Promise<nodeNet.Socket> =>
     new Promise((res, rej) => {
       const socket = nodeNet.connect(proxyPort, proxyHost)
+      currentSocket = socket
       socket.once('error', rej)
       socket.setTimeout(15000, () => socket.destroy(new Error('proxy tunnel timeout')))
       socket.once('connect', () => {
@@ -291,6 +317,27 @@ function streamViaNodeProxy(
     })
 
   return new Promise((resolve, reject) => {
+    // 5.4.12-F54-12-5：停滞熔断 —— 外部 abort 时中断代理隧道（保留 .part 供续传）
+    const onAbort = () => {
+      const reason = signal?.reason instanceof Error ? signal.reason : new Error('Download aborted')
+      try {
+        currentReq?.destroy()
+      } catch {
+        /* ignore */
+      }
+      try {
+        currentSocket?.destroy()
+      } catch {
+        /* ignore */
+      }
+      reject(reason)
+    }
+    if (signal?.aborted) {
+      onAbort()
+      return
+    }
+    signal?.addEventListener('abort', onAbort, { once: true })
+
     const doRequest = (url: string, redirectCount: number, offset: number) => {
       if (redirectCount > 5) {
         reject(new Error('Too many redirects'))
@@ -366,6 +413,7 @@ function streamViaNodeProxy(
       }
 
       const endRequest = (req: http.ClientRequest): void => {
+        currentReq = req
         req.on('error', (err) => {
           settleError(err)
         })
@@ -686,13 +734,26 @@ export class UpdateService {
     logger.info(`[UpdateService] Direct downloading ${fileName} to ${localPath}`)
     this.sendUpdateStatus({ status: 'downloading', progress: 0, channel: 'fallback' })
 
-    await downloadInstallerFile(
-      downloadUrl,
-      localPath,
-      (percent) => {
-        this.sendUpdateStatus({ status: 'downloading', progress: Math.round(percent), channel: 'fallback' })
+    // 5.4.12-F54-12-5：弹性下载（自动重试 / 停滞熔断 / 校验自愈），每次尝试沿用 .part 断点续传
+    await downloadWithResilience(
+      async (_ctx: DownloadAttemptContext, signal: AbortSignal, onBytes: (bytes: number) => void) => {
+        await downloadInstallerFile(
+          downloadUrl,
+          localPath,
+          (percent) => {
+            onBytes(percent)
+            this.sendUpdateStatus({ status: 'downloading', progress: Math.round(percent), channel: 'fallback' })
+          },
+          { sha512, proxy: settings.enableEnterpriseDeploy ? settings.proxy : '', signal },
+        )
       },
-      { sha512, proxy: settings.enableEnterpriseDeploy ? settings.proxy : '' },
+      {
+        maxAttempts: 3,
+        stallTimeoutMs: 30_000,
+        onAttempt: (ctx, err) => {
+          logger.warn(`[UpdateService] 下载尝试 ${ctx.attempt} 失败${err ? `: ${(err as Error).message}` : ''}，重试中`)
+        },
+      },
     )
 
     logger.info('[UpdateService] Direct download completed:', localPath)
