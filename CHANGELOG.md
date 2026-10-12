@@ -2,6 +2,25 @@
 
 本文件为发布说明的单一事实来源（`npm run sync-version -- --release-notes` 自动抽取当前版本段）。
 
+## [5.4.5] - 2026-10-12
+
+> **CLI 契约对齐版（追平期 ②）：审计 ok 语义对齐 AL，契约守卫扩至 C8。**
+> 决策基线：MC-AL 5.4.X 系列向导 D8（MC 先追平，随后双端同号同步）。
+
+### 修复
+
+- **审计 ok 语义修正（MC-CLI-B1，对齐 AL classify_exit）**：`ok` 由「handler 未抛异常即 true」改为「按业务结果判定」——handler 打印失败体后正常返回（`plan 无效` / `导入失败` / 项目包导入失败）通过 `_mark_business_failure()` 置位，最终审计记 `ok: false`。此前业务失败被记成成功，审计无法用于成败统计/合规取证。
+
+### 新增
+
+- **契约守卫 C8（审计 ok 语义）**：`check_cli_contract.py` 新增 `check_audit_ok_semantics()`，钉死 `_mark_business_failure` / `_reset_business_failure` 存在、dispatch 审计按 `ok=not _BUSINESS_FAILED` 判定、命令分派前重置、失败分支已接线。
+- **功能测试 `TestBusinessFailureOkSemantics`**（`test_cli_audit.py`，3 用例）：plan import 无效 / 项目包导入缺失 → 审计 `ok: false`；成功命令仍 `ok: true`。
+- **守卫测试 `TestC8AuditOkSemantics`**（`test_cli_contract.py`，4 用例）：正/反双向断言（缺定义、旧 `ok=True` 语义被捕获）。
+
+### 文档
+
+- `docs/cli.md` §9 补充 ok 语义说明；§10 差异表守卫列更新为 C1–C8。
+
 ## [5.4.4] - 2026-10-12
 
 > **工作台可用性对齐版（追平期 ①）：对齐 AL 5.4.4 工作台可用性修复的可迁移项。**

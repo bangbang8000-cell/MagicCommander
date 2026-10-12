@@ -75,6 +75,22 @@ _SENSITIVE_KEYS = ('password', 'secret', 'token', 'api_key', 'apikey', 'content'
 # 审计开关：`MC_AUDIT_DISABLED=1` 可关闭（打包态默认开启）
 _AUDIT_ENABLED = os.environ.get('MC_AUDIT_DISABLED', '') not in ('1', 'true', 'yes')
 
+# 5.4.5（MC-CLI-B1）：业务失败标记——handler 打印失败体后 return（不抛异常、不 exit）
+# 时置位，dispatch 末尾据此把审计 ok 记 false（对齐 AL classify_exit 语义：失败体 → 失败）。
+# 每次命令分派前必须重置。
+_BUSINESS_FAILED = False
+
+
+def _mark_business_failure() -> None:
+    """标记当前命令业务失败（供审计 ok 语义判定）。"""
+    global _BUSINESS_FAILED
+    _BUSINESS_FAILED = True
+
+
+def _reset_business_failure() -> None:
+    global _BUSINESS_FAILED
+    _BUSINESS_FAILED = False
+
 
 def _audit_path() -> str:
     """审计日志路径（见上注释的优先级）。"""
@@ -608,6 +624,7 @@ def main():
     if getattr(args, 'sub2', None):
         _audit_cmd = f'{_audit_cmd}:{args.sub2}'
     _audit_params = _audit_params_from_args(args)
+    _reset_business_failure()
 
     try:
         processor = PreProcessing()
@@ -646,7 +663,7 @@ def main():
                       error=f'未知命令: {args.command}', exit_code=EXIT_USAGE)
             sys.exit(EXIT_USAGE)
 
-        audit_log(_audit_cmd, _audit_params, _audit_argv, ok=True, exit_code=EXIT_OK)
+        audit_log(_audit_cmd, _audit_params, _audit_argv, ok=not _BUSINESS_FAILED, exit_code=EXIT_OK)
 
     except SystemExit as e:
         # handler 内显式 sys.exit(code)（如参数错误/业务失败）——审计记实际码
@@ -672,6 +689,7 @@ def handle_plan_command(args):
         plan = _load_plan_input(args.plan_json)
         if 'error' in plan:
             print(f'plan 无效: {plan["error"]}')
+            _mark_business_failure()
             return
         # P2（V-MC4）：GUI tunable 编辑路径 —— 由 Python 权威按 macro 重算 planHash
         if args.rehash and plan.get('macro'):
@@ -685,6 +703,7 @@ def handle_plan_command(args):
         summary = import_plan_auto(plan, WORKSPACE_DIR, explicit_dir=project_dir)
         if summary.get('error'):
             print(f'导入失败: {summary["error"]}')
+            _mark_business_failure()
             return
         # 注册到 MC_Para（可选：若在 workspace 下）
         proj_dir = summary.get('project_dir', '')
@@ -788,6 +807,7 @@ def handle_project_command(processor, args):
             summary = import_project_package(args.package, WORKSPACE_DIR, explicit_dir=proj_dir)
             if summary.get('error'):
                 print(f'导入失败: {summary["error"]}')
+                _mark_business_failure()
                 return
             _register_mc_para(summary.get('project_dir', ''))
             matched = summary.get('matched', 'none')

@@ -204,6 +204,7 @@ stdout JSON **顶层** `status` 仅允许以下五种（`backend/main.py` 常量
 - **路径优先级**：`MC_AUDIT_PATH`（测试注入）＞ `$MC_USER_DATA/audit/mc-audit.jsonl`（Electron spawn 注入）＞ `~/.magiccommander/audit/mc-audit.jsonl`。
 - **脱敏**：参数键名含 `password` / `secret` / `token` / `api_key` / `apikey` / `content` 时，值替换为 `***`（argv 与 params 双路径脱敏）。
 - **失败留痕**：执行失败/异常也写入（`ok: false` + `error` + 实际 `exitCode`）。
+- **ok 语义（5.4.5 MC-CLI-B1）**：`ok` 按**业务结果**判定，而非「handler 未抛异常」——handler 打印失败体后正常返回（如 `plan 无效` / `导入失败`）会通过 `_mark_business_failure()` 置位，最终审计记 `ok: false`（对齐 AL `classify_exit` 语义，避免把业务失败记成成功）。
 - **不阻塞**：审计写入失败静默忽略，绝不阻断主流程。
 - **开关**：`MC_AUDIT_DISABLED=1` 关闭（打包态默认开启）。
 
@@ -218,4 +219,4 @@ stdout JSON **顶层** `status` 仅允许以下五种（`backend/main.py` 常量
 | 审计 | `cli-audit.jsonl`（含脱敏） | `mc-audit.jsonl`（MC-CLI-A7，含脱敏） |
 | status 契约 | 结构化 `{error, error_code}` | `{status: ...}` 五值白名单 |
 | 参数 schema | `ACTION_PARAM_SCHEMA`（67/67 覆盖） | argparse 具名 flag |
-| 契约守卫 | `check_cli_contract.py` C1–C4 | `check_cli_contract.py` C1–C7 |
+| 契约守卫 | `check_cli_contract.py` C1–C4 | `check_cli_contract.py` C1–C8 |

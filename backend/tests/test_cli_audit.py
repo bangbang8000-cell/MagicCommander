@@ -106,3 +106,52 @@ class TestCommandNameComposition:
                        capture_output=True, text=True)
         rec = json.loads(audit.read_text(encoding='utf-8').strip().splitlines()[-1])
         assert rec['command'] == 'template:list'
+
+
+class TestBusinessFailureOkSemantics:
+    """5.4.5（MC-CLI-B1）：业务失败（打印失败体后 return）必须记 ok=false。
+
+    对齐 AL classify_exit 语义：handler 返回失败体（非异常）不得记 ok=True。
+    """
+
+    def _run(self, tmp_path, *cli_args):
+        audit = tmp_path / 'mc-audit.jsonl'
+        env = dict(os.environ, MC_AUDIT_PATH=str(audit))
+        r = subprocess.run([sys.executable, MAIN_PY, *cli_args],
+                           cwd=os.path.join(REPO, 'backend'), env=env,
+                           capture_output=True, text=True)
+        recs = [json.loads(line) for line in audit.read_text(encoding='utf-8').strip().splitlines()]
+        return r, recs[-1]
+
+    def test_plan_import_corrupt_zip_records_ok_false(self, tmp_path):
+        """损坏 zip → _load_plan_input 返回 {'error'} → 打印失败体 return → ok=false（exit 0）。"""
+        bad_zip = tmp_path / 'corrupt.zip'
+        bad_zip.write_bytes(b'not a real zip')
+        r, rec = self._run(tmp_path, 'plan', 'import', str(bad_zip))
+        assert r.returncode == 0
+        assert rec['command'] == 'plan:import'
+        assert rec['ok'] is False
+
+    def test_plan_import_missing_plan_json_records_ok_false(self, tmp_path):
+        """合法 zip 但缺 plan.json → 返回 {'error'} → ok=false（exit 0）。"""
+        import zipfile
+        empty_zip = tmp_path / 'empty.zip'
+        with zipfile.ZipFile(empty_zip, 'w') as zf:
+            zf.writestr('readme.txt', 'no plan here')
+        r, rec = self._run(tmp_path, 'plan', 'import', str(empty_zip))
+        assert r.returncode == 0
+        assert rec['command'] == 'plan:import'
+        assert rec['ok'] is False
+
+    def test_plan_import_missing_file_exception_records_ok_false(self, tmp_path):
+        """文件不存在 → 异常路径（exit 1）→ ok=false（既有语义保持）。"""
+        r, rec = self._run(tmp_path, 'plan', 'import', str(tmp_path / 'no_such_plan.json'))
+        assert r.returncode != 0
+        assert rec['command'] == 'plan:import'
+        assert rec['ok'] is False
+
+    def test_success_still_records_ok_true(self, tmp_path):
+        r, rec = self._run(tmp_path, 'project', 'list')
+        assert r.returncode == 0
+        assert rec['ok'] is True
+

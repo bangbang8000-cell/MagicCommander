@@ -136,3 +136,28 @@ class TestC6DocConsistency:
         """render/diff 消费点不得再读 args.format。"""
         # diff 分支已用 args.naming
         assert 'args.naming' in main_src
+
+
+class TestC8AuditOkSemantics:
+    """5.4.5（MC-CLI-B1）：审计 ok 语义契约守卫。"""
+
+    def test_check_function_exists(self, guard):
+        assert hasattr(guard, 'check_audit_ok_semantics'), 'C8 检查函数缺失'
+
+    def test_current_tree_clean(self, guard, main_src):
+        assert guard.check_audit_ok_semantics(main_src) == []
+
+    def test_missing_mark_function_detected(self, guard):
+        bad = 'ok=not _BUSINESS_FAILED\n_reset_business_failure()\n_mark_business_failure()\n'
+        v = guard.check_audit_ok_semantics(bad)
+        assert any(x.check == 'C8' and '定义' in x.message for x in v)
+
+    def test_old_ok_true_detected(self, guard):
+        bad = (
+            'def _mark_business_failure():\n    pass\n'
+            'def _reset_business_failure():\n    pass\n'
+            'audit_log(cmd, p, a, ok=True, exit_code=0)\n'
+            '_reset_business_failure()\n'
+        )
+        v = guard.check_audit_ok_semantics(bad)
+        assert any('ok=not _BUSINESS_FAILED' in x.message for x in v)

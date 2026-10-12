@@ -23,6 +23,8 @@ MC 的 CLI（`backend/main.py`）与 AL 的 CLI（`backend/cli.py`）在
   C5  epilog 不含已移除的命令（如 render project-sn / yaml-sn）
   C6  docs/cli.md 的命令表与真实命令树对账（若文档存在）
   C7  stdout JSON 顶层 `status` 取值在契约白名单内（P2-6 收拢）
+  C8  审计 ok 语义：dispatch 按业务失败标记判定（对齐 AL classify_exit，
+      失败体不得记 ok=True）
 
 用法
 ----
@@ -275,6 +277,33 @@ def check_status_whitelist() -> list[Violation]:
     return out
 
 
+# ---------------------------------------------------------------- C8
+def check_audit_ok_semantics(src: str) -> list[Violation]:
+    """审计 ok 语义：dispatch 必须按业务失败标记判定（5.4.5 MC-CLI-B1）。
+
+    对齐 AL classify_exit 语义：handler 打印失败体后 return（不抛异常）属业务失败，
+    审计不得记 ok=True。守卫要求：
+      1. 存在 `_mark_business_failure` 与 `_reset_business_failure` 定义；
+      2. dispatch 末尾审计写 `ok=not _BUSINESS_FAILED`；
+      3. 命令分派前调用 `_reset_business_failure()`。
+    """
+    out: list[Violation] = []
+    if 'def _mark_business_failure' not in src:
+        out.append(Violation('C8', 0, '缺少 _mark_business_failure() 定义（审计 ok 语义依赖）'))
+    if 'def _reset_business_failure' not in src:
+        out.append(Violation('C8', 0, '缺少 _reset_business_failure() 定义'))
+    if 'ok=not _BUSINESS_FAILED' not in src:
+        out.append(Violation('C8', 0,
+                             'dispatch 审计未按 ok=not _BUSINESS_FAILED 判定（失败体被记 ok=True）'))
+    if '_reset_business_failure()' not in src:
+        out.append(Violation('C8', 0, '命令分派前未调用 _reset_business_failure()'))
+    # 正向：至少一个业务失败分支已接线 _mark_business_failure
+    if src.count('_mark_business_failure()') < 2:
+        out.append(Violation('C8', 0,
+                             '_mark_business_failure() 接线不足（失败体 return 分支未标记）'))
+    return out
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description='MC CLI 契约守卫')
     ap.add_argument('--verbose', '-V', action='store_true', help='打印全部检查项')
@@ -294,6 +323,7 @@ def main() -> int:
         ('C5 epilog 无残留命令', lambda: check_epilog_stale(src)),
         ('C6 文档与命令树对账', lambda: check_doc_consistency(src, CLI_DOC)),
         ('C7 status 取值白名单', lambda: check_status_whitelist()),
+        ('C8 审计 ok 语义', lambda: check_audit_ok_semantics(src)),
     ]
 
     for name, fn in checks:
@@ -310,7 +340,7 @@ def main() -> int:
         print()
         return 1
 
-    print('MC CLI 契约守卫：✅ 通过（C1-C7 全部符合）')
+    print('MC CLI 契约守卫：✅ 通过（C1-C8 全部符合）')
     return 0
 
 
