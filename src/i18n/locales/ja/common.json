@@ -393,7 +393,12 @@
       "agentConnectAuditOff": "無効",
       "agentConnectCopyConfig": "設定をコピー",
       "agentConnectOpenGuide": "MCP 接続ガイドを開く",
-      "agentConnectCopied": "コピーしました"
+      "agentConnectCopied": "コピーしました",
+      "agentConnectGrant": "権限レベル",
+      "agentConnectGrantHint": "外部エージェントの承認権限: readonly（読取のみ）/ semi（一部確認）/ full（確認なし。full はコンパイルモードのブロックを免除しない）",
+      "agentConnectGrantReadonly": "読み取り専用",
+      "agentConnectGrantSemi": "半権限",
+      "agentConnectGrantFull": "全権限"
     }
   },
   "efficiency": {

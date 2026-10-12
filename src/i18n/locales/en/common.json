@@ -489,7 +489,12 @@
       "agentConnectTools": "Exposed Tools",
       "agentConnectAudit": "Audit",
       "agentConnectAuditOn": "Enabled",
-      "agentConnectAuditOff": "Disabled"
+      "agentConnectAuditOff": "Disabled",
+      "agentConnectGrant": "Grant level",
+      "agentConnectGrantHint": "External agent approval grant: readonly / semi (confirm) / full (no confirmation; full does not bypass compiled-mode blocking)",
+      "agentConnectGrantReadonly": "Readonly",
+      "agentConnectGrantSemi": "Semi",
+      "agentConnectGrantFull": "Full"
     },
     "general": {
       "title": "General",

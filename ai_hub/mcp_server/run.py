@@ -88,9 +88,11 @@ def main() -> int:
     if audit_path:
         mgr.set_audit_path(Path(audit_path))
 
-    # 5.4.5-AC-grant：授权档位来源优先级 —— 命令行 > 环境变量 > 默认 semi。
-    # 环境变量便于团队共享配置（避免命令行明文），也为 Electron 主进程注入留口。
-    grant = args.grant or os.environ.get("MC_AGENT_GRANT") or None
+    # 5.4.5-AC-grant / 5.4.10-5410-a（F54-10-a）：授权档位来源优先级 ——
+    # 命令行 --grant > 环境变量 MC_AGENT_GRANT > 设置面板持久化 > 默认 semi。
+    # 设置面板在 ai_secrets 落盘 agent_connect_grant，供旁挂 Agent 未显式指定时生效。
+    from ai_hub.config import get_agent_connect_grant
+    grant = args.grant or os.environ.get("MC_AGENT_GRANT") or get_agent_connect_grant()
     grant = grant if grant in GRANTS else None
 
     ok, msg = mgr.enable(agent_mode=args.mode, grant=grant)

@@ -2,6 +2,26 @@
 
 本文件为发布说明的单一事实来源（`npm run sync-version -- --release-notes` 自动抽取当前版本段）。
 
+## [5.4.10] - 2026-10-12
+
+> **智能化与 Agent 版（与 AL 5.4.10 同号同步）：Agent Connect 授权档位 UI 闭环 + 配置持久化。**
+> 决策基线：MC-AL 5.4.X 系列向导 D8（双端同号同步）。
+
+### 新增
+
+- **授权档位持久化（F54-10-a，与 AL 同构）**：`ai_hub/config.py` 新增 `get_agent_connect_grant()` / `set_agent_connect_grant()`（持久化到 ai_secrets），并纳入 `apply_secrets` 的 `non_provider_keys` 排除项，防止授权档位混入 provider 配置。
+- **设置面板授权档位选择器（F54-10-b）**：SettingsPanel Agent Connect 区新增「授权档位」三档下拉（readonly 只读 / semi 半授权 / full 全授权），改动即持久化；MCP Server 旁挂未显式指定档位时回落到该持久化值。
+- **契约测试 `TestAgentConnectGrant`**（`test_agent_connect_config.py`，4 用例）：默认 semi、set/get 持久化、非法值回落 semi、排除出 provider_configs。
+
+### 改进
+
+- **Agent Connect 运行路径档位优先级**：命令行 `--grant` > 环境变量 `MC_AGENT_GRANT` > 设置面板持久化 > 默认 semi；状态/配置端点均返回 `grant` 供前端回显。
+- **IPC/Preload 契约升级**：`aihub:agentConnectConfig` 请求类型扩展 `grant?: string` 透传，类型安全贯穿 renderer → preload → main → backend。
+
+### 文档
+
+- 双端 5.4.10 版本说明详见系列 PRD（docs/MC-AL_5.4.X系列版本PRD_v1.0_2026-10-12.md）。
+
 ## [5.4.5] - 2026-10-12
 
 > **CLI 契约对齐版（追平期 ②）：审计 ok 语义对齐 AL，契约守卫扩至 C8。**

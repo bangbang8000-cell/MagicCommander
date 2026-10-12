@@ -393,7 +393,12 @@
       "agentConnectAuditOff": "비활성화됨",
       "agentConnectCopyConfig": "설정 복사",
       "agentConnectOpenGuide": "MCP 연결 가이드 열기",
-      "agentConnectCopied": "복사됨"
+      "agentConnectCopied": "복사됨",
+      "agentConnectGrant": "권한 수준",
+      "agentConnectGrantHint": "외부 에이전트 승인 권한: readonly(읽기 전용) / semi(부분 확인) / full(확인 없음. full은 컴파일 모드 차단을 면제하지 않음)",
+      "agentConnectGrantReadonly": "읽기 전용",
+      "agentConnectGrantSemi": "반 권한",
+      "agentConnectGrantFull": "전체 권한"
     }
   },
   "efficiency": {

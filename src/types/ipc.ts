@@ -670,10 +670,11 @@ export interface AIHubIpcApi {
   mcpTools: (name: string) => Promise<{ status: string; server: string; tools: MCPToolInfo[] }>
   /** 5.1.1-511-e：Agent Connect（MCP Server 对外暴露）状态 */
   agentConnectStatus: () => Promise<{ status: string; data: AgentConnectStatusInfo }>
-  /** 5.1.1-511-e：Agent Connect 配置（开关/模式） */
+  /** 5.1.1-511-e：Agent Connect 配置（开关/模式）；5.4.10-5410-a（F54-10-a）：授权档位 */
   agentConnectConfig: (config: {
     enable?: boolean
     agent_mode?: string
+    grant?: string
   }) => Promise<{ status: string; data?: AgentConnectStatusInfo; error?: string }>
   onStream: (callback: (data: AIHubStreamData) => void) => () => void
 }

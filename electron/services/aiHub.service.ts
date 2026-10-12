@@ -896,9 +896,11 @@ export class AIHubService extends EventEmitter {
     })
   }
 
+  // 5.1.1-511-e / 5.4.10-5410-a：Agent Connect 配置（开关/模式/授权档位）
   async agentConnectConfig(config: {
     enable?: boolean
     agent_mode?: string
+    grant?: string
   }): Promise<{ status: string; data?: Record<string, unknown>; error?: string }> {
     await this.ensureRunning()
     return this.withRetry(async () => {

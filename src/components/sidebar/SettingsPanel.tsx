@@ -310,13 +310,14 @@ export function SettingsPanel() {
   const [mcpBusy, setMcpBusy] = useState(false)
   const [mcpError, setMcpError] = useState<string | null>(null)
 
-  // 5.1.1-511-e：Agent Connect（MCP Server 对外暴露）
+  // 5.1.1-511-e / 5.4.10-5410-a：Agent Connect（MCP Server 对外暴露，含授权档位）
   const [acStatus, setAcStatus] = useState<{
     enabled: boolean
     agent_mode: string
     status: string
     tool_count: number
     audit_enabled: boolean
+    grant?: string
   } | null>(null)
   const [acBusy, setAcBusy] = useState(false)
   const [acError, setAcError] = useState<string | null>(null)
@@ -374,6 +375,23 @@ export function SettingsPanel() {
       setAcError(null)
       try {
         const res = await window.electron.aihub.agentConnectConfig({ enable: acStatus?.enabled, agent_mode })
+        if (res.data) setAcStatus(res.data as never)
+      } catch (e) {
+        setAcError(e instanceof Error ? e.message : String(e))
+      } finally {
+        setAcBusy(false)
+      }
+    },
+    [acStatus],
+  )
+
+  // 5.4.10-5410-a（F54-10-a）：授权档位变更（readonly/semi/full）
+  const handleAcGrantChange = useCallback(
+    async (grant: string) => {
+      setAcBusy(true)
+      setAcError(null)
+      try {
+        const res = await window.electron.aihub.agentConnectConfig({ enable: acStatus?.enabled, agent_mode: acStatus?.agent_mode, grant })
         if (res.data) setAcStatus(res.data as never)
       } catch (e) {
         setAcError(e instanceof Error ? e.message : String(e))
@@ -2176,6 +2194,26 @@ export function SettingsPanel() {
                       {t('common:settings.ai.agentConnectCompiled') || '编译态（产品使用）'}
                     </option>
                     <option value="source">{t('common:settings.ai.agentConnectSource') || '源码态（开发者）'}</option>
+                  </select>
+                </div>
+                {/* 5.4.10-5410-a（F54-10-a）：授权档位配置（readonly/semi/full）+ 当前档回显 */}
+                <div className="flex items-center justify-between">
+                  <span className={clsx('text-[11px]', isDark ? 'text-gray-400' : 'text-gray-500')}>
+                    {t('common:settings.ai.agentConnectGrant') || '授权档位'}
+                  </span>
+                  <select
+                    value={acStatus?.grant ?? 'semi'}
+                    onChange={(e) => void handleAcGrantChange(e.target.value)}
+                    disabled={acBusy}
+                    title={t('common:settings.ai.agentConnectGrantHint') || '外部 Agent 免确认授权档位：readonly 只读 / semi 部分确认 / full 全免确认'}
+                    className={clsx(
+                      'w-36 px-2 py-1 rounded text-xs border',
+                      isDark ? 'border-gray-600 bg-gray-700 text-gray-200' : 'border-gray-300 bg-white text-gray-700',
+                    )}
+                  >
+                    <option value="readonly">{t('common:settings.ai.agentConnectGrantReadonly') || '只读（readonly）'}</option>
+                    <option value="semi">{t('common:settings.ai.agentConnectGrantSemi') || '半授权（semi）'}</option>
+                    <option value="full">{t('common:settings.ai.agentConnectGrantFull') || '全授权（full）'}</option>
                   </select>
                 </div>
                 <div className="flex items-center justify-between">

@@ -236,6 +236,7 @@ def apply_secrets():
         "enable_agent_connect",
         "agent_mode",
         "enable_remote_mode",
+        "agent_connect_grant",  # 5.4.10-5410-a（F54-10-a）：授权档位属控制项，不得混入 provider_configs
     )
     settings.provider_configs = {
         k: v for k, v in secrets.items() if k not in non_provider_keys
@@ -383,6 +384,42 @@ def set_agent_mode(value) -> str:
     clamped = clamp_agent_mode(value)
     secrets = load_secrets()
     secrets["agent_mode"] = clamped
+    save_secrets(secrets)
+    return clamped
+
+
+# ============================================================
+# 5.4.10-5410-a（F54-10-a）：Agent Connect 授权档位持久化
+# readonly / semi / full——供设置面板配置 + MCP Server 启动缺省读取。
+# 优先级：命令行 --grant > 环境变量 MC_AGENT_GRANT > 配置持久化 > 默认 semi
+# ============================================================
+AGENT_CONNECT_GRANTS = ("readonly", "semi", "full")
+AGENT_CONNECT_GRANT_DEFAULT = "semi"
+
+
+def clamp_agent_grant(value) -> str:
+    """校验授权档位合法（readonly/semi/full）；非法/缺失回退 semi"""
+    if isinstance(value, str) and value in AGENT_CONNECT_GRANTS:
+        return value
+    return AGENT_CONNECT_GRANT_DEFAULT
+
+
+def get_agent_connect_grant() -> str:
+    """读取授权档位（默认 semi）。实时读 secrets 文件。"""
+    try:
+        secrets = load_secrets()
+        if "agent_connect_grant" in secrets:
+            return clamp_agent_grant(secrets["agent_connect_grant"])
+    except Exception:
+        pass
+    return AGENT_CONNECT_GRANT_DEFAULT
+
+
+def set_agent_connect_grant(value) -> str:
+    """设置授权档位：校验 → 持久化到 secrets 文件"""
+    clamped = clamp_agent_grant(value)
+    secrets = load_secrets()
+    secrets["agent_connect_grant"] = clamped
     save_secrets(secrets)
     return clamped
 

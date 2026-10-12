@@ -348,6 +348,16 @@
     "downloadButton": "Download Update",
     "installButton": "Restart and Install"
   },
+  "settings": {
+    "title": "Paramètres",
+    "ai": {
+      "agentConnectGrant": "Niveau d'autorisation",
+      "agentConnectGrantHint": "Autorisation d'approbation de l'agent externe : readonly (lecture seule) / semi (confirmation) / full (aucune confirmation ; full ne contourne pas le blocage du mode compilé)",
+      "agentConnectGrantReadonly": "Lecture seule",
+      "agentConnectGrantSemi": "Semi",
+      "agentConnectGrantFull": "Full"
+    }
+  },
   "efficiency": {
     "pipelineTitle": "Pipeline en un clic",
     "pipelinePlanMode": "Pipeline plan AutoLink",

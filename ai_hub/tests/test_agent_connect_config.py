@@ -1,7 +1,7 @@
 """5.1.8-518-a：客户端远程模式开关配置测试。
 
 覆盖：enable_remote_mode 默认关、set 持久化、从 provider_configs 排除；
-Agent Connect 总开关/模式配置回归。
+Agent Connect 总开关/模式配置回归；5.4.10-5410-a（F54-10-a）授权档位持久化。
 """
 import sys
 from pathlib import Path
@@ -53,3 +53,32 @@ class TestRemoteModeConfig:
         set_agent_mode("source")
         assert get_enable_agent_connect() is True
         assert get_agent_mode() == "source"
+
+
+class TestAgentConnectGrant:
+    """5.4.10-5410-a（F54-10-a）：授权档位持久化（与 AL 同构）。"""
+
+    def test_grant_default_semi(self):
+        from ai_hub.config import get_agent_connect_grant
+
+        assert get_agent_connect_grant() == "semi"
+
+    def test_grant_set_persists(self):
+        from ai_hub.config import get_agent_connect_grant, set_agent_connect_grant
+
+        assert set_agent_connect_grant("full") == "full"
+        assert get_agent_connect_grant() == "full"
+        assert set_agent_connect_grant("readonly") == "readonly"
+        assert get_agent_connect_grant() == "readonly"
+
+    def test_grant_invalid_falls_back_semi(self):
+        from ai_hub.config import set_agent_connect_grant
+
+        assert set_agent_connect_grant("superadmin") == "semi"
+
+    def test_grant_excluded_from_provider_configs(self):
+        from ai_hub import config as ai_config
+
+        ai_config.set_agent_connect_grant("full")
+        ai_config.apply_secrets()
+        assert "agent_connect_grant" not in ai_config.settings.provider_configs

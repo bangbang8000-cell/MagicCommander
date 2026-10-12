@@ -2051,7 +2051,7 @@ export function setupIpcHandlers(window: BrowserWindow): void {
   })
   ipcMain.handle(
     'aihub:agentConnectConfig',
-    async (_e, config: { enable?: boolean; agent_mode?: string }): Promise<unknown> => {
+    async (_e, config: { enable?: boolean; agent_mode?: string; grant?: string }): Promise<unknown> => {
       if (!isTrustedSender(_e)) throw new Error('无权执行该操作')
       return await aiHubService.agentConnectConfig(config)
     },
