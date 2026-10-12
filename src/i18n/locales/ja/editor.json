@@ -18,7 +18,8 @@
     "closeSplit": "分割を閉じる",
     "preview": "プレビューモード",
     "pin": "タブを固定",
-    "unpin": "固定を解除"
+    "unpin": "固定を解除",
+    "copyPath": "复制路径"
   },
   "monaco": {
     "wordWrap": "折り返し表示",

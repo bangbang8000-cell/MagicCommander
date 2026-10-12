@@ -7,6 +7,7 @@
  * - 校验通过后可阻止后续操作（门禁提示：校验未通过时提示先修复再渲染/导出）
  */
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   ShieldCheck,
   Play,
@@ -52,6 +53,7 @@ const CATEGORY_BADGE: Record<ValidationCategory, string> = {
 }
 
 export function ValidationPanel() {
+  const { t } = useTranslation()
   const { report, running, error, lastRunAt, gateBlocked, runValidation, clear } = useValidationStore()
   const activeProjectId = useUIStore((s) => s.activeProjectId)
   const isDark = useUIStore((s) => s.isDark)
@@ -71,6 +73,7 @@ export function ValidationPanel() {
     const blob = new Blob([json], { type: 'application/json' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
+    // 下载文件名为本地文件名（非界面文案，保留中文前缀以便识别），不参与 i18n
     a.href = url
     a.download = `校验报告_${report.project}_${new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-')}.json`
     a.click()
@@ -83,10 +86,10 @@ export function ValidationPanel() {
     try {
       const r = await window.electron.project.verifyManifest(activeProjectName)
       if (!r.ok) {
-        showError(r.error || '交付物清单校验未通过')
+        showError(r.error || t('validation.manifestFailed'))
         return
       }
-      showSuccess(`交付物清单校验通过（${r.rendered_at ?? ''}）`)
+      showSuccess(t('validation.manifestPassed', { time: r.rendered_at ?? '' }))
     } catch (err) {
       showError(err instanceof Error ? err.message : String(err))
     }
@@ -98,7 +101,7 @@ export function ValidationPanel() {
     try {
       const r = await window.electron.project.exportReviewPackage(activeProjectName)
       const data = r.data
-      showSuccess(data ? `评审包已导出: ${data.path}` : '评审包已导出')
+      showSuccess(data ? t('validation.reviewPackageExported', { path: data.path }) : t('validation.reviewPackageExportedNoPath'))
     } catch (err) {
       showError(err instanceof Error ? err.message : String(err))
     }
@@ -109,7 +112,7 @@ export function ValidationPanel() {
     try {
       const r = await window.electron.project.exportReviewPdf(activeProjectName)
       const data = r.data
-      showSuccess(data ? `评审 PDF 已导出: ${data.path}` : '评审 PDF 已导出')
+      showSuccess(data ? t('validation.reviewPdfExported', { path: data.path }) : t('validation.reviewPdfExportedNoPath'))
     } catch (err) {
       showError(err instanceof Error ? err.message : String(err))
     }

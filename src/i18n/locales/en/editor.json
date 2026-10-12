@@ -18,7 +18,8 @@
     "closeSplit": "Close Split",
     "preview": "Preview Mode",
     "pin": "Pin Tab",
-    "unpin": "Unpin Tab"
+    "unpin": "Unpin Tab",
+    "copyPath": "Copy Path"
   },
   "monaco": {
     "wordWrap": "Word Wrap",

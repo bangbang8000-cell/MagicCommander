@@ -183,7 +183,8 @@
     "starting": "正在啟動...",
     "ready": "準備就緒",
     "defaultQuote": "網路的世界裡，沒有到達不了的遠方...",
-    "networkEngineerProverb": "網路工程師箴言"
+    "networkEngineerProverb": "網路工程師箴言",
+    "loading": "加载中..."
   },
   "logViewer": {
     "executionLog": "執行日誌",
@@ -237,7 +238,20 @@
     "loadFailed": "載入失敗",
     "noOutputFiles": "暫無輸出檔案",
     "renderHint": "執行渲染後將在此顯示",
-    "openInExplorer": "在資源管理器中開啟"
+    "openInExplorer": "在資源管理器中開啟",
+    "labelOutput": "标签输出",
+    "tabs": {
+      "browse": "文件浏览",
+      "export": "批量导出"
+    },
+    "exportAll": "导出全部",
+    "exportFormat": "导出格式",
+    "exportAsZip": "ZIP 压缩包",
+    "exportToDir": "导出到文件夹",
+    "exportSuccess": "导出成功",
+    "exportFailed": "导出失败",
+    "exporting": "正在导出...",
+    "exportDone": "已导出：{{path}}"
   },
   "renderPanel": {
     "projectInfo": "專案資訊",
@@ -294,6 +308,11 @@
       "projectName": "專案名稱",
       "projectNamePlaceholder": "例如：test1",
       "projectDirHint": "專案目錄將建立在應用根目錄，包含 excel/、templates/、para.xlsx"
+    },
+    "tabs": {
+      "config": "渲染配置",
+      "label": "打印标签",
+      "cleanup": "清理文件"
     }
   },
   "panel": {
@@ -335,12 +354,22 @@
     "toggleTerminal": "切換終端/日誌面板",
     "renderCurrentProject": "渲染目前專案",
     "exportOutput": "匯出/輸出",
-    "projectPanel": "專案面板"
+    "projectPanel": "專案面板",
+    "chat": "AI 对话",
+    "workbench": "工作台",
+    "newProject": "新建项目",
+    "undo": "撤销",
+    "redo": "重做",
+    "copySelection": "复制",
+    "paste": "粘贴",
+    "settings": "打开设置",
+    "aiChat": "AI 对话"
   },
   "hotkeyCategories": {
     "file": "檔案",
     "view": "檢視",
-    "panel": "面板"
+    "panel": "面板",
+    "edit": "编辑"
   },
   "explorer": {
     "title": "資源管理器",
@@ -365,7 +394,10 @@
     "unknownError": "Unknown error",
     "checkButton": "Check for Updates",
     "downloadButton": "Download Update",
-    "installButton": "Restart and Install"
+    "installButton": "Restart and Install",
+    "later": "稍后重启",
+    "restart": "立即重启",
+    "restartHint": "新版本将在下次启动时生效。"
   },
   "settings": {
     "ai": {
@@ -395,7 +427,102 @@
       "agentConnectGrantHint": "外部 Agent 的免確認授權檔位：readonly 唯讀 / semi 部分確認 / full 全免確認（full 不豁免編譯態屏蔽）",
       "agentConnectGrantReadonly": "唯讀（readonly）",
       "agentConnectGrantSemi": "半授權（semi）",
-      "agentConnectGrantFull": "全授權（full）"
+      "agentConnectGrantFull": "全授權（full）",
+      "title": "AI 配置",
+      "desc": "选择大模型 Provider，配置 API Key 和模型参数",
+      "apiKey": "API Key",
+      "apiKeyPlaceholder": "输入您的 API Key",
+      "model": "模型",
+      "baseUrl": "接口地址",
+      "save": "保存",
+      "saved": "已保存",
+      "setDefault": "设为默认",
+      "isDefault": "当前默认",
+      "default": "默认",
+      "testConnection": "测试连接",
+      "fetchModels": "获取模型",
+      "selectModel": "选择模型",
+      "routing": "智能路由",
+      "routingDesc": "根据消息类型自动选择最优 AI 模型",
+      "routingCode": "编码/模板",
+      "routingCodeDesc": "编写代码、生成模板",
+      "routingAnalysis": "分析/审查",
+      "routingAnalysisDesc": "配置分析、对比审查",
+      "routingSimple": "简单问答",
+      "routingSimpleDesc": "列表、查询、帮助",
+      "routingComplex": "复杂推理",
+      "routingComplexDesc": "多步骤推理、规划",
+      "notConfigured": "未配置",
+      "hubTimeout": "AI Hub 启动超时，请检查 Python 环境",
+      "hubFailed": "AI Hub 启动失败，请检查 Python 环境",
+      "hubNotReady": "AI Hub 未就绪",
+      "testFailed": "测试失败",
+      "providerConfig": "{{name}} 配置",
+      "agentConnectCopyConfig": "复制接入配置",
+      "agentConnectOpenGuide": "打开 MCP 接入指南",
+      "agentConnectCopied": "已复制"
+    },
+    "title": "设置",
+    "comingSoon": "即将推出",
+    "general": {
+      "title": "通用设置",
+      "desc": "语言、自动保存、工作区路径等通用选项",
+      "language": "语言",
+      "autoSave": "自动保存",
+      "autoSaveDesc": "编辑文件时自动保存",
+      "autoSaveInterval": "自动保存间隔（秒）",
+      "workspacePath": "工作区路径",
+      "openWorkspace": "打开工作区",
+      "knowledgeInjection": "知识库上下文注入",
+      "knowledgeInjectionHint": "对话时按相关度检索知识库并注入上下文（默认开）",
+      "checkUpdateOnStart": "启动时检查更新",
+      "checkUpdateOnStartDesc": "应用启动时自动检查是否有新版本",
+      "fontSize": "字体大小",
+      "fontSmall": "小 (12px)",
+      "fontMedium": "中 (13px)",
+      "fontLarge": "大 (14px)",
+      "currentVersion": "当前版本",
+      "checkUpdate": "检查更新",
+      "latestVersion": "已是最新版本",
+      "newVersionAvailable": "发现新版本"
+    },
+    "appearance": {
+      "title": "外观",
+      "desc": "主题切换、字体大小、界面布局"
+    },
+    "advanced": {
+      "title": "高级设置",
+      "desc": "Python 路径、调试模式、代理配置",
+      "pythonPath": "Python 路径",
+      "pythonPathHint": "留空使用系统默认 Python",
+      "browse": "浏览",
+      "debugMode": "调试模式",
+      "debugModeDesc": "启用详细日志和开发者工具",
+      "proxy": "代理设置",
+      "proxyHint": "例如: http://127.0.0.1:7890",
+      "aiHubPort": "AI Hub 端口",
+      "aiHubPortDesc": "0 表示自动分配",
+      "aiHubAutoStart": "自动启动 AI Hub",
+      "aiHubAutoStartDesc": "打开 Chat 时自动启动 AI Hub",
+      "autonomyMode": "AI 自主模式",
+      "autonomyModeDesc": "顾问模式需确认所有操作，半自动模式仅渲染/删除需确认，全自动模式全部自动执行"
+    },
+    "updates": {
+      "title": "软件更新",
+      "checkButton": "检查更新"
+    },
+    "platform": {
+      "title": "平台连接",
+      "desc": "连接 MagicCommander Platform",
+      "serverUrl": "服务器地址",
+      "testConnection": "测试连接",
+      "loginStatus": "登录状态",
+      "loggedIn": "已登录",
+      "notLoggedIn": "未登录"
+    },
+    "about": {
+      "desc": "智能网络配置管理工具",
+      "version": "版本"
     }
   },
   "efficiency": {
@@ -448,5 +575,139 @@
     "skip": "略過",
     "prev": "上一步",
     "next": "下一步"
+  },
+  "doc": {
+    "tabDocs": "文档",
+    "tabGuide": "指南",
+    "tabKnowledge": "知识库",
+    "currentProject": "当前项目",
+    "selectProject": "请先在项目浏览器中选择一个项目",
+    "generateReview": "生成评审报告",
+    "generateReadme": "生成 README",
+    "exportPackage": "导出评审包",
+    "exportPdf": "导出评审 PDF",
+    "openDir": "打开目录",
+    "refresh": "刷新",
+    "generated": "文档已生成",
+    "artifacts": "生成产物",
+    "loading": "加载中…",
+    "noArtifacts": "暂无生成产物",
+    "ready": "已生成",
+    "guideLoading": "加载指南中…",
+    "guideTitle": "用户指南",
+    "knowledge": {
+      "searchPlaceholder": "检索关键词…",
+      "search": "检索",
+      "add": "新增知识",
+      "empty": "暂无知识条目，点击右上角新增",
+      "categoryAll": "全部分类",
+      "loading": "加载中…",
+      "edit": "编辑",
+      "delete": "删除",
+      "editTitle": "编辑知识",
+      "addTitle": "新增知识",
+      "titlePlaceholder": "标题 *",
+      "contentPlaceholder": "知识正文（Markdown）",
+      "categoryPlaceholder": "分类",
+      "projectPlaceholder": "关联项目",
+      "tagsPlaceholder": "标签（逗号分隔）",
+      "cancel": "取消",
+      "save": "保存",
+      "saving": "保存中…",
+      "noContent": "（无正文）",
+      "saved": "已保存知识条目",
+      "deleted": "已删除知识条目",
+      "deleteFailed": "删除失败",
+      "titleRequired": "标题不能为空"
+    }
+  },
+  "window": {
+    "minimize": "最小化",
+    "maximize": "最大化",
+    "restore": "还原",
+    "close": "关闭"
+  },
+  "cheatsheet": {
+    "title": "键盘快捷键",
+    "close": "关闭"
+  },
+  "commandPalette": {
+    "placeholder": "输入命令名称搜索...",
+    "noResults": "无匹配结果",
+    "batchRender": "批量渲染 {{count}} 個專案",
+    "batchRenderYaml": "批量渲染 YAML {{count}} 個專案",
+    "batchExport": "批量匯出 {{count}} 個專案",
+    "renderBatchSelected": "批量渲染所選 {{count}} 個專案",
+    "renderBatchYamlSelected": "批量 YAML 輸出所選 {{count}} 個專案",
+    "exportBatchSelected": "批量匯出所選 {{count}} 個專案"
+  },
+  "workbenchStep": {
+    "pending": "待開始",
+    "ready": "已就緒",
+    "running": "進行中",
+    "needsUpdate": "需更新",
+    "missingMaterials": "缺少必要材料",
+    "hasErrors": "存在錯誤",
+    "readyWithWarnings": "已就緒（有警告）",
+    "renderingProgress": "渲染中 {{progress}}%",
+    "rendered": "已渲染",
+    "outputDone": "已輸出"
+  },
+  "diagnostics": {
+    "supportBundleExported": "支援包已匯出：{{path}}",
+    "telemetryExported": "遙測已匯出：{{path}}",
+    "telemetryCleared": "遙測資料已清空"
+  },
+  "validation": {
+    "manifestFailed": "交付物清單校驗未通過",
+    "manifestPassed": "交付物清單校驗通過（{{time}}）",
+    "reviewPackageExported": "評審包已匯出: {{path}}",
+    "reviewPackageExportedNoPath": "評審包已匯出",
+    "reviewPdfExported": "評審 PDF 已匯出: {{path}}",
+    "reviewPdfExportedNoPath": "評審 PDF 已匯出"
+  },
+  "render": {
+    "preparing": "準備中...",
+    "done": "渲染完成",
+    "failed": "渲染失敗",
+    "yamlDone": "YAML輸出完成",
+    "yamlFailed": "YAML輸出失敗",
+    "snDone": "SN模式渲染完成",
+    "snFailed": "SN模式渲染失敗",
+    "snYamlDone": "SN模式YAML輸出完成",
+    "snYamlFailed": "SN模式YAML輸出失敗",
+    "labelPrintDone": "標籤列印完成",
+    "labelPrintFailed": "標籤列印失敗",
+    "labelMarkdownDone": "標籤Markdown產生完成",
+    "labelMarkdownFailed": "標籤Markdown產生失敗",
+    "labelPdfDone": "標籤PDF匯出完成",
+    "labelPdfFailed": "標籤PDF匯出失敗",
+    "labelDeleteDone": "標籤刪除完成",
+    "labelDeleteFailed": "標籤刪除失敗",
+    "deleteDone": "刪除完成",
+    "deleteOutputFailed": "刪除輸出失敗",
+    "deleteSnOutputFailed": "刪除SN輸出失敗",
+    "deleteYamlFailed": "刪除YAML失敗",
+    "deleteSnYamlFailed": "刪除SN YAML失敗",
+    "undoDone": "渲染已撤銷",
+    "undoFailed": "撤銷渲染失敗",
+    "previewing": "渲染預覽中...",
+    "previewDone": "預覽完成，共 {{count}} 個裝置",
+    "previewFailed": "預覽失敗",
+    "validatingTemplate": "校驗模板中...",
+    "templateValidated": "模板校驗完成",
+    "validatingExcel": "校驗 Excel 資料中...",
+    "excelValidated": "Excel 資料校驗完成",
+    "completed": "完成",
+    "success": "操作成功"
+  },
+  "auth": {
+    "platformLogin": "平台登录",
+    "selectPlatform": "选择登录方式",
+    "loginSuccess": "登录成功",
+    "loginDone": "登录成功",
+    "qrExpired": "二维码已过期",
+    "qrExpiresIn": "二维码 10 分钟内有效",
+    "scanHint": "请使用{platform}扫描二维码"
   }
 }

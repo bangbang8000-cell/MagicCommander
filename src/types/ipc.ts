@@ -676,6 +676,10 @@ export interface AIHubIpcApi {
     agent_mode?: string
     grant?: string
   }) => Promise<{ status: string; data?: AgentConnectStatusInfo; error?: string }>
+  /** 5.4.16-F5416-11/12：内容资产增量同步（拉取变更文件 + sha512 校验 + 状态戳） */
+  contentSync: (opts: { baseUrl: string }) => Promise<unknown>
+  contentStatus: () => Promise<unknown>
+  contentRollback: () => Promise<unknown>
   onStream: (callback: (data: AIHubStreamData) => void) => () => void
 }
 

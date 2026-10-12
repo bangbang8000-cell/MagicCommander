@@ -72,6 +72,21 @@ import terminalFr from './locales/fr/terminal.json'
 import aidcFr from './locales/fr/aidc.json'
 import navFr from './locales/fr/nav.json'
 
+// 5.4.16-F5416-3：启动时从持久化 ui.store 恢复语言（对齐 AL），避免每次启动回退中文
+function getPersistedLanguage(): string {
+  try {
+    const raw = localStorage.getItem('mc-ui-state')
+    if (raw) {
+      const parsed = JSON.parse(raw)
+      const lang = parsed?.state?.language
+      if (typeof lang === 'string' && lang) return lang
+    }
+  } catch {
+    // ignore parse errors, fall back to default
+  }
+  return 'zh-CN'
+}
+
 i18n.use(initReactI18next).init({
   resources: {
     'zh-CN': {
@@ -147,8 +162,12 @@ i18n.use(initReactI18next).init({
       nav: navFr,
     },
   },
-  lng: 'zh-CN',
-  fallbackLng: 'zh-CN',
+  lng: getPersistedLanguage(),
+  // 5.4.16-F5416-1：回落策略 —— 繁体中文优先回落简体；其他语言（en/ja/ko/fr）回落英文
+  fallbackLng: {
+    'zh-TW': ['zh-CN'],
+    default: ['en'],
+  },
   ns: ['common', 'chat', 'cloud', 'editor', 'project', 'errors', 'welcome', 'terminal', 'aidc', 'nav'],
   defaultNS: 'common',
   interpolation: {

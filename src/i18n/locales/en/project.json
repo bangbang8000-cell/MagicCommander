@@ -203,7 +203,15 @@
     "projectNameExists": "Project already exists",
     "projectCreated": "Project \"{{name}}\" created successfully",
     "projectNamePlaceholder": "Enter project name (cannot contain \\ / : * ? \" < > |)",
-    "allProjects": "All projects"
+    "allProjects": "All projects",
+    "fileType": {
+      "yaml": "YAML",
+      "template": "Template",
+      "excel": "Excel",
+      "txt": "Text",
+      "output": "Output",
+      "markdown": "Markdown"
+    }
   },
   "workbench": {
     "title": "Workbench",
@@ -298,7 +306,8 @@
     "scope": "Scope",
     "openProjectDir": "Open Project Directory",
     "scopeHint": "Please select a project from the project browser",
-    "selectedCount": "{{selected}} / {{total}} projects selected"
+    "selectedCount": "{{selected}} / {{total}} projects selected",
+    "viewOutput": "View Output"
   },
   "config": {
     "title": "Configuration",

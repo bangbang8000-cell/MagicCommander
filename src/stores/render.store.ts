@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import i18n from '@/i18n'
 import type {
   LabelPrintConfig,
   RenderConfig,
@@ -6,6 +7,10 @@ import type {
   DryRunResponse,
   ValidationResult,
 } from '@/types/render'
+
+// i18n（5.4.17）：本 store 内置的进度/完成/失败提示默认值统一走 i18n.t('common:render.*') 翻译
+// （参照 chat.store.ts 先例）。调用方如传真实消息（runTask 的 startMessage/successMessage/failurePrefix），
+// 则以调用方传入的已翻译消息为准；后端 IPC 下发的 message（subscribeProgress）同样以 IPC 消息为准。
 
 type RenderTaskType = 'project' | 'yaml' | 'label' | 'general' | 'validate'
 
@@ -85,7 +90,7 @@ export const useRenderStore = create<RenderState>((set, get) => {
     set({
       ...taskFlags(options.type, true),
       progress: 0,
-      currentMessage: options.startMessage ?? '准备中...',
+      currentMessage: options.startMessage ?? i18n.t('common:render.preparing'),
       errors: [],
     })
 
@@ -156,56 +161,56 @@ export const useRenderStore = create<RenderState>((set, get) => {
     renderProject: (ids) =>
       runTask(ids, {
         type: 'project',
-        successMessage: '渲染完成',
-        failurePrefix: '渲染失败',
+        successMessage: i18n.t('common:render.done'),
+        failurePrefix: i18n.t('common:render.failed'),
         action: () => window.electron.render.project(ids),
       }),
 
     renderYaml: (ids) =>
       runTask(ids, {
         type: 'yaml',
-        successMessage: 'YAML输出完成',
-        failurePrefix: 'YAML输出失败',
+        successMessage: i18n.t('common:render.yamlDone'),
+        failurePrefix: i18n.t('common:render.yamlFailed'),
         action: () => window.electron.render.yaml(ids),
       }),
 
     renderProjectSn: (ids) =>
       runTask(ids, {
         type: 'project',
-        successMessage: 'SN模式渲染完成',
-        failurePrefix: 'SN模式渲染失败',
+        successMessage: i18n.t('common:render.snDone'),
+        failurePrefix: i18n.t('common:render.snFailed'),
         action: () => window.electron.render.projectSn(ids),
       }),
 
     renderYamlSn: (ids) =>
       runTask(ids, {
         type: 'yaml',
-        successMessage: 'SN模式YAML输出完成',
-        failurePrefix: 'SN模式YAML输出失败',
+        successMessage: i18n.t('common:render.snYamlDone'),
+        failurePrefix: i18n.t('common:render.snYamlFailed'),
         action: () => window.electron.render.yamlSn(ids),
       }),
 
     labelPrint: (ids, config) =>
       runTask(ids, {
         type: 'label',
-        successMessage: '标签打印完成',
-        failurePrefix: '标签打印失败',
+        successMessage: i18n.t('common:render.labelPrintDone'),
+        failurePrefix: i18n.t('common:render.labelPrintFailed'),
         action: () => window.electron.feature.labelPrint(ids, config),
       }),
 
     labelMarkdown: (ids, config) =>
       runTask(ids, {
         type: 'label',
-        successMessage: '标签Markdown生成完成',
-        failurePrefix: '标签Markdown生成失败',
+        successMessage: i18n.t('common:render.labelMarkdownDone'),
+        failurePrefix: i18n.t('common:render.labelMarkdownFailed'),
         action: () => window.electron.feature.labelMarkdown(ids, config),
       }),
 
     labelPdf: (ids, config) =>
       runTask(ids, {
         type: 'label',
-        successMessage: '标签PDF导出完成',
-        failurePrefix: '标签PDF导出失败',
+        successMessage: i18n.t('common:render.labelPdfDone'),
+        failurePrefix: i18n.t('common:render.labelPdfFailed'),
         action: async () => {
           await window.electron.feature.labelPdf(ids, config)
         },
@@ -214,48 +219,48 @@ export const useRenderStore = create<RenderState>((set, get) => {
     labelDelete: (ids) =>
       runTask(ids, {
         type: 'label',
-        successMessage: '标签删除完成',
-        failurePrefix: '标签删除失败',
+        successMessage: i18n.t('common:render.labelDeleteDone'),
+        failurePrefix: i18n.t('common:render.labelDeleteFailed'),
         action: () => window.electron.feature.labelDelete(ids),
       }),
 
     deleteOutput: (ids) =>
       runTask(ids, {
         type: 'general',
-        successMessage: '删除完成',
-        failurePrefix: '删除输出失败',
+        successMessage: i18n.t('common:render.deleteDone'),
+        failurePrefix: i18n.t('common:render.deleteOutputFailed'),
         action: () => window.electron.delete.output(ids),
       }),
 
     deleteOutputSn: (ids) =>
       runTask(ids, {
         type: 'general',
-        successMessage: '删除完成',
-        failurePrefix: '删除SN输出失败',
+        successMessage: i18n.t('common:render.deleteDone'),
+        failurePrefix: i18n.t('common:render.deleteSnOutputFailed'),
         action: () => window.electron.delete.outputSn(ids),
       }),
 
     deleteYaml: (ids) =>
       runTask(ids, {
         type: 'general',
-        successMessage: '删除完成',
-        failurePrefix: '删除YAML失败',
+        successMessage: i18n.t('common:render.deleteDone'),
+        failurePrefix: i18n.t('common:render.deleteYamlFailed'),
         action: () => window.electron.delete.yaml(ids),
       }),
 
     deleteYamlSn: (ids) =>
       runTask(ids, {
         type: 'general',
-        successMessage: '删除完成',
-        failurePrefix: '删除SN YAML失败',
+        successMessage: i18n.t('common:render.deleteDone'),
+        failurePrefix: i18n.t('common:render.deleteSnYamlFailed'),
         action: () => window.electron.delete.yamlSn(ids),
       }),
 
     undoRender: (ids) =>
       runTask(ids, {
         type: 'general',
-        successMessage: '渲染已撤销',
-        failurePrefix: '撤销渲染失败',
+        successMessage: i18n.t('common:render.undoDone'),
+        failurePrefix: i18n.t('common:render.undoFailed'),
         action: () => window.electron.render.undo(ids),
       }),
 
@@ -264,7 +269,7 @@ export const useRenderStore = create<RenderState>((set, get) => {
       set({
         ...taskFlags('general', true),
         progress: 0,
-        currentMessage: '渲染预览中...',
+        currentMessage: i18n.t('common:render.previewing'),
         errors: [],
         dryRunResults: [],
       })
@@ -274,14 +279,14 @@ export const useRenderStore = create<RenderState>((set, get) => {
         set({
           ...clearTaskFlags(),
           progress: 100,
-          currentMessage: `预览完成，共 ${results.length} 个设备`,
+          currentMessage: i18n.t('common:render.previewDone', { count: results.length }),
           dryRunResults: results,
         })
       } catch (err) {
         set({
           ...clearTaskFlags(),
           progress: 0,
-          currentMessage: `预览失败: ${errorMessage(err)}`,
+          currentMessage: `${i18n.t('common:render.previewFailed')}: ${errorMessage(err)}`,
           errors: [errorMessage(err)],
         })
       }
@@ -294,7 +299,7 @@ export const useRenderStore = create<RenderState>((set, get) => {
       set({
         ...taskFlags('validate', true),
         progress: 0,
-        currentMessage: '校验模板中...',
+        currentMessage: i18n.t('common:render.validatingTemplate'),
         errors: [],
         validationResults: null,
       })
@@ -304,7 +309,7 @@ export const useRenderStore = create<RenderState>((set, get) => {
         set({
           ...clearTaskFlags(),
           progress: 100,
-          currentMessage: `模板校验完成`,
+          currentMessage: i18n.t('common:render.templateValidated'),
           validationResults: results,
         })
       } catch (err) {
@@ -320,7 +325,7 @@ export const useRenderStore = create<RenderState>((set, get) => {
       set({
         ...taskFlags('validate', true),
         progress: 0,
-        currentMessage: '校验 Excel 数据中...',
+        currentMessage: i18n.t('common:render.validatingExcel'),
         errors: [],
         validationResults: null,
       })
@@ -330,7 +335,7 @@ export const useRenderStore = create<RenderState>((set, get) => {
         set({
           ...clearTaskFlags(),
           progress: 100,
-          currentMessage: `Excel 数据校验完成`,
+          currentMessage: i18n.t('common:render.excelValidated'),
           validationResults: results,
         })
       } catch (err) {
@@ -361,7 +366,7 @@ export const useRenderStore = create<RenderState>((set, get) => {
           set({
             ...clearTaskFlags(),
             progress: 100,
-            currentMessage: data.message || '完成',
+            currentMessage: data.message || i18n.t('common:render.completed'),
           })
         } else if (data.status === 'info') {
           set({
@@ -383,7 +388,7 @@ export const useRenderStore = create<RenderState>((set, get) => {
           })
         } else if (data.status === 'success') {
           set({
-            currentMessage: data.message || '操作成功',
+            currentMessage: data.message || i18n.t('common:render.success'),
           })
         }
       }

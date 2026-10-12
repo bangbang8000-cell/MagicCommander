@@ -27,6 +27,7 @@ import { deriveStepConfig, deriveStepRender, deriveStepResult, type StepStateInf
  *  v2.0 M3: 升级为数字徽章 + 标题 + 渐变连接线的步骤条语言（编号由 JSX 传入，与 i18n 文案解耦）
  *  5.4.4（F3）: 增加状态徽章（待开始/已就绪/进行中/需更新），对齐 AL WorkbenchStepBar 语义 */
 function StepLabel({ n, text, state }: { n: string; text: string; state?: StepStateInfo }) {
+  const { t } = useTranslation()
   const stateColor =
     state?.state === 'ready'
       ? 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300'
@@ -42,7 +43,9 @@ function StepLabel({ n, text, state }: { n: string; text: string; state?: StepSt
       </span>
       <span className="text-xs font-semibold text-gray-700 dark:text-gray-200">{text}</span>
       {state && (
-        <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${stateColor}`}>{state.hint}</span>
+        <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${stateColor}`}>
+          {t(`workbenchStep.${state.hintKey}`, state.hintParams)}
+        </span>
       )}
       <span className="flex-1 h-px bg-gradient-to-r from-primary-200 dark:from-primary-700 to-transparent" />
     </div>

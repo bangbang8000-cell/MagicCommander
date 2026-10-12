@@ -183,7 +183,8 @@
     "starting": "시작 중...",
     "ready": "준비 완료",
     "defaultQuote": "네트워크의 세계에는 도달하지 못할 먼 곳이란 없습니다...",
-    "networkEngineerProverb": "네트워크 엔지니어 명언"
+    "networkEngineerProverb": "네트워크 엔지니어 명언",
+    "loading": "Loading..."
   },
   "logViewer": {
     "executionLog": "실행 로그",
@@ -237,7 +238,20 @@
     "loadFailed": "로딩 실패",
     "noOutputFiles": "출력 파일 없음",
     "renderHint": "렌더링을 실행하면 여기에 표시됩니다.",
-    "openInExplorer": "탐색기에서 열기"
+    "openInExplorer": "탐색기에서 열기",
+    "labelOutput": "Label Output",
+    "tabs": {
+      "browse": "File Browser",
+      "export": "Batch Export"
+    },
+    "exportAll": "Export All",
+    "exportFormat": "Export Format",
+    "exportAsZip": "ZIP Archive",
+    "exportToDir": "Export to Folder",
+    "exportSuccess": "Export successful",
+    "exportFailed": "Export failed",
+    "exporting": "Exporting...",
+    "exportDone": "Exported: {{path}}"
   },
   "renderPanel": {
     "projectInfo": "프로젝트 정보",
@@ -294,6 +308,11 @@
       "projectName": "프로젝트 이름",
       "projectNamePlaceholder": "예: test1",
       "projectDirHint": "프로젝트 디렉터리는 앱 루트에 생성되며, excel/, templates/, para.xlsx가 포함됩니다"
+    },
+    "tabs": {
+      "config": "Render Config",
+      "label": "Print Labels",
+      "cleanup": "Cleanup"
     }
   },
   "panel": {
@@ -335,12 +354,22 @@
     "toggleTerminal": "터미널/로그 패널 전환",
     "renderCurrentProject": "현재 프로젝트 렌더링",
     "exportOutput": "내보내기/출력",
-    "projectPanel": "프로젝트 패널"
+    "projectPanel": "프로젝트 패널",
+    "chat": "AI Chat",
+    "workbench": "Workbench",
+    "newProject": "新建项目",
+    "undo": "撤销",
+    "redo": "重做",
+    "copySelection": "复制",
+    "paste": "粘贴",
+    "settings": "打开设置",
+    "aiChat": "AI 对话"
   },
   "hotkeyCategories": {
     "file": "파일",
     "view": "보기",
-    "panel": "패널"
+    "panel": "패널",
+    "edit": "编辑"
   },
   "explorer": {
     "title": "탐색기",
@@ -365,7 +394,10 @@
     "unknownError": "Unknown error",
     "checkButton": "Check for Updates",
     "downloadButton": "Download Update",
-    "installButton": "Restart and Install"
+    "installButton": "Restart and Install",
+    "later": "Later",
+    "restart": "Restart Now",
+    "restartHint": "The new version will take effect after restart."
   },
   "settings": {
     "ai": {
@@ -398,7 +430,99 @@
       "agentConnectGrantHint": "외부 에이전트 승인 권한: readonly(읽기 전용) / semi(부분 확인) / full(확인 없음. full은 컴파일 모드 차단을 면제하지 않음)",
       "agentConnectGrantReadonly": "읽기 전용",
       "agentConnectGrantSemi": "반 권한",
-      "agentConnectGrantFull": "전체 권한"
+      "agentConnectGrantFull": "전체 권한",
+      "title": "AI Configuration",
+      "desc": "Choose LLM provider, configure API key and model parameters",
+      "apiKey": "API Key",
+      "apiKeyPlaceholder": "Enter your API Key",
+      "model": "Model",
+      "baseUrl": "Base URL",
+      "save": "Save",
+      "saved": "Saved",
+      "setDefault": "Set as Default",
+      "isDefault": "Default",
+      "default": "Default",
+      "testConnection": "Test Connection",
+      "fetchModels": "Fetch Models",
+      "selectModel": "Select Model",
+      "routing": "Smart Routing",
+      "routingDesc": "Auto-select the best AI model based on task type",
+      "routingCode": "Code/Template",
+      "routingCodeDesc": "Write code, generate templates",
+      "routingAnalysis": "Analysis/Review",
+      "routingAnalysisDesc": "Config analysis, diff review",
+      "routingSimple": "Simple Q&A",
+      "routingSimpleDesc": "List, query, help",
+      "routingComplex": "Complex Reasoning",
+      "routingComplexDesc": "Multi-step reasoning, planning",
+      "notConfigured": "Not configured",
+      "hubTimeout": "AI Hub startup timed out, please check Python environment",
+      "hubFailed": "AI Hub failed to start, please check Python environment",
+      "hubNotReady": "AI Hub not ready",
+      "testFailed": "Test failed",
+      "providerConfig": "{{name}} Configuration"
+    },
+    "title": "Settings",
+    "comingSoon": "Coming Soon",
+    "general": {
+      "title": "General",
+      "desc": "Language, auto-save, workspace path",
+      "language": "Language",
+      "autoSave": "Auto Save",
+      "autoSaveDesc": "Auto-save when editing files",
+      "autoSaveInterval": "Auto Save Interval (s)",
+      "workspacePath": "Workspace Path",
+      "openWorkspace": "Open Workspace",
+      "knowledgeInjection": "Knowledge Base Injection",
+      "knowledgeInjectionHint": "Inject relevant knowledge into chat context (on by default)",
+      "checkUpdateOnStart": "Check for updates on startup",
+      "checkUpdateOnStartDesc": "Automatically check for updates",
+      "fontSize": "Font Size",
+      "fontSmall": "Small (12px)",
+      "fontMedium": "Medium (13px)",
+      "fontLarge": "Large (14px)",
+      "currentVersion": "Current Version",
+      "checkUpdate": "Check for Updates",
+      "latestVersion": "You're up to date",
+      "newVersionAvailable": "New version available"
+    },
+    "appearance": {
+      "title": "Appearance",
+      "desc": "Theme, font size, layout"
+    },
+    "advanced": {
+      "title": "Advanced",
+      "desc": "Python path, debug mode, proxy settings",
+      "pythonPath": "Python Path",
+      "pythonPathHint": "Leave empty for system default Python",
+      "browse": "Browse",
+      "debugMode": "Debug Mode",
+      "debugModeDesc": "Enable verbose logs and DevTools",
+      "proxy": "Proxy",
+      "proxyHint": "e.g.: http://127.0.0.1:7890",
+      "aiHubPort": "AI Hub Port",
+      "aiHubPortDesc": "0 means auto-assign",
+      "aiHubAutoStart": "Auto-start AI Hub",
+      "aiHubAutoStartDesc": "Auto-start when opening Chat",
+      "autonomyMode": "AI Autonomy",
+      "autonomyModeDesc": "Advisor requires confirmation for all actions, Semi-Auto only for render/delete, Full-Auto executes all automatically"
+    },
+    "updates": {
+      "title": "Software Update",
+      "checkButton": "Check for Updates"
+    },
+    "platform": {
+      "title": "Platform Connection",
+      "desc": "Connect to MagicCommander Platform",
+      "serverUrl": "Server URL",
+      "testConnection": "Test Connection",
+      "loginStatus": "Login Status",
+      "loggedIn": "Logged In",
+      "notLoggedIn": "Not Logged In"
+    },
+    "about": {
+      "desc": "Intelligent Network Configuration Management Tool",
+      "version": "Version"
     }
   },
   "efficiency": {
@@ -451,5 +575,139 @@
     "skip": "건너뛰기",
     "prev": "이전",
     "next": "다음"
+  },
+  "doc": {
+    "tabDocs": "Documents",
+    "tabGuide": "Guide",
+    "tabKnowledge": "Knowledge Base",
+    "currentProject": "Current Project",
+    "selectProject": "Please select a project in the Project Explorer first",
+    "generateReview": "Generate Review Report",
+    "generateReadme": "Generate README",
+    "exportPackage": "Export Review Package",
+    "exportPdf": "Export Review PDF",
+    "openDir": "Open Folder",
+    "refresh": "Refresh",
+    "generated": "Document generated",
+    "artifacts": "Generated Artifacts",
+    "loading": "Loading…",
+    "noArtifacts": "No generated artifacts yet",
+    "ready": "Ready",
+    "guideLoading": "Loading guide…",
+    "guideTitle": "User Guide",
+    "knowledge": {
+      "searchPlaceholder": "Search keywords…",
+      "search": "Search",
+      "add": "Add Knowledge",
+      "empty": "No knowledge entries. Click + to add one.",
+      "categoryAll": "All Categories",
+      "loading": "Loading…",
+      "edit": "Edit",
+      "delete": "Delete",
+      "editTitle": "Edit Knowledge",
+      "addTitle": "Add Knowledge",
+      "titlePlaceholder": "Title *",
+      "contentPlaceholder": "Knowledge body (Markdown)",
+      "categoryPlaceholder": "Category",
+      "projectPlaceholder": "Linked Project",
+      "tagsPlaceholder": "Tags (comma separated)",
+      "cancel": "Cancel",
+      "save": "Save",
+      "saving": "Saving…",
+      "noContent": "(no body)",
+      "saved": "Knowledge entry saved",
+      "deleted": "Knowledge entry deleted",
+      "deleteFailed": "Delete failed",
+      "titleRequired": "Title is required"
+    }
+  },
+  "window": {
+    "minimize": "Minimize",
+    "maximize": "Maximize",
+    "restore": "Restore",
+    "close": "Close"
+  },
+  "cheatsheet": {
+    "title": "键盘快捷键",
+    "close": "关闭"
+  },
+  "commandPalette": {
+    "placeholder": "输入命令名称搜索...",
+    "noResults": "无匹配结果",
+    "batchRender": "프로젝트 {{count}}개 일괄 렌더링",
+    "batchRenderYaml": "프로젝트 {{count}}개 YAML 일괄 출력",
+    "batchExport": "프로젝트 {{count}}개 일괄 내보내기",
+    "renderBatchSelected": "선택한 프로젝트 {{count}}개 일괄 렌더링",
+    "renderBatchYamlSelected": "선택한 프로젝트 {{count}}개 YAML 일괄 출력",
+    "exportBatchSelected": "선택한 프로젝트 {{count}}개 일괄 내보내기"
+  },
+  "workbenchStep": {
+    "pending": "시작 전",
+    "ready": "준비됨",
+    "running": "진행 중",
+    "needsUpdate": "업데이트 필요",
+    "missingMaterials": "필수 자료가 없습니다",
+    "hasErrors": "오류가 있습니다",
+    "readyWithWarnings": "준비됨(경고 있음)",
+    "renderingProgress": "렌더링 중 {{progress}}%",
+    "rendered": "렌더링 완료",
+    "outputDone": "출력 완료"
+  },
+  "diagnostics": {
+    "supportBundleExported": "지원 패키지 내보내기 완료: {{path}}",
+    "telemetryExported": "원격 측정 데이터 내보내기 완료: {{path}}",
+    "telemetryCleared": "원격 측정 데이터가 지워졌습니다"
+  },
+  "validation": {
+    "manifestFailed": "산출물 매니페스트 검증에 실패했습니다",
+    "manifestPassed": "산출물 매니페스트 검증 통과({{time}})",
+    "reviewPackageExported": "검토 패키지 내보내기 완료: {{path}}",
+    "reviewPackageExportedNoPath": "검토 패키지 내보내기 완료",
+    "reviewPdfExported": "검토 PDF 내보내기 완료: {{path}}",
+    "reviewPdfExportedNoPath": "검토 PDF 내보내기 완료"
+  },
+  "render": {
+    "preparing": "준비 중...",
+    "done": "렌더링 완료",
+    "failed": "렌더링 실패",
+    "yamlDone": "YAML 출력 완료",
+    "yamlFailed": "YAML 출력 실패",
+    "snDone": "SN 모드 렌더링 완료",
+    "snFailed": "SN 모드 렌더링 실패",
+    "snYamlDone": "SN 모드 YAML 출력 완료",
+    "snYamlFailed": "SN 모드 YAML 출력 실패",
+    "labelPrintDone": "라벨 인쇄 완료",
+    "labelPrintFailed": "라벨 인쇄 실패",
+    "labelMarkdownDone": "라벨 Markdown 생성 완료",
+    "labelMarkdownFailed": "라벨 Markdown 생성 실패",
+    "labelPdfDone": "라벨 PDF 내보내기 완료",
+    "labelPdfFailed": "라벨 PDF 내보내기 실패",
+    "labelDeleteDone": "라벨 삭제 완료",
+    "labelDeleteFailed": "라벨 삭제 실패",
+    "deleteDone": "삭제 완료",
+    "deleteOutputFailed": "출력 삭제 실패",
+    "deleteSnOutputFailed": "SN 출력 삭제 실패",
+    "deleteYamlFailed": "YAML 삭제 실패",
+    "deleteSnYamlFailed": "SN YAML 삭제 실패",
+    "undoDone": "렌더링이 취소되었습니다",
+    "undoFailed": "렌더링 취소 실패",
+    "previewing": "렌더링 미리보기 중...",
+    "previewDone": "미리보기 완료, 총 {{count}}개 장치",
+    "previewFailed": "미리보기 실패",
+    "validatingTemplate": "템플릿 검증 중...",
+    "templateValidated": "템플릿 검증 완료",
+    "validatingExcel": "Excel 데이터 검증 중...",
+    "excelValidated": "Excel 데이터 검증 완료",
+    "completed": "완료",
+    "success": "작업 성공"
+  },
+  "auth": {
+    "platformLogin": "Platform Login",
+    "selectPlatform": "Select Login Method",
+    "loginSuccess": "Login Successful",
+    "loginDone": "Login Successful",
+    "qrExpired": "QR Code Expired",
+    "qrExpiresIn": "QR code valid for 10 minutes",
+    "scanHint": "Scan QR code with {platform}"
   }
 }

@@ -73,5 +73,14 @@
     "advisor": "어드바이저 모드",
     "semiAuto": "반자동",
     "fullAuto": "전체 자동"
+  },
+  "workflow": {
+    "badge": "Workflow",
+    "phasePlan": "Plan approval",
+    "phaseExecute": "Step {{step}}",
+    "phaseVerify": "Verifying",
+    "phaseDone": "Task done",
+    "approvePlan": "Approve the execution plan below",
+    "approveStep": "Approve step {{step}}?"
   }
 }

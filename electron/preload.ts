@@ -265,6 +265,10 @@ const api = {
     agentConnectStatus: () => ipcRenderer.invoke('aihub:agentConnectStatus'),
     agentConnectConfig: (config: { enable?: boolean; agent_mode?: string; grant?: string }) =>
       ipcRenderer.invoke('aihub:agentConnectConfig', config),
+    // 5.4.16-F5416-11/12：内容资产增量同步
+    contentSync: (opts: { baseUrl: string }) => ipcRenderer.invoke('content:sync', opts),
+    contentStatus: () => ipcRenderer.invoke('content:status'),
+    contentRollback: () => ipcRenderer.invoke('content:rollback'),
     exportSkills: () => ipcRenderer.invoke('aihub:exportSkills'),
     importSkills: () => ipcRenderer.invoke('aihub:importSkills'),
     onStream: (callback: (data: { sessionId: string; chunk: string }) => void) => {

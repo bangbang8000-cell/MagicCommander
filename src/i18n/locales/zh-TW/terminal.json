@@ -71,7 +71,31 @@
     "echo": {
       "desc": "回顯文字，用法: echo <text>"
     },
-    "unknown": "未知命令: {{cmd}}"
+    "unknown": "未知命令: {{cmd}}",
+    "create": {
+      "desc": "创建项目: create <名称> [--empty] [--template <名>]"
+    },
+    "delete": {
+      "desc": "删除: delete project|output|yaml|output-sn|yaml-sn|labels|template"
+    },
+    "rm": {
+      "desc": "delete 别名"
+    },
+    "info": {
+      "desc": "项目信息: info <名称或ID>"
+    },
+    "template": {
+      "desc": "模板管理: template list|save <项目> <模板名>|delete <模板名>"
+    },
+    "validate": {
+      "desc": "校验: validate template|excel <ids>"
+    },
+    "read": {
+      "desc": "读取文件: read <项目> <路径>"
+    },
+    "cat": {
+      "desc": "read 别名"
+    }
   },
   "help": {
     "terminal": [

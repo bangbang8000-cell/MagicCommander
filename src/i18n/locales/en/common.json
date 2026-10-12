@@ -235,14 +235,7 @@
     "reload": "Reload Page"
   },
   "loading": {
-    "restoringState": "Restoring state...",
-    "loadingProject": "Loading project...",
-    "restoringProject": "Restoring project...",
-    "restoringTabs": "Restoring tabs...",
-    "starting": "Starting...",
-    "ready": "Ready",
-    "defaultQuote": "In the world of networking, no destination is unreachable...",
-    "networkEngineerProverb": "Network Engineer's Proverb"
+    "loading": "Loading..."
   },
   "logViewer": {
     "executionLog": "Execution Log",
@@ -413,12 +406,20 @@
     "toggleTerminal": "Toggle Terminal / Log Panel",
     "renderCurrentProject": "Render Current Project",
     "exportOutput": "Export / Output",
-    "projectPanel": "Project Panel"
+    "projectPanel": "Project Panel",
+    "newProject": "New Project",
+    "undo": "Undo",
+    "redo": "Redo",
+    "copySelection": "Copy",
+    "paste": "Paste",
+    "settings": "Open Settings",
+    "aiChat": "AI Chat"
   },
   "hotkeyCategories": {
     "file": "File",
     "view": "View",
-    "panel": "Panel"
+    "panel": "Panel",
+    "edit": "Edit"
   },
   "explorer": {
     "title": "Explorer",
@@ -555,17 +556,13 @@
     "about": {
       "desc": "Intelligent Network Configuration Management Tool",
       "version": "Version"
-    },
-    "comingSoon": "Coming Soon"
+    }
   },
   "window": {
     "minimize": "Minimize",
     "maximize": "Maximize",
     "restore": "Restore",
     "close": "Close"
-  },
-  "loading": {
-    "loading": "Loading..."
   },
   "auth": {
     "platformLogin": "Platform Login",
@@ -626,5 +623,79 @@
     "skip": "Skip",
     "prev": "Back",
     "next": "Next"
+  },
+  "cheatsheet": {
+    "title": "Keyboard Shortcuts",
+    "close": "Close"
+  },
+  "commandPalette": {
+    "placeholder": "Type a command name to search...",
+    "noResults": "No matching results",
+    "batchRender": "Batch Render {{count}} Projects",
+    "batchRenderYaml": "Batch Render YAML for {{count}} Projects",
+    "batchExport": "Batch Export {{count}} Projects",
+    "renderBatchSelected": "Batch Render {{count}} Selected Projects",
+    "renderBatchYamlSelected": "Batch YAML Output for {{count}} Selected Projects",
+    "exportBatchSelected": "Batch Export {{count}} Selected Projects"
+  },
+  "workbenchStep": {
+    "pending": "Not started",
+    "ready": "Ready",
+    "running": "In progress",
+    "needsUpdate": "Needs update",
+    "missingMaterials": "Missing required materials",
+    "hasErrors": "Has errors",
+    "readyWithWarnings": "Ready (with warnings)",
+    "renderingProgress": "Rendering {{progress}}%",
+    "rendered": "Rendered",
+    "outputDone": "Output produced"
+  },
+  "diagnostics": {
+    "supportBundleExported": "Support bundle exported: {{path}}",
+    "telemetryExported": "Telemetry exported: {{path}}",
+    "telemetryCleared": "Telemetry data cleared"
+  },
+  "validation": {
+    "manifestFailed": "Deliverable manifest validation failed",
+    "manifestPassed": "Deliverable manifest validation passed ({{time}})",
+    "reviewPackageExported": "Review package exported: {{path}}",
+    "reviewPackageExportedNoPath": "Review package exported",
+    "reviewPdfExported": "Review PDF exported: {{path}}",
+    "reviewPdfExportedNoPath": "Review PDF exported"
+  },
+  "render": {
+    "preparing": "Preparing...",
+    "done": "Render complete",
+    "failed": "Render failed",
+    "yamlDone": "YAML output complete",
+    "yamlFailed": "YAML output failed",
+    "snDone": "SN-mode render complete",
+    "snFailed": "SN-mode render failed",
+    "snYamlDone": "SN-mode YAML output complete",
+    "snYamlFailed": "SN-mode YAML output failed",
+    "labelPrintDone": "Label printing complete",
+    "labelPrintFailed": "Label printing failed",
+    "labelMarkdownDone": "Label Markdown generated",
+    "labelMarkdownFailed": "Label Markdown generation failed",
+    "labelPdfDone": "Label PDF exported",
+    "labelPdfFailed": "Label PDF export failed",
+    "labelDeleteDone": "Labels deleted",
+    "labelDeleteFailed": "Label deletion failed",
+    "deleteDone": "Deletion complete",
+    "deleteOutputFailed": "Failed to delete output",
+    "deleteSnOutputFailed": "Failed to delete SN output",
+    "deleteYamlFailed": "Failed to delete YAML",
+    "deleteSnYamlFailed": "Failed to delete SN YAML",
+    "undoDone": "Render undone",
+    "undoFailed": "Failed to undo render",
+    "previewing": "Rendering preview...",
+    "previewDone": "Preview complete, {{count}} devices",
+    "previewFailed": "Preview failed",
+    "validatingTemplate": "Validating templates...",
+    "templateValidated": "Template validation complete",
+    "validatingExcel": "Validating Excel data...",
+    "excelValidated": "Excel data validation complete",
+    "completed": "Complete",
+    "success": "Operation successful"
   }
 }

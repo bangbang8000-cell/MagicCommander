@@ -2,6 +2,29 @@
 
 本文件为发布说明的单一事实来源（`npm run sync-version -- --release-notes` 自动抽取当前版本段）。
 
+## [5.4.16] - 2026-10-12
+
+> **多语言系统修复版（与 AL 5.4.16 同号同步）+ 内容资产增量更新（L2 MVP）。**
+
+### 多语言（F5416-1/2/3/6/7）
+
+- **回落策略**：fallbackLng 按语言映射 —— 繁体中文回落简体（zh-TW→zh-CN），其他语言（en/ja/ko/fr）回落英文（此前统一回落 zh-CN）。
+- **语言 key 补全**：en 补 30、zh-TW 补 394、ja/ko 各补 391、fr 补 396（common/project/cloud/chat/editor/terminal；en 为翻译基准、zh-TW 以简体为基线转繁体）。
+- **启动恢复持久化语言**：i18n init 读取 mc-ui-state 持久化语言 + rehydrate 后同步（此前每次启动回中文）。
+- **门禁升级**：common 命名空间由护栏升级为**严格完整性**（6 语言缺 key 即失败）；新增硬编码中文扫描门禁 `scan_hardcoded_cn.py`（基线 58 文件，新增文件出现未国际化中文即 CI 失败）。
+- **高频组件 i18n 化**：workbenchSteps 步骤标签、CommandPalette 批量命令名、DiagnosticsPanel/ValidationPanel 提示、render.store 默认消息 —— 58 个新 key × 6 语言齐全。
+
+### 内容资产增量更新（F5416-11/12/15，L2 MVP）
+
+- **客户端内容同步器** `content-sync.service.ts`：拉取平台内容清单 → 比对本地版本 → **仅拉取变更文件**（sha512 强校验 + 原子替换 .part 改名）→ 落状态戳；失败记入 failed 不覆盖旧文件；`rollbackContent` 恢复到上一版本快照（下次同步自愈）。
+- **IPC**：`content:sync` / `content:status` / `content:rollback`（preload + 渲染层类型齐备）。
+- **契约测试** 5 用例：首次全量、增量跳过、sha512 篡改不覆盖、回退撤销、manifest 失败抛错。
+- 配合平台 `/api/v1/content/manifest` 端点（内容更新**不 bump 应用版本、不重装安装包**）。
+
+### 文档
+
+- 详见《MC-AL_5.4.16多语言评估与修复PRD_v1.0_2026-10-12.md》与《MC-AL_5.4.16开发&测试计划_v1.0_2026-10-12.md》。
+
 ## [5.4.15] - 2026-10-12
 
 > **系列收官与验收版（与 AL 5.4.15 同号同步）：全量回归 + 版本对齐 + 复盘。**

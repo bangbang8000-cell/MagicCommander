@@ -37,10 +37,10 @@ describe('deriveStepConfig', () => {
     expect(deriveStepConfig(projectInfo(), false, [vr('fail')]).state).toBe('needs_update')
   })
 
-  it('校验存在警告 → 已就绪（有警告）', () => {
+  it('校验存在警告 → 已就绪（有警告 hintKey）', () => {
     const s = deriveStepConfig(projectInfo(), false, [vr('warn')])
     expect(s.state).toBe('ready')
-    expect(s.hint).toContain('警告')
+    expect(s.hintKey).toBe('readyWithWarnings')
   })
 
   it('材料齐全且校验通过 → 已就绪', () => {
@@ -49,10 +49,11 @@ describe('deriveStepConfig', () => {
 })
 
 describe('deriveStepRender', () => {
-  it('渲染中 → 进行中（带进度）', () => {
+  it('渲染中 → 进行中（带进度参数）', () => {
     const s = deriveStepRender(true, 42, false)
     expect(s.state).toBe('running')
-    expect(s.hint).toContain('42')
+    expect(s.hintKey).toBe('renderingProgress')
+    expect(s.hintParams?.progress).toBe(42)
   })
 
   it('已渲染 → 已就绪', () => {

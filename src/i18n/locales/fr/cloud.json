@@ -1,8 +1,36 @@
 {
   "title": "Cloud Platform",
-  "dashboard": "Dashboard",
+  "dashboard": {
+    "welcome": "Welcome, {name}",
+    "myTemplates": "My Templates",
+    "myProjects": "My Projects",
+    "platformUsers": "Platform Users",
+    "recentTemplates": "Recent Templates",
+    "recentProjects": "Recent Projects",
+    "browseMarket": "Browse Template Market",
+    "manageProjects": "Manage My Projects",
+    "publishTemplate": "Publish Template",
+    "notLoggedIn": "Please login to cloud platform",
+    "goSettings": "Go to Settings",
+    "loadFailed": "Load Failed",
+    "connected": "Connected",
+    "server": "Server",
+    "install": "Install Locally",
+    "pull": "Pull to Local",
+    "notifications": "Notifications",
+    "announcements": "Announcements",
+    "syncReminders": "Sync Reminders",
+    "pushNow": "Push Now"
+  },
   "templates": "Template Market",
-  "projects": "Remote Projects",
+  "projects": {
+    "my": "My Projects",
+    "public": "Public Projects",
+    "private": "Private",
+    "delete": "Delete Project",
+    "emptyMine": "No cloud projects yet. Push a local project to start.",
+    "emptyPublic": "No public projects found"
+  },
   "login": "Login",
   "loginDialog": {
     "title": "Login to MagicCommander Platform",
@@ -48,7 +76,9 @@
     "connecting": "Connecting...",
     "error": "Connection Failed",
     "notConfigured": "Server not configured",
-    "notLoggedIn": "Not logged in"
+    "notLoggedIn": "Not logged in",
+    "loggedIn": "已登录",
+    "updateAvailable": "有新版本"
   },
   "syncStatus": {
     "synced": "Synced",
@@ -107,28 +137,6 @@
     "accountInfo": "Account Info",
     "syncSettings": "Sync Settings"
   },
-  "dashboard": {
-    "welcome": "Welcome, {name}",
-    "myTemplates": "My Templates",
-    "myProjects": "My Projects",
-    "platformUsers": "Platform Users",
-    "recentTemplates": "Recent Templates",
-    "recentProjects": "Recent Projects",
-    "browseMarket": "Browse Template Market",
-    "manageProjects": "Manage My Projects",
-    "publishTemplate": "Publish Template",
-    "notLoggedIn": "Please login to cloud platform",
-    "goSettings": "Go to Settings",
-    "loadFailed": "Load Failed",
-    "connected": "Connected",
-    "server": "Server",
-    "install": "Install Locally",
-    "pull": "Pull to Local",
-    "notifications": "Notifications",
-    "announcements": "Announcements",
-    "syncReminders": "Sync Reminders",
-    "pushNow": "Push Now"
-  },
   "panel": {
     "tabDashboard": "Dashboard",
     "tabSearch": "Search",
@@ -148,14 +156,6 @@
     "loginHint": "Login to search cloud projects, templates and files",
     "startHint": "Enter keywords to start searching",
     "resultCount": "{count} results"
-  },
-  "projects": {
-    "my": "My Projects",
-    "public": "Public Projects",
-    "private": "Private",
-    "delete": "Delete Project",
-    "emptyMine": "No cloud projects yet. Push a local project to start.",
-    "emptyPublic": "No public projects found"
   },
   "notifications": {
     "empty": "No notifications"
@@ -177,5 +177,15 @@
     "latest": "Latest",
     "downloads": "Most Downloaded",
     "name": "Name"
+  },
+  "share": {
+    "title": "Share Link",
+    "manage": "Manage My Shares",
+    "create": "Create Share Link"
+  },
+  "market": {
+    "featured": "Featured",
+    "subscribe": "Subscribe",
+    "subscribed": "Subscribed"
   }
 }

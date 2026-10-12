@@ -54,7 +54,24 @@
     "exampleTemplateDesc": "從範例參數檔案開始，包含常用參數模板",
     "emptyProject": "空白專案",
     "emptyProjectDesc": "建立一個空白專案，從空白開始",
-    "deleteConfirmMessage": "確定要刪除專案 \"{{name}}\" 嗎？此操作無法復原。"
+    "deleteConfirmMessage": "確定要刪除專案 \"{{name}}\" 嗎？此操作無法復原。",
+    "saveAsTemplate": "存为模板",
+    "saveAsTemplateDesc": "将当前项目 <span>{{name}}</span> 保存到 template 目录，运行输出目录不会复制。",
+    "saveAsTemplateName": "模板名称",
+    "saveAsTemplateButton": "保存",
+    "templateCenter": "模板中心",
+    "noExampleAvailable": "没有可用示例",
+    "readExampleFailed": "读取示例模板失败: {{message}}",
+    "savedAsTemplate": "已保存为模板: {{name}}",
+    "deletedProjects": "已删除 {{count}} 个项目",
+    "exampleDesc": "从 example 目录选择一个示例项目复制到 workspace",
+    "pushSuccess": "项目 \"{{name}}\" 已推送到云端",
+    "packageExported": "项目包已导出: {{path}}",
+    "packageImported": "项目包{{verb}}: {{name}}",
+    "packageImportFailed": "项目包导入失败",
+    "packageSkip": "无变化，已跳过",
+    "packageUpdated": "已更新",
+    "packageCreated": "已新建"
   },
   "search": {
     "title": "搜尋",
@@ -113,7 +130,8 @@
     "projectNameExists": "專案已存在",
     "projectCreated": "專案 \"{{name}}\" 建立成功",
     "projectNamePlaceholder": "輸入專案名稱（不能包含 \\ / : * ? \" < > |）",
-    "allProjects": "全部專案"
+    "allProjects": "全部專案",
+    "fileType.output": "输出"
   },
   "workbench": {
     "title": "工作台",
@@ -187,7 +205,29 @@
     "paperSize": "紙張大小",
     "orientation": "方向",
     "portrait": "縱向",
-    "landscape": "橫向"
+    "landscape": "橫向",
+    "executeAction": "执行动作",
+    "dryRunPreview": "预览渲染结果",
+    "deleteOutput": "删除输出",
+    "deleteYaml": "删除 YAML",
+    "readyStatus": "准备状态",
+    "excelDesc": "项目配置表",
+    "templateDesc": "模板目录",
+    "paraDesc": "参数文件",
+    "outputDesc": "输出目录",
+    "yamlDesc": "YAML 文件",
+    "openPara": "打开 para",
+    "validateTemplate": "校验模板",
+    "validateData": "校验数据",
+    "validationResult": "校验结果",
+    "clear": "清除",
+    "readyHint": "请选择一个项目查看准备状态",
+    "outputSettings": "输出设置",
+    "scope": "目标范围",
+    "openProjectDir": "打开项目目录",
+    "scopeHint": "请在项目浏览器中选择一个项目",
+    "selectedCount": "已选 {{selected}} / {{total}} 个项目",
+    "viewOutput": "查看输出结果"
   },
   "config": {
     "title": "配置",
@@ -256,7 +296,10 @@
     "labelPreview": "標籤預覽",
     "totalLabels": "共 {{count}} 個標籤",
     "labelIndex": "標籤 {{index}}",
-    "noPreviewData": "沒有可預覽的標籤資料"
+    "noPreviewData": "沒有可預覽的標籤資料",
+    "generateMarkdown": "生成Markdown标签",
+    "exportWord": "导出Word标签",
+    "exportPdf": "导出PDF标签"
   },
   "render": {
     "title": "渲染",
@@ -276,5 +319,161 @@
     "confirmDeleteYamlMessage": "確定要刪除所有YAML檔案嗎？",
     "confirmDeleteSn": "確認刪除流水號",
     "confirmDeleteSnMessage": "確定要刪除所有流水號嗎？"
+  },
+  "template": {
+    "noTemplates": "暂无模板",
+    "readFailed": "读取模板失败: {{message}}",
+    "createFromTemplate": "已从模板创建项目: {{name}}",
+    "updated": "模板信息已更新",
+    "confirmDelete": "确认删除模板\"{{name}}\"？",
+    "deleted": "模板已删除",
+    "enterProjectName": "请输入新项目名称",
+    "card": {
+      "createProject": "从模板建立项目",
+      "editInfo": "编辑模板信息",
+      "deleteTemplate": "删除模板",
+      "noScenario": "未设置场景",
+      "noDescription": "暂无简介",
+      "sourceProject": "来源项目：{{name}}",
+      "unknown": "未知",
+      "quality": "质量: {{score}}"
+    },
+    "detail": {
+      "selectHint": "请选择一个模板查看详情",
+      "noDescription": "暂无简介",
+      "scenario": "适用场景",
+      "sourceProject": "来源项目",
+      "structure": "结构摘要",
+      "inputRequirements": "输入要求",
+      "outputDescription": "输出说明",
+      "fileStructure": "文件结构",
+      "notSet": "未设置",
+      "unknown": "未知"
+    },
+    "edit": {
+      "title": "编辑模板信息",
+      "name": "模板名称",
+      "namePlaceholder": "模板名称",
+      "description": "描述",
+      "descPlaceholder": "模板简介",
+      "category": "分类",
+      "public": "可见性",
+      "publicHint": "所有人可见",
+      "privateHint": "仅自己可见",
+      "scenarioPlaceholder": "适用场景",
+      "sourcePlaceholder": "来源项目",
+      "inputPlaceholder": "输入要求，每行一项",
+      "outputPlaceholder": "输出说明",
+      "cancel": "取消",
+      "save": "保存"
+    },
+    "list": {
+      "searchPlaceholder": "搜索模板",
+      "sortByName": "按名称",
+      "sortByUpdated": "按更新时间",
+      "sortBySource": "按来源项目",
+      "toggleView": "切换视图"
+    },
+    "category": {
+      "all": "全部"
+    },
+    "createProject": "从模板创建项目",
+    "create": "创建",
+    "creating": "创建中...",
+    "publish": "发布到市场",
+    "publishing": "发布中...",
+    "publishSuccess": "模板 \"{name}\" 发布成功",
+    "noFilesToPublish": "模板中没有可发布的文件",
+    "pubCategory": {
+      "switch": "交换机",
+      "router": "路由器",
+      "firewall": "防火墙",
+      "server": "服务器",
+      "other": "其他"
+    }
+  },
+  "projectBatch": {
+    "selectAll": "全选",
+    "batchRender": "批量渲染",
+    "delete": "删除"
+  },
+  "projectList": {
+    "searchPlaceholder": "搜索项目",
+    "sortByName": "按名称排序",
+    "sortByDate": "按最近创建排序",
+    "newProject": "新建项目",
+    "saveAsTemplate": "当前项目另存为模板",
+    "importAl": "导入 AutoLink 项目",
+    "exportPackage": "导出项目包",
+    "importPackage": "导入项目包"
+  },
+  "excel": {
+    "loading": "正在加载 Excel 文件...",
+    "loadFailed": "读取 Excel 失败",
+    "retry": "重试",
+    "timeout": "读取 Excel 超时（10秒）",
+    "readFailedMsg": "读取 Excel 失败: {{message}}",
+    "saveSuccess": "已保存: {{name}}",
+    "saveFailed": "保存失败: {{message}}",
+    "noData": "无数据",
+    "rows": "{{count}}行"
+  },
+  "editor": {
+    "loading": "加载中...",
+    "saveSuccess": "已保存: {{name}}",
+    "saveFailed": "保存失败: {{message}}"
+  },
+  "dependencyAnalysis": {
+    "title": "依赖分析",
+    "desc": "模板 ↔ Excel 列反向索引",
+    "refresh": "刷新",
+    "loading": "分析中...",
+    "run": "开始分析",
+    "noData": "暂无数据（请先选择项目）",
+    "templateColumns": "模板引用列",
+    "columnTemplates": "列 → 模板",
+    "missing": "缺失列",
+    "unused": "未使用列",
+    "sources": "数据来源",
+    "noTemplates": "没有 .j2 模板",
+    "error": "分析失败"
+  },
+  "proofread": {
+    "title": "智能校对",
+    "refresh": "校对",
+    "run": "开始校对",
+    "loading": "校对中...",
+    "noIssues": "✓ 未发现问题",
+    "errors": "错误",
+    "warnings": "警告",
+    "total": "问题"
+  },
+  "snippet": {
+    "title": "片段",
+    "save": "保存",
+    "savePlaceholder": "选区另存为片段...",
+    "inserted": "已插入",
+    "deleted": "已删除",
+    "saved": "片段已保存",
+    "empty": "暂无片段",
+    "insert": "插入",
+    "insertContent": "插入内容",
+    "insertInclude": "插入 include",
+    "delete": "删除"
+  },
+  "templateAsset": {
+    "title": "模板资产",
+    "versions": "版本",
+    "preview": "预览",
+    "snapshot": "快照",
+    "restore": "恢复",
+    "previewRun": "预览渲染",
+    "historyEmpty": "暂无版本",
+    "notePlaceholder": "版本备注(可选)",
+    "restored": "已恢复版本",
+    "snapshotted": "已创建快照",
+    "previewEmpty": "点击预览渲染查看输出",
+    "device": "设备",
+    "showAll": "全部"
   }
 }

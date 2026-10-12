@@ -88,4 +88,15 @@ describe('common 命名空间回归护栏（存量缺口按 D-6 分批补齐）'
     const suspicious = flattenKeys(zhCN).filter((k) => getAt(zhCN, k) === k)
     expect(suspicious).toEqual([])
   })
+
+  it('5.4.16-F5416-7：common 全语言严格完整性（缺失即失败，防回退漂移）', () => {
+    // 5.4.16 已将 zh-TW/ja/ko/fr/en 的 common 缺口补齐，门禁由护栏升级为严格
+    const baseKeys = flattenKeys(zhCN)
+    for (const { code, common } of LOCALES) {
+      if (code === 'zh-CN') continue
+      const langKeys = new Set(flattenKeys(common))
+      const missing = baseKeys.filter((k) => !langKeys.has(k))
+      expect(missing, `${code} common 缺少 key: ${missing.join(', ')}`).toEqual([])
+    }
+  })
 })

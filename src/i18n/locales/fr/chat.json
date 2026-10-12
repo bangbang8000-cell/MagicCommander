@@ -83,5 +83,14 @@
     "save": "Save",
     "ignore": "Ignore",
     "saved": "Skill saved"
+  },
+  "workflow": {
+    "badge": "Workflow",
+    "phasePlan": "Plan approval",
+    "phaseExecute": "Step {{step}}",
+    "phaseVerify": "Verifying",
+    "phaseDone": "Task done",
+    "approvePlan": "Approve the execution plan below",
+    "approveStep": "Approve step {{step}}?"
   }
 }

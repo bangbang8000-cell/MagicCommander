@@ -18,7 +18,8 @@
     "closeSplit": "Fermer le partage",
     "preview": "Mode aperçu",
     "pin": "Épingler l'onglet",
-    "unpin": "Désépingler"
+    "unpin": "Désépingler",
+    "copyPath": "复制路径"
   },
   "monaco": {
     "wordWrap": "Retour à la ligne",

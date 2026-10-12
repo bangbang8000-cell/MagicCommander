@@ -12,6 +12,9 @@ export interface CommandItem {
   action: () => void
   /** 4.3 F3-1b：可选终端命令文本——存在且提供了 onTerminalCommand 时交终端批量执行 */
   terminal?: string
+  /** 5.4.17：批量命令名走 i18n——labelKey + labelParams 存在时渲染处用 t() 翻译 */
+  labelKey?: string
+  labelParams?: Record<string, unknown>
 }
 
 interface CommandPaletteProps {
@@ -30,23 +33,54 @@ export function createBatchCommand(
   category: string,
   terminal: string,
   shortcut?: string,
+  i18n?: { labelKey: string; labelParams?: Record<string, unknown> },
 ): CommandItem {
-  return { id, label, category, shortcut, terminal, action: () => {} }
+  return {
+    id,
+    label,
+    category,
+    shortcut,
+    terminal,
+    action: () => {},
+    labelKey: i18n?.labelKey,
+    labelParams: i18n?.labelParams,
+  }
 }
 
 export function buildBatchRenderCommands(ids: string[]): CommandItem[] {
   if (ids.length === 0) return []
   const idsArg = ids.join(',')
+  const count = ids.length
   return [
-    createBatchCommand('batchRender', `批量渲染 ${ids.length} 个项目`, '批量操作', `render project ${idsArg}`),
-    createBatchCommand('batchRenderYaml', `批量渲染 YAML ${ids.length} 个项目`, '批量操作', `render yaml ${idsArg}`),
+    createBatchCommand(
+      'batchRender',
+      `批量渲染 ${count} 个项目`,
+      '批量操作',
+      `render project ${idsArg}`,
+      undefined,
+      { labelKey: 'batchRender', labelParams: { count } },
+    ),
+    createBatchCommand(
+      'batchRenderYaml',
+      `批量渲染 YAML ${count} 个项目`,
+      '批量操作',
+      `render yaml ${idsArg}`,
+      undefined,
+      { labelKey: 'batchRenderYaml', labelParams: { count } },
+    ),
   ]
 }
 
 export function buildBatchExportCommands(ids: string[]): CommandItem[] {
   if (ids.length === 0) return []
   const idsArg = ids.join(',')
-  return [createBatchCommand('batchExport', `批量导出 ${ids.length} 个项目`, '批量操作', `export projects ${idsArg}`)]
+  const count = ids.length
+  return [
+    createBatchCommand('batchExport', `批量导出 ${count} 个项目`, '批量操作', `export projects ${idsArg}`, undefined, {
+      labelKey: 'batchExport',
+      labelParams: { count },
+    }),
+  ]
 }
 
 export function buildProjectCommands(): CommandItem[] {
@@ -78,8 +112,9 @@ export function createCommand(
   category: string,
   shortcut: string | undefined,
   action: () => void,
+  i18n?: { labelKey: string; labelParams?: Record<string, unknown> },
 ): CommandItem {
-  return { id, label, category, shortcut, action }
+  return { id, label, category, shortcut, action, labelKey: i18n?.labelKey, labelParams: i18n?.labelParams }
 }
 
 /** 渲染命令：当前项目 + 所选批量（kind: project | yaml | sn） */
@@ -94,9 +129,17 @@ export function buildRenderCommands(
   ]
   if (batchCount > 0) {
     items.unshift(
-      createCommand('renderBatch', `批量渲染所选 ${batchCount} 个项目`, '渲染', undefined, () => onRender('project')),
-      createCommand('renderBatchYaml', `批量 YAML 输出所选 ${batchCount} 个项目`, '渲染', undefined, () =>
-        onRender('yaml'),
+      createCommand('renderBatch', `批量渲染所选 ${batchCount} 个项目`, '渲染', undefined, () => onRender('project'), {
+        labelKey: 'renderBatchSelected',
+        labelParams: { count: batchCount },
+      }),
+      createCommand(
+        'renderBatchYaml',
+        `批量 YAML 输出所选 ${batchCount} 个项目`,
+        '渲染',
+        undefined,
+        () => onRender('yaml'),
+        { labelKey: 'renderBatchYamlSelected', labelParams: { count: batchCount } },
       ),
     )
   }
@@ -107,7 +150,12 @@ export function buildRenderCommands(
 export function buildExportCommands(onExport: () => void, batchCount = 0): CommandItem[] {
   const items: CommandItem[] = [createCommand('exportCurrent', '导出当前项目', '导出', 'Ctrl+E', onExport)]
   if (batchCount > 0) {
-    items.unshift(createCommand('exportBatch', `批量导出所选 ${batchCount} 个项目`, '导出', undefined, onExport))
+    items.unshift(
+      createCommand('exportBatch', `批量导出所选 ${batchCount} 个项目`, '导出', undefined, onExport, {
+        labelKey: 'exportBatchSelected',
+        labelParams: { count: batchCount },
+      }),
+    )
   }
   return items
 }
@@ -279,7 +327,9 @@ export function CommandPalette({ open, onClose, commands, onTerminalCommand }: C
                       : 'text-gray-700 hover:bg-gray-100',
                 )}
               >
-                <span className="flex-1 truncate">{item.label}</span>
+                <span className="flex-1 truncate">
+                  {item.labelKey ? t(`common:commandPalette.${item.labelKey}`, item.labelParams) : item.label}
+                </span>
                 <span className={clsx('text-xs shrink-0', isDark ? 'text-gray-500' : 'text-gray-400')}>
                   {item.category}
                 </span>

@@ -110,6 +110,14 @@ export default function App() {
     }
   }, [])
 
+  // 5.4.16-F5416-3：与持久化 ui.store 语言保持同步（rehydrate 后应用已选语言）
+  const language = useUIStore((s) => s.language)
+  useEffect(() => {
+    if (i18n.language !== language) {
+      i18n.changeLanguage(language)
+    }
+  }, [language])
+
   // 启动时检查云端版本更新
   useEffect(() => {
     if (!isInitialized) return

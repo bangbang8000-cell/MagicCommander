@@ -8,6 +8,7 @@
  */
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { render, screen, fireEvent, act, cleanup } from '@testing-library/react'
+import '@/i18n'
 import { ValidationPanel } from '@/components/panel/ValidationPanel'
 import { ToastContainer } from '@/components/ui/Toast'
 import { useValidationStore } from '@/stores/validation.store'

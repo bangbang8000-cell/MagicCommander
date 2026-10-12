@@ -6,6 +6,7 @@
  * - 遥测导出 / 清空（diag:telemetry:*）
  */
 import { useCallback, useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   Activity,
   AlertTriangle,
@@ -79,6 +80,7 @@ function buildPerfSnapshot(): PerfSnapshotDto {
 }
 
 export function DiagnosticsPanel() {
+  const { t } = useTranslation()
   const isDark = useUIStore((s) => s.isDark)
   const baseUrl = usePlatformStore((s) => s.baseUrl)
   const [report, setReport] = useState<DiagnosticsReport | null>(null)
@@ -126,7 +128,7 @@ export function DiagnosticsPanel() {
       if (!window.electron?.diag?.export) return
       const res = await window.electron.diag.export()
       if (res.ok && res.path) {
-        showSuccess(`支持包已导出：${res.path}`)
+        showSuccess(t('diagnostics.supportBundleExported', { path: res.path }))
       } else if (res.error && res.error !== 'canceled') {
         showError(res.error)
       }
@@ -141,7 +143,7 @@ export function DiagnosticsPanel() {
     try {
       if (!window.electron?.diag?.telemetryExport) return
       const res = await window.electron.diag.telemetryExport()
-      if (res.ok && res.path) showSuccess(`遥测已导出：${res.path}`)
+      if (res.ok && res.path) showSuccess(t('diagnostics.telemetryExported', { path: res.path }))
     } catch (err) {
       showError(err instanceof Error ? err.message : String(err))
     }
@@ -151,7 +153,7 @@ export function DiagnosticsPanel() {
     try {
       if (!window.electron?.diag?.telemetryClear) return
       await window.electron.diag.telemetryClear()
-      showSuccess('遥测数据已清空')
+      showSuccess(t('diagnostics.telemetryCleared'))
       refresh()
     } catch (err) {
       showError(err instanceof Error ? err.message : String(err))

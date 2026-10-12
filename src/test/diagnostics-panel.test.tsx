@@ -10,6 +10,7 @@
  */
 import { describe, it, expect, afterEach, vi } from 'vitest'
 import { render, screen, fireEvent, act, cleanup } from '@testing-library/react'
+import '@/i18n'
 import { DiagnosticsPanel } from '@/components/panel/DiagnosticsPanel'
 import type { DiagnosticsReport, HealthReport } from '@/types/ipc'
 

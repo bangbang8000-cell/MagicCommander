@@ -64,6 +64,8 @@ jobs:
         continue-on-error: true
       # 4.0.0-F0-1（40-c）：性能门禁 —— 批量渲染/单项目全量渲染超阈值退出码 1
       - run: python scripts/bench_perf.py --rounds 1
+      # 5.4.16-F5416-6：硬编码中文扫描门禁 —— 新增未国际化中文即失败（多语言回归护栏）
+      - run: python scripts/scan_hardcoded_cn.py
       # 4.5.0（45-a）：数据准确性校验门禁 —— 一致性/导出核对/IP 规划（有 error 即失败）
       - run: python scripts/validate_consistency.py --check
       - run: cd backend && python3 -m pytest tests/ -v

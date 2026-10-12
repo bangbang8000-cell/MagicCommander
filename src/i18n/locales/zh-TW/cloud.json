@@ -1,8 +1,36 @@
 {
   "title": "雲平台",
-  "dashboard": "儀表盤",
+  "dashboard": {
+    "welcome": "歡迎, {name}",
+    "myTemplates": "我的模板",
+    "myProjects": "我的專案",
+    "platformUsers": "平台使用者",
+    "recentTemplates": "最近模板",
+    "recentProjects": "最近專案",
+    "browseMarket": "瀏覽模板市場",
+    "manageProjects": "管理我的專案",
+    "publishTemplate": "發布模板",
+    "notLoggedIn": "請先登入雲平台",
+    "goSettings": "前往設定",
+    "loadFailed": "載入失敗",
+    "connected": "連線正常",
+    "server": "伺服器",
+    "install": "安裝到本機",
+    "pull": "拉取到本機",
+    "notifications": "通知中心",
+    "announcements": "平台公告",
+    "syncReminders": "同步提醒",
+    "pushNow": "立即推送"
+  },
   "templates": "模板市場",
-  "projects": "遠端專案",
+  "projects": {
+    "my": "我的项目",
+    "public": "公开项目",
+    "private": "私有",
+    "delete": "删除云端项目",
+    "emptyMine": "暂无云端项目，请先将本地项目推送到云端",
+    "emptyPublic": "暂无公开项目"
+  },
   "login": "登入",
   "loginDialog": {
     "title": "登入 MagicCommander Platform",
@@ -66,7 +94,8 @@
     "pushTitle": "推送專案",
     "pullTitle": "拉取專案",
     "resolveConflict": "解決衝突",
-    "openInExplorer": "在檔案總管中開啟"
+    "openInExplorer": "在檔案總管中開啟",
+    "deleteConfirm": "确定要删除云端项目 \"{{name}}\" 吗？此操作不可撤销。"
   },
   "profile": {
     "title": "使用者資料",
@@ -81,7 +110,15 @@
     "bindings": "綁定帳號",
     "bind": "綁定",
     "unbind": "解綁",
-    "openFolder": "開啟專案資料夾"
+    "openFolder": "開啟專案資料夾",
+    "showGiteaCreds": "Gitea 登录信息",
+    "username": "用户名",
+    "password": "密码",
+    "showPassword": "显示密码",
+    "hidePassword": "隐藏密码",
+    "copyPassword": "复制密码",
+    "passwordCopied": "已复制",
+    "clipboardHint": "点击「打开平台」登录。密码将在30秒后自动清除剪贴板。"
   },
   "settings": {
     "title": "設定",
@@ -100,40 +137,55 @@
     "accountInfo": "帳號資訊",
     "syncSettings": "同步設定"
   },
-  "dashboard": {
-    "welcome": "歡迎, {name}",
-    "myTemplates": "我的模板",
-    "myProjects": "我的專案",
-    "platformUsers": "平台使用者",
-    "recentTemplates": "最近模板",
-    "recentProjects": "最近專案",
-    "browseMarket": "瀏覽模板市場",
-    "manageProjects": "管理我的專案",
-    "publishTemplate": "發布模板",
-    "notLoggedIn": "請先登入雲平台",
-    "goSettings": "前往設定",
-    "loadFailed": "載入失敗",
-    "connected": "連線正常",
-    "server": "伺服器",
-    "install": "安裝到本機",
-    "pull": "拉取到本機",
-    "notifications": "通知中心",
-    "announcements": "平台公告",
-    "syncReminders": "同步提醒",
-    "pushNow": "立即推送"
-  },
   "panel": {
     "tabDashboard": "儀表盤",
     "tabTemplates": "模板市場",
     "tabProjects": "遠端專案",
-    "title": "MagicCommander Platform"
+    "title": "MagicCommander Platform",
+    "tabSearch": "搜索"
   },
   "search": {
     "placeholder": "搜尋專案名稱或描述...",
     "noResults": "未找到符合的專案",
-    "noResultsTemplates": "未找到符合的模板"
+    "noResultsTemplates": "未找到符合的模板",
+    "typeProject": "项目名",
+    "typeTemplate": "模板名",
+    "typeFilename": "文件名",
+    "typeContent": "文件内容",
+    "typePlaceholder": "搜索{type}...",
+    "loginHint": "登录后可搜索云端项目、模板和文件",
+    "startHint": "输入关键词开始搜索",
+    "resultCount": "共 {count} 条结果"
   },
   "notifications": {
     "empty": "暫無通知"
+  },
+  "categories": {
+    "all": "全部",
+    "switch": "交换机",
+    "router": "路由器",
+    "firewall": "防火墙",
+    "wireless": "无线",
+    "other": "其他"
+  },
+  "pagination": {
+    "info": "第 {{page}} / {{total}} 页",
+    "prev": "上一页",
+    "next": "下一页"
+  },
+  "sort": {
+    "latest": "最近更新",
+    "downloads": "下载最多",
+    "name": "名称"
+  },
+  "share": {
+    "title": "分享链接",
+    "manage": "管理我的分享",
+    "create": "生成分享链接"
+  },
+  "market": {
+    "featured": "精选",
+    "subscribe": "订阅",
+    "subscribed": "已订阅"
   }
 }

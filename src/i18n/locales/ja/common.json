@@ -183,7 +183,8 @@
     "starting": "起動中...",
     "ready": "準備完了",
     "defaultQuote": "ネットワークの世界に、届かない場所はない...",
-    "networkEngineerProverb": "ネットワークエンジニアの格言"
+    "networkEngineerProverb": "ネットワークエンジニアの格言",
+    "loading": "Loading..."
   },
   "logViewer": {
     "executionLog": "実行ログ",
@@ -237,7 +238,20 @@
     "loadFailed": "読み込みに失敗しました",
     "noOutputFiles": "出力ファイルがありません",
     "renderHint": "レンダリング実行後にここに表示されます",
-    "openInExplorer": "エクスプローラーで開く"
+    "openInExplorer": "エクスプローラーで開く",
+    "labelOutput": "Label Output",
+    "tabs": {
+      "browse": "File Browser",
+      "export": "Batch Export"
+    },
+    "exportAll": "Export All",
+    "exportFormat": "Export Format",
+    "exportAsZip": "ZIP Archive",
+    "exportToDir": "Export to Folder",
+    "exportSuccess": "Export successful",
+    "exportFailed": "Export failed",
+    "exporting": "Exporting...",
+    "exportDone": "Exported: {{path}}"
   },
   "renderPanel": {
     "projectInfo": "プロジェクト情報",
@@ -294,6 +308,11 @@
       "projectName": "プロジェクト名",
       "projectNamePlaceholder": "例：test1",
       "projectDirHint": "プロジェクトディレクトリはアプリのルートに作成され、excel/、templates/、para.xlsx が含まれます"
+    },
+    "tabs": {
+      "config": "Render Config",
+      "label": "Print Labels",
+      "cleanup": "Cleanup"
     }
   },
   "panel": {
@@ -335,12 +354,22 @@
     "toggleTerminal": "ターミナル/ログパネルを切り替え",
     "renderCurrentProject": "現在のプロジェクトをレンダリング",
     "exportOutput": "エクスポート/出力",
-    "projectPanel": "プロジェクトパネル"
+    "projectPanel": "プロジェクトパネル",
+    "chat": "AI Chat",
+    "workbench": "Workbench",
+    "newProject": "新建项目",
+    "undo": "撤销",
+    "redo": "重做",
+    "copySelection": "复制",
+    "paste": "粘贴",
+    "settings": "打开设置",
+    "aiChat": "AI 对话"
   },
   "hotkeyCategories": {
     "file": "ファイル",
     "view": "表示",
-    "panel": "パネル"
+    "panel": "パネル",
+    "edit": "编辑"
   },
   "explorer": {
     "title": "エクスプローラー",
@@ -365,7 +394,10 @@
     "unknownError": "Unknown error",
     "checkButton": "Check for Updates",
     "downloadButton": "Download Update",
-    "installButton": "Restart and Install"
+    "installButton": "Restart and Install",
+    "later": "Later",
+    "restart": "Restart Now",
+    "restartHint": "The new version will take effect after restart."
   },
   "settings": {
     "ai": {
@@ -398,7 +430,99 @@
       "agentConnectGrantHint": "外部エージェントの承認権限: readonly（読取のみ）/ semi（一部確認）/ full（確認なし。full はコンパイルモードのブロックを免除しない）",
       "agentConnectGrantReadonly": "読み取り専用",
       "agentConnectGrantSemi": "半権限",
-      "agentConnectGrantFull": "全権限"
+      "agentConnectGrantFull": "全権限",
+      "title": "AI Configuration",
+      "desc": "Choose LLM provider, configure API key and model parameters",
+      "apiKey": "API Key",
+      "apiKeyPlaceholder": "Enter your API Key",
+      "model": "Model",
+      "baseUrl": "Base URL",
+      "save": "Save",
+      "saved": "Saved",
+      "setDefault": "Set as Default",
+      "isDefault": "Default",
+      "default": "Default",
+      "testConnection": "Test Connection",
+      "fetchModels": "Fetch Models",
+      "selectModel": "Select Model",
+      "routing": "Smart Routing",
+      "routingDesc": "Auto-select the best AI model based on task type",
+      "routingCode": "Code/Template",
+      "routingCodeDesc": "Write code, generate templates",
+      "routingAnalysis": "Analysis/Review",
+      "routingAnalysisDesc": "Config analysis, diff review",
+      "routingSimple": "Simple Q&A",
+      "routingSimpleDesc": "List, query, help",
+      "routingComplex": "Complex Reasoning",
+      "routingComplexDesc": "Multi-step reasoning, planning",
+      "notConfigured": "Not configured",
+      "hubTimeout": "AI Hub startup timed out, please check Python environment",
+      "hubFailed": "AI Hub failed to start, please check Python environment",
+      "hubNotReady": "AI Hub not ready",
+      "testFailed": "Test failed",
+      "providerConfig": "{{name}} Configuration"
+    },
+    "title": "Settings",
+    "comingSoon": "Coming Soon",
+    "general": {
+      "title": "General",
+      "desc": "Language, auto-save, workspace path",
+      "language": "Language",
+      "autoSave": "Auto Save",
+      "autoSaveDesc": "Auto-save when editing files",
+      "autoSaveInterval": "Auto Save Interval (s)",
+      "workspacePath": "Workspace Path",
+      "openWorkspace": "Open Workspace",
+      "knowledgeInjection": "Knowledge Base Injection",
+      "knowledgeInjectionHint": "Inject relevant knowledge into chat context (on by default)",
+      "checkUpdateOnStart": "Check for updates on startup",
+      "checkUpdateOnStartDesc": "Automatically check for updates",
+      "fontSize": "Font Size",
+      "fontSmall": "Small (12px)",
+      "fontMedium": "Medium (13px)",
+      "fontLarge": "Large (14px)",
+      "currentVersion": "Current Version",
+      "checkUpdate": "Check for Updates",
+      "latestVersion": "You're up to date",
+      "newVersionAvailable": "New version available"
+    },
+    "appearance": {
+      "title": "Appearance",
+      "desc": "Theme, font size, layout"
+    },
+    "advanced": {
+      "title": "Advanced",
+      "desc": "Python path, debug mode, proxy settings",
+      "pythonPath": "Python Path",
+      "pythonPathHint": "Leave empty for system default Python",
+      "browse": "Browse",
+      "debugMode": "Debug Mode",
+      "debugModeDesc": "Enable verbose logs and DevTools",
+      "proxy": "Proxy",
+      "proxyHint": "e.g.: http://127.0.0.1:7890",
+      "aiHubPort": "AI Hub Port",
+      "aiHubPortDesc": "0 means auto-assign",
+      "aiHubAutoStart": "Auto-start AI Hub",
+      "aiHubAutoStartDesc": "Auto-start when opening Chat",
+      "autonomyMode": "AI Autonomy",
+      "autonomyModeDesc": "Advisor requires confirmation for all actions, Semi-Auto only for render/delete, Full-Auto executes all automatically"
+    },
+    "updates": {
+      "title": "Software Update",
+      "checkButton": "Check for Updates"
+    },
+    "platform": {
+      "title": "Platform Connection",
+      "desc": "Connect to MagicCommander Platform",
+      "serverUrl": "Server URL",
+      "testConnection": "Test Connection",
+      "loginStatus": "Login Status",
+      "loggedIn": "Logged In",
+      "notLoggedIn": "Not Logged In"
+    },
+    "about": {
+      "desc": "Intelligent Network Configuration Management Tool",
+      "version": "Version"
     }
   },
   "efficiency": {
@@ -451,5 +575,139 @@
     "skip": "スキップ",
     "prev": "戻る",
     "next": "次へ"
+  },
+  "doc": {
+    "tabDocs": "Documents",
+    "tabGuide": "Guide",
+    "tabKnowledge": "Knowledge Base",
+    "currentProject": "Current Project",
+    "selectProject": "Please select a project in the Project Explorer first",
+    "generateReview": "Generate Review Report",
+    "generateReadme": "Generate README",
+    "exportPackage": "Export Review Package",
+    "exportPdf": "Export Review PDF",
+    "openDir": "Open Folder",
+    "refresh": "Refresh",
+    "generated": "Document generated",
+    "artifacts": "Generated Artifacts",
+    "loading": "Loading…",
+    "noArtifacts": "No generated artifacts yet",
+    "ready": "Ready",
+    "guideLoading": "Loading guide…",
+    "guideTitle": "User Guide",
+    "knowledge": {
+      "searchPlaceholder": "Search keywords…",
+      "search": "Search",
+      "add": "Add Knowledge",
+      "empty": "No knowledge entries. Click + to add one.",
+      "categoryAll": "All Categories",
+      "loading": "Loading…",
+      "edit": "Edit",
+      "delete": "Delete",
+      "editTitle": "Edit Knowledge",
+      "addTitle": "Add Knowledge",
+      "titlePlaceholder": "Title *",
+      "contentPlaceholder": "Knowledge body (Markdown)",
+      "categoryPlaceholder": "Category",
+      "projectPlaceholder": "Linked Project",
+      "tagsPlaceholder": "Tags (comma separated)",
+      "cancel": "Cancel",
+      "save": "Save",
+      "saving": "Saving…",
+      "noContent": "(no body)",
+      "saved": "Knowledge entry saved",
+      "deleted": "Knowledge entry deleted",
+      "deleteFailed": "Delete failed",
+      "titleRequired": "Title is required"
+    }
+  },
+  "window": {
+    "minimize": "Minimize",
+    "maximize": "Maximize",
+    "restore": "Restore",
+    "close": "Close"
+  },
+  "cheatsheet": {
+    "title": "键盘快捷键",
+    "close": "关闭"
+  },
+  "commandPalette": {
+    "placeholder": "输入命令名称搜索...",
+    "noResults": "无匹配结果",
+    "batchRender": "{{count}} 件のプロジェクトを一括レンダリング",
+    "batchRenderYaml": "{{count}} 件のプロジェクトの YAML を一括出力",
+    "batchExport": "{{count}} 件のプロジェクトを一括エクスポート",
+    "renderBatchSelected": "選択した {{count}} 件のプロジェクトを一括レンダリング",
+    "renderBatchYamlSelected": "選択した {{count}} 件のプロジェクトの YAML を一括出力",
+    "exportBatchSelected": "選択した {{count}} 件のプロジェクトを一括エクスポート"
+  },
+  "workbenchStep": {
+    "pending": "未開始",
+    "ready": "準備完了",
+    "running": "進行中",
+    "needsUpdate": "更新が必要",
+    "missingMaterials": "必須材料が不足しています",
+    "hasErrors": "エラーがあります",
+    "readyWithWarnings": "準備完了（警告あり）",
+    "renderingProgress": "レンダリング中 {{progress}}%",
+    "rendered": "レンダリング済み",
+    "outputDone": "出力済み"
+  },
+  "diagnostics": {
+    "supportBundleExported": "サポートパッケージをエクスポートしました: {{path}}",
+    "telemetryExported": "テレメトリをエクスポートしました: {{path}}",
+    "telemetryCleared": "テレメトリデータをクリアしました"
+  },
+  "validation": {
+    "manifestFailed": "納品物マニフェストの検証に失敗しました",
+    "manifestPassed": "納品物マニフェストの検証に合格しました（{{time}}）",
+    "reviewPackageExported": "レビューパッケージをエクスポートしました: {{path}}",
+    "reviewPackageExportedNoPath": "レビューパッケージをエクスポートしました",
+    "reviewPdfExported": "レビュー PDF をエクスポートしました: {{path}}",
+    "reviewPdfExportedNoPath": "レビュー PDF をエクスポートしました"
+  },
+  "render": {
+    "preparing": "準備中...",
+    "done": "レンダリング完了",
+    "failed": "レンダリング失敗",
+    "yamlDone": "YAML出力完了",
+    "yamlFailed": "YAML出力失敗",
+    "snDone": "SNモードレンダリング完了",
+    "snFailed": "SNモードレンダリング失敗",
+    "snYamlDone": "SNモードYAML出力完了",
+    "snYamlFailed": "SNモードYAML出力失敗",
+    "labelPrintDone": "ラベル印刷完了",
+    "labelPrintFailed": "ラベル印刷失敗",
+    "labelMarkdownDone": "ラベルMarkdown生成完了",
+    "labelMarkdownFailed": "ラベルMarkdown生成失敗",
+    "labelPdfDone": "ラベルPDFエクスポート完了",
+    "labelPdfFailed": "ラベルPDFエクスポート失敗",
+    "labelDeleteDone": "ラベル削除完了",
+    "labelDeleteFailed": "ラベル削除失敗",
+    "deleteDone": "削除完了",
+    "deleteOutputFailed": "出力の削除に失敗しました",
+    "deleteSnOutputFailed": "SN出力の削除に失敗しました",
+    "deleteYamlFailed": "YAMLの削除に失敗しました",
+    "deleteSnYamlFailed": "SN YAMLの削除に失敗しました",
+    "undoDone": "レンダリングを元に戻しました",
+    "undoFailed": "レンダリングを元に戻せませんでした",
+    "previewing": "レンダリングプレビュー中...",
+    "previewDone": "プレビュー完了、{{count}} 台のデバイス",
+    "previewFailed": "プレビュー失敗",
+    "validatingTemplate": "テンプレート検証中...",
+    "templateValidated": "テンプレート検証完了",
+    "validatingExcel": "Excel データ検証中...",
+    "excelValidated": "Excel データ検証完了",
+    "completed": "完了",
+    "success": "操作に成功しました"
+  },
+  "auth": {
+    "platformLogin": "Platform Login",
+    "selectPlatform": "Select Login Method",
+    "loginSuccess": "Login Successful",
+    "loginDone": "Login Successful",
+    "qrExpired": "QR Code Expired",
+    "qrExpiresIn": "QR code valid for 10 minutes",
+    "scanHint": "Scan QR code with {platform}"
   }
 }

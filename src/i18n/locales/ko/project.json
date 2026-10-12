@@ -54,7 +54,24 @@
     "exampleTemplateDesc": "예제 매개변수 파일로 시작하며, 일반적인 매개변수 템플릿이 포함되어 있습니다",
     "emptyProject": "빈 프로젝트",
     "emptyProjectDesc": "빈 프로젝트를 생성하며, 처음부터 시작합니다",
-    "deleteConfirmMessage": "프로젝트 \"{{name}}\"을(를) 삭제하시겠습니까? 이 작업은 취소할 수 없습니다."
+    "deleteConfirmMessage": "프로젝트 \"{{name}}\"을(를) 삭제하시겠습니까? 이 작업은 취소할 수 없습니다.",
+    "saveAsTemplate": "Save as Template",
+    "saveAsTemplateDesc": "Save current project <span>{{name}}</span> to template directory. Output directories will not be copied.",
+    "saveAsTemplateName": "Template Name",
+    "saveAsTemplateButton": "Save",
+    "templateCenter": "Template Center",
+    "noExampleAvailable": "No examples available",
+    "readExampleFailed": "Failed to read example templates: {{message}}",
+    "savedAsTemplate": "Saved as template: {{name}}",
+    "deletedProjects": "Deleted {{count}} projects",
+    "exampleDesc": "Select an example project from the example directory to copy to workspace",
+    "pushSuccess": "Project \"{{name}}\" pushed to cloud",
+    "packageExported": "Project package exported: {{path}}",
+    "packageImported": "Project package {{verb}}: {{name}}",
+    "packageImportFailed": "Failed to import project package",
+    "packageSkip": "unchanged, skipped",
+    "packageUpdated": "updated",
+    "packageCreated": "created"
   },
   "search": {
     "title": "검색",
@@ -113,7 +130,8 @@
     "projectNameExists": "프로젝트가 이미 존재합니다",
     "projectCreated": "프로젝트 \"{{name}}\"이(가) 생성되었습니다",
     "projectNamePlaceholder": "프로젝트 이름 입력 (\\ / : * ? \" < > | 사용 불가)",
-    "allProjects": "모든 프로젝트"
+    "allProjects": "모든 프로젝트",
+    "fileType.output": "Output"
   },
   "workbench": {
     "title": "워크벤치",
@@ -187,7 +205,29 @@
     "paperSize": "용지 크기",
     "orientation": "방향",
     "portrait": "세로",
-    "landscape": "가로"
+    "landscape": "가로",
+    "executeAction": "Actions",
+    "dryRunPreview": "Preview Render",
+    "deleteOutput": "Delete Output",
+    "deleteYaml": "Delete YAML",
+    "readyStatus": "Readiness",
+    "excelDesc": "Project config table",
+    "templateDesc": "Template directory",
+    "paraDesc": "Parameter file",
+    "outputDesc": "Output directory",
+    "yamlDesc": "YAML file",
+    "openPara": "Open para",
+    "validateTemplate": "Validate Template",
+    "validateData": "Validate Data",
+    "validationResult": "Validation Result",
+    "clear": "Clear",
+    "readyHint": "Select a project to view readiness",
+    "outputSettings": "Output Settings",
+    "scope": "Scope",
+    "openProjectDir": "Open Project Directory",
+    "scopeHint": "Please select a project from the project browser",
+    "selectedCount": "{{selected}} / {{total}} projects selected",
+    "viewOutput": "查看输出结果"
   },
   "config": {
     "title": "설정",
@@ -256,7 +296,10 @@
     "labelPreview": "라벨 미리보기",
     "totalLabels": "총 {{count}} 개 라벨",
     "labelIndex": "라벨 {{index}}",
-    "noPreviewData": "미리볼 라벨 데이터가 없습니다"
+    "noPreviewData": "미리볼 라벨 데이터가 없습니다",
+    "generateMarkdown": "Generate Markdown",
+    "exportWord": "Export Word",
+    "exportPdf": "Export PDF"
   },
   "render": {
     "title": "렌더링",
@@ -276,5 +319,161 @@
     "confirmDeleteYamlMessage": "모든 YAML 파일을 삭제하시겠습니까?",
     "confirmDeleteSn": "일련번호 삭제 확인",
     "confirmDeleteSnMessage": "모든 일련번호를 삭제하시겠습니까?"
+  },
+  "template": {
+    "noTemplates": "No templates",
+    "readFailed": "Failed to read templates: {{message}}",
+    "createFromTemplate": "Project created from template: {{name}}",
+    "updated": "Template info updated",
+    "confirmDelete": "Confirm delete template \"{{name}}\"?",
+    "deleted": "Template deleted",
+    "enterProjectName": "Enter new project name",
+    "card": {
+      "createProject": "Create Project from Template",
+      "editInfo": "Edit Template Info",
+      "deleteTemplate": "Delete Template",
+      "noScenario": "No scenario set",
+      "noDescription": "No description",
+      "sourceProject": "Source: {{name}}",
+      "unknown": "Unknown",
+      "quality": "Quality: {{score}}"
+    },
+    "detail": {
+      "selectHint": "Select a template to view details",
+      "noDescription": "No description",
+      "scenario": "Scenario",
+      "sourceProject": "Source Project",
+      "structure": "Structure Summary",
+      "inputRequirements": "Input Requirements",
+      "outputDescription": "Output Description",
+      "fileStructure": "File Structure",
+      "notSet": "Not set",
+      "unknown": "Unknown"
+    },
+    "edit": {
+      "title": "Edit Template Info",
+      "name": "Template Name",
+      "namePlaceholder": "Template Name",
+      "description": "Description",
+      "descPlaceholder": "Description",
+      "category": "Category",
+      "public": "Visibility",
+      "publicHint": "Public",
+      "privateHint": "Private",
+      "scenarioPlaceholder": "Scenario",
+      "sourcePlaceholder": "Source Project",
+      "inputPlaceholder": "Input requirements, one per line",
+      "outputPlaceholder": "Output Description",
+      "cancel": "Cancel",
+      "save": "Save"
+    },
+    "list": {
+      "searchPlaceholder": "Search templates",
+      "sortByName": "By Name",
+      "sortByUpdated": "By Updated",
+      "sortBySource": "By Source",
+      "toggleView": "Toggle View"
+    },
+    "category": {
+      "all": "All"
+    },
+    "createProject": "Create Project from Template",
+    "create": "Create",
+    "creating": "Creating...",
+    "publish": "Publish to Market",
+    "publishing": "Publishing...",
+    "publishSuccess": "Template \"{name}\" published successfully",
+    "noFilesToPublish": "No publishable files in template",
+    "pubCategory": {
+      "switch": "Switch",
+      "router": "Router",
+      "firewall": "Firewall",
+      "server": "Server",
+      "other": "Other"
+    }
+  },
+  "projectBatch": {
+    "selectAll": "Select All",
+    "batchRender": "Batch Render",
+    "delete": "Delete"
+  },
+  "projectList": {
+    "searchPlaceholder": "Search projects",
+    "sortByName": "Sort by Name",
+    "sortByDate": "Sort by Date",
+    "newProject": "New Project",
+    "saveAsTemplate": "Save as Template",
+    "importAl": "Import AutoLink Project",
+    "exportPackage": "Export Package",
+    "importPackage": "Import Package"
+  },
+  "excel": {
+    "loading": "Loading Excel file...",
+    "loadFailed": "Failed to read Excel",
+    "retry": "Retry",
+    "timeout": "Read Excel timeout (10s)",
+    "readFailedMsg": "Failed to read Excel: {{message}}",
+    "saveSuccess": "Saved: {{name}}",
+    "saveFailed": "Save failed: {{message}}",
+    "noData": "No data",
+    "rows": "{{count}} rows"
+  },
+  "editor": {
+    "loading": "Loading...",
+    "saveSuccess": "Saved: {{name}}",
+    "saveFailed": "Save failed: {{message}}"
+  },
+  "dependencyAnalysis": {
+    "title": "Dependency Analysis",
+    "desc": "Template ↔ Excel column reverse index",
+    "refresh": "Refresh",
+    "loading": "Analyzing...",
+    "run": "Analyze",
+    "noData": "No data (select a project first)",
+    "templateColumns": "Template columns",
+    "columnTemplates": "Column → templates",
+    "missing": "Missing columns",
+    "unused": "Unused columns",
+    "sources": "Sources",
+    "noTemplates": "No .j2 templates",
+    "error": "Analysis failed"
+  },
+  "proofread": {
+    "title": "Proofread",
+    "refresh": "Proofread",
+    "run": "Run proofread",
+    "loading": "Proofreading...",
+    "noIssues": "✓ No issues found",
+    "errors": "Errors",
+    "warnings": "Warnings",
+    "total": "Issues"
+  },
+  "snippet": {
+    "title": "Snippets",
+    "save": "Save",
+    "savePlaceholder": "Save selection as snippet...",
+    "inserted": "Inserted",
+    "deleted": "Deleted",
+    "saved": "Snippet saved",
+    "empty": "No snippets",
+    "insert": "Insert",
+    "insertContent": "Insert content",
+    "insertInclude": "Insert include",
+    "delete": "Delete"
+  },
+  "templateAsset": {
+    "title": "Template Assets",
+    "versions": "Versions",
+    "preview": "Preview",
+    "snapshot": "Snapshot",
+    "restore": "Restore",
+    "previewRun": "Render preview",
+    "historyEmpty": "No versions yet",
+    "notePlaceholder": "Version note (optional)",
+    "restored": "Version restored",
+    "snapshotted": "Snapshot created",
+    "previewEmpty": "Click render preview to see output",
+    "device": "Device",
+    "showAll": "All"
   }
 }

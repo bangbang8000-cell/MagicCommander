@@ -137,6 +137,30 @@
     "echo": {
       "desc": "Echo text, usage: echo <text>"
     },
-    "unknown": "Unknown command: {{cmd}}"
+    "unknown": "Unknown command: {{cmd}}",
+    "create": {
+      "desc": "Create project: create <name> [--empty] [--template <name>]"
+    },
+    "delete": {
+      "desc": "Delete: delete project|output|yaml|output-sn|yaml-sn|labels|template"
+    },
+    "rm": {
+      "desc": "Alias of delete"
+    },
+    "info": {
+      "desc": "Project info: info <name or id>"
+    },
+    "template": {
+      "desc": "Template management: template list|save <project> <template>|delete <template>"
+    },
+    "validate": {
+      "desc": "Validate: validate template|excel <ids>"
+    },
+    "read": {
+      "desc": "Read file: read <project> <path>"
+    },
+    "cat": {
+      "desc": "Alias of read"
+    }
   }
 }

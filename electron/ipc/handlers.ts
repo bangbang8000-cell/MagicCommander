@@ -39,6 +39,11 @@ import {
 import { readWorkspaceIndex, refreshWorkspaceIndex } from '../services/workspace-index.service'
 import { aiHubService, type AIHubStatus } from '../services/aiHub.service'
 import { diagnosticsService } from '../services/diagnostics.service'
+import {
+  syncContent,
+  rollbackContent,
+  loadLocalState,
+} from '../services/content-sync.service'
 import { healthService } from '../services/health.service'
 import { telemetryService } from '../services/telemetry.service'
 import {
@@ -2056,6 +2061,54 @@ export function setupIpcHandlers(window: BrowserWindow): void {
       return await aiHubService.agentConnectConfig(config)
     },
   )
+
+  // ===== 5.4.16-F5416-11/12：内容资产增量同步（L2 MVP）=====
+  const CONTENT_DIRS = ['template', 'workspace', 'example']
+  function resolveContentDirs(): string[] {
+    // dev：仓库根目录下的内容目录；prod：resourcesPath 下的 extraResources
+    const base = process.env.NODE_ENV === 'development' ? process.cwd() : process.resourcesPath
+    return CONTENT_DIRS.map((d) => path.join(base, d))
+  }
+  const contentStateFile = (): string => path.join(app.getPath('userData'), 'content-state.json')
+
+  ipcMain.handle(
+    'content:sync',
+    async (e, opts: { baseUrl: string }): Promise<unknown> => {
+      if (!isTrustedSender(e)) throw new Error('无权执行该操作')
+      const baseUrl = opts?.baseUrl?.replace(/\/$/, '')
+      if (!baseUrl) throw new Error('缺少平台地址 baseUrl')
+      const contentDir = resolveContentDirs()[0]
+      return await syncContent({
+        manifestUrl: `${baseUrl}/content/manifest`,
+        baseUrl,
+        contentDir,
+        stateFile: contentStateFile(),
+      })
+    },
+  )
+  ipcMain.handle('content:status', async (e): Promise<unknown> => {
+    if (!isTrustedSender(e)) throw new Error('无权执行该操作')
+    const state = loadLocalState(contentStateFile())
+    const contentDir = resolveContentDirs()[0]
+    let fileCount = 0
+    try {
+      const walk = (d: string): void => {
+        for (const f of fs.readdirSync(d, { withFileTypes: true })) {
+          const p = path.join(d, f.name)
+          if (f.isDirectory()) walk(p)
+          else fileCount += 1
+        }
+      }
+      walk(contentDir)
+    } catch {
+      /* 目录不存在 */
+    }
+    return { state, contentDir, fileCount }
+  })
+  ipcMain.handle('content:rollback', async (e): Promise<unknown> => {
+    if (!isTrustedSender(e)) throw new Error('无权执行该操作')
+    return rollbackContent({ stateFile: contentStateFile() })
+  })
 
   // 4.8.0（F8-3 / 48-c）：技能库文件级导出（skills/*.md 打包 zip）
   ipcMain.handle('aihub:exportSkills', async (e): Promise<unknown> => {
