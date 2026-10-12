@@ -15,6 +15,53 @@ from config import WORKSPACE_DIR
 logger = logging.getLogger(__name__)
 
 
+def _check_device_name_uniqueness(project_dir: str, para_df, para_sheet) -> list:
+    """跨工作表扫描"设备名"列，返回重复项警告列表（5.4.4 F1 强化）。
+
+    依据 para.xlsx 的 project_para 表列出参与的工作簿/工作表，逐表读取
+    "设备名"列，若同名设备出现 ≥2 次则告警，确保渲染产物的设备名全局唯一
+    （对齐 AL 侧 F1 设备唯一性守卫语义，MC 渲染域落点为 Excel 数据预检）。
+    """
+    if para_df is None or para_sheet not in para_df:
+        return []
+    sheet = para_df[para_sheet]
+    seen: dict[str, list[str]] = {}
+    for _, row in sheet.iterrows():
+        workbook = str(row.get('工作簿名称', '')).strip()
+        sheet_name_excel = str(row.get('工作表名称', '')).strip()
+        if not workbook or not sheet_name_excel:
+            continue
+        excel_path = os.path.join(project_dir, 'excel', workbook)
+        if not os.path.exists(excel_path):
+            continue
+        try:
+            edf = pd.read_excel(excel_path, sheet_name=None, keep_default_na=False)
+        except Exception:
+            continue
+        if sheet_name_excel not in edf:
+            continue
+        data = edf[sheet_name_excel]
+        if '设备名' not in data.columns:
+            continue
+        for r_idx, (_, r) in enumerate(data.iterrows(), start=2):
+            name = str(r.get('设备名')).strip()
+            if not name:
+                continue
+            loc = f"{workbook}/{sheet_name_excel}/第{r_idx}行"
+            seen.setdefault(name, []).append(loc)
+
+    warnings_out = []
+    for name, locs in seen.items():
+        if len(locs) > 1:
+            warnings_out.append({
+                'type': 'device_name_duplicate',
+                'message': f'设备名重复: {name}（出现 {len(locs)} 次）',
+                'locations': locs,
+                'suggestion': '确保设备名全局唯一',
+            })
+    return warnings_out
+
+
 class PreProcessing:
 
     def __init__(self):
@@ -643,6 +690,16 @@ class PreProcessing:
                     warnings.append({
                         'type': 'missing_dir',
                         'message': '缺少 templates 目录',
+                    })
+
+                # 5.4.4（F1）：设备名全局唯一性检查——跨工作表扫描"设备名"列，重复项告警
+                try:
+                    dup_warnings = _check_device_name_uniqueness(project_dir, df, sheet)
+                    warnings.extend(dup_warnings)
+                except Exception as e:
+                    warnings.append({
+                        'type': 'device_uniqueness_error',
+                        'message': f'设备名唯一性检查失败: {e}',
                     })
 
             except Exception as e:

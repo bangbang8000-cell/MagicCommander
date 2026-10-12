@@ -2,6 +2,21 @@
 
 本文件为发布说明的单一事实来源（`npm run sync-version -- --release-notes` 自动抽取当前版本段）。
 
+## [5.4.4] - 2026-10-12
+
+> **工作台可用性对齐版（追平期 ①）：对齐 AL 5.4.4 工作台可用性修复的可迁移项。**
+> 决策基线：MC-AL 5.4.X 系列向导 D8（MC 先追平，随后双端同号同步）。
+
+### 改进
+
+- **工作台三步步骤条状态徽章（对齐 AL WorkbenchStepBar 语义）**：①配置与就绪 / ②渲染材料与操作 / ③校对与输出 每步新增状态徽章（待开始 / 已就绪 / 进行中 / 需更新），由 `deriveStepConfig` / `deriveStepRender` / `deriveStepResult` 纯函数推导（项目结构完整性、校验进行中、校验错误/警告、渲染进度、输出/YAML 产物）。
+- **Excel 数据校验强化：设备名全局唯一性检查**：`validate excel` 依据 `para.xlsx` 的 project_para 表，跨工作表扫描"设备名"列，同名设备出现 ≥2 次即告警（含出现位置与建议），确保渲染产物的设备名全局唯一。
+
+### 新增
+
+- 新增 `src/utils/workbenchSteps.ts`（步骤状态推导纯函数）+ 单测（`workbenchSteps.test.ts`，6 组 16 断言）。
+- 新增后端单测 `backend/tests/test_device_name_uniqueness_544.py`（5 用例：无重复/同表重复/跨表重复/空名跳过/缺失文件容错）。
+
 ## [5.4.3] - 2026-09-27
 
 > **CLI 契约收敛版（批次 B/C）：命令形态、输出契约与审计全链路对齐 AL。**

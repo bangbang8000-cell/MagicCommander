@@ -21,16 +21,29 @@ import { BatchProgressPanel } from '@/components/ui/BatchProgressPanel'
 import { PipelinePanel } from '@/components/ui/PipelinePanel'
 import { useBatchStore } from '@/stores/batch.store'
 import { ExternalLink, Zap } from 'lucide-react'
+import { deriveStepConfig, deriveStepRender, deriveStepResult, type StepStateInfo } from '@/utils/workbenchSteps'
 
 /** MC-M3h / J-UIX-2: 三步步骤分组标签（与 AL v1.6 对齐：①配置与就绪 / ②渲染材料与操作 / ③校对与输出）
- *  v2.0 M3: 升级为数字徽章 + 标题 + 渐变连接线的步骤条语言（编号由 JSX 传入，与 i18n 文案解耦） */
-function StepLabel({ n, text }: { n: string; text: string }) {
+ *  v2.0 M3: 升级为数字徽章 + 标题 + 渐变连接线的步骤条语言（编号由 JSX 传入，与 i18n 文案解耦）
+ *  5.4.4（F3）: 增加状态徽章（待开始/已就绪/进行中/需更新），对齐 AL WorkbenchStepBar 语义 */
+function StepLabel({ n, text, state }: { n: string; text: string; state?: StepStateInfo }) {
+  const stateColor =
+    state?.state === 'ready'
+      ? 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300'
+      : state?.state === 'running'
+        ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300'
+        : state?.state === 'needs_update'
+          ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300'
+          : 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400'
   return (
     <div className="flex items-center gap-2 mb-2">
       <span className="flex items-center justify-center w-6 h-6 rounded-full bg-primary-500 text-white text-xs font-semibold shadow-sm shrink-0">
         {n}
       </span>
       <span className="text-xs font-semibold text-gray-700 dark:text-gray-200">{text}</span>
+      {state && (
+        <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${stateColor}`}>{state.hint}</span>
+      )}
       <span className="flex-1 h-px bg-gradient-to-r from-primary-200 dark:from-primary-700 to-transparent" />
     </div>
   )
@@ -215,6 +228,14 @@ export const WorkbenchPanel = React.memo(function WorkbenchPanel() {
     }
   }
 
+  // 5.4.4（F3）：三步步骤状态推导（对齐 AL WorkbenchStepBar 语义）
+  const structure = projectInfo?.structure
+  const hasOutput = Boolean(structure?.output)
+  const hasYaml = Boolean(structure?.yaml)
+  const stepConfigState = deriveStepConfig(projectInfo, isValidationRunning, validationResults)
+  const stepRenderState = deriveStepRender(isRendering, progress, hasOutput)
+  const stepResultState = deriveStepResult(isValidationRunning, validationResults, hasOutput, hasYaml)
+
   return (
     <div className={clsx('flex flex-col h-full overflow-auto', isDark ? 'bg-gray-900' : 'bg-white')}>
       {!selectedProject ? (
@@ -224,7 +245,7 @@ export const WorkbenchPanel = React.memo(function WorkbenchPanel() {
         <div className="p-3 space-y-4">
           {/* ① 配置与就绪 */}
           <StepGroup>
-            <StepLabel n="①" text={t('workbench.stepConfig')} />
+            <StepLabel n="①" text={t('workbench.stepConfig')} state={stepConfigState} />
             <WorkbenchScopeCard
               selectedProject={selectedProject}
               projectInfo={projectInfo}
@@ -251,7 +272,7 @@ export const WorkbenchPanel = React.memo(function WorkbenchPanel() {
 
           {/* ② 渲染材料与操作 */}
           <StepGroup>
-            <StepLabel n="②" text={t('workbench.stepRender')} />
+            <StepLabel n="②" text={t('workbench.stepRender')} state={stepRenderState} />
             <WorkbenchOutputCard
               outputFormat={config.outputFormat}
               renderType={config.renderType}
@@ -277,7 +298,7 @@ export const WorkbenchPanel = React.memo(function WorkbenchPanel() {
 
           {/* ③ 校对与输出 */}
           <StepGroup>
-            <StepLabel n="③" text={t('workbench.stepResult')} />
+            <StepLabel n="③" text={t('workbench.stepResult')} state={stepResultState} />
             <WorkbenchDependencyCard selectedProject={selectedProject} isDark={isDark} />
             <WorkbenchProofreadCard selectedProject={selectedProject} isDark={isDark} />
             <WorkbenchLabelCard selectedProjectIds={selectedProjectIds} isDark={isDark} />
