@@ -47,6 +47,9 @@ export async function openMainWindow(app: ElectronApplication): Promise<Page> {
   await main.waitForSelector('#root', { state: 'attached', timeout: 30_000 })
   // 等待初始加载动画隐藏（fixed 全屏遮罩，避免遮挡后续交互）
   await main.locator('.app-loading').waitFor({ state: 'hidden', timeout: 20_000 }).catch(() => {})
+  // 5.4.11-F54-11-3：首启引导 Modal（e2e 全新环境必弹，backdrop 拦截点击 → 先跳过）
+  const skipBtn = main.getByRole('button', { name: /跳过|Skip/ })
+  await skipBtn.waitFor({ state: 'visible', timeout: 15_000 }).then(() => skipBtn.click()).catch(() => {})
   await expect(main.locator('#root')).not.toBeEmpty({ timeout: 150_000 })
   await main.locator('button[title*="Ctrl+Shift+E"]').waitFor({ state: 'visible', timeout: 30_000 })
   return main
